@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MangaCloud Ultra Max v7.4</title>
+  
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <style>
     :root {
       --bg: #0b0b0d;
@@ -94,6 +97,10 @@
     .page { display: none; animation: slideUp 0.4s ease-out; }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* СТИЛИ ПРОФИЛЯ */
+    .profile-card { background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #222; margin-top: 20px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 20px; object-fit: cover; box-shadow: 0 0 20px var(--accent-glow); }
+
     @media (max-width: 950px) {
       main { flex-direction: column; }
       .filters-sidebar { width: 100%; position: static; order: -1; }
@@ -108,6 +115,7 @@
     <a href="#" class="nav-item" onclick="switchPage('catalog')"><i>📂</i><span>Каталог</span></a>
     <a href="#" class="nav-item" onclick="switchPage('hist')"><i>🕒</i><span>История</span></a>
     <a href="#" class="nav-item" onclick="switchPage('fav')"><i>🔖</i><span>Закладки</span></a>
+    <a href="#" class="nav-item" onclick="switchPage('profile')"><i>👤</i><span>Профиль</span></a>
   </nav>
 
   <div id="home-page" class="page" style="display: block;">
@@ -182,6 +190,41 @@
   <div id="hist-page" class="page"><header><h1>История</h1></header><main style="display:block;"><div id="history-list"></div></main></div>
   <div id="fav-page" class="page"><header><h1>Закладки</h1></header><main><div class="grid" id="fav-grid"></div></main></div>
 
+  <div id="profile-page" class="page">
+    <header><h1>Профиль</h1></header>
+    <main style="justify-content: center; align-items: center; min-height: 60vh;">
+      
+      <div id="auth-section" class="profile-card">
+        <h2 style="margin-bottom: 15px;">Вход в аккаунт</h2>
+        <p style="color: var(--text-dim); margin-bottom: 25px; font-size: 0.9rem;">Авторизуйтесь, чтобы ваши закладки и история сохранялись в облаке.</p>
+        
+        <div id="g_id_onload"
+             data-client_id="263581962151-lvpcil2qlnv9btimsvsgtth0bm2cbl3v.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        
+        <div class="g_id_signin" 
+             data-type="standard" 
+             data-theme="filled_black" 
+             data-size="large" 
+             data-text="sign_in_with" 
+             data-shape="rectangular" 
+             data-logo_alignment="left"
+             style="display: flex; justify-content: center;">
+        </div>
+      </div>
+
+      <div id="user-section" class="profile-card" style="display: none;">
+        <img id="profile-avatar" class="profile-avatar" src="" alt="Аватар">
+        <h2 id="profile-name" style="margin-bottom: 10px;">Имя пользователя</h2>
+        <p id="profile-email" style="color: var(--text-dim); margin-bottom: 30px;">email@gmail.com</p>
+        <button class="btn btn-sec" onclick="logoutProfile()">Выйти из аккаунта</button>
+      </div>
+
+    </main>
+  </div>
+
   <div id="title-page" class="page">
     <main style="flex-direction: column;">
       <button class="btn btn-sec" style="width: fit-content; margin-bottom: 25px; padding: 10px 20px;" onclick="switchPage(lastP)">❮ Назад</button>
@@ -242,8 +285,55 @@
     let favs = JSON.parse(localStorage.getItem('m_favs_v7')) || [];
     let rates = JSON.parse(localStorage.getItem('m_rates_v7')) || {};
     let history = JSON.parse(localStorage.getItem('m_hist_v7')) || [];
-    let allComments = JSON.parse(localStorage.getItem('m_comments_v7')) || {}; // КОММЕНТЫ
+    let allComments = JSON.parse(localStorage.getItem('m_comments_v7')) || {};
     let isYearsRendered = false;
+
+    /* --- ЛОГИКА ПРОФИЛЯ И GOOGLE AUTH --- */
+    
+    // 1. Чтение данных из токена
+    function decodeJwtResponse(token) {
+        let base64Url = token.split('.')[1];
+        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    // 2. Обработка успешного входа
+    function handleCredentialResponse(response) {
+        const userData = decodeJwtResponse(response.credential);
+        // Сохраняем пользователя в браузер
+        localStorage.setItem('m_user_v7', JSON.stringify(userData));
+        updateProfileUI(); // Обновляем экран
+    }
+
+    // 3. Выход из аккаунта
+    function logoutProfile() {
+        localStorage.removeItem('m_user_v7');
+        updateProfileUI();
+    }
+
+    // 4. Отрисовка профиля (показываем нужный блок)
+    function updateProfileUI() {
+        const user = JSON.parse(localStorage.getItem('m_user_v7'));
+        const authSec = document.getElementById('auth-section');
+        const userSec = document.getElementById('user-section');
+        
+        if(user) {
+            // Если вошел
+            authSec.style.display = 'none';
+            userSec.style.display = 'block';
+            document.getElementById('profile-avatar').src = user.picture;
+            document.getElementById('profile-name').textContent = user.name;
+            document.getElementById('profile-email').textContent = user.email;
+        } else {
+            // Если не вошел
+            authSec.style.display = 'block';
+            userSec.style.display = 'none';
+        }
+    }
+    /* ------------------------------------ */
 
     function renderYears() {
       if (isYearsRendered) return; 
@@ -307,7 +397,6 @@
       updateStarsUI(); updateFavUI(); renderComments(); switchPage('title');
     }
 
-    // ЛОГИКА КОММЕНТАРИЕВ
     function renderComments() {
       const container = document.getElementById('comments-list');
       const comments = allComments[curId] || [];
@@ -328,8 +417,12 @@
       if(!txt.value.trim()) return;
       if(!allComments[curId]) allComments[curId] = [];
       
+      // Если пользователь вошел, используем его имя, иначе аноним
+      const loggedInUser = JSON.parse(localStorage.getItem('m_user_v7'));
+      const authorName = loggedInUser ? loggedInUser.name : "Пользователь_" + (Math.floor(Math.random()*900) + 100);
+
       allComments[curId].push({
-        user: "Пользователь_" + (Math.floor(Math.random()*900) + 100),
+        user: authorName,
         date: new Date().toLocaleString(),
         text: txt.value.trim()
       });
@@ -398,7 +491,11 @@
     function updateFavUI() { document.getElementById('btn-fav').innerHTML = favs.includes(curId) ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАДКИ'; }
     function liveSearch(q) { renderGrid(Object.values(mangaDb).filter(m => m.title.toLowerCase().includes(q.toLowerCase())), 'home-grid'); }
 
-    window.onload = () => { renderYears(); switchPage('home'); };
+    window.onload = () => { 
+      renderYears(); 
+      updateProfileUI(); // Проверяем, вошел ли пользователь при загрузке
+      switchPage('home'); 
+    };
   </script>
 </body>
 </html>
