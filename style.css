@@ -1,0 +1,237 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #0f0f0f;
+  color: white;
+}
+
+header {
+  background-color: #1a1a1a;
+  padding: 15px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+header p {
+  margin: 5px 0 0;
+  color: #aaa;
+}
+
+main {
+  padding: 15px;
+  padding-bottom: 90px; /* увеличил, чтобы точно не перекрывало нижнее меню */
+}
+
+h2 {
+  color: #ff6b6b;
+  margin-bottom: 10px;
+}
+
+.card {
+  background-color: #1e1e1e;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.card img {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.card h3 {
+  margin: 10px 0 5px;
+  font-size: 1.1rem;
+}
+
+.card p {
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #1a1a1a;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+  z-index: 100;
+}
+
+.bottom-nav a {
+  color: #aaa;
+  text-decoration: none;
+  font-size: 0.8rem;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bottom-nav a span {
+  font-size: 1.5rem;
+}
+
+.bottom-nav a.active {
+  color: #ff6b6b;
+}
+
+/* Карточки адаптивно */
+.card {
+  width: 48%;
+  display: inline-block;
+  margin: 1%;
+  vertical-align: top;
+}
+
+@media (max-width: 600px) {
+  .card {
+    width: 100%;
+    margin: 10px 0;
+  }
+}
+
+.popular-grid {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+}
+
+.popular-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.popular-grid::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 10px;
+}
+
+.new {
+  margin-top: 30px;
+}
+
+section h2 {
+  margin-bottom: 15px;
+  font-size: 1.4rem;
+}
+
+/* Страница тайтла */
+#title-page {
+  background: #121212;
+  padding: 15px;
+  padding-bottom: 100px;
+}
+
+.title-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.title-header img {
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+  margin-bottom: 15px;
+  max-width: 100%;
+}
+
+.title-header h2 {
+  font-size: 1.6rem;
+  margin: 10px 0;
+  color: #ffdd57;
+}
+
+.title-header p {
+  color: #bbb;
+  margin: 6px 0;
+  font-size: 0.95rem;
+}
+
+.chapter-list {
+  list-style: none;
+  margin: 20px 0;
+}
+
+.chapter-list li {
+  padding: 14px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.chapter-list a {
+  color: #4dabf7;
+  text-decoration: none;
+  font-size: 1.05rem;
+}
+
+.chapter-list a:hover {
+  color: #69c0ff;
+}
+
+/* ──────────────────────────────────────────────── */
+/* ЧИТАЛКА — ОСНОВНОЕ ИЗМЕНЕНИЕ ДЛЯ ТЕЛЕФОНА         */
+/* ──────────────────────────────────────────────── */
+
+#reader-page {
+  background: #000;
+  min-height: 100vh;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#reader-content {
+  padding: 70px 0 120px 0;   /* сверху — место под кнопку "Назад", снизу — под меню */
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+#reader-content img {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin: 0 auto 12px;
+  box-sizing: border-box;
+}
+
+/* На планшетах и ПК не даём картинкам становиться слишком широкими */
+@media (min-width: 768px) {
+  #reader-content img {
+    max-width: 768px;
+    margin: 0 auto 20px;
+  }
+}
+
+/* Прилипающий заголовок главы */
+#chapter-title {
+  color: white;
+  text-align: center;
+  margin: 0 0 20px 0;
+  font-size: 1.3rem;
+  position: sticky;
+  top: 50px;
+  background: rgba(0,0,0,0.7);
+  padding: 10px;
+  z-index: 500;
+  border-radius: 0 0 10px 10px;
+}

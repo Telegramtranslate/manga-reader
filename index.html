@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MangaCloud Ultra Max v7.4</title>
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --card-bg: #161618;
+      --glass: rgba(22, 22, 24, 0.8);
+      --accent: #00d2ff;
+      --accent-glow: rgba(0, 210, 255, 0.3);
+      --text: #ffffff;
+      --text-dim: #a0a0a5;
+      --star: #ffcc00;
+      --br: 16px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; line-height: 1.5; }
+
+    /* Скроллбар */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+    header { background: var(--glass); backdrop-filter: blur(20px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
+    header h1 { font-size: 1.5rem; letter-spacing: -1px; }
+    header h1 span { color: var(--accent); text-shadow: 0 0 15px var(--accent-glow); }
+
+    main { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; gap: 30px; }
+    .content-area { flex: 1; }
+
+    /* Фильтры */
+    .filters-sidebar { width: 300px; background: var(--card-bg); border-radius: var(--br); padding: 24px; height: fit-content; position: sticky; top: 100px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .filter-group { margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+    .filter-group:last-child { border: none; }
+    .filter-group h4 { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1.5px; font-weight: 800; }
+    
+    select, input[type="text"], textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 10px; outline: none; margin-bottom: 12px; transition: 0.3s; }
+    select:focus, input[type="text"]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+    
+    .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 180px; overflow-y: auto; padding-right: 5px; }
+    .checkbox-grid label { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; color: var(--text-dim); cursor: pointer; transition: 0.2s; }
+    .checkbox-grid label:hover { color: #fff; }
+    .checkbox-grid input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+    /* Сетка и Карточки */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 25px; }
+    .card { background: var(--card-bg); border-radius: var(--br); overflow: hidden; position: relative; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--accent); box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px var(--accent-glow); }
+    
+    .card-cover { position: relative; padding-top: 145%; overflow: hidden; }
+    .card-cover img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: 0.5s; }
+    .card:hover .card-cover img { transform: scale(1.1); }
+    
+    /* Исправленные бейджи */
+    .badge { position: absolute; z-index: 10; padding: 5px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; backdrop-filter: blur(5px); }
+    .b-status { top: 45px; left: 10px; background: rgba(0, 210, 255, 0.2); border: 1px solid var(--accent); color: #fff; text-shadow: 0 1px 5px #000; }
+    .b-rating { top: 10px; right: 10px; background: rgba(255, 204, 0, 0.9); color: #000; }
+    .b-type { top: 10px; left: 10px; background: rgba(255, 255, 255, 0.9); color: #000; }
+
+    .card-info { padding: 15px; background: linear-gradient(to top, var(--card-bg) 80%, transparent); }
+    .card-info h3 { font-size: 0.95rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+
+    /* Навигация */
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--glass); backdrop-filter: blur(25px); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 999; }
+    .nav-item { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; text-align: center; transition: 0.3s; flex: 1; }
+    .nav-item.active { color: var(--accent); transform: translateY(-3px); }
+    .nav-item i { display: block; font-size: 1.5rem; font-style: normal; margin-bottom: 5px; }
+
+    .stars { display: flex; gap: 6px; justify-content: center; margin: 15px 0; }
+    .star { font-size: 1.8rem; color: #222; cursor: pointer; transition: 0.2s; }
+    .star.active { color: var(--star); filter: drop-shadow(0 0 5px var(--star)); }
+
+    .btn { background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; transition: 0.3s; text-transform: uppercase; font-size: 0.8rem; }
+    .btn:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--accent-glow); }
+    .btn-sec { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+
+    /* КОММЕНТАРИИ СТИЛИ */
+    .comm-section { margin-top: 50px; border-top: 1px solid #222; padding-top: 30px; }
+    .comm-input-area { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid #222; margin-bottom: 30px; }
+    .comm-card { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+    .comm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .comm-user { color: var(--accent); font-weight: 800; font-size: 0.9rem; }
+    .comm-date { color: #555; font-size: 0.75rem; }
+    .comm-text { font-size: 0.95rem; color: #ccc; }
+
+    /* Ридер */
+    #reader { position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; display: none; }
+    .reader-bar { position: sticky; top: 0; background: rgba(0,0,0,0.9); padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+
+    .page { display: none; animation: slideUp 0.4s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 950px) {
+      main { flex-direction: column; }
+      .filters-sidebar { width: 100%; position: static; order: -1; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="bottom-nav">
+    <a href="#" class="nav-item active" onclick="switchPage('home')"><i>🏠</i><span>Главная</span></a>
+    <a href="#" class="nav-item" onclick="switchPage('catalog')"><i>📂</i><span>Каталог</span></a>
+    <a href="#" class="nav-item" onclick="switchPage('hist')"><i>🕒</i><span>История</span></a>
+    <a href="#" class="nav-item" onclick="switchPage('fav')"><i>🔖</i><span>Закладки</span></a>
+  </nav>
+
+  <div id="home-page" class="page" style="display: block;">
+    <header><h1>Manga<span>Cloud</span> Max</h1></header>
+    <main>
+      <div class="content-area">
+        <input type="text" placeholder="Поиск любимого тайтла..." oninput="liveSearch(this.value)">
+        <h2 style="margin-bottom:25px; font-weight: 800; display: flex; align-items: center; gap: 10px;">⚡ Популярное</h2>
+        <div class="grid" id="home-grid"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="catalog-page" class="page">
+    <header><h1>Каталог</h1></header>
+    <main>
+      <div class="content-area">
+        <div class="grid" id="catalog-grid"></div>
+      </div>
+
+      <aside class="filters-sidebar">
+        <div class="filter-group">
+          <h4>Сортировка</h4>
+          <select id="sort-main" onchange="applyFilters()">
+            <option value="popular">Популярные</option>
+            <option value="updated">Обновленные</option>
+            <option value="rating">По рейтингу</option>
+            <option value="new">По новинкам</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <h4>Тип</h4>
+          <div class="checkbox-grid" id="filter-type">
+            <label><input type="checkbox" value="Манга" onchange="applyFilters()"><span>Манга</span></label>
+            <label><input type="checkbox" value="Манхва" onchange="applyFilters()"><span>Манхва</span></label>
+            <label><input type="checkbox" value="Маньхуа" onchange="applyFilters()"><span>Маньхуа</span></label>
+            <label><input type="checkbox" value="OEL-манга" onchange="applyFilters()"><span>OEL</span></label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Жанры</h4>
+          <div class="checkbox-grid" id="filter-genre">
+            <label><input type="checkbox" value="Экшен" onchange="applyFilters()"><span>Экшен</span></label>
+            <label><input type="checkbox" value="Фэнтези" onchange="applyFilters()"><span>Фэнтези</span></label>
+            <label><input type="checkbox" value="Романтика" onchange="applyFilters()"><span>Романтика</span></label>
+            <label><input type="checkbox" value="Драма" onchange="applyFilters()"><span>Драма</span></label>
+            <label><input type="checkbox" value="Исекай" onchange="applyFilters()"><span>Исекай</span></label>
+            <label><input type="checkbox" value="Приключения" onchange="applyFilters()"><span>Приключения</span></label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Статус</h4>
+          <div class="checkbox-grid" id="filter-status">
+            <label><input type="checkbox" value="Завершен" onchange="applyFilters()"><span>Завершен</span></label>
+            <label><input type="checkbox" value="Продолжается" onchange="applyFilters()"><span>В процессе</span></label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Год выпуска</h4>
+          <div class="checkbox-grid" id="filter-year"></div>
+        </div>
+
+        <button class="btn btn-sec" onclick="resetFilters()">Очистить</button>
+      </aside>
+    </main>
+  </div>
+
+  <div id="hist-page" class="page"><header><h1>История</h1></header><main style="display:block;"><div id="history-list"></div></main></div>
+  <div id="fav-page" class="page"><header><h1>Закладки</h1></header><main><div class="grid" id="fav-grid"></div></main></div>
+
+  <div id="title-page" class="page">
+    <main style="flex-direction: column;">
+      <button class="btn btn-sec" style="width: fit-content; margin-bottom: 25px; padding: 10px 20px;" onclick="switchPage(lastP)">❮ Назад</button>
+      <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+        <img id="det-cover" style="width: 280px; border-radius: 20px; box-shadow: 0 20px 50px #000; border: 1px solid #333;">
+        <div style="flex: 1; min-width: 300px;">
+          <h2 id="det-title" style="font-size: 2.5rem; line-height: 1.1; margin-bottom: 10px;"></h2>
+          <p id="det-meta" style="color: var(--accent); font-weight: bold; margin-bottom: 20px;"></p>
+          <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+             <button class="btn" id="btn-fav" onclick="toggleFav()" style="width: auto; padding: 15px 30px;">🔖 В закладки</button>
+          </div>
+          
+          <div style="background: #161618; padding: 30px; border-radius: 20px; text-align: center; border: 1px solid #222;">
+             <div style="font-size: 3rem; font-weight: 900; color: var(--star);"><span id="det-rating-num">0.0</span> <small style="font-size: 1rem; color: #555;">/ 10</small></div>
+             <p id="det-votes" style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">На основе 0 отзывов</p>
+             <div class="stars" id="rating-stars">
+               <span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span>
+               <span class="star" data-v="6">★</span><span class="star" data-v="7">★</span><span class="star" data-v="8">★</span><span class="star" data-v="9">★</span><span class="star" data-v="10">★</span>
+             </div>
+          </div>
+        </div>
+      </div>
+      
+      <h3 style="margin-top: 50px; font-size: 1.5rem;">Список глав</h3>
+      <div id="det-chapters" style="margin-top: 20px; background: var(--card-bg); border-radius: 20px; overflow: hidden; border: 1px solid #222;"></div>
+
+      <div class="comm-section">
+        <h3 style="font-size: 1.5rem; margin-bottom: 20px;">Обсуждение</h3>
+        <div class="comm-input-area">
+          <textarea id="comment-text" placeholder="Написать комментарий..."></textarea>
+          <button class="btn" onclick="saveComment()" style="width:auto; padding: 12px 25px;">Отправить</button>
+        </div>
+        <div id="comments-list"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="reader">
+    <div class="reader-bar">
+      <button onclick="closeReader()" class="btn btn-sec" style="width:auto;">Закрыть</button>
+      <div id="reader-info" style="font-weight: 800; color: var(--accent);"></div>
+    </div>
+    <div class="reader-img-container" id="reader-images"></div>
+    <div style="display: flex; justify-content: center; gap: 20px; padding: 50px; background: #000;">
+      <button class="btn btn-sec" onclick="moveChapter(-1)">❮ Назад</button>
+      <button class="btn" onclick="moveChapter(1)">Далее ❯</button>
+    </div>
+  </div>
+
+  <script>
+    const mangaDb = {
+      "solo-leveling": { id: "solo-leveling", title: "Поднятие уровня в одиночку", cover: "https://com-x.life/uploads/posts/2022-09/1664280226_2.jpg", type: "Манхва", status: "Завершен", year: 2018, age: "16+", genres: ["Экшен", "Фэнтези"], baseRating: 9.8, baseVotes: 1240, updatedAt: 1710000000, chapters: {1: ["https://files.catbox.moe/t6cck1.jfif"], 2: ["https://files.catbox.moe/qc48an.jfif"]} },
+      "martial-peak": { id: "martial-peak", title: "Пик боевых искусств", cover: "https://remanga.org/media/titles/martial_peak/626786c6-9464-469b-90f7-66a90802d334.jpg", type: "Маньхуа", status: "Продолжается", year: 2018, age: "16+", genres: ["Экшен", "Приключения"], baseRating: 9.1, baseVotes: 850, updatedAt: 1716000000, chapters: {1: ["https://files.catbox.moe/ufii49.jfif"]} },
+      "berserk": { id: "berserk", title: "Берсерк", cover: "https://remanga.org/media/titles/berserk/eb80798e-4903-45f8-97c7-0245084930d6.jpg", type: "Манга", status: "Продолжается", year: 1989, age: "18+", genres: ["Драма", "Экшен"], baseRating: 9.9, baseVotes: 3000, updatedAt: 1715000000, chapters: {1: ["https://files.catbox.moe/y11vfj.jfif"]} }
+    };
+
+    let curId = null, curCh = 1, lastP = 'home';
+    let favs = JSON.parse(localStorage.getItem('m_favs_v7')) || [];
+    let rates = JSON.parse(localStorage.getItem('m_rates_v7')) || {};
+    let history = JSON.parse(localStorage.getItem('m_hist_v7')) || [];
+    let allComments = JSON.parse(localStorage.getItem('m_comments_v7')) || {}; // КОММЕНТЫ
+    let isYearsRendered = false;
+
+    function renderYears() {
+      if (isYearsRendered) return; 
+      const box = document.getElementById('filter-year');
+      if (!box) return;
+      let html = '';
+      for(let y=2026; y>=2018; y--) { html += `<label><input type="checkbox" value="${y}" onchange="applyFilters()"><span>${y}</span></label>`; }
+      box.innerHTML = html;
+      isYearsRendered = true;
+    }
+
+    function getRating(id) {
+      const m = mangaDb[id];
+      if(!rates[id]) return { avg: m.baseRating.toFixed(1), total: m.baseVotes };
+      const total = m.baseVotes + 1;
+      const avg = ((m.baseRating * m.baseVotes) + rates[id]) / total;
+      return { avg: avg.toFixed(1), total: total };
+    }
+
+    function switchPage(p) {
+      document.querySelectorAll('.page').forEach(el => el.style.display = 'none');
+      document.getElementById(p + '-page').style.display = 'block';
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      const nav = document.querySelector(`[onclick="switchPage('${p}')"]`);
+      if(nav) nav.classList.add('active');
+      if(p !== 'title') lastP = p;
+      if(p === 'home') renderGrid(Object.values(mangaDb), 'home-grid');
+      if(p === 'catalog') applyFilters(); 
+      if(p === 'fav') renderGrid(favs.map(id => mangaDb[id]), 'fav-grid');
+      if(p === 'hist') renderHistory();
+      window.scrollTo(0,0);
+    }
+
+    function renderGrid(list, target) {
+      document.getElementById(target).innerHTML = list.map(m => `
+        <div class="card" onclick="openTitle('${m.id}')">
+          <span class="badge b-rating">★ ${getRating(m.id).avg}</span>
+          <span class="badge b-type">${m.type}</span>
+          <span class="badge b-status">${m.status}</span>
+          <div class="card-cover"><img src="${m.cover}"></div>
+          <div class="card-info"><h3>${m.title}</h3></div>
+        </div>
+      `).join('');
+    }
+
+    function openTitle(id) {
+      curId = id; const m = mangaDb[id]; const r = getRating(id);
+      document.getElementById('det-cover').src = m.cover;
+      document.getElementById('det-title').textContent = m.title;
+      document.getElementById('det-meta').textContent = `${m.type} • ${m.year} • ${m.status}`;
+      document.getElementById('det-rating-num').textContent = r.avg;
+      document.getElementById('det-votes').textContent = `Всего голосов: ${r.total}`;
+      
+      const chList = document.getElementById('det-chapters');
+      chList.innerHTML = Object.keys(m.chapters).sort((a,b)=>b-a).map(n => `
+        <div onclick="openChapter(${n})" style="padding:20px; border-bottom:1px solid #222; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:600;">Глава ${n}</span><span style="color:var(--accent); font-size:0.8rem;">ЧИТАТЬ →</span>
+        </div>
+      `).join('');
+      
+      updateStarsUI(); updateFavUI(); renderComments(); switchPage('title');
+    }
+
+    // ЛОГИКА КОММЕНТАРИЕВ
+    function renderComments() {
+      const container = document.getElementById('comments-list');
+      const comments = allComments[curId] || [];
+      if(!comments.length) {
+        container.innerHTML = `<p style="text-align:center; color:gray; padding:20px;">Пока нет комментариев. Будьте первым!</p>`;
+        return;
+      }
+      container.innerHTML = comments.map(c => `
+        <div class="comm-card">
+          <div class="comm-header"><span class="comm-user">${c.user}</span><span class="comm-date">${c.date}</span></div>
+          <div class="comm-text">${c.text}</div>
+        </div>
+      `).reverse().join('');
+    }
+
+    function saveComment() {
+      const txt = document.getElementById('comment-text');
+      if(!txt.value.trim()) return;
+      if(!allComments[curId]) allComments[curId] = [];
+      
+      allComments[curId].push({
+        user: "Пользователь_" + (Math.floor(Math.random()*900) + 100),
+        date: new Date().toLocaleString(),
+        text: txt.value.trim()
+      });
+      
+      localStorage.setItem('m_comments_v7', JSON.stringify(allComments));
+      txt.value = "";
+      renderComments();
+    }
+
+    function applyFilters() {
+      let data = Object.values(mangaDb);
+      const sort = document.getElementById('sort-main').value;
+      const getChecks = (id) => Array.from(document.querySelectorAll(`${id} input:checked`)).map(i => i.value);
+      const types = getChecks('#filter-type'), statuses = getChecks('#filter-status'), years = getChecks('#filter-year'), genres = getChecks('#filter-genre');
+
+      if(types.length) data = data.filter(m => types.includes(m.type));
+      if(statuses.length) data = data.filter(m => statuses.includes(m.status));
+      if(years.length) data = data.filter(m => years.includes(m.year.toString()));
+      if(genres.length) data = data.filter(m => genres.some(g => m.genres.includes(g)));
+      if(sort === 'rating') data.sort((a,b) => getRating(b.id).avg - getRating(a.id).avg);
+      if(sort === 'new') data.sort((a,b) => b.year - a.year);
+      if(sort === 'updated') data.sort((a,b) => b.updatedAt - a.updatedAt);
+      renderGrid(data, 'catalog-grid');
+    }
+
+    document.querySelectorAll('.star').forEach(s => {
+      s.onclick = function() {
+        rates[curId] = parseInt(this.dataset.v);
+        localStorage.setItem('m_rates_v7', JSON.stringify(rates));
+        openTitle(curId);
+      }
+    });
+
+    function updateStarsUI() {
+      const v = rates[curId] || 0;
+      document.querySelectorAll('.star').forEach(s => s.classList.toggle('active', s.dataset.v <= v));
+    }
+
+    function openChapter(n) {
+      curCh = parseInt(n);
+      history = history.filter(h => h.id !== curId);
+      history.unshift({ id: curId, ch: curCh, time: Date.now() });
+      localStorage.setItem('m_hist_v7', JSON.stringify(history));
+      document.getElementById('reader-info').textContent = `${mangaDb[curId].title} — Глава ${curCh}`;
+      document.getElementById('reader-images').innerHTML = mangaDb[curId].chapters[curCh].map(s => `<img src="${s}" style="width:100%; display:block; margin-bottom:2px;">`).join('');
+      document.getElementById('reader').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history-list');
+      if(!history.length) { container.innerHTML = "<p style='padding:40px; text-align:center; color:gray;'>Вы еще ничего не читали</p>"; return; }
+      container.innerHTML = history.map(h => {
+        const m = mangaDb[h.id];
+        return `<div onclick="openTitle('${m.id}')" style="display:flex; gap:20px; background:var(--card-bg); margin-bottom:15px; padding:15px; border-radius:15px; cursor:pointer; align-items:center; border:1px solid #222;">
+          <img src="${m.cover}" style="width:60px; height:80px; object-fit:cover; border-radius:10px;">
+          <div><h4 style="margin-bottom:5px;">${m.title}</h4><p style="color:var(--accent); font-size:0.85rem;">Остановились на ${h.ch} главе</p></div>
+        </div>`;
+      }).join('');
+    }
+
+    function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); }
+    function closeReader() { document.getElementById('reader').style.display = 'none'; document.body.style.overflow = 'auto'; }
+    function moveChapter(d) { if(mangaDb[curId].chapters[curCh+d]) openChapter(curCh+d); }
+    function toggleFav() { favs = favs.includes(curId) ? favs.filter(i => i !== curId) : [...favs, curId]; localStorage.setItem('m_favs_v7', JSON.stringify(favs)); updateFavUI(); }
+    function updateFavUI() { document.getElementById('btn-fav').innerHTML = favs.includes(curId) ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАДКИ'; }
+    function liveSearch(q) { renderGrid(Object.values(mangaDb).filter(m => m.title.toLowerCase().includes(q.toLowerCase())), 'home-grid'); }
+
+    window.onload = () => { renderYears(); switchPage('home'); };
+  </script>
+</body>
+</html>
