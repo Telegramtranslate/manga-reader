@@ -60,7 +60,7 @@
 
     /* Grid & Cards */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px; }
-    .card { background: var(--card-bg); border-radius: var(--br); overflow: hidden; position: relative; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); transition: var(--transition); isolation: isolate; }
+    .card { background: var(--card-bg); border-radius: var(--br); overflow: hidden; position: relative; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); transition: var(--transition); isolation: isolate; display: flex; flex-direction: column; }
     .card:hover { transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 25px var(--accent-glow); }
     
     .card-cover { position: relative; padding-top: 145%; overflow: hidden; background: #1a1a1c; }
@@ -71,8 +71,8 @@
     .b-status { top: 12px; left: 12px; background: rgba(0, 210, 255, 0.25); border: 1px solid var(--accent); color: #fff; }
     .b-rating { top: 12px; right: 12px; background: rgba(255, 204, 0, 0.95); color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-    .card-info { padding: 18px; background: linear-gradient(to top, var(--card-bg) 70%, transparent); }
-    .card-info h3 { font-size: 1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-info { padding: 18px; background: linear-gradient(to top, var(--card-bg) 70%, transparent); flex-grow: 1; display: flex; align-items: center; }
+    .card-info h3 { font-size: 1rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3; }
 
     /* Navigation */
     .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--glass); backdrop-filter: blur(30px); display: flex; justify-content: space-around; padding: 12px 5px; border-top: 1px solid rgba(255,255,255,0.08); z-index: 999; transition: transform 0.3s ease; }
@@ -115,12 +115,32 @@
     .title-info-block { flex: 1; min-width: 300px; }
     .rating-box { background: #1c1c1e; padding: 30px; border-radius: 24px; text-align: center; border: 1px solid #2a2a2d; margin-top:30px; }
 
+    /* Адаптация под планшеты */
     @media (max-width: 950px) {
       main { flex-direction: column; padding: 15px; }
       .filters-sidebar { width: 100%; position: static; order: -1; margin-bottom: 20px; }
-      .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
       .title-header-layout { justify-content: center; text-align: center; }
       .reader-nav-btns .btn { width: 100%; max-width: none !important; }
+    }
+
+    /* Адаптация под мобильные телефоны (гарантированно 2 в ряд) */
+    @media (max-width: 600px) {
+      main { padding: 10px; }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } /* Жестко 2 колонки */
+      
+      .card-info { padding: 12px 10px; }
+      .card-info h3 { font-size: 0.85rem; }
+      
+      .badge { padding: 4px 8px; font-size: 0.65rem; }
+      .b-status { top: 8px; left: 8px; }
+      .b-rating { top: 8px; right: 8px; }
+
+      .title-cover-img { width: 100%; max-width: 240px; } /* Уменьшаем обложку на странице тайтла */
+      .title-info-block { min-width: 100%; }
+      #det-title { font-size: 2rem !important; }
+      .rating-box { padding: 20px; }
+      .star { font-size: 1.8rem; }
     }
   </style>
 </head>
@@ -267,10 +287,47 @@
     <div id="reader-images" style="max-width: 900px; margin: 0 auto; min-height: 100vh;"></div>
     <div class="reader-nav-btns">
       <button class="btn btn-sec" id="btn-prev-ch" style="max-width: 200px;" onclick="moveChapter(-1)">❮ Предыдущая</button>
-      <button class="btn btn-sec" style="max-width: 200px;" onclick="closeReader()">📂 К списку глав</button>
+      <button class="btn btn-sec" style="max-width: 200px;" onclick="closeReader()">📂 К списку</button>
       <button class="btn" id="btn-next-ch" style="max-width: 200px;" onclick="moveChapter(1)">Следующая ❯</button>
     </div>
   </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0", 
+      projectId: "oauth-489621",
+      authDomain: "oauth-489621.firebaseapp.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Делаем функцию глобальной, чтобы основной скрипт мог ее вызвать
+    window.saveManga = async function(mangaTitle) {
+      const user = JSON.parse(localStorage.getItem('m_user_v7')); 
+      if (!user) {
+          // Если не вошел, просто тихо выходим, чтобы локальные закладки продолжали работать
+          console.log("Для облачного сохранения нужно войти через Google");
+          return;
+      }
+
+      const userRef = doc(db, "users_data", user.sub);
+      
+      try {
+          await setDoc(userRef, {
+              favorites: arrayUnion(mangaTitle)
+          }, { merge: true });
+          // Оставим алерт, как ты просил, но можно заменить на красивое всплывающее уведомление
+          alert("Сохранено в облаке Firebase!"); 
+      } catch (e) {
+          console.error("Ошибка Firebase:", e);
+          alert("Зайди во вкладку Rules в Google Cloud и разреши запись!");
+      }
+    };
+  </script>
 
   <script>
     const mangaDb = {
@@ -289,50 +346,7 @@
             "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/1.jpg",
             "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/2.jpg",
             "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/3.jpg",
-            "https://files.catbox.moe/cyw549.jpg",
-            "https://files.catbox.moe/r1g02x.jpg",
-            "https://files.catbox.moe/svfg50.jpg",
-            "https://files.catbox.moe/5ty3qs.jpg",
-            "https://files.catbox.moe/g0x1wz.jpg",
-            "https://files.catbox.moe/7k3845.jpg",
-            "https://files.catbox.moe/qvprq8.jpg",
-            "https://files.catbox.moe/syaw95.jpg",
-            "https://files.catbox.moe/eiprud.jpg",
-            "https://files.catbox.moe/a0je2h.jpg",
-            "https://files.catbox.moe/hrlv57.jpg",
-            "https://files.catbox.moe/g147jw.jpg",
-            "https://files.catbox.moe/94wccd.jpg",
-            "https://files.catbox.moe/7lwwpe.jpg",
-            "https://files.catbox.moe/a82yfr.jpg",
-            "https://files.catbox.moe/sk0rls.jpg",
-            "https://files.catbox.moe/qxmun5.jpg",
-            "https://files.catbox.moe/l0x5at.jpg",
-            "https://files.catbox.moe/g9evq5.jpg",
-            "https://files.catbox.moe/veppd2.jpg",
-            "https://files.catbox.moe/q7jozc.jpg",
-            "https://files.catbox.moe/8j46hm.jpg",
-            "https://files.catbox.moe/gctr2x.jpg",
-            "https://files.catbox.moe/ez53er.jpg",
-            "https://files.catbox.moe/zlkuiu.jpg",
-            "https://files.catbox.moe/yeq9wk.jpg",
-            "https://files.catbox.moe/q5npqq.jpg",
-            "https://files.catbox.moe/ti6b2f.jpg",
-            "https://files.catbox.moe/1l0x1d.jpg",
-            "https://files.catbox.moe/dy6rpg.jpg",
-            "https://files.catbox.moe/7ohid3.jpg",
-            "https://files.catbox.moe/a3phg8.jpg",
-            "https://files.catbox.moe/vd24kp.jpg",
-            "https://files.catbox.moe/nvt8tm.jpg",
-            "https://files.catbox.moe/z35orp.jpg",
-            "https://files.catbox.moe/917c5u.jpg",
-            "https://files.catbox.moe/bkfybc.jpg",
-            "https://files.catbox.moe/odqg83.jpg",
-            "https://files.catbox.moe/59duqt.jpg",
-            "https://files.catbox.moe/bu5cji.jpg",
-            "https://files.catbox.moe/w4pln4.jpg",
-            "https://files.catbox.moe/4o4u8y.jpg",
-            "https://files.catbox.moe/p8lw0r.jpg",
-            "https://files.catbox.moe/opqq8k.jpg"
+            "https://files.catbox.moe/cyw549.jpg"
           ]
         }
       },
@@ -438,7 +452,7 @@
       container.innerHTML = list.length ? list.map(m => `
         <div class="card" onclick="openTitle('${m.id}')">
           <span class="badge b-rating">★ ${rates[m.id] || m.baseRating}</span>
-          <span class="badge b-status" style="top:42px">${m.status}</span>
+          <span class="badge b-status">${m.status}</span>
           <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="manga"></div>
           <div class="card-info"><h3>${m.title}</h3></div>
         </div>
@@ -480,7 +494,6 @@
       document.body.style.overflow = 'hidden';
       document.getElementById('reader').scrollTop = 0;
       
-      // Логика кнопок
       document.getElementById('btn-prev-ch').style.visibility = mangaDb[curId].chapters[curCh - 1] ? 'visible' : 'hidden';
       document.getElementById('btn-next-ch').style.visibility = mangaDb[curId].chapters[curCh + 1] ? 'visible' : 'hidden';
     }
@@ -526,9 +539,17 @@
     }
 
     function toggleFav() { 
-      favs = favs.includes(curId) ? favs.filter(i => i !== curId) : [...favs, curId]; 
+      // Добавляем или убираем из локального хранилища
+      const isCurrentlyFav = favs.includes(curId);
+      favs = isCurrentlyFav ? favs.filter(i => i !== curId) : [...favs, curId]; 
       localStorage.setItem('m_favs_v7', JSON.stringify(favs)); 
       updateFavUI(); 
+      
+      // ИНТЕГРАЦИЯ FIREBASE: Отправляем в облако, если добавили (а не удалили) в закладки
+      if (!isCurrentlyFav && window.saveManga) {
+          const mangaTitle = mangaDb[curId].title;
+          window.saveManga(mangaTitle);
+      }
     }
 
     function updateFavUI() { 
