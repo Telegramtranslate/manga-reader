@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MangaCloud Ultra Max v7.5 - Enhanced Edition</title>
+  <title>MangaCloud Ultra Max v8.5 - Pro Edition</title>
   
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
@@ -32,7 +32,7 @@
     ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
     /* Header */
-    header { background: var(--glass); backdrop-filter: blur(25px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; }
+    header { background: var(--glass); backdrop-filter: blur(25px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; transition: var(--transition); }
     header h1 { font-size: 1.6rem; letter-spacing: -1px; font-weight: 900; }
     header h1 span { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
 
@@ -87,10 +87,15 @@
     .btn-sec { background: rgba(255,255,255,0.06); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
     .btn-sec:hover { background: rgba(255,255,255,0.12); }
 
-    /* Reader */
-    #reader { position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; scroll-behavior: smooth; display: none; }
+    /* Reader Enhanced */
+    #reader { position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; scroll-behavior: auto; display: none; }
     .reader-bar { position: sticky; top: 0; background: rgba(0,0,0,0.95); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a1a1c; z-index: 10; backdrop-filter: blur(10px); }
-    .reader-nav-btns { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 60px 20px; background: #000; flex-wrap: wrap; }
+    
+    /* PROGRESS BAR ADDED HERE */
+    .reader-progress-container { position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.1); }
+    .reader-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: 0.1s; box-shadow: 0 0 10px var(--accent-glow); }
+
+    .reader-nav-btns { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 40px 20px 80px; background: linear-gradient(transparent, #000 20%); flex-wrap: wrap; }
 
     .empty-state { width: 100%; text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 1.2rem; background: var(--card-bg); border-radius: var(--br); border: 1px dashed rgba(255,255,255,0.1); }
     
@@ -115,6 +120,16 @@
     .title-info-block { flex: 1; min-width: 300px; }
     .rating-box { background: #1c1c1e; padding: 30px; border-radius: 24px; text-align: center; border: 1px solid #2a2a2d; margin-top:30px; }
 
+    /* TOAST NOTIFICATIONS */
+    #toast-container { position: fixed; bottom: 90px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: var(--card-bg); color: #fff; padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-left: 4px solid var(--accent); animation: slideInRight 0.4s ease forwards; transition: 0.4s ease; font-weight: 600; font-size: 0.9rem; }
+    .toast.error { border-left-color: #ff4d4d; }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* BACK TO TOP BUTTON */
+    #btn-scroll-top { position: fixed; bottom: 80px; right: 20px; background: var(--accent); color: #000; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 15px var(--accent-glow); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 900; }
+    #btn-scroll-top.visible { opacity: 1; visibility: visible; }
+
     /* Адаптация под планшеты */
     @media (max-width: 950px) {
       main { flex-direction: column; padding: 15px; }
@@ -127,24 +142,27 @@
     /* Адаптация под мобильные телефоны (гарантированно 2 в ряд) */
     @media (max-width: 600px) {
       main { padding: 10px; }
-      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } /* Жестко 2 колонки */
-      
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .card-info { padding: 12px 10px; }
       .card-info h3 { font-size: 0.85rem; }
-      
       .badge { padding: 4px 8px; font-size: 0.65rem; }
       .b-status { top: 8px; left: 8px; }
       .b-rating { top: 8px; right: 8px; }
-
-      .title-cover-img { width: 100%; max-width: 240px; } /* Уменьшаем обложку на странице тайтла */
+      .title-cover-img { width: 100%; max-width: 240px; }
       .title-info-block { min-width: 100%; }
       #det-title { font-size: 2rem !important; }
       .rating-box { padding: 20px; }
       .star { font-size: 1.8rem; }
+      #toast-container { bottom: 80px; left: 20px; right: 20px; align-items: center; }
+      .toast { width: 100%; text-align: center; animation: slideUpToast 0.4s ease forwards; }
+      @keyframes slideUpToast { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     }
   </style>
 </head>
 <body>
+
+  <div id="toast-container"></div>
+  <button id="btn-scroll-top" onclick="window.scrollTo(0,0)">↑</button>
 
   <nav class="bottom-nav" id="bottom-nav">
     <a href="javascript:void(0)" class="nav-item active" onclick="switchPage('home')"><i>🏠</i><span>Главная</span></a>
@@ -281,13 +299,17 @@
 
   <div id="reader">
     <div class="reader-bar">
-      <button onclick="closeReader()" class="btn btn-sec" style="width:auto; padding: 10px 20px;">✕ Назад</button>
-      <div id="reader-info" style="font-weight: 700; color: var(--accent); font-size: 0.9rem; text-align: center; flex: 1;"></div>
-      <div style="width: 80px;"></div> </div>
+      <button onclick="closeReader()" class="btn btn-sec" style="width:auto; padding: 10px 20px; font-weight: 800;">✕ Выход</button>
+      <div id="reader-info" style="font-weight: 700; color: var(--text); font-size: 1rem; text-align: center; flex: 1;"></div>
+      <div style="width: 90px; text-align: right; color: var(--text-dim); font-size: 0.85rem;" id="reader-progress-text">0%</div>
+      <div class="reader-progress-container">
+          <div class="reader-progress-fill" id="reader-progress-fill"></div>
+      </div>
+    </div>
     <div id="reader-images" style="max-width: 900px; margin: 0 auto; min-height: 100vh;"></div>
     <div class="reader-nav-btns">
       <button class="btn btn-sec" id="btn-prev-ch" style="max-width: 200px;" onclick="moveChapter(-1)">❮ Предыдущая</button>
-      <button class="btn btn-sec" style="max-width: 200px;" onclick="closeReader()">📂 К списку</button>
+      <button class="btn btn-sec" style="max-width: 200px; background: rgba(255,255,255,0.1);" onclick="closeReader()">📂 К списку</button>
       <button class="btn" id="btn-next-ch" style="max-width: 200px;" onclick="moveChapter(1)">Следующая ❯</button>
     </div>
   </div>
@@ -305,31 +327,70 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Делаем функцию глобальной, чтобы основной скрипт мог ее вызвать
     window.saveManga = async function(mangaTitle) {
-      const user = JSON.parse(localStorage.getItem('m_user_v7')); 
+      const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if (!user) {
-          // Если не вошел, просто тихо выходим, чтобы локальные закладки продолжали работать
-          console.log("Для облачного сохранения нужно войти через Google");
+          window.showToast("Сначала войди через Google для облачных сохранений!", "error");
           return;
       }
 
       const userRef = doc(db, "users_data", user.sub);
-      
       try {
-          await setDoc(userRef, {
-              favorites: arrayUnion(mangaTitle)
-          }, { merge: true });
-          // Оставим алерт, как ты просил, но можно заменить на красивое всплывающее уведомление
-          alert("Сохранено в облаке Firebase!"); 
+          await setDoc(userRef, { favorites: arrayUnion(mangaTitle) }, { merge: true });
+          window.showToast("Успешно сохранено в облаке!");
       } catch (e) {
-          console.error("Ошибка Firebase:", e);
-          alert("Зайди во вкладку Rules в Google Cloud и разреши запись!");
+          console.error("Ошибка:", e);
+          window.showToast("Ошибка Firebase. Проверьте вкладку Rules.", "error");
       }
     };
   </script>
 
   <script>
+    // --- Utils & UI Enhancements ---
+    window.showToast = function(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    };
+
+    // Scroll to Top feature
+    window.addEventListener('scroll', () => {
+        const btn = document.getElementById('btn-scroll-top');
+        if (window.scrollY > 500) btn.classList.add('visible');
+        else btn.classList.remove('visible');
+    });
+
+    // Reader Progress Bar feature
+    const readerElement = document.getElementById('reader');
+    readerElement.addEventListener('scroll', () => {
+        const scrollTop = readerElement.scrollTop;
+        const scrollHeight = readerElement.scrollHeight - readerElement.clientHeight;
+        const scrollPercentage = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        document.getElementById('reader-progress-fill').style.width = scrollPercentage + '%';
+        document.getElementById('reader-progress-text').textContent = Math.round(scrollPercentage) + '%';
+
+        // Save position continuously (debounced slightly)
+        if(curId && curCh) {
+            localStorage.setItem(`scroll_${curId}_${curCh}`, scrollTop);
+        }
+    });
+
+    // Keyboard controls for reader
+    document.addEventListener('keydown', (e) => {
+        if (readerElement.style.display === 'block') {
+            if (e.key === 'ArrowRight' || e.key === 'd') moveChapter(1);
+            if (e.key === 'ArrowLeft' || e.key === 'a') moveChapter(-1);
+            if (e.key === 'Escape') closeReader();
+        }
+    });
+
+    // --- DB ---
     const mangaDb = {
       "slime_color": {
         id: "slime_color",
@@ -343,14 +404,10 @@
         updatedAt: Date.now(),
         chapters: {
           1: [
-            "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/1.jpg",
-            "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/2.jpg",
-            "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/3.jpg",
-            "https://files.catbox.moe/cyw549.jpg"
+            "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/1.jpg", "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/2.jpg", "https://img.mangabuff.ru/chapters/tensei-shitara-slime-datta-ken/1/1/3.jpg", "https://files.catbox.moe/cyw549.jpg", "https://files.catbox.moe/r1g02x.jpg", "https://files.catbox.moe/svfg50.jpg", "https://files.catbox.moe/5ty3qs.jpg", "https://files.catbox.moe/g0x1wz.jpg", "https://files.catbox.moe/7k3845.jpg", "https://files.catbox.moe/qvprq8.jpg", "https://files.catbox.moe/syaw95.jpg", "https://files.catbox.moe/eiprud.jpg", "https://files.catbox.moe/a0je2h.jpg", "https://files.catbox.moe/hrlv57.jpg", "https://files.catbox.moe/g147jw.jpg", "https://files.catbox.moe/94wccd.jpg", "https://files.catbox.moe/7lwwpe.jpg", "https://files.catbox.moe/a82yfr.jpg", "https://files.catbox.moe/sk0rls.jpg", "https://files.catbox.moe/qxmun5.jpg", "https://files.catbox.moe/l0x5at.jpg", "https://files.catbox.moe/g9evq5.jpg", "https://files.catbox.moe/veppd2.jpg", "https://files.catbox.moe/q7jozc.jpg", "https://files.catbox.moe/8j46hm.jpg", "https://files.catbox.moe/gctr2x.jpg", "https://files.catbox.moe/ez53er.jpg", "https://files.catbox.moe/zlkuiu.jpg", "https://files.catbox.moe/yeq9wk.jpg", "https://files.catbox.moe/q5npqq.jpg", "https://files.catbox.moe/ti6b2f.jpg", "https://files.catbox.moe/1l0x1d.jpg", "https://files.catbox.moe/dy6rpg.jpg", "https://files.catbox.moe/7ohid3.jpg", "https://files.catbox.moe/a3phg8.jpg", "https://files.catbox.moe/vd24kp.jpg", "https://files.catbox.moe/nvt8tm.jpg", "https://files.catbox.moe/z35orp.jpg", "https://files.catbox.moe/917c5u.jpg", "https://files.catbox.moe/bkfybc.jpg", "https://files.catbox.moe/odqg83.jpg", "https://files.catbox.moe/59duqt.jpg", "https://files.catbox.moe/bu5cji.jpg", "https://files.catbox.moe/w4pln4.jpg", "https://files.catbox.moe/4o4u8y.jpg", "https://files.catbox.moe/p8lw0r.jpg", "https://files.catbox.moe/opqq8k.jpg"
           ]
         }
       },
-      
       "berserk": {
         id: "berserk",
         title: "Берсерк",
@@ -368,12 +425,11 @@
     };
 
     let curId = null, curCh = 1, lastP = 'home';
-    
     const getStorage = (key, fallback) => {
       try { return JSON.parse(localStorage.getItem(key)) || fallback; } 
       catch { return fallback; }
     };
-
+    
     let favs = getStorage('m_favs_v7', []);
     let rates = getStorage('m_rates_v7', {});
     let history = getStorage('m_hist_v7', []);
@@ -383,9 +439,14 @@
       const payload = JSON.parse(window.atob(response.credential.split('.')[1]));
       localStorage.setItem('m_user_v7', JSON.stringify(payload));
       updateProfileUI();
+      window.showToast(`С возвращением, ${payload.name}!`);
     }
 
-    function logoutProfile() { localStorage.removeItem('m_user_v7'); updateProfileUI(); }
+    function logoutProfile() { 
+      localStorage.removeItem('m_user_v7'); 
+      updateProfileUI(); 
+      window.showToast('Вы вышли из профиля', 'error');
+    }
 
     function updateProfileUI() {
       const user = getStorage('m_user_v7', null);
@@ -423,6 +484,7 @@
           localStorage.setItem('m_rates_v7', JSON.stringify(rates));
           updateStarsUI();
           document.getElementById('det-rating-num').textContent = rates[curId];
+          window.showToast(`Вы оценили тайтл на ${rates[curId]}/10`);
         };
         starsContainer.appendChild(star);
       }
@@ -436,7 +498,6 @@
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
       const nav = document.querySelector(`.nav-item[onclick*="'${p}'"]`);
       if(nav) nav.classList.add('active');
-      
       if(p !== 'title') lastP = p;
       if(p === 'home') renderGrid(Object.values(mangaDb), 'home-grid');
       if(p === 'catalog') applyFilters();
@@ -469,12 +530,16 @@
       document.getElementById('det-votes').textContent = `Всего голосов: ${m.baseVotes + (rates[id]?1:0)}`;
       
       const chList = document.getElementById('det-chapters');
-      chList.innerHTML = Object.keys(m.chapters).sort((a,b)=>b-a).map(n => `
-        <div onclick="openChapter(${n})" style="padding:22px; border-bottom:1px solid #222; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='none'">
-          <span style="font-weight:700; font-size: 1.1rem;">Глава ${n}</span>
-          <span style="color:var(--accent); font-size:0.85rem; font-weight: 800; letter-spacing: 1px;">ЧИТАТЬ</span>
-        </div>
-      `).join('');
+      chList.innerHTML = Object.keys(m.chapters).sort((a,b)=>b-a).map(n => {
+        // Проверяем, прочитана ли эта глава
+        const isRead = history.some(h => h.id === id && h.ch == n) ? "opacity: 0.6; border-color: var(--accent);" : "";
+        return `
+          <div onclick="openChapter(${n})" style="padding:22px; border-bottom:1px solid #222; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: 0.2s; ${isRead}" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='none'">
+            <span style="font-weight:700; font-size: 1.1rem;">Глава ${n}</span>
+            <span style="color:var(--accent); font-size:0.85rem; font-weight: 800; letter-spacing: 1px;">${isRead ? "ПРОДОЛЖИТЬ" : "ЧИТАТЬ"}</span>
+          </div>
+        `;
+      }).join('');
       updateStarsUI(); updateFavUI(); renderComments(); switchPage('title');
     }
 
@@ -484,18 +549,30 @@
       history.unshift({ id: curId, ch: curCh, time: Date.now() });
       localStorage.setItem('m_hist_v7', JSON.stringify(history.slice(0, 50)));
       
-      document.getElementById('reader-info').textContent = `${mangaDb[curId].title} | Глава ${curCh}`;
-      document.getElementById('reader-images').innerHTML = mangaDb[curId].chapters[curCh].map(s => `
+      document.getElementById('reader-info').textContent = `${mangaDb[curId].title} — Глава ${curCh}`;
+      
+      const container = document.getElementById('reader-images');
+      container.innerHTML = ''; 
+      const imagesHtml = mangaDb[curId].chapters[curCh].map(s => `
         <img src="${s}" loading="lazy" style="width:100%; display:block; margin-bottom:0; background: #111;" onerror="this.src='https://via.placeholder.com/800x1200/111/fff?text=Ошибка+загрузки+кадра'">
       `).join('');
+      container.innerHTML = imagesHtml;
       
       document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
       document.getElementById('reader').style.display = 'block';
       document.body.style.overflow = 'hidden';
-      document.getElementById('reader').scrollTop = 0;
       
-      document.getElementById('btn-prev-ch').style.visibility = mangaDb[curId].chapters[curCh - 1] ? 'visible' : 'hidden';
-      document.getElementById('btn-next-ch').style.visibility = mangaDb[curId].chapters[curCh + 1] ? 'visible' : 'hidden';
+      // Восстановление позиции чтения
+      const savedScroll = localStorage.getItem(`scroll_${curId}_${curCh}`);
+      if(savedScroll) {
+          document.getElementById('reader').scrollTop = parseInt(savedScroll);
+          window.showToast("Вы продолжили с места остановки");
+      } else {
+          document.getElementById('reader').scrollTop = 0;
+      }
+      
+      document.getElementById('btn-prev-ch').style.display = mangaDb[curId].chapters[curCh - 1] ? 'block' : 'none';
+      document.getElementById('btn-next-ch').style.display = mangaDb[curId].chapters[curCh + 1] ? 'block' : 'none';
     }
 
     function renderHistory() {
@@ -503,7 +580,7 @@
       if(!container) return;
       const validHistory = history.filter(h => mangaDb[h.id]);
       if(!validHistory.length) { 
-        container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>"; 
+        container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>";
         return; 
       }
       
@@ -539,16 +616,14 @@
     }
 
     function toggleFav() { 
-      // Добавляем или убираем из локального хранилища
-      const isCurrentlyFav = favs.includes(curId);
-      favs = isCurrentlyFav ? favs.filter(i => i !== curId) : [...favs, curId]; 
+      const isFav = favs.includes(curId);
+      favs = isFav ? favs.filter(i => i !== curId) : [...favs, curId]; 
       localStorage.setItem('m_favs_v7', JSON.stringify(favs)); 
       updateFavUI(); 
-      
-      // ИНТЕГРАЦИЯ FIREBASE: Отправляем в облако, если добавили (а не удалили) в закладки
-      if (!isCurrentlyFav && window.saveManga) {
-          const mangaTitle = mangaDb[curId].title;
-          window.saveManga(mangaTitle);
+      if(!isFav) {
+          if(window.saveManga) window.saveManga(mangaDb[curId].title);
+      } else {
+          window.showToast("Удалено из закладок", "error");
       }
     }
 
@@ -569,6 +644,7 @@
       allComments[curId].push({ user, text: txt.value, date: new Date().toLocaleDateString() });
       localStorage.setItem('m_comments_v7', JSON.stringify(allComments));
       txt.value = ""; renderComments();
+      window.showToast("Комментарий отправлен!");
     }
 
     function renderComments() {
@@ -586,12 +662,19 @@
     function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); }
     
     function closeReader() { 
-      document.getElementById('reader').style.display = 'none'; 
+      document.getElementById('reader').style.display = 'none';
       document.body.style.overflow = 'auto'; 
       document.getElementById('bottom-nav').style.transform = 'translateY(0)';
+      openTitle(curId); // Refresh chapter list to show "Продолжить" if needed
     }
     
-    function moveChapter(d) { if(mangaDb[curId] && mangaDb[curId].chapters[curCh+d]) openChapter(curCh+d); }
+    function moveChapter(d) { 
+        if(mangaDb[curId] && mangaDb[curId].chapters[curCh+d]) {
+            openChapter(curCh+d);
+        } else {
+            window.showToast("Глав больше нет", "error");
+        }
+    }
     
     let searchTimeout;
     function liveSearch(q) {
