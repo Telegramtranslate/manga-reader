@@ -5,15 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <title>Цветная манга — Читать онлайн бесплатно на MangaCloud</title>
-
   <meta name="description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud. Обновления каждый день!">
   <meta name="keywords" content="цветная манга, читать мангу, манхва онлайн, цветная манхва, манга клауд, манга на русском">
-
   <meta property="og:title" content="Цветная манга онлайн — MangaCloud">
   <meta property="og:description" content="Лучшая коллекция цветной манги в одном месте. Читать удобно и быстро!">
   <meta property="og:image" content="https://my-manga-cloud.vercel.app/cover.jpg"> 
   <meta property="og:url" content="https://my-manga-cloud.vercel.app">
-
   <link rel="icon" type="image/png" href="favicon.png">
   
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -36,56 +33,39 @@
     html { scroll-behavior: smooth; }
     body { background: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; line-height: 1.6; }
 
-    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: #2a2a2d; border-radius: 10px; border: 2px solid var(--bg); }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-    /* Preloader */
-    #global-loader {
-      position: fixed; inset: 0; background: var(--bg); z-index: 99999;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: opacity 0.5s ease;
-    }
-    .spinner {
-      width: 60px; height: 60px; border: 5px solid rgba(0,210,255,0.1);
-      border-top-color: var(--accent); border-radius: 50%;
-      animation: spin 1s linear infinite; margin-bottom: 20px;
-      box-shadow: 0 0 20px var(--accent-glow);
-    }
+    #global-loader { position: fixed; inset: 0; background: var(--bg); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+    .spinner { width: 60px; height: 60px; border: 5px solid rgba(0,210,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 20px var(--accent-glow); }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* Header */
     header { background: var(--glass); backdrop-filter: blur(25px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; transition: var(--transition); }
     header h1 { font-size: 1.6rem; letter-spacing: -1px; font-weight: 900; }
     header h1 span { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
 
-    /* Layout */
     main { max-width: 1400px; margin: 0 auto; padding: 25px; display: flex; gap: 30px; }
     .content-area { flex: 1; min-width: 0; }
     .page { display: none; animation: fadeIn 0.4s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Filters sidebar */
     .filters-sidebar { width: 320px; background: var(--card-bg); border-radius: var(--br); padding: 24px; height: fit-content; position: sticky; top: 100px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
     .filter-group { margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 18px; }
     .filter-group:last-child { border: none; }
     .filter-group h4 { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 2px; font-weight: 800; opacity: 0.8; }
     
-    /* Inputs & Selects */
     select, input[type="text"], textarea { width: 100%; background: #08080a; border: 1px solid #2a2a2d; color: #fff; padding: 14px; border-radius: 12px; outline: none; transition: var(--transition); font-size: 0.95rem; }
     select:focus, input[type="text"]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
     
-    /* Checkboxes */
     .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 200px; overflow-y: auto; padding-right: 8px; }
     .checkbox-grid label { font-size: 0.85rem; display: flex; align-items: center; gap: 10px; color: var(--text-dim); cursor: pointer; transition: var(--transition); }
     .checkbox-grid label:hover { color: var(--accent); }
     .checkbox-grid input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; border-radius: 4px; }
 
-    /* Grid & Cards */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px; }
-    .card { background: var(--card-bg); border-radius: var(--br); overflow: hidden; position: relative; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); transition: var(--transition); isolation: isolate; display: flex; flex-direction: column; }
+    .card { background: var(--card-bg); border-radius: var(--br); overflow: hidden; position: relative; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); transition: var(--transition); display: flex; flex-direction: column; }
     .card:hover { transform: translateY(-10px) scale(1.02); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 25px var(--accent-glow); z-index: 2; }
     
     .card-cover { position: relative; padding-top: 145%; overflow: hidden; background: #1a1a1c; }
@@ -99,7 +79,6 @@
     .card-info { padding: 18px; background: linear-gradient(to top, var(--card-bg) 70%, transparent); flex-grow: 1; display: flex; align-items: center; }
     .card-info h3 { font-size: 1rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3; }
 
-    /* Navigation */
     .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--glass); backdrop-filter: blur(30px); display: flex; justify-content: space-around; padding: 12px 5px; border-top: 1px solid rgba(255,255,255,0.08); z-index: 999; transition: transform 0.3s ease; }
     .nav-item { color: var(--text-dim); text-decoration: none; font-size: 0.7rem; text-align: center; transition: var(--transition); flex: 1; position: relative; }
     .nav-item.active { color: var(--accent); }
@@ -107,25 +86,38 @@
     .nav-item i { display: block; font-size: 1.6rem; font-style: normal; margin-bottom: 4px; transition: 0.2s; }
     .nav-item:hover i { transform: translateY(-3px); color: var(--accent); }
 
-    /* Buttons */
     .btn { background: var(--accent); color: #000; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; width: 100%; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.5px; }
     .btn:hover { transform: scale(1.03); box-shadow: 0 10px 25px var(--accent-glow); }
     .btn-sec { background: rgba(255,255,255,0.06); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
     .btn-sec:hover { background: rgba(255,255,255,0.12); transform: scale(1.03); }
 
-    /* Reader Enhanced */
+    /* ПРОФИЛЬ УЛУЧШЕНИЯ */
+    .profile-card { background: var(--card-bg); padding: 40px; border-radius: var(--br); border: 1px solid rgba(255,255,255,0.05); text-align: center; width: 100%; max-width: 500px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 20px; object-fit: cover; }
+    .profile-stats-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+    .profile-stat { background: #111; padding: 15px 20px; border-radius: 12px; border: 1px solid #222; flex: 1; }
+    .profile-stat h3 { font-size: 1.8rem; font-weight: 900; margin-bottom: 5px; }
+    .level-container { background: #111; border: 1px solid #222; border-radius: 14px; padding: 20px; margin-bottom: 25px; text-align: left; }
+    .level-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .level-title { font-weight: 800; color: var(--accent); font-size: 1.1rem; }
+    .level-progress-bg { width: 100%; height: 10px; background: #222; border-radius: 5px; overflow: hidden; }
+    .level-progress-fill { height: 100%; background: linear-gradient(90deg, #00d2ff, #3a7bd5); width: 0%; transition: width 1s ease; box-shadow: 0 0 10px var(--accent-glow); }
+
+    /* ВИДЖЕТ "ПРОДОЛЖИТЬ ЧТЕНИЕ" */
+    .continue-widget { display: flex; align-items: center; gap: 20px; background: linear-gradient(135deg, rgba(0,210,255,0.1) 0%, rgba(22,22,24,0.9) 100%); border: 1px solid var(--accent); border-radius: var(--br); padding: 20px; margin-bottom: 35px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    .continue-widget:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,210,255,0.2); }
+    .continue-cover { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 2px solid #2a2a2d; }
+    .continue-info { flex: 1; }
+    .continue-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .continue-chapter { color: var(--accent); font-weight: 700; font-size: 0.95rem; }
+
     #reader { position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; scroll-behavior: auto; display: none; }
     .reader-bar { position: sticky; top: 0; background: rgba(0,0,0,0.95); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a1a1c; z-index: 10; backdrop-filter: blur(10px); }
     .reader-progress-container { position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.1); }
     .reader-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: 0.1s; box-shadow: 0 0 10px var(--accent-glow); }
     .reader-nav-btns { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 40px 20px 80px; background: linear-gradient(transparent, #000 20%); flex-wrap: wrap; }
-    .empty-state { width: 100%; text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 1.2rem; background: var(--card-bg); border-radius: var(--br); border: 1px dashed rgba(255,255,255,0.1); }
     
-    .profile-card { background: var(--card-bg); padding: 40px; border-radius: var(--br); border: 1px solid rgba(255,255,255,0.05); text-align: center; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-    .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 20px; object-fit: cover; }
-    .profile-stats-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
-    .profile-stat { background: #111; padding: 15px 20px; border-radius: 12px; border: 1px solid #222; flex: 1; }
-    .profile-stat h3 { font-size: 1.8rem; font-weight: 900; margin-bottom: 5px; }
+    .empty-state { width: 100%; text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 1.2rem; background: var(--card-bg); border-radius: var(--br); border: 1px dashed rgba(255,255,255,0.1); }
     
     .stars { display: inline-flex; flex-direction: row; gap: 5px; cursor: pointer; }
     .star { font-size: 2.2rem; color: #333; transition: var(--transition); }
@@ -145,17 +137,14 @@
     .title-info-block { flex: 1; min-width: 300px; }
     .rating-box { background: #1c1c1e; padding: 30px; border-radius: 24px; text-align: center; border: 1px solid #2a2a2d; margin-top:30px; }
 
-    /* TOAST NOTIFICATIONS */
     #toast-container { position: fixed; bottom: 90px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
     .toast { background: var(--card-bg); color: #fff; padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-left: 4px solid var(--accent); animation: slideInRight 0.4s ease forwards; transition: 0.4s ease; font-weight: 600; font-size: 0.9rem; }
     .toast.error { border-left-color: #ff4d4d; }
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-    /* BACK TO TOP BUTTON */
     #btn-scroll-top { position: fixed; bottom: 80px; right: 20px; background: var(--accent); color: #000; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 15px var(--accent-glow); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 900; }
     #btn-scroll-top.visible { opacity: 1; visibility: visible; }
 
-    /* Адаптация */
     @media (max-width: 950px) {
       main { flex-direction: column; padding: 15px; }
       .filters-sidebar { width: 100%; position: static; order: -1; margin-bottom: 20px; }
@@ -169,17 +158,13 @@
       .card-info { padding: 12px 10px; }
       .card-info h3 { font-size: 0.85rem; }
       .badge { padding: 4px 8px; font-size: 0.65rem; }
-      .b-status { top: 8px; left: 8px; }
-      .b-rating { top: 8px; right: 8px; }
       .title-cover-img { width: 100%; max-width: 240px; }
       .title-info-block { min-width: 100%; }
       #det-title { font-size: 2rem !important; }
-      .rating-box { padding: 20px; }
-      .star { font-size: 1.8rem; }
       #toast-container { bottom: 80px; left: 20px; right: 20px; align-items: center; }
       .toast { width: 100%; text-align: center; animation: slideUpToast 0.4s ease forwards; }
       @keyframes slideUpToast { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-      .profile-stats-box { flex-direction: column; }
+      .continue-widget { flex-direction: column; text-align: center; gap: 10px; }
     }
   </style>
 </head>
@@ -187,7 +172,7 @@
 
   <div id="global-loader">
     <div class="spinner"></div>
-    <h2 style="font-weight: 800; text-shadow: 0 0 10px var(--accent-glow);">Подключение к MangaCloud...</h2>
+    <h2 style="font-weight: 800; text-shadow: 0 0 10px var(--accent-glow);">Загрузка MangaCloud...</h2>
   </div>
 
   <div id="toast-container"></div>
@@ -205,9 +190,12 @@
     <header><h1>Manga<span>Cloud</span> Color</h1></header>
     <main>
       <div class="content-area">
-        <div style="position:relative; margin-bottom: 30px;">
+        <div style="position:relative; margin-bottom: 20px;">
           <input type="text" id="search-input" placeholder="Поиск любимого тайтла..." oninput="liveSearch(this.value)">
         </div>
+        
+        <div id="continue-reading-container"></div>
+
         <h2 style="margin-bottom:25px; font-weight: 800; display: flex; align-items: center; gap: 12px;">
           <span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent);"></span>
           ⚡ Популярное сегодня
@@ -223,7 +211,6 @@
       <div class="content-area">
         <div class="grid" id="catalog-grid"></div>
       </div>
-
       <aside class="filters-sidebar">
         <div class="filter-group">
           <h4>Сортировка</h4>
@@ -234,7 +221,6 @@
             <option value="new">По новинкам</option>
           </select>
         </div>
-
         <div class="filter-group">
           <h4>Жанры</h4>
           <div class="checkbox-grid" id="filter-genre">
@@ -246,7 +232,6 @@
             <label><input type="checkbox" value="Приключения" onchange="applyFilters()"><span>Приключения</span></label>
           </div>
         </div>
-
         <div class="filter-group">
           <h4>Статус</h4>
           <div class="checkbox-grid" id="filter-status">
@@ -254,12 +239,10 @@
             <label><input type="checkbox" value="Продолжается" onchange="applyFilters()"><span>В процессе</span></label>
            </div>
         </div>
-
         <div class="filter-group">
           <h4>Год выпуска</h4>
           <div class="checkbox-grid" id="filter-year"></div>
         </div>
-
         <button class="btn btn-sec" onclick="resetFilters()">Очистить фильтры</button>
       </aside>
     </main>
@@ -277,16 +260,31 @@
 
   <div id="profile-page" class="page">
     <header><h1>Личный кабинет</h1></header>
-    <main style="justify-content: center; align-items: center; min-height: 60vh;">
-      <div id="auth-section" class="profile-card">
-        <h2 style="margin-bottom: 20px;">Добро пожаловать</h2>
-        <div id="g_id_onload" data-client_id="263581962151-lvpcil2qlnv9btimsvsgtth0bm2cbl3v.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
-        <div class="g_id_signin" data-type="standard" style="display: flex; justify-content: center;"></div>
-      </div>
-      <div id="user-section" class="profile-card" style="display: none;">
-        <img id="profile-avatar" class="profile-avatar" src="" alt="avatar">
-        <h2 id="profile-name"></h2>
-        <p id="profile-email" style="color: var(--text-dim); margin-bottom: 25px;"></p>
+    <main style="justify-content: center; align-items: flex-start; min-height: 60vh;">
+      <div class="profile-card" id="main-profile-card">
+        
+        <img id="profile-avatar" class="profile-avatar" src="https://via.placeholder.com/120/111/fff?text=👤" alt="avatar">
+        <h2 id="profile-name" style="margin-bottom: 5px;">Анонимный Читатель</h2>
+        <p id="profile-email" style="color: var(--text-dim); margin-bottom: 25px;">Локальный профиль</p>
+        
+        <div id="auth-section" style="margin-bottom: 30px;">
+            <p style="font-size: 0.85rem; color: var(--accent); margin-bottom: 10px;">Войди, чтобы сохранять данные в облако!</p>
+            <div id="g_id_onload" data-client_id="263581962151-lvpcil2qlnv9btimsvsgtth0bm2cbl3v.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
+            <div class="g_id_signin" data-type="standard" style="display: flex; justify-content: center;"></div>
+        </div>
+
+        <div class="level-container">
+            <div class="level-header">
+                <span style="color: var(--text-dim); font-size: 0.9rem;">Ранг:</span>
+                <span id="user-rank" class="level-title">Новичок</span>
+            </div>
+            <div class="level-progress-bg">
+                <div id="user-progress" class="level-progress-fill"></div>
+            </div>
+            <div style="text-align: right; margin-top: 8px; font-size: 0.8rem; color: #777;">
+                <span id="chapters-to-next">5</span> глав до повышения
+            </div>
+        </div>
         
         <div class="profile-stats-box">
            <div class="profile-stat">
@@ -299,7 +297,7 @@
            </div>
         </div>
 
-        <button class="btn btn-sec" onclick="logoutProfile()">Выйти из профиля</button>
+        <button id="btn-logout" class="btn btn-sec" style="display: none;" onclick="logoutProfile()">Выйти из Google аккаунта</button>
       </div>
     </main>
   </div>
@@ -362,7 +360,6 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    /* ОБНОВЛЕНИЕ: Добавили getDoc для загрузки комментариев из Firebase */
     import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -373,75 +370,55 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     window.mangaDb = {}; 
 
     window.saveManga = async function(mangaTitle) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if (!user) return;
-      
       const userRef = doc(db, "users_data", user.sub);
-      try {
-          await setDoc(userRef, { favorites: arrayUnion(mangaTitle) }, { merge: true });
+      try { await setDoc(userRef, { favorites: arrayUnion(mangaTitle) }, { merge: true });
       } catch (e) { console.error("Ошибка сохранения в облако:", e); }
     };
 
-    /* НОВЫЙ БЛОК: Отправка глобальных комментариев в Firebase */
     window.sendCommentToCloud = async function(mangaId, commentData) {
-        try {
-            const commentRef = doc(db, "manga_comments", mangaId);
-            await setDoc(commentRef, { list: arrayUnion(commentData) }, { merge: true });
-            return true;
-        } catch(e) {
-            console.error("Ошибка отправки комментария:", e);
-            return false;
-        }
+        try { const commentRef = doc(db, "manga_comments", mangaId);
+              await setDoc(commentRef, { list: arrayUnion(commentData) }, { merge: true });
+              return true;
+        } catch(e) { return false; }
     };
 
-    /* НОВЫЙ БЛОК: Загрузка глобальных комментариев из Firebase */
     window.loadCommentsFromCloud = async function(mangaId) {
-        try {
-            const docSnap = await getDoc(doc(db, "manga_comments", mangaId));
-            if (docSnap.exists() && docSnap.data().list) {
-                return docSnap.data().list;
-            }
-        } catch(e) { console.error("Ошибка загрузки комментариев:", e); }
+        try { const docSnap = await getDoc(doc(db, "manga_comments", mangaId));
+              if (docSnap.exists() && docSnap.data().list) { return docSnap.data().list; }
+        } catch(e) {}
         return [];
     };
 
     async function loadCloudDatabase() {
       try {
         const querySnapshot = await getDocs(collection(db, "manga"));
-        querySnapshot.forEach((doc) => {
-            window.mangaDb[doc.id] = doc.data();
-        });
+        querySnapshot.forEach((doc) => { window.mangaDb[doc.id] = doc.data(); });
         
         const loader = document.getElementById('global-loader');
         loader.style.opacity = '0';
         setTimeout(() => loader.style.display = 'none', 500);
 
         if(window.startUI) window.startUI();
-        
       } catch (e) {
-        console.error("Критическая ошибка загрузки БД:", e);
-        document.getElementById('global-loader').innerHTML = "<h2 style='color:#ff4d4d;'>Ошибка подключения к Google Cloud!</h2><p>Проверь настройки Rules в консоли Firebase.</p>";
+        document.getElementById('global-loader').innerHTML = "<h2 style='color:#ff4d4d;'>Ошибка подключения к Google Cloud!</h2>";
       }
     }
-
     loadCloudDatabase();
   </script>
 
   <script>
     let curId = null, curCh = 1, lastP = 'home';
-    
-    const getStorage = (key, fallback) => {
-      try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
-    };
+    const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
     
     let favs = getStorage('m_favs_v7', []);
     let rates = getStorage('m_rates_v7', {});
     let history = getStorage('m_hist_v7', []);
-    let globalCommentsList = []; // Хранилище загруженных комментариев
+    let globalCommentsList = []; 
 
     window.showToast = function(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -449,16 +426,12 @@
         toast.className = `toast ${type}`;
         toast.textContent = message;
         container.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 400);
-        }, 3000);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
     };
 
     window.addEventListener('scroll', () => {
         const btn = document.getElementById('btn-scroll-top');
-        if (window.scrollY > 500) btn.classList.add('visible');
-        else btn.classList.remove('visible');
+        if (window.scrollY > 500) btn.classList.add('visible'); else btn.classList.remove('visible');
     });
 
     const readerElement = document.getElementById('reader');
@@ -489,32 +462,88 @@
     function logoutProfile() { 
       localStorage.removeItem('m_user_v7'); 
       updateProfileUI(); 
-      window.showToast('Вы вышли из профиля', 'error');
+      window.showToast('Вы вышли из аккаунта Google', 'error');
     }
 
+    /* ОБНОВЛЕННАЯ ФУНКЦИЯ ПРОФИЛЯ */
     function updateProfileUI() {
       const user = getStorage('m_user_v7', null);
-      const auth = document.getElementById('auth-section');
-      const usrc = document.getElementById('user-section');
-      if(auth && usrc) {
-        auth.style.display = user ? 'none' : 'block';
-        usrc.style.display = user ? 'block' : 'none';
-        if(user) {
+      
+      // Блоки
+      const authSec = document.getElementById('auth-section');
+      const btnLogout = document.getElementById('btn-logout');
+      
+      // Данные
+      document.getElementById('stat-read').textContent = history.length;
+      document.getElementById('stat-fav').textContent = favs.length;
+
+      // Расчет уровня
+      const readCount = history.length;
+      let rank = "Новичок";
+      let nextLevel = 5;
+      let progress = 0;
+
+      if(readCount >= 50) { rank = "Божество Манги"; nextLevel = 100; }
+      else if(readCount >= 25) { rank = "Мастер"; nextLevel = 50; }
+      else if(readCount >= 10) { rank = "Отаку"; nextLevel = 25; }
+      else if(readCount >= 5) { rank = "Любитель"; nextLevel = 10; }
+
+      if(readCount >= 100) { progress = 100; document.getElementById('chapters-to-next').innerHTML = "Максимальный уровень!"; } 
+      else {
+          progress = (readCount / nextLevel) * 100;
+          document.getElementById('chapters-to-next').innerHTML = `<b>${nextLevel - readCount}</b> глав до повышения`;
+      }
+
+      document.getElementById('user-rank').textContent = rank;
+      document.getElementById('user-progress').style.width = `${progress}%`;
+
+      // Отображение пользователя
+      if(user) {
+          authSec.style.display = 'none';
+          btnLogout.style.display = 'block';
           document.getElementById('profile-avatar').src = user.picture;
           document.getElementById('profile-name').textContent = user.name;
           document.getElementById('profile-email').textContent = user.email;
-          
-          /* ОБНОВЛЕНИЕ: Подгружаем статистику пользователя */
-          document.getElementById('stat-read').textContent = history.length;
-          document.getElementById('stat-fav').textContent = favs.length;
-        }
+      } else {
+          authSec.style.display = 'block';
+          btnLogout.style.display = 'none';
+          document.getElementById('profile-avatar').src = 'https://via.placeholder.com/120/111/fff?text=👤';
+          document.getElementById('profile-name').textContent = "Анонимный Читатель";
+          document.getElementById('profile-email').textContent = "Локальный профиль (Данные в браузере)";
       }
+    }
+
+    /* НОВАЯ ФУНКЦИЯ: Виджет "Продолжить чтение" */
+    function renderContinueReading() {
+        const container = document.getElementById('continue-reading-container');
+        // Проверяем, есть ли история и существует ли такая манга в базе
+        const lastRead = history.find(h => window.mangaDb[h.id]); 
+        
+        if (lastRead) {
+            const m = window.mangaDb[lastRead.id];
+            container.innerHTML = `
+                <div class="continue-widget" onclick="openChapterFromWidget('${m.id}', ${lastRead.ch})">
+                    <img src="${m.cover}" class="continue-cover" alt="cover">
+                    <div class="continue-info">
+                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить чтение</div>
+                        <div class="continue-title">${m.title}</div>
+                        <div class="continue-chapter">Глава ${lastRead.ch} ❯</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '';
+        }
+    }
+
+    function openChapterFromWidget(id, ch) {
+        openTitle(id); // Сначала открываем карточку
+        setTimeout(() => openChapter(ch), 300); // Затем сразу открываем саму читалку
     }
 
     function renderYears() {
       const box = document.getElementById('filter-year');
-      if(!box) return;
-      let html = '';
+      if(!box) return; let html = '';
       for(let y=2026; y>=1980; y--) html += `<label><input type="checkbox" value="${y}" onchange="applyFilters()"><span>${y}</span></label>`;
       box.innerHTML = html;
     }
@@ -524,14 +553,11 @@
       starsContainer.innerHTML = '';
       for(let i=1; i<=10; i++) {
         const star = document.createElement('span');
-        star.className = 'star';
-        star.dataset.v = i;
-        star.textContent = '★';
+        star.className = 'star'; star.dataset.v = i; star.textContent = '★';
         star.onclick = function() {
           rates[curId] = parseInt(this.dataset.v);
           localStorage.setItem('m_rates_v7', JSON.stringify(rates));
-          updateStarsUI();
-          document.getElementById('det-rating-num').textContent = rates[curId];
+          updateStarsUI(); document.getElementById('det-rating-num').textContent = rates[curId];
           window.showToast(`Вы оценили тайтл на ${rates[curId]}/10`);
         };
         starsContainer.appendChild(star);
@@ -548,11 +574,15 @@
       if(nav) nav.classList.add('active');
       
       if(p !== 'title') lastP = p;
-      if(p === 'home') renderGrid(Object.values(window.mangaDb), 'home-grid');
+      
+      if(p === 'home') {
+          renderGrid(Object.values(window.mangaDb), 'home-grid');
+          renderContinueReading(); // Обновляем виджет при заходе на главную
+      }
       if(p === 'catalog') applyFilters();
       if(p === 'fav') renderGrid(favs.map(id => window.mangaDb[id]).filter(Boolean), 'fav-grid');
       if(p === 'hist') renderHistory();
-      if(p === 'profile') updateProfileUI(); // Обновляем стату при переходе в профиль
+      if(p === 'profile') updateProfileUI(); 
       
       window.scrollTo({top: 0, behavior: 'smooth'});
     }
@@ -570,7 +600,6 @@
       `).join('') : `<div class="empty-state">Здесь пока пусто...</div>`;
     }
 
-    /* ОБНОВЛЕНИЕ: При открытии тайтла скачиваем комментарии из облака */
     async function openTitle(id) {
       curId = id; const m = window.mangaDb[id];
       if(!m) return;
@@ -592,19 +621,11 @@
               </div>
             `;
           }).join('');
-      } else {
-          chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы еще не загружены</p>";
-      }
+      } else { chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы еще не загружены</p>"; }
       
-      updateStarsUI(); 
-      updateFavUI(); 
-      switchPage('title');
-
-      // Ставим спиннер, пока грузятся комментарии
+      updateStarsUI(); updateFavUI(); switchPage('title');
       document.getElementById('comments-list').innerHTML = `<div class="spinner" style="margin: 30px auto; width: 40px; height: 40px; border-width: 3px;"></div>`;
-      if(window.loadCommentsFromCloud) {
-          globalCommentsList = await window.loadCommentsFromCloud(id);
-      }
+      if(window.loadCommentsFromCloud) { globalCommentsList = await window.loadCommentsFromCloud(id); }
       renderComments();
     }
 
@@ -615,40 +636,29 @@
       localStorage.setItem('m_hist_v7', JSON.stringify(history.slice(0, 50)));
       
       document.getElementById('reader-info').textContent = `${window.mangaDb[curId].title} — Глава ${curCh}`;
-      
-      const container = document.getElementById('reader-images');
-      container.innerHTML = '';
+      const container = document.getElementById('reader-images'); container.innerHTML = '';
       
       if(window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh]) {
-          const imagesHtml = window.mangaDb[curId].chapters[curCh].map(s => `
+          container.innerHTML = window.mangaDb[curId].chapters[curCh].map(s => `
             <img src="${s}" loading="lazy" style="width:100%; display:block; margin-bottom:0; background: #111;" onerror="this.src='https://via.placeholder.com/800x1200/111/fff?text=Ошибка+загрузки+кадра'">
           `).join('');
-          container.innerHTML = imagesHtml;
       }
       
       document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
-      document.getElementById('reader').style.display = 'block';
-      document.body.style.overflow = 'hidden';
+      document.getElementById('reader').style.display = 'block'; document.body.style.overflow = 'hidden';
       
       const savedScroll = localStorage.getItem(`scroll_${curId}_${curCh}`);
-      if(savedScroll) {
-          document.getElementById('reader').scrollTop = parseInt(savedScroll);
-      } else {
-          document.getElementById('reader').scrollTop = 0;
-      }
+      if(savedScroll) { document.getElementById('reader').scrollTop = parseInt(savedScroll); } 
+      else { document.getElementById('reader').scrollTop = 0; }
       
       document.getElementById('btn-prev-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh - 1]) ? 'block' : 'none';
       document.getElementById('btn-next-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh + 1]) ? 'block' : 'none';
     }
 
     function renderHistory() {
-      const container = document.getElementById('history-list');
-      if(!container) return;
+      const container = document.getElementById('history-list'); if(!container) return;
       const validHistory = history.filter(h => window.mangaDb[h.id]);
-      if(!validHistory.length) { 
-        container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>";
-        return; 
-      }
+      if(!validHistory.length) { container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>"; return; }
       
       container.innerHTML = validHistory.map(h => {
         const m = window.mangaDb[h.id];
@@ -677,7 +687,6 @@
       if(sort === 'new') data.sort((a,b) => b.year - a.year);
       if(sort === 'updated') data.sort((a,b) => b.updatedAt - a.updatedAt);
       if(sort === 'popular') data.sort((a,b) => b.baseVotes - a.baseVotes);
-
       renderGrid(data, 'catalog-grid');
     }
 
@@ -686,133 +695,72 @@
       favs = isFav ? favs.filter(i => i !== curId) : [...favs, curId]; 
       localStorage.setItem('m_favs_v7', JSON.stringify(favs)); 
       updateFavUI();
-      if(!isFav) {
-          if(window.saveManga) window.saveManga(window.mangaDb[curId].title);
-      } else {
-          window.showToast("Удалено из закладок", "error");
-      }
+      if(!isFav) { if(window.saveManga) window.saveManga(window.mangaDb[curId].title); window.showToast("Добавлено в закладки!"); } 
+      else { window.showToast("Удалено из закладок", "error"); }
     }
 
     function updateFavUI() { 
       const btn = document.getElementById('btn-fav');
-      if(btn) {
-        const isFav = favs.includes(curId);
-        btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАДКИ'; 
-        btn.className = isFav ? 'btn btn-sec' : 'btn';
-      }
+      if(btn) { const isFav = favs.includes(curId); btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАДКИ'; btn.className = isFav ? 'btn btn-sec' : 'btn'; }
     }
 
-    /* НОВЫЙ БЛОК: Функция "Поделиться" */
     function shareTitle() {
         if (navigator.share) {
-            navigator.share({
-                title: window.mangaDb[curId].title,
-                text: `Смотри какую классную мангу "${window.mangaDb[curId].title}" я читаю на MangaCloud!`,
-                url: window.location.href
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            window.showToast("Ссылка на тайтл скопирована!");
-        }
+            navigator.share({ title: window.mangaDb[curId].title, text: `Смотри какую классную мангу "${window.mangaDb[curId].title}" я читаю на MangaCloud!`, url: window.location.href }).catch(console.error);
+        } else { navigator.clipboard.writeText(window.location.href); window.showToast("Ссылка на тайтл скопирована!"); }
     }
 
-    /* ОБНОВЛЕНИЕ: Сохранение глобального комментария */
     async function saveGlobalComment() {
-      const txt = document.getElementById('comment-text');
-      if(!txt.value.trim()) return;
-      
-      // Получаем имя юзера или ставим "Гость"
+      const txt = document.getElementById('comment-text'); if(!txt.value.trim()) return;
       const userData = getStorage('m_user_v7', null);
       const userName = userData ? userData.name : "Анонимный читатель";
       const avatarHtml = userData ? `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">` : '👤';
 
-      const newComment = { 
-          user: userName, 
-          avatar: avatarHtml,
-          text: txt.value, 
-          date: new Date().toLocaleDateString(),
-          timeId: Date.now() 
-      };
-
-      // 1. Сразу показываем комментарий на экране (чтобы не ждать)
-      globalCommentsList.push(newComment);
-      renderComments();
-      txt.value = "";
+      const newComment = { user: userName, avatar: avatarHtml, text: txt.value, date: new Date().toLocaleDateString(), timeId: Date.now() };
+      globalCommentsList.push(newComment); renderComments(); txt.value = "";
       
-      // 2. Отправляем в Firebase для остальных
       if(window.sendCommentToCloud) {
           const success = await window.sendCommentToCloud(curId, newComment);
-          if(success) {
-              window.showToast("Комментарий опубликован!");
-          } else {
-              window.showToast("Ошибка отправки в облако", "error");
-          }
+          if(success) { window.showToast("Комментарий опубликован!"); } else { window.showToast("Ошибка отправки в облако", "error"); }
       }
     }
 
-    /* ОБНОВЛЕНИЕ: Отрисовка комментариев из массива globalCommentsList */
     function renderComments() {
-      const container = document.getElementById('comments-list');
-      if(!container) return;
-      
+      const container = document.getElementById('comments-list'); if(!container) return;
       container.innerHTML = globalCommentsList.length ? globalCommentsList.map(c => `
-        <div class="comm-card">
-          <div class="comm-header">
-              <span class="comm-user">${c.avatar || '👤'} ${c.user}</span>
-              <span class="comm-date">${c.date}</span>
-          </div>
-          <div class="comm-text">${c.text}</div>
-        </div>
+        <div class="comm-card"><div class="comm-header"><span class="comm-user">${c.avatar || '👤'} ${c.user}</span><span class="comm-date">${c.date}</span></div><div class="comm-text">${c.text}</div></div>
       `).reverse().join('') : `<p style="text-align:center; color: #444; padding:30px;">Будьте первым, кто оставит комментарий!</p>`;
     }
 
-    function resetFilters() { 
-        document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); 
-        applyFilters();
-    }
+    function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); }
     
     function closeReader() { 
-      document.getElementById('reader').style.display = 'none';
-      document.body.style.overflow = 'auto'; 
-      document.getElementById('bottom-nav').style.transform = 'translateY(0)';
-      openTitle(curId); 
+      document.getElementById('reader').style.display = 'none'; document.body.style.overflow = 'auto'; 
+      document.getElementById('bottom-nav').style.transform = 'translateY(0)'; openTitle(curId); 
     }
     
     function moveChapter(d) { 
-        if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) {
-            openChapter(curCh+d);
-        } else {
-            window.showToast("Глав больше нет", "error");
-        }
+        if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) { openChapter(curCh+d); } 
+        else { window.showToast("Глав больше нет", "error"); }
     }
     
     let searchTimeout;
     function liveSearch(q) {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
-        if(document.getElementById('home-page').style.display === 'none') {
-            switchPage('home');
-        }
-        const res = Object.values(window.mangaDb).filter(m => m.title.toLowerCase().includes(q.toLowerCase()));
-        renderGrid(res, 'home-grid');
+        if(document.getElementById('home-page').style.display === 'none') { switchPage('home'); }
+        const res = Object.values(window.mangaDb).filter(m => m.title.toLowerCase().includes(q.toLowerCase())); renderGrid(res, 'home-grid');
       }, 200);
     }
 
     function updateStarsUI() {
       const v = rates[curId] || 0;
-      document.querySelectorAll('.star').forEach(s => {
-        if(parseInt(s.dataset.v) <= v) { s.classList.add('active'); } 
-        else { s.classList.remove('active'); }
-      });
+      document.querySelectorAll('.star').forEach(s => { if(parseInt(s.dataset.v) <= v) { s.classList.add('active'); } else { s.classList.remove('active'); } });
     }
 
     window.startUI = () => { 
-        initStars(); 
-        renderYears(); 
-        updateProfileUI(); 
-        switchPage('home'); 
+        initStars(); renderYears(); updateProfileUI(); switchPage('home'); 
     };
-
   </script>
 </body>
 </html>
