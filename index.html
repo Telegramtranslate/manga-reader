@@ -72,6 +72,25 @@
     #btn-theme-toggle { position: fixed; top: 15px; right: 20px; z-index: 1001; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text); width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
     #btn-theme-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
 
+    /* Кнопка уведомлений (НОВОЕ) */
+    #btn-notifications { position: fixed; top: 15px; right: 75px; z-index: 1001; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text); width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
+    #btn-notifications:hover { transform: scale(1.1); border-color: var(--accent); }
+    
+    /* Бейдж уведомлений (НОВОЕ) */
+    #notif-badge { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; font-size: 0.7rem; font-weight: bold; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
+    /* Панель уведомлений (НОВОЕ) */
+    #notifications-panel { position: fixed; top: 70px; right: 20px; width: 300px; max-height: 400px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--br); z-index: 1000; box-shadow: 0 15px 40px rgba(0,0,0,0.5); display: none; flex-direction: column; overflow: hidden; animation: fadeInNotif 0.3s ease; }
+    #notifications-panel.visible { display: flex; }
+    @keyframes fadeInNotif { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .notif-header { padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .notif-header h4 { margin: 0; font-size: 1rem; color: var(--text); }
+    #notif-list { overflow-y: auto; max-height: 340px; }
+    .notif-item { padding: 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; font-size: 0.85rem; color: var(--text-dim); line-height: 1.4; }
+    .notif-item:hover { background: var(--stat-bg); }
+    .notif-item.unread { background: rgba(0, 210, 255, 0.05); color: var(--text); border-left: 3px solid var(--accent); }
+    .notif-item:last-child { border-bottom: none; }
+
     main { max-width: 1400px; margin: 0 auto; padding: 25px; display: flex; gap: 30px; }
     .content-area { flex: 1; min-width: 0; }
     .page { display: none; animation: fadeIn 0.4s ease forwards; }
@@ -205,6 +224,20 @@
 <body>
 
   <button id="btn-theme-toggle" onclick="toggleTheme()" title="Сменить тему">☀️</button>
+  
+  <button id="btn-notifications" onclick="toggleNotifications()" title="Уведомления">
+    🔔
+    <span id="notif-badge" style="display: none;">0</span>
+  </button>
+
+  <div id="notifications-panel">
+    <div class="notif-header">
+      <h4>Уведомления</h4>
+      <button onclick="markAllAsRead()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.8rem; font-weight: bold;">Прочитано</button>
+    </div>
+    <div id="notif-list">
+      </div>
+  </div>
 
   <div id="global-loader">
     <div class="spinner"></div>
@@ -225,6 +258,7 @@
   <div id="home-page" class="page" style="display: block;">
     <header><h1>Manga<span>Cloud</span> Color</h1></header>
     <main>
+  
       <div class="content-area">
         <div style="position:relative; margin-bottom: 20px;">
           <input type="text" id="search-input" placeholder="Поиск любимого тайтла..." oninput="liveSearch(this.value)">
@@ -248,6 +282,7 @@
         <div class="grid" id="catalog-grid"></div>
       </div>
       <aside class="filters-sidebar">
+      
         <div class="filter-group">
           <h4>Сортировка</h4>
           <select id="sort-main" onchange="applyFilters()">
@@ -257,6 +292,7 @@
             <option value="new">По новинкам</option>
           </select>
         </div>
+   
         <div class="filter-group">
           <h4>Жанры</h4>
           <div class="checkbox-grid" id="filter-genre">
@@ -286,6 +322,7 @@
 
   <div id="hist-page" class="page">
     <header><h1>История просмотров</h1></header>
+  
     <main style="display:block;"><div id="history-list"></div></main>
   </div>
   
@@ -330,6 +367,7 @@
         <div class="profile-stats-box">
            <div class="profile-stat">
               <h3 id="stat-read" style="color:var(--accent);">0</h3>
+          
               <p style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase;">Прочитано глав</p>
            </div>
            <div class="profile-stat">
@@ -359,8 +397,8 @@
           </div>
           
           <div class="rating-box">
-             <div style="font-size: 3.5rem; font-weight: 900; color: var(--star);"><span id="det-rating-num">0.0</span> <small style="font-size: 1.2rem; color: var(--text-dim);">/ 10</small></div>
-             <p id="det-votes" style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">Глобальный рейтинг</p>
+             <div style="font-size: 3.5rem; font-weight: 900; color: var(--star); transition: 0.3s;"><span id="det-rating-num">0.0</span> <small style="font-size: 1.2rem; color: var(--text-dim);">/ 10</small></div>
+             <p id="det-votes" style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px; transition: 0.3s;">Глобальный рейтинг</p>
              <div class="stars" id="rating-stars"></div>
           </div>
         </div>
@@ -401,7 +439,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // ДОБАВЛЕН onSnapshot ДЛЯ ЖИВОГО ОБНОВЛЕНИЯ РЕЙТИНГА
+    import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0", 
@@ -410,6 +449,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
+ 
     const db = getFirestore(app);
     
     window.mangaDb = {}; 
@@ -421,8 +461,7 @@
       try { await setDoc(userRef, { favorites: arrayUnion(mangaTitle) }, { merge: true });
       } catch (e) { console.error("Ошибка сохранения в облако:", e); }
     };
-
-    // НОВАЯ ФУНКЦИЯ: Сохраняем кастомный ник в облако
+    
     window.saveNicknameToCloud = async function(nickname) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if (!user) return;
@@ -431,8 +470,7 @@
         await setDoc(userRef, { customNickname: nickname }, { merge: true });
       } catch (e) { console.error("Ошибка сохранения ника в облако:", e); }
     };
-
-    // НОВАЯ ФУНКЦИЯ: Загружаем данные профиля (вкл. ник) из облака
+    
     window.loadUserDataFromCloud = async function(userId) {
       try {
         const docSnap = await getDoc(doc(db, "users_data", userId));
@@ -444,16 +482,46 @@
       return null;
     };
 
-    // НОВАЯ ФУНКЦИЯ: Облачная система оценок
+    // НОВАЯ ФУНКЦИЯ: Подписка на живое обновление рейтинга
+    window.listenToRating = function(mangaId, callback) {
+        return onSnapshot(doc(db, "manga_ratings", mangaId), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const scores = Object.values(data);
+          
+                const total = scores.length;
+                const sum = scores.reduce((a, b) => a + b, 0);
+                const average = (sum / total).toFixed(1);
+                callback({ average, total });
+            } else {
+            
+                callback({ average: "0.0", total: 0 }); // СБРОС ДО 0
+            }
+        });
+    };
+
+    // ОБНОВЛЕННАЯ ФУНКЦИЯ: Облачная система оценок (с защитой анонимных голосов)
     window.sendRatingToCloud = async function(mangaId, score) {
        const user = JSON.parse(localStorage.getItem('m_user_v7'));
-       const userId = user ? user.sub : 'anonymous_' + Math.random().toString(36).substr(2, 9);
+       let userId;
+       
+       if (user) {
+           userId = user.sub;
+       } else {
+           // Чтобы анонимы не спамили, сохраняем их рандомный ID в памяти устройства
+           userId = localStorage.getItem('m_anon_id');
+           if (!userId) {
+               userId = 'anon_' + Math.random().toString(36).substr(2, 9);
+               localStorage.setItem('m_anon_id', userId);
+           }
+       }
+       
        const ratingRef = doc(db, "manga_ratings", mangaId);
        try { 
            await setDoc(ratingRef, { [userId]: score }, { merge: true });
        } catch(e) { console.error("Ошибка отправки рейтинга:", e); }
     };
-
+    
     window.sendCommentToCloud = async function(mangaId, commentData) {
         try { const commentRef = doc(db, "manga_comments", mangaId);
               await setDoc(commentRef, { list: arrayUnion(commentData) }, { merge: true });
@@ -462,13 +530,12 @@
         }
     };
 
-    // НОВАЯ ФУНКЦИЯ: Обновляем весь массив комментов (нужно для лайков)
     window.updateAllCommentsInCloud = async function(mangaId, newList) {
          try { const commentRef = doc(db, "manga_comments", mangaId);
                await setDoc(commentRef, { list: newList });
          } catch(e) { console.error("Ошибка обновления комментов:", e); }
     };
-
+    
     window.loadCommentsFromCloud = async function(mangaId) {
         try { const docSnap = await getDoc(doc(db, "manga_comments", mangaId));
               if (docSnap.exists() && docSnap.data().list) { return docSnap.data().list; }
@@ -494,14 +561,15 @@
 
   <script>
     let curId = null, curCh = 1, lastP = 'home';
+    let ratingUnsub = null; // ГЛОБАЛЬНАЯ ПЕРЕМЕННАЯ ДЛЯ ОТМЕНЫ ПОДПИСКИ РЕЙТИНГА
+
     const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
     let favs = getStorage('m_favs_v7', []);
     let rates = getStorage('m_rates_v7', {});
     let history = getStorage('m_hist_v7', []);
     let customNames = getStorage('m_custom_names_v7', {});
-    // Хранилище кастомных ников
     let globalCommentsList = [];
-
+    
     // ЛОГИКА ТЕМЫ
     let isLightMode = getStorage('m_theme_light', false);
     if(isLightMode) {
@@ -522,6 +590,69 @@
             window.showToast("Темная тема включена 🌙");
         }
     };
+    
+    // ЛОГИКА УВЕДОМЛЕНИЙ (НОВОЕ)
+    let notifications = getStorage('m_notifs_v1', [
+        { id: Date.now(), text: "Добро пожаловать в MangaCloud! Здесь будут появляться уведомления о новых главах.", read: false, mangaId: null }
+    ]);
+
+    window.toggleNotifications = function() {
+        const panel = document.getElementById('notifications-panel');
+        panel.classList.toggle('visible');
+        if (panel.classList.contains('visible')) {
+            window.renderNotifications();
+        }
+    };
+
+    window.renderNotifications = function() {
+        const list = document.getElementById('notif-list');
+        const badge = document.getElementById('notif-badge');
+        
+        const unreadCount = notifications.filter(n => !n.read).length;
+        if (unreadCount > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        } else {
+            badge.style.display = 'none';
+        }
+
+        if (notifications.length === 0) {
+            list.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-dim);">Нет новых уведомлений</div>`;
+            return;
+        }
+
+        list.innerHTML = notifications.slice().reverse().map(n => `
+            <div class="notif-item ${n.read ? '' : 'unread'}" onclick="readNotification(${n.id}, ${n.mangaId ? `'${n.mangaId}'` : 'null'})">
+                ${n.text}
+            </div>
+        `).join('');
+    };
+
+    window.readNotification = function(id, mangaId) {
+        const notif = notifications.find(n => n.id === id);
+        if (notif && !notif.read) {
+            notif.read = true;
+            localStorage.setItem('m_notifs_v1', JSON.stringify(notifications));
+            window.renderNotifications();
+        }
+        if (mangaId) {
+            openTitle(mangaId);
+            document.getElementById('notifications-panel').classList.remove('visible');
+        }
+    };
+
+    window.markAllAsRead = function() {
+        notifications.forEach(n => n.read = true);
+        localStorage.setItem('m_notifs_v1', JSON.stringify(notifications));
+        window.renderNotifications();
+    };
+
+    // ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ НОВЫХ УВЕДОМЛЕНИЙ
+    window.addNotification = function(text, mangaId = null) {
+        notifications.push({ id: Date.now(), text, read: false, mangaId });
+        localStorage.setItem('m_notifs_v1', JSON.stringify(notifications));
+        window.renderNotifications();
+    };
 
     window.showToast = function(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -531,12 +662,12 @@
         container.appendChild(toast);
         setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
     };
-
+    
     window.addEventListener('scroll', () => {
         const btn = document.getElementById('btn-scroll-top');
         if (window.scrollY > 500) btn.classList.add('visible'); else btn.classList.remove('visible');
     });
-
+    
     const readerElement = document.getElementById('reader');
     readerElement.addEventListener('scroll', () => {
         const scrollTop = readerElement.scrollTop;
@@ -546,7 +677,7 @@
         document.getElementById('reader-progress-text').textContent = Math.round(scrollPercentage) + '%';
         if(curId && curCh) { localStorage.setItem(`scroll_${curId}_${curCh}`, scrollTop); }
     });
-
+    
     document.addEventListener('keydown', (e) => {
         if (readerElement.style.display === 'block') {
             if (e.key === 'ArrowRight' || e.key === 'd') moveChapter(1);
@@ -554,20 +685,17 @@
             if (e.key === 'Escape') closeReader();
         }
     });
-
-    // ИСПРАВЛЕНО И УЛУЧШЕНО: Вход в Google + проверка ника в облаке
+    
     async function handleCredentialResponse(response) {
       const base64Url = response.credential.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      
       const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
-
+      
       const payload = JSON.parse(jsonPayload);
       localStorage.setItem('m_user_v7', JSON.stringify(payload));
       
-      // Проверяем облако на наличие кастомного ника
       if(window.loadUserDataFromCloud) {
           const cloudData = await window.loadUserDataFromCloud(payload.sub);
           if (cloudData && cloudData.customNickname) {
@@ -587,17 +715,14 @@
       window.showToast('Вы вышли из аккаунта Google', 'error');
     }
 
-    // ИСПРАВЛЕНО: Смена ника теперь сохраняет его и в облако Firebase
     window.changeNickname = async function() {
         const user = getStorage('m_user_v7', null);
         let currentName = document.getElementById('profile-name').textContent;
         let newName = prompt("Введи свой новый никнейм:", currentName);
-
         if (newName && newName.trim() !== "") {
             const trimmedName = newName.trim();
             if (user) {
                 customNames[user.sub] = trimmedName;
-                // ОТПРАВЛЯЕМ В ОБЛАКО
                 if(window.saveNicknameToCloud) {
                     await window.saveNicknameToCloud(trimmedName);
                 }
@@ -642,7 +767,7 @@
 
       document.getElementById('user-rank').textContent = rank;
       document.getElementById('user-progress').style.width = `${progress}%`;
-
+      
       if(user) {
           authSec.style.display = 'none';
           btnLogout.style.display = 'block';
@@ -667,7 +792,8 @@
                 <div class="continue-widget" onclick="openChapterFromWidget('${m.id}', ${lastRead.ch})">
                     <img src="${m.cover}" class="continue-cover" alt="cover">
                     <div class="continue-info">
-                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить чтение</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить 
+                        чтение</div>
                         <div class="continue-title">${m.title}</div>
                         <div class="continue-chapter">Глава ${lastRead.ch} ❯</div>
                     </div>
@@ -698,12 +824,11 @@
         star.onclick = function() {
           rates[curId] = parseInt(this.dataset.v);
           localStorage.setItem('m_rates_v7', JSON.stringify(rates));
-          updateStarsUI(); document.getElementById('det-rating-num').textContent = rates[curId];
+          updateStarsUI();
           
-          // НОВОЕ: Отправка рейтинга в облако
           if(window.sendRatingToCloud) { window.sendRatingToCloud(curId, rates[curId]); }
           
-          window.showToast(`Вы оценили тайтл на ${rates[curId]}/10. Оценка отправлена в облако!`);
+          window.showToast(`Вы оценили тайтл на ${rates[curId]}/10.`);
         };
         starsContainer.appendChild(star);
       }
@@ -719,8 +844,7 @@
       if(nav) nav.classList.add('active');
       if(p !== 'title') lastP = p;
       
-      if(p === 'home') { renderGrid(Object.values(window.mangaDb), 'home-grid'); renderContinueReading();
-      }
+      if(p === 'home') { renderGrid(Object.values(window.mangaDb), 'home-grid'); renderContinueReading(); }
       if(p === 'catalog') applyFilters();
       if(p === 'fav') renderGrid(favs.map(id => window.mangaDb[id]).filter(Boolean), 'fav-grid');
       if(p === 'hist') renderHistory();
@@ -734,7 +858,7 @@
       if(!container) return;
       container.innerHTML = list.length ? list.map(m => `
         <div class="card" onclick="openTitle('${m.id}')">
-          <span class="badge b-rating">★ ${rates[m.id] || m.baseRating}</span>
+          <span class="badge b-rating">★ ${rates[m.id] || "0.0"}</span>
           <span class="badge b-status">${m.status}</span>
           <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="manga"></div>
           <div class="card-info"><h3>${m.title}</h3></div>
@@ -749,8 +873,17 @@
       document.getElementById('det-cover').src = m.cover;
       document.getElementById('det-title').textContent = m.title;
       document.getElementById('det-meta').textContent = `${m.year} • ${m.status} • ${(m.genres || []).join(', ')}`;
-      document.getElementById('det-rating-num').textContent = rates[id] || m.baseRating;
-      document.getElementById('det-votes').textContent = `Всего оценок: ${m.baseVotes + (rates[id]?1:0)}`;
+      
+      document.getElementById('det-rating-num').textContent = "0.0";
+      document.getElementById('det-votes').textContent = "Загрузка оценок...";
+
+      if (ratingUnsub) { ratingUnsub(); } 
+      if (window.listenToRating) {
+          ratingUnsub = window.listenToRating(id, (ratingData) => {
+              document.getElementById('det-rating-num').textContent = ratingData.average;
+              document.getElementById('det-votes').textContent = `Всего оценок: ${ratingData.total}`;
+          });
+      }
       
       const chList = document.getElementById('det-chapters');
       if(m.chapters) {
@@ -758,6 +891,7 @@
             const isRead = history.some(h => h.id === id && h.ch == n) ? "opacity: 0.6; border-color: var(--accent);" : "";
             return `
               <div onclick="openChapter(${n})" style="padding:22px; border-bottom:1px solid var(--border-color); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: 0.2s; ${isRead}" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='none'">
+              
                 <span style="font-weight:700; font-size: 1.1rem;">Глава ${n}</span>
                 <span style="color:var(--accent); font-size:0.85rem; font-weight: 800; letter-spacing: 1px;">${isRead ? "ПРОДОЛЖИТЬ" : "ЧИТАТЬ"}</span>
               </div>
@@ -829,10 +963,9 @@
       if(genres.length) data = data.filter(m => genres.some(g => m.genres && m.genres.includes(g)));
       
       const sort = document.getElementById('sort-main').value;
-      if(sort === 'rating') data.sort((a,b) => (rates[b.id] || b.baseRating) - (rates[a.id] || a.baseRating));
+      if(sort === 'rating') data.sort((a,b) => (rates[b.id] || 0) - (rates[a.id] || 0));
       if(sort === 'new') data.sort((a,b) => b.year - a.year);
       if(sort === 'updated') data.sort((a,b) => b.updatedAt - a.updatedAt);
-      if(sort === 'popular') data.sort((a,b) => b.baseVotes - a.baseVotes);
       renderGrid(data, 'catalog-grid');
     }
 
@@ -849,7 +982,7 @@
 
     function updateFavUI() { 
       const btn = document.getElementById('btn-fav');
-      if(btn) { const isFav = favs.includes(curId); btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАДКИ';
+      if(btn) { const isFav = favs.includes(curId); btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАКИ';
       btn.className = isFav ? 'btn btn-sec' : 'btn'; }
     }
 
@@ -859,7 +992,6 @@
         } else { navigator.clipboard.writeText(window.location.href); window.showToast("Ссылка на тайтл скопирована!"); }
     }
 
-    // УЛУЧШЕНО: Точное время для комментария + кастомные имена + структура для лайков
     async function saveGlobalComment() {
       const txt = document.getElementById('comment-text');
       if(!txt.value.trim()) return;
@@ -888,23 +1020,21 @@
       }
     }
 
-    // НОВАЯ ФУНКЦИЯ: Поставить лайк на коммент
     window.likeComment = function(timeId) {
         const comm = globalCommentsList.find(c => c.timeId === timeId);
         if(comm) {
             comm.likes = (comm.likes || 0) + 1;
             renderComments();
-            // Обновляем всю базу комментов с новым кол-вом лайков
             if(window.updateAllCommentsInCloud) {
                 window.updateAllCommentsInCloud(curId, globalCommentsList);
             }
         }
     };
-
     function renderComments() {
       const container = document.getElementById('comments-list');
       if(!container) return;
-      container.innerHTML = globalCommentsList.length ? globalCommentsList.map(c => `
+      container.innerHTML = globalCommentsList.length ?
+      globalCommentsList.map(c => `
         <div class="comm-card">
           <div class="comm-header">
             <span class="comm-user">${c.avatar || '👤'} ${c.user}</span>
@@ -912,7 +1042,8 @@
           </div>
           <div class="comm-text">${c.text}</div>
           <div>
-            <button class="comm-like-btn ${c.likes > 0 ? 'liked' : ''}" onclick="likeComment(${c.timeId})">
+            <button class="comm-like-btn ${c.likes > 0 ? 
+            'liked' : ''}" onclick="likeComment(${c.timeId})">
                ❤️ ${c.likes || 0}
             </button>
           </div>
@@ -952,6 +1083,7 @@
 
     window.startUI = () => { 
         initStars(); renderYears(); updateProfileUI();
+        window.renderNotifications(); // Добавлен рендер уведомлений при старте
         switchPage('home'); 
     };
   </script>
