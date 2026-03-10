@@ -7,7 +7,6 @@
   <title>Цветная манга — Читать онлайн бесплатно на MangaCloud</title>
 
   <meta name="description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud. Обновления каждый день!">
-
   <meta name="keywords" content="цветная манга, читать мангу, манхва онлайн, цветная манхва, манга клауд, манга на русском">
 
   <meta property="og:title" content="Цветная манга онлайн — MangaCloud">
@@ -124,6 +123,9 @@
     
     .profile-card { background: var(--card-bg); padding: 40px; border-radius: var(--br); border: 1px solid rgba(255,255,255,0.05); text-align: center; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
     .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 20px; object-fit: cover; }
+    .profile-stats-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+    .profile-stat { background: #111; padding: 15px 20px; border-radius: 12px; border: 1px solid #222; flex: 1; }
+    .profile-stat h3 { font-size: 1.8rem; font-weight: 900; margin-bottom: 5px; }
     
     .stars { display: inline-flex; flex-direction: row; gap: 5px; cursor: pointer; }
     .star { font-size: 2.2rem; color: #333; transition: var(--transition); }
@@ -134,7 +136,7 @@
     .comm-input-area { background: var(--card-bg); padding: 20px; border-radius: var(--br); margin: 20px 0; border: 1px solid #222; }
     .comm-card { background: #111; padding: 20px; border-radius: 14px; margin-bottom: 15px; border: 1px solid #222; }
     .comm-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 10px; }
-    .comm-user { font-weight: 800; color: var(--accent); }
+    .comm-user { font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px; }
     .comm-date { font-size: 0.85rem; color: var(--text-dim); }
     .comm-text { font-size: 0.95rem; line-height: 1.5; }
 
@@ -177,6 +179,7 @@
       #toast-container { bottom: 80px; left: 20px; right: 20px; align-items: center; }
       .toast { width: 100%; text-align: center; animation: slideUpToast 0.4s ease forwards; }
       @keyframes slideUpToast { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      .profile-stats-box { flex-direction: column; }
     }
   </style>
 </head>
@@ -283,7 +286,19 @@
       <div id="user-section" class="profile-card" style="display: none;">
         <img id="profile-avatar" class="profile-avatar" src="" alt="avatar">
         <h2 id="profile-name"></h2>
-        <p id="profile-email" style="color: var(--text-dim); margin-bottom: 30px;"></p>
+        <p id="profile-email" style="color: var(--text-dim); margin-bottom: 25px;"></p>
+        
+        <div class="profile-stats-box">
+           <div class="profile-stat">
+              <h3 id="stat-read" style="color:var(--accent);">0</h3>
+              <p style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase;">Прочитано глав</p>
+           </div>
+           <div class="profile-stat">
+              <h3 id="stat-fav" style="color:var(--star);">0</h3>
+              <p style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase;">В закладках</p>
+           </div>
+        </div>
+
         <button class="btn btn-sec" onclick="logoutProfile()">Выйти из профиля</button>
       </div>
     </main>
@@ -298,7 +313,11 @@
         <div class="title-info-block">
           <h2 id="det-title" style="font-size: 2.8rem; line-height: 1.1; margin-bottom: 12px; font-weight: 900;"></h2>
           <p id="det-meta" style="color: var(--accent); font-weight: bold; margin-bottom: 25px; letter-spacing: 1px;"></p>
-          <button class="btn" id="btn-fav" onclick="toggleFav()" style="width: auto; padding: 18px 40px;">🔖 В закладки</button>
+          
+          <div style="display: flex; gap: 10px;">
+            <button class="btn" id="btn-fav" onclick="toggleFav()" style="flex: 1; padding: 18px 20px;">🔖 В закладки</button>
+            <button class="btn btn-sec" onclick="shareTitle()" style="width: auto; padding: 18px 25px;" title="Поделиться">↗️ Поделиться</button>
+          </div>
           
           <div class="rating-box">
              <div style="font-size: 3.5rem; font-weight: 900; color: var(--star);"><span id="det-rating-num">0.0</span> <small style="font-size: 1.2rem; color: #444;">/ 10</small></div>
@@ -312,12 +331,14 @@
       <div id="det-chapters" style="margin-top: 25px; background: var(--card-bg); border-radius: 22px; border: 1px solid #222; overflow: hidden;"></div>
       
       <div class="comm-section">
-        <h3>Обсуждение тайтла</h3>
+        <h3>Обсуждение тайтла (Общий чат)</h3>
         <div class="comm-input-area">
-          <textarea id="comment-text" placeholder="Поделитесь своим мнением о прочитанном..." rows="3"></textarea>
-          <button class="btn" onclick="saveComment()" style="width:auto; padding: 14px 35px; margin-top: 15px;">Отправить</button>
+          <textarea id="comment-text" placeholder="Оставьте свой комментарий. Его увидят все пользователи MangaCloud!" rows="3"></textarea>
+          <button class="btn" onclick="saveGlobalComment()" style="width:auto; padding: 14px 35px; margin-top: 15px;">Отправить всем</button>
         </div>
-        <div id="comments-list"></div>
+        <div id="comments-list">
+           <div class="spinner" style="margin: 30px auto; width: 40px; height: 40px; border-width: 3px;"></div>
+        </div>
       </div>
     </main>
   </div>
@@ -341,7 +362,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    /* ОБНОВЛЕНИЕ: Добавили getDoc для загрузки комментариев из Firebase */
+    import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0", 
@@ -352,26 +374,41 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Делаем базу глобальной для всего сайта
     window.mangaDb = {}; 
 
     window.saveManga = async function(mangaTitle) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
-      if (!user) {
-          window.showToast("Сначала войди через Google для облачных сохранений!", "error");
-          return;
-      }
+      if (!user) return;
+      
       const userRef = doc(db, "users_data", user.sub);
       try {
           await setDoc(userRef, { favorites: arrayUnion(mangaTitle) }, { merge: true });
-          window.showToast("Успешно сохранено в облаке!");
-      } catch (e) {
-          console.error("Ошибка:", e);
-          window.showToast("Ошибка Firebase. Проверьте вкладку Rules.", "error");
-      }
+      } catch (e) { console.error("Ошибка сохранения в облако:", e); }
     };
 
-    // ФУНКЦИЯ ЗАГРУЗКИ БАЗЫ ПРИ СТАРТЕ САЙТА
+    /* НОВЫЙ БЛОК: Отправка глобальных комментариев в Firebase */
+    window.sendCommentToCloud = async function(mangaId, commentData) {
+        try {
+            const commentRef = doc(db, "manga_comments", mangaId);
+            await setDoc(commentRef, { list: arrayUnion(commentData) }, { merge: true });
+            return true;
+        } catch(e) {
+            console.error("Ошибка отправки комментария:", e);
+            return false;
+        }
+    };
+
+    /* НОВЫЙ БЛОК: Загрузка глобальных комментариев из Firebase */
+    window.loadCommentsFromCloud = async function(mangaId) {
+        try {
+            const docSnap = await getDoc(doc(db, "manga_comments", mangaId));
+            if (docSnap.exists() && docSnap.data().list) {
+                return docSnap.data().list;
+            }
+        } catch(e) { console.error("Ошибка загрузки комментариев:", e); }
+        return [];
+    };
+
     async function loadCloudDatabase() {
       try {
         const querySnapshot = await getDocs(collection(db, "manga"));
@@ -379,12 +416,10 @@
             window.mangaDb[doc.id] = doc.data();
         });
         
-        // Прячем экран загрузки
         const loader = document.getElementById('global-loader');
         loader.style.opacity = '0';
         setTimeout(() => loader.style.display = 'none', 500);
 
-        // Запускаем отрисовку сайта
         if(window.startUI) window.startUI();
         
       } catch (e) {
@@ -393,7 +428,6 @@
       }
     }
 
-    // Стартуем загрузку
     loadCloudDatabase();
   </script>
 
@@ -407,7 +441,7 @@
     let favs = getStorage('m_favs_v7', []);
     let rates = getStorage('m_rates_v7', {});
     let history = getStorage('m_hist_v7', []);
-    let allComments = getStorage('m_comments_v7', {});
+    let globalCommentsList = []; // Хранилище загруженных комментариев
 
     window.showToast = function(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -469,6 +503,10 @@
           document.getElementById('profile-avatar').src = user.picture;
           document.getElementById('profile-name').textContent = user.name;
           document.getElementById('profile-email').textContent = user.email;
+          
+          /* ОБНОВЛЕНИЕ: Подгружаем статистику пользователя */
+          document.getElementById('stat-read').textContent = history.length;
+          document.getElementById('stat-fav').textContent = favs.length;
         }
       }
     }
@@ -514,6 +552,7 @@
       if(p === 'catalog') applyFilters();
       if(p === 'fav') renderGrid(favs.map(id => window.mangaDb[id]).filter(Boolean), 'fav-grid');
       if(p === 'hist') renderHistory();
+      if(p === 'profile') updateProfileUI(); // Обновляем стату при переходе в профиль
       
       window.scrollTo({top: 0, behavior: 'smooth'});
     }
@@ -531,9 +570,11 @@
       `).join('') : `<div class="empty-state">Здесь пока пусто...</div>`;
     }
 
-    function openTitle(id) {
+    /* ОБНОВЛЕНИЕ: При открытии тайтла скачиваем комментарии из облака */
+    async function openTitle(id) {
       curId = id; const m = window.mangaDb[id];
       if(!m) return;
+      
       document.getElementById('det-cover').src = m.cover;
       document.getElementById('det-title').textContent = m.title;
       document.getElementById('det-meta').textContent = `${m.year} • ${m.status} • ${(m.genres || []).join(', ')}`;
@@ -555,7 +596,16 @@
           chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы еще не загружены</p>";
       }
       
-      updateStarsUI(); updateFavUI(); renderComments(); switchPage('title');
+      updateStarsUI(); 
+      updateFavUI(); 
+      switchPage('title');
+
+      // Ставим спиннер, пока грузятся комментарии
+      document.getElementById('comments-list').innerHTML = `<div class="spinner" style="margin: 30px auto; width: 40px; height: 40px; border-width: 3px;"></div>`;
+      if(window.loadCommentsFromCloud) {
+          globalCommentsList = await window.loadCommentsFromCloud(id);
+      }
+      renderComments();
     }
 
     function openChapter(n) {
@@ -583,7 +633,6 @@
       const savedScroll = localStorage.getItem(`scroll_${curId}_${curCh}`);
       if(savedScroll) {
           document.getElementById('reader').scrollTop = parseInt(savedScroll);
-          window.showToast("Вы продолжили с места остановки");
       } else {
           document.getElementById('reader').scrollTop = 0;
       }
@@ -653,24 +702,65 @@
       }
     }
 
-    function saveComment() {
-      const txt = document.getElementById('comment-text');
-      if(!txt.value.trim()) return;
-      if(!allComments[curId]) allComments[curId] = [];
-      const user = getStorage('m_user_v7', {name: "Гость"}).name;
-      allComments[curId].push({ user, text: txt.value, date: new Date().toLocaleDateString() });
-      localStorage.setItem('m_comments_v7', JSON.stringify(allComments));
-      txt.value = ""; renderComments();
-      window.showToast("Комментарий отправлен!");
+    /* НОВЫЙ БЛОК: Функция "Поделиться" */
+    function shareTitle() {
+        if (navigator.share) {
+            navigator.share({
+                title: window.mangaDb[curId].title,
+                text: `Смотри какую классную мангу "${window.mangaDb[curId].title}" я читаю на MangaCloud!`,
+                url: window.location.href
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            window.showToast("Ссылка на тайтл скопирована!");
+        }
     }
 
+    /* ОБНОВЛЕНИЕ: Сохранение глобального комментария */
+    async function saveGlobalComment() {
+      const txt = document.getElementById('comment-text');
+      if(!txt.value.trim()) return;
+      
+      // Получаем имя юзера или ставим "Гость"
+      const userData = getStorage('m_user_v7', null);
+      const userName = userData ? userData.name : "Анонимный читатель";
+      const avatarHtml = userData ? `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">` : '👤';
+
+      const newComment = { 
+          user: userName, 
+          avatar: avatarHtml,
+          text: txt.value, 
+          date: new Date().toLocaleDateString(),
+          timeId: Date.now() 
+      };
+
+      // 1. Сразу показываем комментарий на экране (чтобы не ждать)
+      globalCommentsList.push(newComment);
+      renderComments();
+      txt.value = "";
+      
+      // 2. Отправляем в Firebase для остальных
+      if(window.sendCommentToCloud) {
+          const success = await window.sendCommentToCloud(curId, newComment);
+          if(success) {
+              window.showToast("Комментарий опубликован!");
+          } else {
+              window.showToast("Ошибка отправки в облако", "error");
+          }
+      }
+    }
+
+    /* ОБНОВЛЕНИЕ: Отрисовка комментариев из массива globalCommentsList */
     function renderComments() {
-      const list = allComments[curId] || [];
       const container = document.getElementById('comments-list');
       if(!container) return;
-      container.innerHTML = list.length ? list.map(c => `
+      
+      container.innerHTML = globalCommentsList.length ? globalCommentsList.map(c => `
         <div class="comm-card">
-          <div class="comm-header"><span class="comm-user">${c.user}</span><span class="comm-date">${c.date}</span></div>
+          <div class="comm-header">
+              <span class="comm-user">${c.avatar || '👤'} ${c.user}</span>
+              <span class="comm-date">${c.date}</span>
+          </div>
           <div class="comm-text">${c.text}</div>
         </div>
       `).reverse().join('') : `<p style="text-align:center; color: #444; padding:30px;">Будьте первым, кто оставит комментарий!</p>`;
@@ -716,7 +806,6 @@
       });
     }
 
-    // Эта функция вызывается после того, как БД из облака загрузится
     window.startUI = () => { 
         initStars(); 
         renderYears(); 
