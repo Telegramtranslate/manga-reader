@@ -237,7 +237,7 @@
           <div class="checkbox-grid" id="filter-status">
             <label><input type="checkbox" value="Завершен" onchange="applyFilters()"><span>Завершен</span></label>
             <label><input type="checkbox" value="Продолжается" onchange="applyFilters()"><span>В процессе</span></label>
-           </div>
+          </div>
         </div>
         <div class="filter-group">
           <h4>Год выпуска</h4>
@@ -264,7 +264,12 @@
       <div class="profile-card" id="main-profile-card">
         
         <img id="profile-avatar" class="profile-avatar" src="https://via.placeholder.com/120/111/fff?text=👤" alt="avatar">
-        <h2 id="profile-name" style="margin-bottom: 5px;">Анонимный Читатель</h2>
+        
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
+            <h2 id="profile-name" style="margin: 0;">Анонимный Читатель</h2>
+            <button onclick="changeNickname()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Изменить ник">✏️</button>
+        </div>
+
         <p id="profile-email" style="color: var(--text-dim); margin-bottom: 25px;">Локальный профиль</p>
         
         <div id="auth-section" style="margin-bottom: 30px;">
@@ -370,6 +375,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    
     window.mangaDb = {}; 
 
     window.saveManga = async function(mangaTitle) {
@@ -402,7 +408,6 @@
         const loader = document.getElementById('global-loader');
         loader.style.opacity = '0';
         setTimeout(() => loader.style.display = 'none', 500);
-
         if(window.startUI) window.startUI();
       } catch (e) {
         document.getElementById('global-loader').innerHTML = "<h2 style='color:#ff4d4d;'>Ошибка подключения к Google Cloud!</h2>";
@@ -418,7 +423,8 @@
     let favs = getStorage('m_favs_v7', []);
     let rates = getStorage('m_rates_v7', {});
     let history = getStorage('m_hist_v7', []);
-    let globalCommentsList = []; 
+    let customNames = getStorage('m_custom_names_v7', {}); // ДОБАВЛЕНО: Хранилище кастомных ников
+    let globalCommentsList = [];
 
     window.showToast = function(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -452,32 +458,61 @@
         }
     });
 
+    // ИСПРАВЛЕНО: Декодирование кириллицы из токена Google
     function handleCredentialResponse(response) {
-      const payload = JSON.parse(window.atob(response.credential.split('.')[1]));
+      const base64Url = response.credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      
+      // Правильный декод для UTF-8 (русские имена)
+      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const payload = JSON.parse(jsonPayload);
       localStorage.setItem('m_user_v7', JSON.stringify(payload));
+      
       updateProfileUI();
-      window.showToast(`С возвращением, ${payload.name}!`);
+      
+      // Проверяем, есть ли кастомный ник
+      const displayName = customNames[payload.sub] || payload.name;
+      window.showToast(`С возвращением, ${displayName}!`);
     }
 
     function logoutProfile() { 
       localStorage.removeItem('m_user_v7'); 
-      updateProfileUI(); 
+      updateProfileUI();
       window.showToast('Вы вышли из аккаунта Google', 'error');
     }
 
-    /* ОБНОВЛЕННАЯ ФУНКЦИЯ ПРОФИЛЯ */
+    // НОВАЯ ФУНКЦИЯ: Смена ника
+    window.changeNickname = function() {
+        const user = getStorage('m_user_v7', null);
+        let currentName = document.getElementById('profile-name').textContent;
+        let newName = prompt("Введи свой новый никнейм:", currentName);
+        
+        if (newName && newName.trim() !== "") {
+            // Если юзер авторизован, привязываем ник к его Google ID, иначе к 'anonymous'
+            if (user) {
+                customNames[user.sub] = newName.trim();
+            } else {
+                customNames['anonymous'] = newName.trim();
+            }
+            localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames));
+            updateProfileUI();
+            window.showToast("Никнейм успешно изменен!");
+        }
+    };
+
+    /* ОБНОВЛЕННАЯ ФУНКЦИЯ ПРОФИЛЯ: Добавлено использование кастомного имени */
     function updateProfileUI() {
       const user = getStorage('m_user_v7', null);
       
-      // Блоки
       const authSec = document.getElementById('auth-section');
       const btnLogout = document.getElementById('btn-logout');
       
-      // Данные
       document.getElementById('stat-read').textContent = history.length;
       document.getElementById('stat-fav').textContent = favs.length;
 
-      // Расчет уровня
       const readCount = history.length;
       let rank = "Новичок";
       let nextLevel = 5;
@@ -488,8 +523,9 @@
       else if(readCount >= 10) { rank = "Отаку"; nextLevel = 25; }
       else if(readCount >= 5) { rank = "Любитель"; nextLevel = 10; }
 
-      if(readCount >= 100) { progress = 100; document.getElementById('chapters-to-next').innerHTML = "Максимальный уровень!"; } 
-      else {
+      if(readCount >= 100) { 
+          progress = 100; document.getElementById('chapters-to-next').innerHTML = "Максимальный уровень!";
+      } else {
           progress = (readCount / nextLevel) * 100;
           document.getElementById('chapters-to-next').innerHTML = `<b>${nextLevel - readCount}</b> глав до повышения`;
       }
@@ -497,28 +533,27 @@
       document.getElementById('user-rank').textContent = rank;
       document.getElementById('user-progress').style.width = `${progress}%`;
 
-      // Отображение пользователя
+      // Отображение пользователя с учетом кастомного ника
       if(user) {
           authSec.style.display = 'none';
           btnLogout.style.display = 'block';
           document.getElementById('profile-avatar').src = user.picture;
-          document.getElementById('profile-name').textContent = user.name;
+          // Используем кастомный ник, если он есть, иначе нормальное имя из Google
+          document.getElementById('profile-name').textContent = customNames[user.sub] || user.name;
           document.getElementById('profile-email').textContent = user.email;
       } else {
           authSec.style.display = 'block';
           btnLogout.style.display = 'none';
           document.getElementById('profile-avatar').src = 'https://via.placeholder.com/120/111/fff?text=👤';
-          document.getElementById('profile-name').textContent = "Анонимный Читатель";
+          // И для анонима выводим кастомный ник, если есть
+          document.getElementById('profile-name').textContent = customNames['anonymous'] || "Анонимный Читатель";
           document.getElementById('profile-email').textContent = "Локальный профиль (Данные в браузере)";
       }
     }
 
-    /* НОВАЯ ФУНКЦИЯ: Виджет "Продолжить чтение" */
     function renderContinueReading() {
         const container = document.getElementById('continue-reading-container');
-        // Проверяем, есть ли история и существует ли такая манга в базе
-        const lastRead = history.find(h => window.mangaDb[h.id]); 
-        
+        const lastRead = history.find(h => window.mangaDb[h.id]);
         if (lastRead) {
             const m = window.mangaDb[lastRead.id];
             container.innerHTML = `
@@ -537,8 +572,8 @@
     }
 
     function openChapterFromWidget(id, ch) {
-        openTitle(id); // Сначала открываем карточку
-        setTimeout(() => openChapter(ch), 300); // Затем сразу открываем саму читалку
+        openTitle(id);
+        setTimeout(() => openChapter(ch), 300);
     }
 
     function renderYears() {
@@ -553,7 +588,8 @@
       starsContainer.innerHTML = '';
       for(let i=1; i<=10; i++) {
         const star = document.createElement('span');
-        star.className = 'star'; star.dataset.v = i; star.textContent = '★';
+        star.className = 'star';
+        star.dataset.v = i; star.textContent = '★';
         star.onclick = function() {
           rates[curId] = parseInt(this.dataset.v);
           localStorage.setItem('m_rates_v7', JSON.stringify(rates));
@@ -572,12 +608,11 @@
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
       const nav = document.querySelector(`.nav-item[onclick*="'${p}'"]`);
       if(nav) nav.classList.add('active');
-      
       if(p !== 'title') lastP = p;
       
       if(p === 'home') {
           renderGrid(Object.values(window.mangaDb), 'home-grid');
-          renderContinueReading(); // Обновляем виджет при заходе на главную
+          renderContinueReading();
       }
       if(p === 'catalog') applyFilters();
       if(p === 'fav') renderGrid(favs.map(id => window.mangaDb[id]).filter(Boolean), 'fav-grid');
@@ -645,7 +680,8 @@
       }
       
       document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
-      document.getElementById('reader').style.display = 'block'; document.body.style.overflow = 'hidden';
+      document.getElementById('reader').style.display = 'block';
+      document.body.style.overflow = 'hidden';
       
       const savedScroll = localStorage.getItem(`scroll_${curId}_${curCh}`);
       if(savedScroll) { document.getElementById('reader').scrollTop = parseInt(savedScroll); } 
@@ -695,13 +731,15 @@
       favs = isFav ? favs.filter(i => i !== curId) : [...favs, curId]; 
       localStorage.setItem('m_favs_v7', JSON.stringify(favs)); 
       updateFavUI();
-      if(!isFav) { if(window.saveManga) window.saveManga(window.mangaDb[curId].title); window.showToast("Добавлено в закладки!"); } 
+      if(!isFav) { if(window.saveManga) window.saveManga(window.mangaDb[curId].title);
+      window.showToast("Добавлено в закладки!"); } 
       else { window.showToast("Удалено из закладок", "error"); }
     }
 
     function updateFavUI() { 
       const btn = document.getElementById('btn-fav');
-      if(btn) { const isFav = favs.includes(curId); btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАДКИ'; btn.className = isFav ? 'btn btn-sec' : 'btn'; }
+      if(btn) { const isFav = favs.includes(curId); btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАДКИ';
+      btn.className = isFav ? 'btn btn-sec' : 'btn'; }
     }
 
     function shareTitle() {
@@ -710,14 +748,25 @@
         } else { navigator.clipboard.writeText(window.location.href); window.showToast("Ссылка на тайтл скопирована!"); }
     }
 
+    // ИСПРАВЛЕНО: Теперь комментарии отправляются от кастомного имени, если оно есть
     async function saveGlobalComment() {
-      const txt = document.getElementById('comment-text'); if(!txt.value.trim()) return;
+      const txt = document.getElementById('comment-text');
+      if(!txt.value.trim()) return;
       const userData = getStorage('m_user_v7', null);
-      const userName = userData ? userData.name : "Анонимный читатель";
+      
+      // Логика определения имени
+      let userName = "Анонимный читатель";
+      if (userData) {
+          userName = customNames[userData.sub] || userData.name;
+      } else if (customNames['anonymous']) {
+          userName = customNames['anonymous'];
+      }
+      
       const avatarHtml = userData ? `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">` : '👤';
-
       const newComment = { user: userName, avatar: avatarHtml, text: txt.value, date: new Date().toLocaleDateString(), timeId: Date.now() };
-      globalCommentsList.push(newComment); renderComments(); txt.value = "";
+      
+      globalCommentsList.push(newComment); renderComments();
+      txt.value = "";
       
       if(window.sendCommentToCloud) {
           const success = await window.sendCommentToCloud(curId, newComment);
@@ -726,7 +775,8 @@
     }
 
     function renderComments() {
-      const container = document.getElementById('comments-list'); if(!container) return;
+      const container = document.getElementById('comments-list');
+      if(!container) return;
       container.innerHTML = globalCommentsList.length ? globalCommentsList.map(c => `
         <div class="comm-card"><div class="comm-header"><span class="comm-user">${c.avatar || '👤'} ${c.user}</span><span class="comm-date">${c.date}</span></div><div class="comm-text">${c.text}</div></div>
       `).reverse().join('') : `<p style="text-align:center; color: #444; padding:30px;">Будьте первым, кто оставит комментарий!</p>`;
@@ -735,7 +785,8 @@
     function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); }
     
     function closeReader() { 
-      document.getElementById('reader').style.display = 'none'; document.body.style.overflow = 'auto'; 
+      document.getElementById('reader').style.display = 'none';
+      document.body.style.overflow = 'auto'; 
       document.getElementById('bottom-nav').style.transform = 'translateY(0)'; openTitle(curId); 
     }
     
@@ -759,7 +810,8 @@
     }
 
     window.startUI = () => { 
-        initStars(); renderYears(); updateProfileUI(); switchPage('home'); 
+        initStars(); renderYears(); updateProfileUI();
+        switchPage('home'); 
     };
   </script>
 </body>
