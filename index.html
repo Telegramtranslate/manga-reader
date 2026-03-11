@@ -439,7 +439,6 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    // ДОБАВЛЕН onSnapshot ДЛЯ ЖИВОГО ОБНОВЛЕНИЯ РЕЙТИНГА
     import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -449,7 +448,6 @@
     };
 
     const app = initializeApp(firebaseConfig);
- 
     const db = getFirestore(app);
     
     window.mangaDb = {}; 
@@ -482,25 +480,21 @@
       return null;
     };
 
-    // НОВАЯ ФУНКЦИЯ: Подписка на живое обновление рейтинга
     window.listenToRating = function(mangaId, callback) {
         return onSnapshot(doc(db, "manga_ratings", mangaId), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 const scores = Object.values(data);
-          
                 const total = scores.length;
                 const sum = scores.reduce((a, b) => a + b, 0);
                 const average = (sum / total).toFixed(1);
                 callback({ average, total });
             } else {
-            
-                callback({ average: "0.0", total: 0 }); // СБРОС ДО 0
+                callback({ average: "0.0", total: 0 });
             }
         });
     };
 
-    // ОБНОВЛЕННАЯ ФУНКЦИЯ: Облачная система оценок (с защитой анонимных голосов)
     window.sendRatingToCloud = async function(mangaId, score) {
        const user = JSON.parse(localStorage.getItem('m_user_v7'));
        let userId;
@@ -508,7 +502,6 @@
        if (user) {
            userId = user.sub;
        } else {
-           // Чтобы анонимы не спамили, сохраняем их рандомный ID в памяти устройства
            userId = localStorage.getItem('m_anon_id');
            if (!userId) {
                userId = 'anon_' + Math.random().toString(36).substr(2, 9);
@@ -543,10 +536,38 @@
         return [];
     };
 
+    // ОБНОВЛЕННАЯ ФУНКЦИЯ ЗАГРУЗКИ С ПРОВЕРКОЙ НОВЫХ ГЛАВ
     async function loadCloudDatabase() {
       try {
         const querySnapshot = await getDocs(collection(db, "manga"));
-        querySnapshot.forEach((doc) => { window.mangaDb[doc.id] = doc.data(); });
+        
+        let lastSeen = JSON.parse(localStorage.getItem('m_last_seen_updates') || '{}');
+        let isFirstLoad = Object.keys(lastSeen).length === 0;
+        let needsSave = false;
+
+        querySnapshot.forEach((doc) => { 
+            const data = doc.data();
+            window.mangaDb[doc.id] = data; 
+            
+            // Если у манги есть поле updatedAt, проверяем, не вышло ли обновление
+            if (data.updatedAt) {
+                if (!isFirstLoad && (!lastSeen[doc.id] || data.updatedAt > lastSeen[doc.id])) {
+                    if(window.addNotification) {
+                        window.addNotification(`Вышло обновление: ${data.title}!`, doc.id);
+                    }
+                    lastSeen[doc.id] = data.updatedAt;
+                    needsSave = true;
+                } else if (isFirstLoad || !lastSeen[doc.id]) {
+                    // Просто записываем время при первом заходе, чтобы не спамить
+                    lastSeen[doc.id] = data.updatedAt;
+                    needsSave = true;
+                }
+            }
+        });
+
+        if (needsSave) {
+            localStorage.setItem('m_last_seen_updates', JSON.stringify(lastSeen));
+        }
         
         const loader = document.getElementById('global-loader');
         loader.style.opacity = '0';
@@ -561,7 +582,7 @@
 
   <script>
     let curId = null, curCh = 1, lastP = 'home';
-    let ratingUnsub = null; // ГЛОБАЛЬНАЯ ПЕРЕМЕННАЯ ДЛЯ ОТМЕНЫ ПОДПИСКИ РЕЙТИНГА
+    let ratingUnsub = null;
 
     const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
     let favs = getStorage('m_favs_v7', []);
@@ -570,7 +591,6 @@
     let customNames = getStorage('m_custom_names_v7', {});
     let globalCommentsList = [];
     
-    // ЛОГИКА ТЕМЫ
     let isLightMode = getStorage('m_theme_light', false);
     if(isLightMode) {
         document.documentElement.setAttribute('data-theme', 'light');
@@ -591,7 +611,6 @@
         }
     };
     
-    // ЛОГИКА УВЕДОМЛЕНИЙ (НОВОЕ)
     let notifications = getStorage('m_notifs_v1', [
         { id: Date.now(), text: "Добро пожаловать в MangaCloud! Здесь будут появляться уведомления о новых главах.", read: false, mangaId: null }
     ]);
@@ -647,7 +666,6 @@
         window.renderNotifications();
     };
 
-    // ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ НОВЫХ УВЕДОМЛЕНИЙ
     window.addNotification = function(text, mangaId = null) {
         notifications.push({ id: Date.now(), text, read: false, mangaId });
         localStorage.setItem('m_notifs_v1', JSON.stringify(notifications));
@@ -913,11 +931,21 @@
       history.unshift({ id: curId, ch: curCh, time: Date.now() });
       localStorage.setItem('m_hist_v7', JSON.stringify(history.slice(0, 50)));
       document.getElementById('reader-info').textContent = `${window.mangaDb[curId].title} — Глава ${curCh}`;
-      const container = document.getElementById('reader-images'); container.innerHTML = '';
-      if(window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh]) {
-          container.innerHTML = window.mangaDb[curId].chapters[curCh].map(s => `
-            <img src="${s}" loading="lazy" style="width:100%; display:block; margin-bottom:0; background: #111;" onerror="this.src='https://via.placeholder.com/800x1200/111/fff?text=Ошибка+загрузки+кадра'">
+      
+      const container = document.getElementById('reader-images');
+      container.innerHTML = '<div class="spinner" style="margin: 50px auto;"></div>';
+      
+      const chapterData = window.mangaDb[curId].chapters[curCh];
+      
+      if (Array.isArray(chapterData)) {
+          container.innerHTML = chapterData.map(s => `
+              <img src="${s}" 
+                   loading="lazy" 
+                   style="width:100%; display:block; background: #111;" 
+                   onerror="this.src='https://placehold.co/800x1200/111/fff?text=Ошибка+загрузки'">
           `).join('');
+      } else {
+          container.innerHTML = '<div class="empty-state">Ошибка: Глава пуста или имеет неверный формат в базе данных</div>';
       }
       
       document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
@@ -1083,7 +1111,7 @@
 
     window.startUI = () => { 
         initStars(); renderYears(); updateProfileUI();
-        window.renderNotifications(); // Добавлен рендер уведомлений при старте
+        window.renderNotifications();
         switchPage('home'); 
     };
   </script>
