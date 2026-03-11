@@ -51,9 +51,11 @@
       --stat-bg: #f9f9f9;
     }
 
-    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', -apple-system, sans-serif; }
+    /* Добавлено отключение синего выделения на телефонах -webkit-tap-highlight-color */
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; line-height: 1.6; transition: background 0.4s, color 0.4s; }
+    /* Добавлен env() для body padding-bottom */
+    body { background: var(--bg); color: var(--text); padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); overflow-x: hidden; line-height: 1.6; transition: background 0.4s, color 0.4s; }
 
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
@@ -125,7 +127,8 @@
     .card-info { padding: 18px; background: linear-gradient(to top, var(--card-bg) 70%, transparent); flex-grow: 1; display: flex; align-items: center; }
     .card-info h3 { font-size: 1rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3; }
 
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--glass); backdrop-filter: blur(30px); display: flex; justify-content: space-around; padding: 12px 5px; border-top: 1px solid rgba(128,128,128,0.1); z-index: 999; transition: transform 0.3s ease; }
+    /* Добавлен env() для bottom-nav padding-bottom */
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--glass); backdrop-filter: blur(30px); display: flex; justify-content: space-around; padding: 12px 5px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(128,128,128,0.1); z-index: 999; transition: transform 0.3s ease; }
     .nav-item { color: var(--text-dim); text-decoration: none; font-size: 0.7rem; text-align: center; transition: var(--transition); flex: 1; position: relative; }
     .nav-item.active { color: var(--accent); }
     .nav-item.active::after { content: ''; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background: var(--accent); border-radius: 0 0 10px 10px; box-shadow: 0 0 15px var(--accent); }
@@ -187,22 +190,29 @@
     .comm-date { font-size: 0.85rem; color: var(--text-dim); }
     .comm-text { font-size: 0.95rem; line-height: 1.5; margin-bottom: 10px; }
     
-    /* Кнопка лайка для комментариев */
-    .comm-like-btn { background: none; border: 1px solid var(--border-color); color: var(--text-dim); padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+    /* Анимация и улучшенная кнопка лайка для комментариев */
+    @keyframes likeBounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .comm-like-btn { background: none; border: 1px solid var(--border-color); color: var(--text-dim); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 60px; }
     .comm-like-btn:hover { color: #ff4d4d; border-color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
-    .comm-like-btn.liked { color: #ff4d4d; border-color: #ff4d4d; }
+    .comm-like-btn.liked { color: #ff4d4d; border-color: #ff4d4d; animation: likeBounce 0.35s ease-out; }
 
     .title-header-layout { display: flex; gap: 45px; flex-wrap: wrap; }
     .title-cover-img { width: 300px; border-radius: 20px; border: 1px solid var(--border-light); box-shadow: 0 15px 40px rgba(0,0,0,0.2); object-fit: cover; }
     .title-info-block { flex: 1; min-width: 300px; }
     .rating-box { background: var(--stat-bg); padding: 30px; border-radius: 24px; text-align: center; border: 1px solid var(--border-light); margin-top:30px; }
 
-    #toast-container { position: fixed; bottom: 90px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    /* Добавлен env() для toast */
+    #toast-container { position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
     .toast { background: var(--card-bg); color: var(--text); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-left: 4px solid var(--accent); animation: slideInRight 0.4s ease forwards; transition: 0.4s ease; font-weight: 600; font-size: 0.9rem; }
     .toast.error { border-left-color: #ff4d4d; }
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-    #btn-scroll-top { position: fixed; bottom: 80px; right: 20px; background: var(--accent); color: #fff; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 15px var(--accent-glow); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 900; }
+    /* Добавлен env() для btn-scroll-top */
+    #btn-scroll-top { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 20px; background: var(--accent); color: #fff; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 15px var(--accent-glow); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 900; }
     #btn-scroll-top.visible { opacity: 1; visibility: visible; }
 
     @media (max-width: 950px) {
@@ -227,7 +237,8 @@
       .title-cover-img { width: 100%; max-width: 240px; }
       .title-info-block { min-width: 100%; }
       #det-title { font-size: 2rem !important; }
-      #toast-container { bottom: 80px; left: 20px; right: 20px; align-items: center; }
+      /* Добавлен env() для мобильного toast */
+      #toast-container { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); left: 20px; right: 20px; align-items: center; }
       .toast { width: 100%; text-align: center; animation: slideUpToast 0.4s ease forwards; }
       @keyframes slideUpToast { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       .continue-widget { flex-direction: column; text-align: center; gap: 10px; }
@@ -296,6 +307,7 @@
         <div class="grid" id="catalog-grid"></div>
       </div>
       <aside class="filters-sidebar">
+      
         <div class="filter-group">
           <h4>Сортировка</h4>
           <select id="sort-main" onchange="applyFilters()">
@@ -478,7 +490,6 @@
       try { await setDoc(userRef, { favorites: arrayUnion(mangaTitle) }, { merge: true });
       } catch (e) { console.error("Ошибка сохранения в облако:", e); }
     };
-
     window.saveNicknameToCloud = async function(nickname) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if (!user) return;
@@ -487,7 +498,6 @@
         await setDoc(userRef, { customNickname: nickname }, { merge: true });
       } catch (e) { console.error("Ошибка сохранения ника в облако:", e); }
     };
-
     window.loadUserDataFromCloud = async function(userId) {
       try {
         const docSnap = await getDoc(doc(db, "users_data", userId));
@@ -505,15 +515,16 @@
                 const data = docSnap.data();
                 const scores = Object.values(data);
                 const total = scores.length;
+  
                 const sum = scores.reduce((a, b) => a + b, 0);
                 const average = (sum / total).toFixed(1);
                 callback({ average, total });
             } else {
                 callback({ average: "0.0", total: 0 });
+  
             }
         });
     };
-
     window.sendRatingToCloud = async function(mangaId, score) {
        const user = JSON.parse(localStorage.getItem('m_user_v7'));
        let userId;
@@ -532,12 +543,12 @@
            await setDoc(ratingRef, { [userId]: score }, { merge: true });
        } catch(e) { console.error("Ошибка отправки рейтинга:", e); }
     };
-
     window.sendCommentToCloud = async function(mangaId, commentData) {
         try { const commentRef = doc(db, "manga_comments", mangaId);
               await setDoc(commentRef, { list: arrayUnion(commentData) }, { merge: true });
               return true;
-        } catch(e) { return false; }
+        } catch(e) { return false;
+        }
     };
 
     window.updateAllCommentsInCloud = async function(mangaId, newList) {
@@ -545,7 +556,6 @@
                await setDoc(commentRef, { list: newList });
          } catch(e) { console.error("Ошибка обновления комментов:", e); }
     };
-
     window.loadCommentsFromCloud = async function(mangaId) {
         try { const docSnap = await getDoc(doc(db, "manga_comments", mangaId));
               if (docSnap.exists() && docSnap.data().list) { return docSnap.data().list; }
@@ -559,26 +569,27 @@
         let lastSeen = JSON.parse(localStorage.getItem('m_last_seen_updates') || '{}');
         let isFirstLoad = Object.keys(lastSeen).length === 0;
         let needsSave = false;
-
         querySnapshot.forEach((doc) => { 
             const data = doc.data();
             data.id = doc.id; // КРИТИЧНЫЙ ФИКС: сохраняем ID для поиска и фильтров
             window.mangaDb[doc.id] = data; 
             
             if (data.updatedAt) {
-                if (!isFirstLoad && (!lastSeen[doc.id] || data.updatedAt > lastSeen[doc.id])) {
+                if (!isFirstLoad 
+                    && (!lastSeen[doc.id] || data.updatedAt > lastSeen[doc.id])) {
                     if(window.addNotification) {
                         window.addNotification(`Вышло обновление: ${data.title}!`, doc.id);
                     }
                     lastSeen[doc.id] = data.updatedAt;
+    
                     needsSave = true;
                 } else if (isFirstLoad || !lastSeen[doc.id]) {
                     lastSeen[doc.id] = data.updatedAt;
                     needsSave = true;
+                
                 }
             }
         });
-
         if (needsSave) {
             localStorage.setItem('m_last_seen_updates', JSON.stringify(lastSeen));
         }
@@ -587,7 +598,6 @@
         loader.style.opacity = '0';
         setTimeout(() => loader.style.display = 'none', 500);
         if(window.startUI) window.startUI();
-
       } catch (e) {
         document.getElementById('global-loader').innerHTML = "<h2 style='color:#ff4d4d;'>Ошибка подключения к Google Cloud!</h2>";
       }
@@ -599,7 +609,8 @@
     let curId = null, curCh = 1, lastP = 'home';
     let ratingUnsub = null;
 
-    const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
+    const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback;
+      } catch { return fallback; } };
     let favs = getStorage('m_favs_v7', []);
     let rates = getStorage('m_rates_v7', {});
     let history = getStorage('m_hist_v7', []);
@@ -625,11 +636,9 @@
             window.showToast("Темная тема включена 🌙");
         }
     };
-
     let notifications = getStorage('m_notifs_v1', [
         { id: Date.now(), text: "Добро пожаловать в MangaCloud! Здесь будут появляться уведомления о новых главах.", read: false, mangaId: null }
     ]);
-
     window.toggleNotifications = function() {
         const panel = document.getElementById('notifications-panel');
         panel.classList.toggle('visible');
@@ -637,7 +646,6 @@
             window.renderNotifications();
         }
     };
-
     window.renderNotifications = function() {
         const list = document.getElementById('notif-list');
         const badge = document.getElementById('notif-badge');
@@ -695,12 +703,10 @@
         container.appendChild(toast);
         setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
     };
-
     window.addEventListener('scroll', () => {
         const btn = document.getElementById('btn-scroll-top');
         if (window.scrollY > 500) btn.classList.add('visible'); else btn.classList.remove('visible');
     });
-
     const readerElement = document.getElementById('reader');
     readerElement.addEventListener('scroll', () => {
         const scrollTop = readerElement.scrollTop;
@@ -710,7 +716,6 @@
         document.getElementById('reader-progress-text').textContent = Math.round(scrollPercentage) + '%';
         if(curId && curCh) { localStorage.setItem(`scroll_${curId}_${curCh}`, scrollTop); }
     });
-
     document.addEventListener('keydown', (e) => {
         if (readerElement.style.display === 'block') {
             if (e.key === 'ArrowRight' || e.key === 'd') moveChapter(1);
@@ -718,14 +723,12 @@
             if (e.key === 'Escape') closeReader();
         }
     });
-
     async function handleCredentialResponse(response) {
       const base64Url = response.credential.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
-
       const payload = JSON.parse(jsonPayload);
       localStorage.setItem('m_user_v7', JSON.stringify(payload));
       
@@ -752,7 +755,6 @@
         const user = getStorage('m_user_v7', null);
         let currentName = document.getElementById('profile-name').textContent;
         let newName = prompt("Введи свой новый никнейм:", currentName);
-
         if (newName && newName.trim() !== "") {
             const trimmedName = newName.trim();
             if (user) {
@@ -782,10 +784,14 @@
       let nextLevel = 5;
       let progress = 0;
 
-      if(readCount >= 50) { rank = "Божество Манги"; nextLevel = 100; }
-      else if(readCount >= 25) { rank = "Мастер"; nextLevel = 50; }
-      else if(readCount >= 10) { rank = "Отаку"; nextLevel = 25; }
-      else if(readCount >= 5) { rank = "Любитель"; nextLevel = 10; }
+      if(readCount >= 50) { rank = "Божество Манги";
+      nextLevel = 100; }
+      else if(readCount >= 25) { rank = "Мастер"; nextLevel = 50;
+      }
+      else if(readCount >= 10) { rank = "Отаку"; nextLevel = 25;
+      }
+      else if(readCount >= 5) { rank = "Любитель"; nextLevel = 10;
+      }
 
       if(readCount >= 100) { 
           progress = 100;
@@ -797,7 +803,6 @@
 
       document.getElementById('user-rank').textContent = rank;
       document.getElementById('user-progress').style.width = `${progress}%`;
-
       if(user) {
           authSec.style.display = 'none';
           btnLogout.style.display = 'block';
@@ -822,14 +827,17 @@
                 <div class="continue-widget" onclick="openChapterFromWidget('${m.id}', ${lastRead.ch})">
                     <img src="${m.cover}" class="continue-cover" alt="cover">
                     <div class="continue-info">
-                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить чтение</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить 
+чтение</div>
                         <div class="continue-title">${m.title}</div>
                         <div class="continue-chapter">Глава ${lastRead.ch} ❯</div>
                     </div>
                 </div>
+            
             `;
             container.style.display = 'block';
-        } else { container.innerHTML = ''; }
+        } else { container.innerHTML = '';
+        }
     }
 
     function openChapterFromWidget(id, ch) {
@@ -881,7 +889,7 @@
               window.clearSearch();
           } else {
               renderGrid(Object.values(window.mangaDb), 'home-grid'); 
-              renderContinueReading(); 
+              renderContinueReading();
           }
       }
       if(p === 'catalog') applyFilters();
@@ -918,9 +926,12 @@
     window.toggleReaderWidth = function() {
         readerWidthMode = (readerWidthMode + 1) % 3;
         const container = document.getElementById('reader-images');
-        if(readerWidthMode === 0) { container.className = ''; window.showToast('Размер: Стандартный'); }
-        if(readerWidthMode === 1) { container.className = 'reader-wide'; window.showToast('Размер: На весь экран'); }
-        if(readerWidthMode === 2) { container.className = 'reader-narrow'; window.showToast('Размер: Узкий'); }
+        if(readerWidthMode === 0) { container.className = ''; window.showToast('Размер: Стандартный');
+        }
+        if(readerWidthMode === 1) { container.className = 'reader-wide'; window.showToast('Размер: На весь экран');
+        }
+        if(readerWidthMode === 2) { container.className = 'reader-narrow'; window.showToast('Размер: Узкий');
+        }
     };
 
     async function openTitle(id) {
@@ -936,7 +947,6 @@
       document.getElementById('det-votes').textContent = "Загрузка оценок...";
       
       document.getElementById('ch-search-input').value = "";
-
       if (ratingUnsub) { ratingUnsub(); } 
       if (window.listenToRating) {
           ratingUnsub = window.listenToRating(id, (ratingData) => {
@@ -951,16 +961,19 @@
             const isRead = history.some(h => h.id === id && h.ch == n) ? "opacity: 0.6; border-color: var(--accent);" : "";
             return `
               <div class="chapter-item" data-ch="${n}" onclick="openChapter(${n})" style="padding:22px; border-bottom:1px solid var(--border-color); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: 0.2s; ${isRead}" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='none'">
+            
                 <span style="font-weight:700; font-size: 1.1rem;">Глава ${n}</span>
                 <span style="color:var(--accent); font-size:0.85rem; font-weight: 800; letter-spacing: 1px;">${isRead ? "ПРОДОЛЖИТЬ" : "ЧИТАТЬ"}</span>
               </div>
             `;
           }).join('');
-      } else { chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы еще не загружены</p>"; }
+      } else { chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы еще не загружены</p>";
+      }
       
       updateStarsUI(); updateFavUI(); switchPage('title');
       document.getElementById('comments-list').innerHTML = `<div class="spinner" style="margin: 30px auto; width: 40px; height: 40px; border-width: 3px;"></div>`;
-      if(window.loadCommentsFromCloud) { globalCommentsList = await window.loadCommentsFromCloud(id); }
+      if(window.loadCommentsFromCloud) { globalCommentsList = await window.loadCommentsFromCloud(id);
+      }
       renderComments();
     }
 
@@ -981,6 +994,7 @@
                    loading="lazy" 
                    style="width:100%; display:block; background: #111;" 
                    onerror="this.src='https://placehold.co/800x1200/111/fff?text=Ошибка+загрузки'">
+  
           `).join('');
       } else {
           container.innerHTML = '<div class="empty-state">Ошибка: Глава пуста или имеет неверный формат в базе данных</div>';
@@ -991,17 +1005,21 @@
       document.body.style.overflow = 'hidden';
       
       const savedScroll = localStorage.getItem(`scroll_${curId}_${curCh}`);
-      if(savedScroll) { document.getElementById('reader').scrollTop = parseInt(savedScroll); } 
-      else { document.getElementById('reader').scrollTop = 0; }
+      if(savedScroll) { document.getElementById('reader').scrollTop = parseInt(savedScroll);
+      } 
+      else { document.getElementById('reader').scrollTop = 0;
+      }
       
-      document.getElementById('btn-prev-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh - 1]) ? 'block' : 'none';
+      document.getElementById('btn-prev-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh - 1]) ?
+      'block' : 'none';
       document.getElementById('btn-next-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh + 1]) ? 'block' : 'none';
     }
 
     function renderHistory() {
       const container = document.getElementById('history-list'); if(!container) return;
       const validHistory = history.filter(h => window.mangaDb[h.id]);
-      if(!validHistory.length) { container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>"; return; }
+      if(!validHistory.length) { container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>"; return;
+      }
       
       container.innerHTML = validHistory.map(h => {
         const m = window.mangaDb[h.id];
@@ -1009,6 +1027,7 @@
           <img src="${m.cover}" loading="lazy" style="width:70px; height:95px; object-fit:cover; border-radius:12px;">
           <div style="flex:1">
             <h4 style="margin-bottom:6px; font-size: 1.1rem;">${m.title}</h4>
+      
             <p style="color:var(--accent); font-size:0.9rem; font-weight: 700;">Глава ${h.ch}</p>
           </div>
           <span style="color: #444; font-size: 1.5rem;">❯</span>
@@ -1020,7 +1039,6 @@
       let data = Object.values(window.mangaDb);
       const getChecks = (id) => Array.from(document.querySelectorAll(`${id} input:checked`)).map(i => i.value);
       const statuses = getChecks('#filter-status'), years = getChecks('#filter-year'), genres = getChecks('#filter-genre');
-      
       if(statuses.length) data = data.filter(m => statuses.includes(m.status));
       if(years.length) data = data.filter(m => years.includes(m.year.toString()));
       if(genres.length) data = data.filter(m => genres.some(g => m.genres && m.genres.includes(g)));
@@ -1037,13 +1055,16 @@
       favs = isFav ? favs.filter(i => i !== curId) : [...favs, curId]; 
       localStorage.setItem('m_favs_v7', JSON.stringify(favs)); 
       updateFavUI();
-      if(!isFav) { if(window.saveManga) window.saveManga(window.mangaDb[curId].title); window.showToast("Добавлено в закладки!"); } 
-      else { window.showToast("Удалено из закладок", "error"); }
+      if(!isFav) { if(window.saveManga) window.saveManga(window.mangaDb[curId].title);
+      window.showToast("Добавлено в закладки!"); } 
+      else { window.showToast("Удалено из закладок", "error");
+      }
     }
 
     function updateFavUI() { 
       const btn = document.getElementById('btn-fav');
-      if(btn) { const isFav = favs.includes(curId); btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАКИ'; btn.className = isFav ? 'btn btn-sec' : 'btn'; }
+      if(btn) { const isFav = favs.includes(curId); btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАКИ';
+      btn.className = isFav ? 'btn btn-sec' : 'btn'; }
     }
 
     function shareTitle() {
@@ -1064,7 +1085,8 @@
           userName = customNames['anonymous'];
       }
       
-      const avatarHtml = userData ? `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">` : '👤';
+      const avatarHtml = userData ?
+      `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">` : '👤';
       
       const now = new Date();
       const prettyDate = now.toLocaleDateString() + ', ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -1074,15 +1096,28 @@
       txt.value = "";
       if(window.sendCommentToCloud) {
           const success = await window.sendCommentToCloud(curId, newComment);
-          if(success) { window.showToast("Комментарий опубликован!"); } else { window.showToast("Ошибка отправки в облако", "error"); }
+          if(success) { window.showToast("Комментарий опубликован!"); } else { window.showToast("Ошибка отправки в облако", "error");
+          }
       }
     }
 
     window.likeComment = function(timeId) {
+        let likedComments = JSON.parse(localStorage.getItem('m_liked_comments_v7') || '[]');
         const comm = globalCommentsList.find(c => c.timeId === timeId);
         if(comm) {
-            comm.likes = (comm.likes || 0) + 1;
+            const isLiked = likedComments.includes(timeId);
+            if (isLiked) {
+                // Если уже лайкнули — убираем лайк
+                comm.likes = Math.max(0, (comm.likes || 1) - 1);
+                likedComments = likedComments.filter(id => id !== timeId);
+            } else {
+                // Ставим лайк
+                comm.likes = (comm.likes || 0) + 1;
+                likedComments.push(timeId);
+            }
+            localStorage.setItem('m_liked_comments_v7', JSON.stringify(likedComments));
             renderComments();
+            
             if(window.updateAllCommentsInCloud) {
                 window.updateAllCommentsInCloud(curId, globalCommentsList);
             }
@@ -1092,6 +1127,9 @@
     function renderComments() {
       const container = document.getElementById('comments-list');
       if(!container) return;
+      
+      let likedComments = JSON.parse(localStorage.getItem('m_liked_comments_v7') || '[]');
+      
       container.innerHTML = globalCommentsList.length ?
       globalCommentsList.map(c => `
         <div class="comm-card">
@@ -1101,7 +1139,7 @@
           </div>
           <div class="comm-text">${c.text}</div>
           <div>
-            <button class="comm-like-btn ${c.likes > 0 ? 'liked' : ''}" onclick="likeComment(${c.timeId})">
+            <button class="comm-like-btn ${likedComments.includes(c.timeId) ? 'liked' : ''}" onclick="likeComment(${c.timeId})">
                ❤️ ${c.likes || 0}
             </button>
           </div>
@@ -1109,7 +1147,8 @@
       `).reverse().join('') : `<p style="text-align:center; color: var(--text-dim); padding:30px;">Будьте первым, кто оставит комментарий!</p>`;
     }
 
-    function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); }
+    function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters();
+    }
     
     function closeReader() { 
       document.getElementById('reader').style.display = 'none';
@@ -1118,8 +1157,10 @@
     }
     
     function moveChapter(d) { 
-        if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) { openChapter(curCh+d); } 
-        else { window.showToast("Глав больше нет", "error"); }
+        if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) { openChapter(curCh+d);
+        } 
+        else { window.showToast("Глав больше нет", "error");
+        }
     }
     
     /* --- ПРОКАЧАННАЯ ФУНКЦИЯ ПОИСКА --- */
@@ -1145,6 +1186,7 @@
 
         // Прячем лишнее при поиске
         if(continueContainer) continueContainer.style.display = 'none';
+  
         if(titleHeader) titleHeader.innerHTML = `<span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent);"></span> 🔍 Результаты поиска`;
 
         // Безопасный поиск по названию и жанрам
@@ -1153,7 +1195,7 @@
             const matchGenre = m.genres && m.genres.some(g => g.toLowerCase().includes(query));
             return matchTitle || matchGenre;
         });
-        
+       
         renderGrid(res, 'home-grid');
       }, 300); // чуть увеличил задержку для плавности
     };
@@ -1172,7 +1214,8 @@
     }
 
     window.startUI = () => { 
-        initStars(); renderYears(); updateProfileUI();
+        initStars();
+        renderYears(); updateProfileUI();
         window.renderNotifications();
         switchPage('home'); 
     };
