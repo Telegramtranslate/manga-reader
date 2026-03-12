@@ -270,7 +270,6 @@
       #notifications-panel { top: 60px; right: 10px; width: calc(100% - 20px); }
       #sidebar { width: 85%; }
       main { padding: 10px; }
-      /* Вот здесь правило, которое делает 2 колонки на мобильных */
       .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .card-info { padding: 12px 10px; }
       .card-info h3 { font-size: 0.85rem; }
@@ -425,7 +424,7 @@
   <div id="friends-page" class="page">
     <header><h1>👥 Друзья</h1></header>
     <main style="flex-direction: column; max-width: 800px;">
-      <p style="color: var(--text-dim); margin-bottom: 20px;">Ищите реальных пользователей MangaCloud по никнейму и добавляйте их в друзья!</p>
+      <p style="color: var(--text-dim); margin-bottom: 20px;">Ищите реальных пользователей MangaCloud по никнейму и отправляйте им заявки!</p>
       
       <div style="display: flex; gap: 10px; margin-bottom: 25px;">
           <input type="text" id="friend-search-input" placeholder="Введите никнейм для поиска...">
@@ -637,16 +636,39 @@
     };
 
     // --- ФУНКЦИИ ДЛЯ ДРУЗЕЙ И ЧАТОВ (FIREBASE) ---
+    
+    // Новая логика прослушки своего профиля для заявок в друзья
+    let userUnsub = null;
+    window.listenToMyData = function(uid) {
+        if(userUnsub) userUnsub();
+        userUnsub = onSnapshot(doc(db, "users_data", uid), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                
+                // Обрабатываем заявки в друзья
+                window.currentFriendRequests = data.friendRequests || [];
+                window.renderNotifications(); // Перерисовываем уведомления
+                
+                // Синхронизируем друзей
+                if (data.friendsList) {
+                    myFriends = data.friendsList;
+                    localStorage.setItem('m_real_friends_v1', JSON.stringify(myFriends));
+                    if (document.getElementById('friends-page').style.display === 'block') renderFriendsList();
+                    if (document.getElementById('messages-page').style.display === 'block') renderDialogsList();
+                }
+            }
+        });
+    };
+
     window.searchUsersInCloud = async function(searchQuery) {
         try {
             const querySnapshot = await getDocs(collection(db, "users_data"));
             let results = [];
             const q = searchQuery.toLowerCase();
-            const currentUser = JSON.parse(localStorage.getItem('m_user_v7'));
-            const myUid = currentUser ? currentUser.sub : null;
             querySnapshot.forEach(doc => {
                 const data = doc.data();
-                if(data.uid !== myUid && data.searchName && data.searchName.includes(q)) {
+                // Убрали проверку uid !== myUid, чтобы пользователь мог найти себя
+                if(data.searchName && data.searchName.includes(q)) {
                     results.push(data);
                 }
             });
@@ -654,14 +676,67 @@
         } catch(e) { console.error("Ошибка поиска:", e); return []; }
     };
 
-    window.saveFriendToCloud = async function(myUid, friendData) {
+    // Отправка запроса в друзья
+    window.sendFriendRequest = async function(targetUid, targetName, targetPic) {
+        const user = JSON.parse(localStorage.getItem('m_user_v7'));
+        if(!user) return;
+        
+        let customNamesLocal = JSON.parse(localStorage.getItem('m_custom_names_v7')) || {};
+        const myName = customNamesLocal[user.sub] || user.name;
+        
+        const targetRef = doc(db, "users_data", targetUid);
         try {
-            const userRef = doc(db, "users_data", myUid);
-            await setDoc(userRef, { 
-                friendsList: arrayUnion({ uid: friendData.uid, name: friendData.customNickname, picture: friendData.picture }) 
+            await setDoc(targetRef, {
+                friendRequests: arrayUnion({ uid: user.sub, name: myName, picture: user.picture })
             }, { merge: true });
-            return true;
-        } catch(e) { return false; }
+            window.showToast(`Заявка отправлена пользователю ${targetName}!`);
+        } catch(e) { 
+            console.error(e); 
+            window.showToast("Ошибка при отправке заявки", "error");
+        }
+    };
+
+    // Принятие запроса
+    window.acceptFriend = async function(friendUid, friendName, friendPic) {
+        const user = JSON.parse(localStorage.getItem('m_user_v7'));
+        if(!user) return;
+        
+        let customNamesLocal = JSON.parse(localStorage.getItem('m_custom_names_v7')) || {};
+        const myName = customNamesLocal[user.sub] || user.name;
+
+        const myRef = doc(db, "users_data", user.sub);
+        const friendRef = doc(db, "users_data", friendUid);
+        
+        try {
+            // Взаимно добавляем в друзья
+            await setDoc(myRef, { friendsList: arrayUnion({ uid: friendUid, name: friendName, picture: friendPic }) }, { merge: true });
+            await setDoc(friendRef, { friendsList: arrayUnion({ uid: user.sub, name: myName, picture: user.picture }) }, { merge: true });
+
+            // Удаляем заявку из массива
+            const docSnap = await getDoc(myRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const updatedRequests = (data.friendRequests || []).filter(r => r.uid !== friendUid);
+                await setDoc(myRef, { friendRequests: updatedRequests }, { merge: true });
+            }
+            window.showToast(`${friendName} добавлен в друзья!`);
+        } catch(e) { console.error("Ошибка добавления:", e); }
+    };
+
+    // Отклонение запроса
+    window.declineFriend = async function(friendUid) {
+        const user = JSON.parse(localStorage.getItem('m_user_v7'));
+        if(!user) return;
+        const myRef = doc(db, "users_data", user.sub);
+        try {
+            const docSnap = await getDoc(myRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const updatedRequests = (data.friendRequests || []).filter(r => r.uid !== friendUid);
+                await setDoc(myRef, { friendRequests: updatedRequests }, { merge: true });
+            }
+            window.showToast(`Заявка отклонена`);
+        } catch(e) { console.error("Ошибка отклонения:", e); }
     };
 
     window.listenToChatMessages = function(chatId, callback) {
@@ -792,6 +867,7 @@
     
     // ДРУЗЬЯ
     let myFriends = getStorage('m_real_friends_v1', []);
+    window.currentFriendRequests = []; // Массив для входящих заявок
 
     let isLightMode = getStorage('m_theme_light', false);
     if(isLightMode) {
@@ -813,11 +889,15 @@
     function updateSidebarBadges() {
         document.getElementById('badge-fav').textContent = favs.length;
         document.getElementById('badge-loved').textContent = loved.length;
+        
         const unreadNotifs = getStorage('m_notifs_v1', []).filter(n => !n.read).length;
+        const reqCount = window.currentFriendRequests ? window.currentFriendRequests.length : 0;
+        const total = unreadNotifs + reqCount;
+        
         const notifBadge = document.getElementById('badge-notif-sb');
-        if(unreadNotifs > 0) {
+        if(total > 0) {
             notifBadge.style.display = 'inline-block';
-            notifBadge.textContent = unreadNotifs;
+            notifBadge.textContent = total;
         } else {
             notifBadge.style.display = 'none';
         }
@@ -850,22 +930,51 @@
     window.renderNotifications = function() {
         const list = document.getElementById('notif-list');
         const badge = document.getElementById('notif-badge');
+        
         const unreadCount = notifications.filter(n => !n.read).length;
+        const requestsCount = window.currentFriendRequests ? window.currentFriendRequests.length : 0;
+        const totalBadges = unreadCount + requestsCount;
 
-        if (unreadCount > 0) { badge.style.display = 'flex'; badge.textContent = unreadCount > 9 ? '9+' : unreadCount; } 
-        else { badge.style.display = 'none'; }
+        if (totalBadges > 0) { 
+            badge.style.display = 'flex'; 
+            badge.textContent = totalBadges > 9 ? '9+' : totalBadges; 
+        } else { 
+            badge.style.display = 'none'; 
+        }
 
         updateSidebarBadges();
 
-        if (notifications.length === 0) {
+        let html = '';
+        
+        // Рендер заявок в друзья (В самом верху)
+        if (requestsCount > 0) {
+            html += window.currentFriendRequests.map(req => `
+                <div class="notif-item unread" style="border-left-color: var(--loved);">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <img src="${req.picture}" style="width:30px; height:30px; border-radius:50%; border: 1px solid var(--accent);">
+                        <div><strong>${req.name}</strong> хочет добавить вас в друзья!</div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn" style="padding: 6px 15px; font-size: 0.8rem;" onclick="acceptFriend('${req.uid}', '${req.name}', '${req.picture}')">Принять</button>
+                        <button class="btn btn-sec" style="padding: 6px 15px; font-size: 0.8rem;" onclick="declineFriend('${req.uid}')">Отклонить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        if (notifications.length === 0 && requestsCount === 0) {
             list.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-dim);">Нет новых уведомлений</div>`;
             return;
         }
-        list.innerHTML = notifications.slice().reverse().map(n => `
+
+        // Рендер обычных уведомлений
+        html += notifications.slice().reverse().map(n => `
             <div class="notif-item ${n.read ? '' : 'unread'}" onclick="readNotification(${n.id}, ${n.mangaId ? `'${n.mangaId}'` : 'null'})">
                 ${n.text}
             </div>
         `).join('');
+
+        list.innerHTML = html;
     };
 
     window.readNotification = function(id, mangaId) {
@@ -926,6 +1035,8 @@
     });
 
     // АВТОРИЗАЦИЯ
+    window.isListeningToMyData = false;
+
     async function handleCredentialResponse(response) {
       const base64Url = response.credential.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -954,12 +1065,20 @@
       
       if(window.saveUserToDatabase) { await window.saveUserToDatabase(payload, finalName); }
       
+      // Запускаем прослушку заявок в друзья
+      if(window.listenToMyData) {
+          window.listenToMyData(payload.sub);
+          window.isListeningToMyData = true;
+      }
+      
       updateProfileUI();
       window.showToast(`С возвращением, ${finalName}!`);
     }
 
     function logoutProfile() { 
       localStorage.removeItem('m_user_v7');
+      if(userUnsub) userUnsub(); // Отключаем прослушку
+      window.isListeningToMyData = false;
       updateProfileUI();
       window.showToast('Вы вышли из аккаунта Google', 'error');
     }
@@ -988,6 +1107,12 @@
       const authSec = document.getElementById('auth-section');
       const btnLogout = document.getElementById('btn-logout');
       
+      // Запускаем прослушку базы если пользователь зашел, а страница просто перезагрузилась
+      if (user && !window.isListeningToMyData && window.listenToMyData) {
+          window.listenToMyData(user.sub);
+          window.isListeningToMyData = true;
+      }
+
       document.getElementById('stat-read').textContent = history.length;
       document.getElementById('stat-fav').textContent = favs.length;
 
@@ -1035,7 +1160,7 @@
     }
 
     // =====================================
-    // ЛОГИКА ДРУЗЕЙ (РЕАЛЬНЫЙ ПОИСК)
+    // ЛОГИКА ДРУЗЕЙ (РЕАЛЬНЫЙ ПОИСК И ЗАЯВКИ)
     // =====================================
     window.searchRealUsers = async function() {
         const user = getStorage('m_user_v7', null);
@@ -1054,41 +1179,35 @@
         if(window.searchUsersInCloud) {
             const results = await window.searchUsersInCloud(query);
             if(results.length > 0) {
-                resDiv.innerHTML = results.map(u => `
-                    <div class="list-item" style="border-color: var(--accent);">
-                        <img src="${u.picture || 'https://via.placeholder.com/50'}" class="list-avatar">
-                        <div class="list-info">
-                            <div class="list-title">${u.customNickname || u.name}</div>
-                            <div class="list-sub">Пользователь найден!</div>
+                resDiv.innerHTML = results.map(u => {
+                    // Проверяем: это сам пользователь, уже друг или кто-то новый
+                    const isMe = user.sub === u.uid;
+                    const isAlreadyFriend = myFriends.some(f => f.uid === u.uid);
+                    
+                    let actionButton = '';
+                    if (isMe) {
+                        actionButton = `<span style="color: var(--text-dim); font-size: 0.85rem; font-weight: bold;">Это вы</span>`;
+                    } else if (isAlreadyFriend) {
+                        actionButton = `<span style="color: var(--accent); font-size: 0.85rem; font-weight: bold;">Уже в друзьях</span>`;
+                    } else {
+                        actionButton = `<button class="list-action" onclick="sendFriendRequest('${u.uid}', '${u.customNickname || u.name}', '${u.picture}')">+ Добавить</button>`;
+                    }
+
+                    return `
+                        <div class="list-item" style="border-color: var(--accent);">
+                            <img src="${u.picture || 'https://via.placeholder.com/50'}" class="list-avatar">
+                            <div class="list-info">
+                                <div class="list-title">${u.customNickname || u.name}</div>
+                                <div class="list-sub">Пользователь найден!</div>
+                            </div>
+                            ${actionButton}
                         </div>
-                        <button class="list-action" onclick="addRealFriend('${u.uid}', '${u.customNickname || u.name}', '${u.picture}')">+ Добавить</button>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } else {
                 resDiv.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Пользователь не найден. Проверьте правильность никнейма.</p>';
             }
         }
-    };
-
-    window.addRealFriend = async function(uid, name, picture) {
-        const user = getStorage('m_user_v7', null);
-        if(!user) return;
-        
-        if(myFriends.some(f => f.uid === uid)) {
-            window.showToast("Пользователь уже у вас в друзьях!");
-            return;
-        }
-
-        const friendObj = { uid, name, picture };
-        myFriends.push(friendObj);
-        localStorage.setItem('m_real_friends_v1', JSON.stringify(myFriends));
-        if(window.saveFriendToCloud) { await window.saveFriendToCloud(user.sub, friendObj); }
-        
-        document.getElementById('friend-search-input').value = '';
-        document.getElementById('friend-search-results').innerHTML = '';
-        window.showToast(`${name} добавлен в друзья!`);
-        renderFriendsList();
-        renderDialogsList();
     };
 
     function renderFriendsList() {
@@ -1260,7 +1379,6 @@
       document.querySelectorAll('.page').forEach(el => el.style.display = 'none');
       const target = document.getElementById(p + '-page');
       
-      // ИСПРАВЛЕНИЕ СЕТКИ: Используем block вместо flex, чтобы контейнер не сжимался
       if(target) target.style.display = 'block'; 
       
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -1392,7 +1510,6 @@
       document.getElementById('btn-next-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh + 1]) ? 'block' : 'none';
     }
 
-    // ИСПРАВЛЕНИЕ ИСТОРИИ ЧТЕНИЯ: Выводим карточками (Grid), чтобы на телефоне было 2 в ряд
     function renderHistory() {
       const container = document.getElementById('history-list'); if(!container) return;
       const validHistory = history.filter(h => window.mangaDb[h.id]);
@@ -1403,7 +1520,7 @@
           return;
       }
       
-      container.className = 'grid'; // Применяем стиль сетки
+      container.className = 'grid'; 
       container.innerHTML = validHistory.map(h => {
         const m = window.mangaDb[h.id];
         return `
