@@ -26,9 +26,9 @@
       --text: #ffffff;
       --text-dim: #a0a0a5;
       --star: #ffcc00;
+      --loved: #ff4d4d; /* Цвет для избранного */
       --br: 18px;
       --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      
       /* Добавленные переменные для удобного переключения тем */
       --input-bg: #08080a;
       --border-color: #222;
@@ -51,10 +51,8 @@
       --stat-bg: #f9f9f9;
     }
 
-    /* Добавлено отключение синего выделения на телефонах -webkit-tap-highlight-color */
     * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     html { scroll-behavior: smooth; }
-    /* Добавлен env() для body padding-bottom */
     body { background: var(--bg); color: var(--text); padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); overflow-x: hidden; line-height: 1.6; transition: background 0.4s, color 0.4s; }
 
     ::-webkit-scrollbar { width: 8px; }
@@ -62,23 +60,26 @@
     ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 10px; border: 2px solid var(--bg); }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
+    /* ЗАГРУЗКА */
     #global-loader { position: fixed; inset: 0; background: var(--bg); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
     .spinner { width: 60px; height: 60px; border: 5px solid rgba(0,210,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 20px var(--accent-glow); }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    header { background: var(--glass); backdrop-filter: blur(25px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(128,128,128,0.1); text-align: center; transition: var(--transition); }
-    header h1 { font-size: 1.6rem; letter-spacing: -1px; font-weight: 900; }
+    /* ШАПКА */
+    header { background: var(--glass); backdrop-filter: blur(25px); padding: 15px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(128,128,128,0.1); display: flex; align-items: center; transition: var(--transition); }
+    .menu-btn { background: none; border: none; color: var(--text); font-size: 1.8rem; cursor: pointer; transition: 0.2s; padding: 5px; margin-right: 15px; display: flex; align-items: center; }
+    .menu-btn:hover { color: var(--accent); transform: scale(1.1); }
+    header h1 { font-size: 1.6rem; letter-spacing: -1px; font-weight: 900; margin: 0; flex: 1; text-align: left; }
     header h1 span { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
 
     /* Кнопка смены темы */
-    #btn-theme-toggle { position: fixed; top: 15px; right: 20px; z-index: 1001; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text); width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
+    #btn-theme-toggle { position: fixed; top: 10px; right: 20px; z-index: 1001; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text); width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
     #btn-theme-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
 
     /* Кнопка уведомлений */
-    #btn-notifications { position: fixed; top: 15px; right: 75px; z-index: 1001; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text); width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
+    #btn-notifications { position: fixed; top: 10px; right: 75px; z-index: 1001; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text); width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
     #btn-notifications:hover { transform: scale(1.1); border-color: var(--accent); }
     
-    /* Бейдж уведомлений с пульсацией */
     @keyframes pulseBadge { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(255, 77, 77, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); } }
     #notif-badge { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; font-size: 0.7rem; font-weight: bold; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); animation: pulseBadge 2s infinite; }
 
@@ -94,9 +95,32 @@
     .notif-item.unread { background: rgba(0, 210, 255, 0.05); color: var(--text); border-left: 3px solid var(--accent); }
     .notif-item:last-child { border-bottom: none; }
 
+    /* ==========================================
+       БОКОВОЕ МЕНЮ (САЙДБАР) 
+       ========================================== */
+    #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 9998; opacity: 0; visibility: hidden; transition: 0.3s ease; }
+    #sidebar-overlay.active { opacity: 1; visibility: visible; }
+    
+    #sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); z-index: 9999; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 10px 0 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow-y: auto; border-right: 1px solid var(--border-color); }
+    #sidebar.active { left: 0; }
+    
+    .sidebar-header { padding: 30px 20px; background: var(--stat-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 15px; }
+    .sidebar-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
+    .sidebar-user-info { display: flex; flex-direction: column; overflow: hidden; }
+    .sidebar-user-info h3 { font-size: 1.1rem; font-weight: 800; margin: 0; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--text); }
+    .sidebar-user-info p { font-size: 0.8rem; color: var(--text-dim); margin: 0; }
+    
+    .sidebar-menu { list-style: none; padding: 15px 0; flex: 1; }
+    .sidebar-menu li { padding: 16px 25px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; font-size: 1.05rem; font-weight: 600; color: var(--text); position: relative; }
+    .sidebar-menu li:hover { background: var(--stat-bg); color: var(--accent); padding-left: 30px; }
+    .sidebar-menu li i { font-size: 1.3rem; width: 24px; text-align: center; }
+    .sidebar-badge { position: absolute; right: 20px; background: var(--accent); color: #000; font-size: 0.75rem; font-weight: 900; padding: 2px 8px; border-radius: 10px; }
+    .sidebar-badge.red { background: var(--loved); color: white; }
+
+    /* ОСНОВНОЙ ЛЕЙАУТ */
     main { max-width: 1400px; margin: 0 auto; padding: 25px; display: flex; gap: 30px; }
     .content-area { flex: 1; min-width: 0; }
-    .page { display: none; animation: fadeIn 0.4s ease forwards; }
+    .page { display: none; width: 100%; animation: fadeIn 0.4s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
     .filters-sidebar { width: 320px; background: var(--card-bg); border-radius: var(--br); padding: 24px; height: fit-content; position: sticky; top: 100px; border: 1px solid var(--border-color); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
@@ -112,10 +136,10 @@
     .checkbox-grid label:hover { color: var(--accent); }
     .checkbox-grid input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; border-radius: 4px; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px; }
+    /* КАРТОЧКИ И СЕТКА */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px; width: 100%; }
     .card { background: var(--card-bg); border-radius: var(--br); overflow: hidden; position: relative; cursor: pointer; border: 1px solid var(--border-color); transition: var(--transition); display: flex; flex-direction: column; }
     .card:hover { transform: translateY(-10px) scale(1.02); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.2), 0 0 25px var(--accent-glow); z-index: 2; }
-    
     .card-cover { position: relative; padding-top: 145%; overflow: hidden; background: var(--stat-bg); }
     .card-cover img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: 0.6s cubic-bezier(0.33, 1, 0.68, 1); }
     .card:hover .card-cover img { transform: scale(1.1) rotate(1deg); filter: brightness(1.1); }
@@ -127,7 +151,6 @@
     .card-info { padding: 18px; background: linear-gradient(to top, var(--card-bg) 70%, transparent); flex-grow: 1; display: flex; align-items: center; }
     .card-info h3 { font-size: 1rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3; }
 
-    /* Добавлен env() для bottom-nav padding-bottom */
     .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--glass); backdrop-filter: blur(30px); display: flex; justify-content: space-around; padding: 12px 5px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(128,128,128,0.1); z-index: 999; transition: transform 0.3s ease; }
     .nav-item { color: var(--text-dim); text-decoration: none; font-size: 0.7rem; text-align: center; transition: var(--transition); flex: 1; position: relative; }
     .nav-item.active { color: var(--accent); }
@@ -161,17 +184,37 @@
     .continue-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     .continue-chapter { color: var(--accent); font-weight: 700; font-size: 0.95rem; }
 
-    /* Читалка ВСЕГДА темная для удобства глаз */
+    /* ==========================================
+       НОВЫЕ СТРАНИЦЫ (ДРУЗЬЯ, СООБЩЕНИЯ) 
+       ========================================== */
+    .list-item { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px 20px; border-radius: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; transition: 0.2s; cursor: pointer; }
+    .list-item:hover { border-color: var(--accent); background: var(--stat-bg); }
+    .list-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: var(--stat-bg); border: 2px solid var(--border-light); }
+    .list-info { flex: 1; }
+    .list-title { font-weight: 700; font-size: 1.1rem; color: var(--text); }
+    .list-sub { font-size: 0.85rem; color: var(--text-dim); margin-top: 4px; }
+    .list-action { background: var(--stat-bg); padding: 8px 15px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; transition: 0.2s; border: 1px solid var(--border-color); color: var(--text); cursor: pointer; }
+    .list-item:hover .list-action { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ЧАТ */
+    .chat-layout { display: flex; gap: 20px; width: 100%; max-width: 1200px; height: 70vh; margin-top: 20px; }
+    .chat-sidebar { width: 350px; background: var(--card-bg); border-radius: var(--br); padding: 15px; border: 1px solid var(--border-color); overflow-y: auto; }
+    .chat-box { flex: 1; background: var(--stat-bg); border: 1px solid var(--border-color); border-radius: var(--br); display: flex; flex-direction: column; overflow: hidden; }
+    .chat-header { padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 800; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
+    .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .msg-bubble { max-width: 70%; padding: 12px 18px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; position: relative; }
+    .msg-in { background: var(--card-bg); border: 1px solid var(--border-color); align-self: flex-start; border-bottom-left-radius: 4px; color: var(--text); }
+    .msg-out { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 600; box-shadow: 0 4px 10px var(--accent-glow); }
+    .chat-input-area { padding: 15px; background: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; gap: 10px; align-items: center; }
+
+    /* ЧИТАЛКА */
     #reader { position: fixed; inset: 0; background: #0b0b0d; color: #fff; z-index: 5000; overflow-y: auto; scroll-behavior: auto; display: none; }
     .reader-bar { position: sticky; top: 0; background: rgba(11,11,13,0.95); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a1a1c; z-index: 10; backdrop-filter: blur(10px); gap: 10px; }
     .reader-progress-container { position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.1); }
     .reader-progress-fill { height: 100%; background: #00d2ff; width: 0%; transition: 0.1s; box-shadow: 0 0 10px rgba(0, 210, 255, 0.4); }
-    
-    /* Стили для изменения ширины читалки */
     #reader-images { max-width: 900px; margin: 0 auto; min-height: 100vh; transition: max-width 0.3s ease; }
     #reader-images.reader-wide { max-width: 100% !important; }
     #reader-images.reader-narrow { max-width: 600px !important; }
-    
     .reader-nav-btns { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 40px 20px 80px; background: linear-gradient(transparent, #0b0b0d 20%); flex-wrap: wrap; }
     
     .empty-state { width: 100%; text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 1.2rem; background: var(--card-bg); border-radius: var(--br); border: 1px dashed var(--border-color); }
@@ -190,12 +233,7 @@
     .comm-date { font-size: 0.85rem; color: var(--text-dim); }
     .comm-text { font-size: 0.95rem; line-height: 1.5; margin-bottom: 10px; }
     
-    /* Анимация и улучшенная кнопка лайка для комментариев */
-    @keyframes likeBounce {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.3); }
-      100% { transform: scale(1); }
-    }
+    @keyframes likeBounce { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
     .comm-like-btn { background: none; border: 1px solid var(--border-color); color: var(--text-dim); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 60px; }
     .comm-like-btn:hover { color: #ff4d4d; border-color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
     .comm-like-btn.liked { color: #ff4d4d; border-color: #ff4d4d; animation: likeBounce 0.35s ease-out; }
@@ -205,13 +243,11 @@
     .title-info-block { flex: 1; min-width: 300px; }
     .rating-box { background: var(--stat-bg); padding: 30px; border-radius: 24px; text-align: center; border: 1px solid var(--border-light); margin-top:30px; }
 
-    /* Добавлен env() для toast */
     #toast-container { position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
     .toast { background: var(--card-bg); color: var(--text); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-left: 4px solid var(--accent); animation: slideInRight 0.4s ease forwards; transition: 0.4s ease; font-weight: 600; font-size: 0.9rem; }
     .toast.error { border-left-color: #ff4d4d; }
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-    /* Добавлен env() для btn-scroll-top */
     #btn-scroll-top { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 20px; background: var(--accent); color: #fff; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 15px var(--accent-glow); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 900; }
     #btn-scroll-top.visible { opacity: 1; visibility: visible; }
 
@@ -221,6 +257,9 @@
       .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
       .title-header-layout { justify-content: center; text-align: center; }
       .reader-nav-btns .btn { width: 100%; max-width: none !important; }
+      .chat-layout { flex-direction: column; height: auto; }
+      .chat-sidebar { width: 100%; max-height: 250px; }
+      .chat-box { height: 500px; }
     }
     
     @media (max-width: 600px) {
@@ -229,7 +268,9 @@
       #btn-theme-toggle { top: 12px; right: 15px; width: 40px; height: 40px; font-size: 1rem; }
       #btn-notifications { top: 12px; right: 65px; width: 40px; height: 40px; font-size: 1rem; }
       #notifications-panel { top: 60px; right: 10px; width: calc(100% - 20px); }
+      #sidebar { width: 85%; }
       main { padding: 10px; }
+      /* Вот здесь правило, которое делает 2 колонки на мобильных */
       .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .card-info { padding: 12px 10px; }
       .card-info h3 { font-size: 0.85rem; }
@@ -237,7 +278,6 @@
       .title-cover-img { width: 100%; max-width: 240px; }
       .title-info-block { min-width: 100%; }
       #det-title { font-size: 2rem !important; }
-      /* Добавлен env() для мобильного toast */
       #toast-container { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); left: 20px; right: 20px; align-items: center; }
       .toast { width: 100%; text-align: center; animation: slideUpToast 0.4s ease forwards; }
       @keyframes slideUpToast { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -248,6 +288,11 @@
   </style>
 </head>
 <body>
+
+  <header>
+    <button class="menu-btn" onclick="openSidebar()" title="Меню">☰</button>
+    <h1>Manga<span>Cloud</span></h1>
+  </header>
 
   <button id="btn-theme-toggle" onclick="toggleTheme()" title="Сменить тему">☀️</button>
   
@@ -263,6 +308,26 @@
     </div>
     <div id="notif-list"></div>
   </div>
+
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <img id="sb-avatar" src="https://via.placeholder.com/60/111/fff?text=👤" class="sidebar-avatar" alt="Avatar">
+      <div class="sidebar-user-info">
+        <h3 id="sb-name">Гость</h3>
+        <p id="sb-rank">Новичок</p>
+      </div>
+    </div>
+    <ul class="sidebar-menu">
+      <li onclick="switchPage('profile')"><i>👤</i> Мой профиль</li>
+      <li onclick="switchPage('fav')"><i>🔖</i> Закладки <span class="sidebar-badge" id="badge-fav">0</span></li>
+      <li onclick="switchPage('loved')"><i>❤️</i> Избранное <span class="sidebar-badge red" id="badge-loved">0</span></li>
+      <li onclick="toggleNotifications(); closeSidebar();"><i>🔔</i> Уведомления <span class="sidebar-badge red" id="badge-notif-sb" style="display:none;">0</span></li>
+      <li onclick="switchPage('messages')"><i>✉️</i> Сообщения <span class="sidebar-badge" id="badge-msg" style="display:none;">0</span></li>
+      <li onclick="switchPage('friends')"><i>👥</i> Друзья</li>
+      <li onclick="switchPage('hist')"><i>🕒</i> История чтения</li>
+    </ul>
+  </nav>
 
   <div id="global-loader">
     <div class="spinner"></div>
@@ -281,7 +346,6 @@
   </nav>
 
   <div id="home-page" class="page" style="display: block;">
-    <header><h1>Manga<span>Cloud</span> Color</h1></header>
     <main>
       <div class="content-area">
         <div style="position:relative; margin-bottom: 20px; display: flex; align-items: center;">
@@ -307,7 +371,6 @@
         <div class="grid" id="catalog-grid"></div>
       </div>
       <aside class="filters-sidebar">
-      
         <div class="filter-group">
           <h4>Сортировка</h4>
           <select id="sort-main" onchange="applyFilters()">
@@ -317,7 +380,6 @@
             <option value="new">По новинкам</option>
           </select>
         </div>
-   
         <div class="filter-group">
           <h4>Жанры</h4>
           <div class="checkbox-grid" id="filter-genre">
@@ -346,13 +408,63 @@
   </div>
 
   <div id="hist-page" class="page">
-    <header><h1>История просмотров</h1></header>
+    <header><h1>История чтения</h1></header>
     <main style="display:block;"><div id="history-list"></div></main>
   </div>
   
   <div id="fav-page" class="page">
-    <header><h1>Закладки</h1></header>
+    <header><h1>Мои Закладки</h1></header>
     <main><div class="grid" id="fav-grid"></div></main>
+  </div>
+
+  <div id="loved-page" class="page">
+    <header><h1 style="color: var(--loved);">❤️ Избранное</h1></header>
+    <main><div class="grid" id="loved-grid"></div></main>
+  </div>
+
+  <div id="friends-page" class="page">
+    <header><h1>👥 Друзья</h1></header>
+    <main style="flex-direction: column; max-width: 800px;">
+      <p style="color: var(--text-dim); margin-bottom: 20px;">Ищите реальных пользователей MangaCloud по никнейму и добавляйте их в друзья!</p>
+      
+      <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+          <input type="text" id="friend-search-input" placeholder="Введите никнейм для поиска...">
+          <button class="btn" style="width: auto; padding: 0 30px;" onclick="searchRealUsers()">Найти</button>
+      </div>
+      
+      <div id="friend-search-results" style="margin-bottom: 30px;"></div>
+      
+      <h3 style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Мой список друзей</h3>
+      <div id="friends-list"></div>
+    </main>
+  </div>
+
+  <div id="messages-page" class="page">
+    <header><h1>✉️ Сообщения</h1></header>
+    <main style="flex-direction: column; max-width: 1200px;">
+        <div class="chat-layout">
+            <div class="chat-sidebar" id="chat-dialogs">
+                <h3 style="margin-bottom: 15px;">Мои чаты</h3>
+                <div id="dialogs-container">
+                    <p style="color: var(--text-dim); text-align: center; font-size: 0.9rem;">Добавьте друзей, чтобы начать общение</p>
+                </div>
+            </div>
+            
+            <div class="chat-box" id="active-chat-area">
+                <div class="chat-header">
+                    <img id="chat-partner-avatar" src="https://via.placeholder.com/40/111/fff?text=💬" style="width:30px; height:30px; border-radius:50%; object-fit: cover;"> 
+                    <span id="chat-partner-name">Выберите диалог</span>
+                </div>
+                <div class="chat-messages" id="chat-messages-container">
+                    <div style="text-align:center; color:var(--text-dim); margin-top:50px;">Здесь будут ваши сообщения</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Выберите диалог слева..." onclick="checkChatActive()">
+                    <button class="btn" style="width:auto; padding: 0 25px;" id="chat-send-btn" onclick="sendRealMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </main>
   </div>
 
   <div id="profile-page" class="page">
@@ -370,7 +482,7 @@
         <p id="profile-email" style="color: var(--text-dim); margin-bottom: 25px;">Локальный профиль</p>
         
         <div id="auth-section" style="margin-bottom: 30px;">
-            <p style="font-size: 0.85rem; color: var(--accent); margin-bottom: 10px;">Войди, чтобы сохранять данные в облако!</p>
+            <p style="font-size: 0.85rem; color: var(--accent); margin-bottom: 10px;">Войди через Google, чтобы получить доступ к друзьям и сообщениям!</p>
             <div id="g_id_onload" data-client_id="263581962151-lvpcil2qlnv9btimsvsgtth0bm2cbl3v.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
             <div class="g_id_signin" data-type="standard" style="display: flex; justify-content: center;"></div>
         </div>
@@ -414,9 +526,10 @@
           <h2 id="det-title" style="font-size: 2.8rem; line-height: 1.1; margin-bottom: 12px; font-weight: 900;"></h2>
           <p id="det-meta" style="color: var(--accent); font-weight: bold; margin-bottom: 25px; letter-spacing: 1px;"></p>
           
-          <div style="display: flex; gap: 10px;">
-            <button class="btn" id="btn-fav" onclick="toggleFav()" style="flex: 1; padding: 18px 20px;">🔖 В закладки</button>
-            <button class="btn btn-sec" onclick="shareTitle()" style="width: auto; padding: 18px 25px;" title="Поделиться">↗️ Поделиться</button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" id="btn-fav" onclick="toggleFav('favs')" style="flex: 1; padding: 18px 20px;">🔖 В закладки</button>
+            <button class="btn btn-sec" id="btn-loved" onclick="toggleFav('loved')" style="flex: 1; padding: 18px 20px; border-color: var(--loved);">❤️ В избранное</button>
+            <button class="btn btn-sec" onclick="shareTitle()" style="width: auto; padding: 18px 25px;" title="Поделиться">↗️</button>
           </div>
           
           <div class="rating-box">
@@ -470,7 +583,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0", 
@@ -480,6 +593,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    window.db = db; 
     
     window.mangaDb = {}; 
 
@@ -490,24 +604,83 @@
       try { await setDoc(userRef, { favorites: arrayUnion(mangaTitle) }, { merge: true });
       } catch (e) { console.error("Ошибка сохранения в облако:", e); }
     };
+
+    window.saveUserToDatabase = async function(payload, nickname) {
+        try {
+            const userRef = doc(db, "users_data", payload.sub);
+            await setDoc(userRef, {
+                uid: payload.sub,
+                name: payload.name,
+                email: payload.email,
+                picture: payload.picture,
+                customNickname: nickname || payload.name,
+                searchName: (nickname || payload.name).toLowerCase()
+            }, { merge: true });
+        } catch(e) { console.error("Ошибка сохранения пользователя:", e); }
+    };
+
     window.saveNicknameToCloud = async function(nickname) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if (!user) return;
       const userRef = doc(db, "users_data", user.sub);
       try { 
-        await setDoc(userRef, { customNickname: nickname }, { merge: true });
+        await setDoc(userRef, { customNickname: nickname, searchName: nickname.toLowerCase() }, { merge: true });
       } catch (e) { console.error("Ошибка сохранения ника в облако:", e); }
     };
+
     window.loadUserDataFromCloud = async function(userId) {
       try {
         const docSnap = await getDoc(doc(db, "users_data", userId));
-        if (docSnap.exists()) {
-          return docSnap.data();
-        }
-      } catch (e) { console.error("Ошибка загрузки данных из облака:", e);
-      }
+        if (docSnap.exists()) { return docSnap.data(); }
+      } catch (e) { console.error("Ошибка загрузки данных из облака:", e); }
       return null;
     };
+
+    // --- ФУНКЦИИ ДЛЯ ДРУЗЕЙ И ЧАТОВ (FIREBASE) ---
+    window.searchUsersInCloud = async function(searchQuery) {
+        try {
+            const querySnapshot = await getDocs(collection(db, "users_data"));
+            let results = [];
+            const q = searchQuery.toLowerCase();
+            const currentUser = JSON.parse(localStorage.getItem('m_user_v7'));
+            const myUid = currentUser ? currentUser.sub : null;
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                if(data.uid !== myUid && data.searchName && data.searchName.includes(q)) {
+                    results.push(data);
+                }
+            });
+            return results;
+        } catch(e) { console.error("Ошибка поиска:", e); return []; }
+    };
+
+    window.saveFriendToCloud = async function(myUid, friendData) {
+        try {
+            const userRef = doc(db, "users_data", myUid);
+            await setDoc(userRef, { 
+                friendsList: arrayUnion({ uid: friendData.uid, name: friendData.customNickname, picture: friendData.picture }) 
+            }, { merge: true });
+            return true;
+        } catch(e) { return false; }
+    };
+
+    window.listenToChatMessages = function(chatId, callback) {
+        return onSnapshot(doc(db, "chats_data", chatId), (docSnap) => {
+            if (docSnap.exists() && docSnap.data().messages) {
+                callback(docSnap.data().messages);
+            } else {
+                callback([]);
+            }
+        });
+    };
+
+    window.sendMessageToCloud = async function(chatId, messageObj) {
+        try {
+            const chatRef = doc(db, "chats_data", chatId);
+            await setDoc(chatRef, { messages: arrayUnion(messageObj) }, { merge: true });
+        } catch(e) { console.error("Ошибка отправки сообщения:", e); }
+    };
+    // ---------------------------------------------
 
     window.listenToRating = function(mangaId, callback) {
         return onSnapshot(doc(db, "manga_ratings", mangaId), (docSnap) => {
@@ -515,40 +688,36 @@
                 const data = docSnap.data();
                 const scores = Object.values(data);
                 const total = scores.length;
-  
                 const sum = scores.reduce((a, b) => a + b, 0);
                 const average = (sum / total).toFixed(1);
                 callback({ average, total });
             } else {
                 callback({ average: "0.0", total: 0 });
-  
             }
         });
     };
+
     window.sendRatingToCloud = async function(mangaId, score) {
        const user = JSON.parse(localStorage.getItem('m_user_v7'));
        let userId;
-       if (user) {
-           userId = user.sub;
-       } else {
+       if (user) { userId = user.sub; } 
+       else {
            userId = localStorage.getItem('m_anon_id');
            if (!userId) {
                userId = 'anon_' + Math.random().toString(36).substr(2, 9);
                localStorage.setItem('m_anon_id', userId);
            }
        }
-       
        const ratingRef = doc(db, "manga_ratings", mangaId);
-       try { 
-           await setDoc(ratingRef, { [userId]: score }, { merge: true });
+       try { await setDoc(ratingRef, { [userId]: score }, { merge: true });
        } catch(e) { console.error("Ошибка отправки рейтинга:", e); }
     };
+
     window.sendCommentToCloud = async function(mangaId, commentData) {
         try { const commentRef = doc(db, "manga_comments", mangaId);
               await setDoc(commentRef, { list: arrayUnion(commentData) }, { merge: true });
               return true;
-        } catch(e) { return false;
-        }
+        } catch(e) { return false; }
     };
 
     window.updateAllCommentsInCloud = async function(mangaId, newList) {
@@ -556,6 +725,7 @@
                await setDoc(commentRef, { list: newList });
          } catch(e) { console.error("Ошибка обновления комментов:", e); }
     };
+
     window.loadCommentsFromCloud = async function(mangaId) {
         try { const docSnap = await getDoc(doc(db, "manga_comments", mangaId));
               if (docSnap.exists() && docSnap.data().list) { return docSnap.data().list; }
@@ -569,27 +739,26 @@
         let lastSeen = JSON.parse(localStorage.getItem('m_last_seen_updates') || '{}');
         let isFirstLoad = Object.keys(lastSeen).length === 0;
         let needsSave = false;
+
         querySnapshot.forEach((doc) => { 
             const data = doc.data();
-            data.id = doc.id; // КРИТИЧНЫЙ ФИКС: сохраняем ID для поиска и фильтров
+            data.id = doc.id; 
             window.mangaDb[doc.id] = data; 
             
             if (data.updatedAt) {
-                if (!isFirstLoad 
-                    && (!lastSeen[doc.id] || data.updatedAt > lastSeen[doc.id])) {
+                if (!isFirstLoad && (!lastSeen[doc.id] || data.updatedAt > lastSeen[doc.id])) {
                     if(window.addNotification) {
                         window.addNotification(`Вышло обновление: ${data.title}!`, doc.id);
                     }
                     lastSeen[doc.id] = data.updatedAt;
-    
                     needsSave = true;
                 } else if (isFirstLoad || !lastSeen[doc.id]) {
                     lastSeen[doc.id] = data.updatedAt;
                     needsSave = true;
-                
                 }
             }
         });
+
         if (needsSave) {
             localStorage.setItem('m_last_seen_updates', JSON.stringify(lastSeen));
         }
@@ -598,6 +767,7 @@
         loader.style.opacity = '0';
         setTimeout(() => loader.style.display = 'none', 500);
         if(window.startUI) window.startUI();
+
       } catch (e) {
         document.getElementById('global-loader').innerHTML = "<h2 style='color:#ff4d4d;'>Ошибка подключения к Google Cloud!</h2>";
       }
@@ -608,19 +778,49 @@
   <script>
     let curId = null, curCh = 1, lastP = 'home';
     let ratingUnsub = null;
+    let chatUnsub = null; 
+    let activeChatFriend = null;
 
-    const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback;
-      } catch { return fallback; } };
+    const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
+    
     let favs = getStorage('m_favs_v7', []);
+    let loved = getStorage('m_loved_v8', []);
     let rates = getStorage('m_rates_v7', {});
     let history = getStorage('m_hist_v7', []);
     let customNames = getStorage('m_custom_names_v7', {});
     let globalCommentsList = [];
     
+    // ДРУЗЬЯ
+    let myFriends = getStorage('m_real_friends_v1', []);
+
     let isLightMode = getStorage('m_theme_light', false);
     if(isLightMode) {
         document.documentElement.setAttribute('data-theme', 'light');
         document.getElementById('btn-theme-toggle').textContent = '🌙';
+    }
+
+    // --- БОКОВОЕ МЕНЮ (САЙДБАР) ---
+    function openSidebar() {
+        document.getElementById('sidebar').classList.add('active');
+        document.getElementById('sidebar-overlay').classList.add('active');
+        updateSidebarBadges();
+    }
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('active');
+        document.getElementById('sidebar-overlay').classList.remove('active');
+    }
+
+    function updateSidebarBadges() {
+        document.getElementById('badge-fav').textContent = favs.length;
+        document.getElementById('badge-loved').textContent = loved.length;
+        const unreadNotifs = getStorage('m_notifs_v1', []).filter(n => !n.read).length;
+        const notifBadge = document.getElementById('badge-notif-sb');
+        if(unreadNotifs > 0) {
+            notifBadge.style.display = 'inline-block';
+            notifBadge.textContent = unreadNotifs;
+        } else {
+            notifBadge.style.display = 'none';
+        }
     }
 
     window.toggleTheme = function() {
@@ -636,33 +836,31 @@
             window.showToast("Темная тема включена 🌙");
         }
     };
+
     let notifications = getStorage('m_notifs_v1', [
         { id: Date.now(), text: "Добро пожаловать в MangaCloud! Здесь будут появляться уведомления о новых главах.", read: false, mangaId: null }
     ]);
+
     window.toggleNotifications = function() {
         const panel = document.getElementById('notifications-panel');
         panel.classList.toggle('visible');
-        if (panel.classList.contains('visible')) {
-            window.renderNotifications();
-        }
+        if (panel.classList.contains('visible')) { window.renderNotifications(); }
     };
+
     window.renderNotifications = function() {
         const list = document.getElementById('notif-list');
         const badge = document.getElementById('notif-badge');
         const unreadCount = notifications.filter(n => !n.read).length;
 
-        if (unreadCount > 0) {
-            badge.style.display = 'flex';
-            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-        } else {
-            badge.style.display = 'none';
-        }
+        if (unreadCount > 0) { badge.style.display = 'flex'; badge.textContent = unreadCount > 9 ? '9+' : unreadCount; } 
+        else { badge.style.display = 'none'; }
+
+        updateSidebarBadges();
 
         if (notifications.length === 0) {
             list.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-dim);">Нет новых уведомлений</div>`;
             return;
         }
-
         list.innerHTML = notifications.slice().reverse().map(n => `
             <div class="notif-item ${n.read ? '' : 'unread'}" onclick="readNotification(${n.id}, ${n.mangaId ? `'${n.mangaId}'` : 'null'})">
                 ${n.text}
@@ -703,10 +901,12 @@
         container.appendChild(toast);
         setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
     };
+
     window.addEventListener('scroll', () => {
         const btn = document.getElementById('btn-scroll-top');
         if (window.scrollY > 500) btn.classList.add('visible'); else btn.classList.remove('visible');
     });
+
     const readerElement = document.getElementById('reader');
     readerElement.addEventListener('scroll', () => {
         const scrollTop = readerElement.scrollTop;
@@ -716,6 +916,7 @@
         document.getElementById('reader-progress-text').textContent = Math.round(scrollPercentage) + '%';
         if(curId && curCh) { localStorage.setItem(`scroll_${curId}_${curCh}`, scrollTop); }
     });
+
     document.addEventListener('keydown', (e) => {
         if (readerElement.style.display === 'block') {
             if (e.key === 'ArrowRight' || e.key === 'd') moveChapter(1);
@@ -723,26 +924,38 @@
             if (e.key === 'Escape') closeReader();
         }
     });
+
+    // АВТОРИЗАЦИЯ
     async function handleCredentialResponse(response) {
       const base64Url = response.credential.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
+
       const payload = JSON.parse(jsonPayload);
       localStorage.setItem('m_user_v7', JSON.stringify(payload));
       
+      let finalName = payload.name;
       if(window.loadUserDataFromCloud) {
           const cloudData = await window.loadUserDataFromCloud(payload.sub);
-          if (cloudData && cloudData.customNickname) {
-              customNames[payload.sub] = cloudData.customNickname;
-              localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames));
+          if (cloudData) {
+              if(cloudData.customNickname) {
+                  customNames[payload.sub] = cloudData.customNickname;
+                  localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames));
+                  finalName = cloudData.customNickname;
+              }
+              if(cloudData.friendsList) {
+                  myFriends = cloudData.friendsList;
+                  localStorage.setItem('m_real_friends_v1', JSON.stringify(myFriends));
+              }
           }
       }
       
+      if(window.saveUserToDatabase) { await window.saveUserToDatabase(payload, finalName); }
+      
       updateProfileUI();
-      const displayName = customNames[payload.sub] || payload.name;
-      window.showToast(`С возвращением, ${displayName}!`);
+      window.showToast(`С возвращением, ${finalName}!`);
     }
 
     function logoutProfile() { 
@@ -755,13 +968,12 @@
         const user = getStorage('m_user_v7', null);
         let currentName = document.getElementById('profile-name').textContent;
         let newName = prompt("Введи свой новый никнейм:", currentName);
+
         if (newName && newName.trim() !== "") {
             const trimmedName = newName.trim();
             if (user) {
                 customNames[user.sub] = trimmedName;
-                if(window.saveNicknameToCloud) {
-                    await window.saveNicknameToCloud(trimmedName);
-                }
+                if(window.saveNicknameToCloud) { await window.saveNicknameToCloud(trimmedName); }
             } else {
                 customNames['anonymous'] = trimmedName;
             }
@@ -784,14 +996,10 @@
       let nextLevel = 5;
       let progress = 0;
 
-      if(readCount >= 50) { rank = "Божество Манги";
-      nextLevel = 100; }
-      else if(readCount >= 25) { rank = "Мастер"; nextLevel = 50;
-      }
-      else if(readCount >= 10) { rank = "Отаку"; nextLevel = 25;
-      }
-      else if(readCount >= 5) { rank = "Любитель"; nextLevel = 10;
-      }
+      if(readCount >= 50) { rank = "Божество Манги"; nextLevel = 100; }
+      else if(readCount >= 25) { rank = "Мастер"; nextLevel = 50; }
+      else if(readCount >= 10) { rank = "Отаку"; nextLevel = 25; }
+      else if(readCount >= 5) { rank = "Любитель"; nextLevel = 10; }
 
       if(readCount >= 100) { 
           progress = 100;
@@ -803,20 +1011,201 @@
 
       document.getElementById('user-rank').textContent = rank;
       document.getElementById('user-progress').style.width = `${progress}%`;
+      document.getElementById('sb-rank').textContent = rank;
+
       if(user) {
           authSec.style.display = 'none';
           btnLogout.style.display = 'block';
           document.getElementById('profile-avatar').src = user.picture;
           document.getElementById('profile-name').textContent = customNames[user.sub] || user.name;
           document.getElementById('profile-email').textContent = user.email;
+          
+          document.getElementById('sb-avatar').src = user.picture;
+          document.getElementById('sb-name').textContent = customNames[user.sub] || user.name;
       } else {
           authSec.style.display = 'block';
           btnLogout.style.display = 'none';
           document.getElementById('profile-avatar').src = 'https://via.placeholder.com/120/111/fff?text=👤';
           document.getElementById('profile-name').textContent = customNames['anonymous'] || "Анонимный Читатель";
           document.getElementById('profile-email').textContent = "Локальный профиль (Данные в браузере)";
+          
+          document.getElementById('sb-avatar').src = 'https://via.placeholder.com/60/111/fff?text=👤';
+          document.getElementById('sb-name').textContent = customNames['anonymous'] || "Гость";
       }
     }
+
+    // =====================================
+    // ЛОГИКА ДРУЗЕЙ (РЕАЛЬНЫЙ ПОИСК)
+    // =====================================
+    window.searchRealUsers = async function() {
+        const user = getStorage('m_user_v7', null);
+        if(!user) {
+            window.showToast("Сначала войдите через Google в Профиле!", "error");
+            return;
+        }
+
+        const input = document.getElementById('friend-search-input');
+        const query = input.value.trim();
+        const resDiv = document.getElementById('friend-search-results');
+        
+        if(!query) return;
+        
+        resDiv.innerHTML = '<div class="spinner" style="margin: 0 auto; width:30px; height:30px; border-width:3px;"></div>';
+        if(window.searchUsersInCloud) {
+            const results = await window.searchUsersInCloud(query);
+            if(results.length > 0) {
+                resDiv.innerHTML = results.map(u => `
+                    <div class="list-item" style="border-color: var(--accent);">
+                        <img src="${u.picture || 'https://via.placeholder.com/50'}" class="list-avatar">
+                        <div class="list-info">
+                            <div class="list-title">${u.customNickname || u.name}</div>
+                            <div class="list-sub">Пользователь найден!</div>
+                        </div>
+                        <button class="list-action" onclick="addRealFriend('${u.uid}', '${u.customNickname || u.name}', '${u.picture}')">+ Добавить</button>
+                    </div>
+                `).join('');
+            } else {
+                resDiv.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Пользователь не найден. Проверьте правильность никнейма.</p>';
+            }
+        }
+    };
+
+    window.addRealFriend = async function(uid, name, picture) {
+        const user = getStorage('m_user_v7', null);
+        if(!user) return;
+        
+        if(myFriends.some(f => f.uid === uid)) {
+            window.showToast("Пользователь уже у вас в друзьях!");
+            return;
+        }
+
+        const friendObj = { uid, name, picture };
+        myFriends.push(friendObj);
+        localStorage.setItem('m_real_friends_v1', JSON.stringify(myFriends));
+        if(window.saveFriendToCloud) { await window.saveFriendToCloud(user.sub, friendObj); }
+        
+        document.getElementById('friend-search-input').value = '';
+        document.getElementById('friend-search-results').innerHTML = '';
+        window.showToast(`${name} добавлен в друзья!`);
+        renderFriendsList();
+        renderDialogsList();
+    };
+
+    function renderFriendsList() {
+        const container = document.getElementById('friends-list');
+        if(!container) return;
+        
+        container.innerHTML = myFriends.length ? myFriends.map(f => `
+            <div class="list-item">
+                <img src="${f.picture}" class="list-avatar">
+                <div class="list-info"><div class="list-title">${f.name}</div></div>
+                <button class="list-action" onclick="openRealChat('${f.uid}', '${f.name}', '${f.picture}')">Написать</button>
+            </div>
+        `).join('') : "<p style='color:var(--text-dim); text-align:center;'>У вас пока нет добавленных друзей.</p>";
+    }
+
+    // =====================================
+    // ЛОГИКА СООБЩЕНИЙ (РЕАЛЬНЫЕ ЧАТЫ)
+    // =====================================
+    function renderDialogsList() {
+        const container = document.getElementById('dialogs-container');
+        if(!container) return;
+        
+        container.innerHTML = myFriends.length ? myFriends.map(f => `
+            <div class="list-item" style="padding: 10px; margin-bottom: 8px;" onclick="openRealChat('${f.uid}', '${f.name}', '${f.picture}')">
+                <img src="${f.picture}" class="list-avatar" style="width:40px; height:40px;">
+                <div class="list-info">
+                    <div class="list-title" style="font-size:0.95rem;">${f.name}</div>
+                    <div class="list-sub" style="font-size:0.75rem;">Открыть чат...</div>
+                </div>
+            </div>
+        `).join('') : "<p style='color: var(--text-dim); text-align: center; font-size: 0.9rem;'>Добавьте друзей, чтобы начать общение</p>";
+    }
+
+    window.openRealChat = function(friendUid, friendName, friendPic) {
+        const user = getStorage('m_user_v7', null);
+        if(!user) {
+            window.showToast("Авторизуйтесь для общения!", "error");
+            return;
+        }
+
+        switchPage('messages'); 
+        activeChatFriend = { uid: friendUid, name: friendName, picture: friendPic };
+        
+        document.getElementById('chat-partner-name').textContent = friendName;
+        document.getElementById('chat-partner-avatar').src = friendPic;
+        document.getElementById('chat-input').placeholder = "Написать " + friendName + "...";
+        
+        const chatId = [user.sub, friendUid].sort().join('_');
+        if(chatUnsub) chatUnsub();
+        
+        const msgContainer = document.getElementById('chat-messages-container');
+        msgContainer.innerHTML = '<div class="spinner" style="margin: 30px auto; width: 30px; height: 30px; border-width: 2px;"></div>';
+
+        if(window.listenToChatMessages) {
+            chatUnsub = window.listenToChatMessages(chatId, (messages) => {
+                if(messages.length === 0) {
+                    msgContainer.innerHTML = `<div style="text-align:center; color:var(--text-dim); margin-top:50px;">Напишите первое сообщение пользователю ${friendName}!</div>`;
+                } else {
+                    msgContainer.innerHTML = messages.map(msg => {
+                        const isMine = msg.senderUid === user.sub;
+                        return `
+                            <div class="msg-bubble ${isMine ? 'msg-out' : 'msg-in'}">
+                                ${msg.text}
+                                <div style="font-size: 0.65rem; opacity: 0.7; text-align: right; margin-top: 4px;">${msg.time}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    msgContainer.scrollTop = msgContainer.scrollHeight;
+                }
+            });
+        }
+    };
+
+    window.checkChatActive = function() {
+        if(!activeChatFriend) {
+            window.showToast("Сначала выберите друга из списка слева!", "error");
+        }
+    };
+
+    window.sendRealMessage = async function() {
+        const user = getStorage('m_user_v7', null);
+        if(!user) {
+            window.showToast("Авторизуйтесь для общения!", "error");
+            return;
+        }
+        if(!activeChatFriend) {
+            window.showToast("Сначала выберите диалог из списка!", "error");
+            return;
+        }
+        
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if(!text) return;
+
+        input.value = '';
+        
+        const chatId = [user.sub, activeChatFriend.uid].sort().join('_');
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        
+        const messageObj = {
+            senderUid: user.sub,
+            text: text,
+            time: timeStr,
+            timestamp: Date.now()
+        };
+        
+        if(window.sendMessageToCloud) {
+            await window.sendMessageToCloud(chatId, messageObj);
+        }
+    };
+
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendRealMessage();
+    });
+
+    // =====================================
 
     function renderContinueReading() {
         const container = document.getElementById('continue-reading-container');
@@ -827,17 +1216,14 @@
                 <div class="continue-widget" onclick="openChapterFromWidget('${m.id}', ${lastRead.ch})">
                     <img src="${m.cover}" class="continue-cover" alt="cover">
                     <div class="continue-info">
-                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить 
-чтение</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить чтение</div>
                         <div class="continue-title">${m.title}</div>
                         <div class="continue-chapter">Глава ${lastRead.ch} ❯</div>
                     </div>
                 </div>
-            
             `;
             container.style.display = 'block';
-        } else { container.innerHTML = '';
-        }
+        } else { container.innerHTML = ''; }
     }
 
     function openChapterFromWidget(id, ch) {
@@ -863,9 +1249,7 @@
           rates[curId] = parseInt(this.dataset.v);
           localStorage.setItem('m_rates_v7', JSON.stringify(rates));
           updateStarsUI();
-          
           if(window.sendRatingToCloud) { window.sendRatingToCloud(curId, rates[curId]); }
-          
           window.showToast(`Вы оценили тайтл на ${rates[curId]}/10.`);
         };
         starsContainer.appendChild(star);
@@ -875,27 +1259,30 @@
     function switchPage(p) {
       document.querySelectorAll('.page').forEach(el => el.style.display = 'none');
       const target = document.getElementById(p + '-page');
-      if(target) target.style.display = 'block';
+      
+      // ИСПРАВЛЕНИЕ СЕТКИ: Используем block вместо flex, чтобы контейнер не сжимался
+      if(target) target.style.display = 'block'; 
       
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
       const nav = document.querySelector(`.nav-item[onclick*="'${p}'"]`);
       if(nav) nav.classList.add('active');
+      
+      closeSidebar(); 
+
       if(p !== 'title') lastP = p;
       
       if(p === 'home') { 
-          // Сбрасываем поиск при переходе на главную
           const searchInput = document.getElementById('search-input');
-          if(searchInput && searchInput.value.trim() !== '') {
-              window.clearSearch();
-          } else {
-              renderGrid(Object.values(window.mangaDb), 'home-grid'); 
-              renderContinueReading();
-          }
+          if(searchInput && searchInput.value.trim() !== '') { window.clearSearch(); } 
+          else { renderGrid(Object.values(window.mangaDb), 'home-grid'); renderContinueReading(); }
       }
       if(p === 'catalog') applyFilters();
       if(p === 'fav') renderGrid(favs.map(id => window.mangaDb[id]).filter(Boolean), 'fav-grid');
+      if(p === 'loved') renderGrid(loved.map(id => window.mangaDb[id]).filter(Boolean), 'loved-grid');
       if(p === 'hist') renderHistory();
       if(p === 'profile') updateProfileUI(); 
+      if(p === 'friends') renderFriendsList();
+      if(p === 'messages') renderDialogsList();
       
       window.scrollTo({top: 0, behavior: 'smooth'});
     }
@@ -905,7 +1292,7 @@
       if(!container) return;
       container.innerHTML = list.length ? list.map(m => `
         <div class="card" onclick="openTitle('${m.id}')">
-          <span class="badge b-rating">★ ${rates[m.id] || "0.0"}</span>
+          ${loved.includes(m.id) ? '<span class="badge" style="top:12px; right:12px; background:var(--loved); color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.5);">❤️</span>' : '<span class="badge b-rating">★ ' + (rates[m.id] || "0.0") + '</span>'}
           <span class="badge b-status">${m.status}</span>
           <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="manga"></div>
           <div class="card-info"><h3>${m.title}</h3></div>
@@ -926,12 +1313,9 @@
     window.toggleReaderWidth = function() {
         readerWidthMode = (readerWidthMode + 1) % 3;
         const container = document.getElementById('reader-images');
-        if(readerWidthMode === 0) { container.className = ''; window.showToast('Размер: Стандартный');
-        }
-        if(readerWidthMode === 1) { container.className = 'reader-wide'; window.showToast('Размер: На весь экран');
-        }
-        if(readerWidthMode === 2) { container.className = 'reader-narrow'; window.showToast('Размер: Узкий');
-        }
+        if(readerWidthMode === 0) { container.className = ''; window.showToast('Размер: Стандартный'); }
+        if(readerWidthMode === 1) { container.className = 'reader-wide'; window.showToast('Размер: На весь экран'); }
+        if(readerWidthMode === 2) { container.className = 'reader-narrow'; window.showToast('Размер: Узкий'); }
     };
 
     async function openTitle(id) {
@@ -945,8 +1329,8 @@
       
       document.getElementById('det-rating-num').textContent = "0.0";
       document.getElementById('det-votes').textContent = "Загрузка оценок...";
-      
       document.getElementById('ch-search-input').value = "";
+      
       if (ratingUnsub) { ratingUnsub(); } 
       if (window.listenToRating) {
           ratingUnsub = window.listenToRating(id, (ratingData) => {
@@ -961,19 +1345,17 @@
             const isRead = history.some(h => h.id === id && h.ch == n) ? "opacity: 0.6; border-color: var(--accent);" : "";
             return `
               <div class="chapter-item" data-ch="${n}" onclick="openChapter(${n})" style="padding:22px; border-bottom:1px solid var(--border-color); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: 0.2s; ${isRead}" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='none'">
-            
                 <span style="font-weight:700; font-size: 1.1rem;">Глава ${n}</span>
                 <span style="color:var(--accent); font-size:0.85rem; font-weight: 800; letter-spacing: 1px;">${isRead ? "ПРОДОЛЖИТЬ" : "ЧИТАТЬ"}</span>
               </div>
             `;
           }).join('');
-      } else { chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы еще не загружены</p>";
-      }
+      } else { chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы еще не загружены</p>"; }
       
       updateStarsUI(); updateFavUI(); switchPage('title');
+      
       document.getElementById('comments-list').innerHTML = `<div class="spinner" style="margin: 30px auto; width: 40px; height: 40px; border-width: 3px;"></div>`;
-      if(window.loadCommentsFromCloud) { globalCommentsList = await window.loadCommentsFromCloud(id);
-      }
+      if(window.loadCommentsFromCloud) { globalCommentsList = await window.loadCommentsFromCloud(id); }
       renderComments();
     }
 
@@ -982,19 +1364,17 @@
       history = history.filter(h => h.id !== curId);
       history.unshift({ id: curId, ch: curCh, time: Date.now() });
       localStorage.setItem('m_hist_v7', JSON.stringify(history.slice(0, 50)));
+      
       document.getElementById('reader-info').textContent = `${window.mangaDb[curId].title} — Глава ${curCh}`;
       
       const container = document.getElementById('reader-images');
       container.innerHTML = '<div class="spinner" style="margin: 50px auto;"></div>';
+      
       const chapterData = window.mangaDb[curId].chapters[curCh];
       
       if (Array.isArray(chapterData)) {
           container.innerHTML = chapterData.map(s => `
-              <img src="${s}" 
-                   loading="lazy" 
-                   style="width:100%; display:block; background: #111;" 
-                   onerror="this.src='https://placehold.co/800x1200/111/fff?text=Ошибка+загрузки'">
-  
+              <img src="${s}" loading="lazy" style="width:100%; display:block; background: #111;" onerror="this.src='https://placehold.co/800x1200/111/fff?text=Ошибка+загрузки'">
           `).join('');
       } else {
           container.innerHTML = '<div class="empty-state">Ошибка: Глава пуста или имеет неверный формат в базе данных</div>';
@@ -1005,32 +1385,32 @@
       document.body.style.overflow = 'hidden';
       
       const savedScroll = localStorage.getItem(`scroll_${curId}_${curCh}`);
-      if(savedScroll) { document.getElementById('reader').scrollTop = parseInt(savedScroll);
-      } 
-      else { document.getElementById('reader').scrollTop = 0;
-      }
+      if(savedScroll) { document.getElementById('reader').scrollTop = parseInt(savedScroll); } 
+      else { document.getElementById('reader').scrollTop = 0; }
       
-      document.getElementById('btn-prev-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh - 1]) ?
-      'block' : 'none';
+      document.getElementById('btn-prev-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh - 1]) ? 'block' : 'none';
       document.getElementById('btn-next-ch').style.display = (window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh + 1]) ? 'block' : 'none';
     }
 
+    // ИСПРАВЛЕНИЕ ИСТОРИИ ЧТЕНИЯ: Выводим карточками (Grid), чтобы на телефоне было 2 в ряд
     function renderHistory() {
       const container = document.getElementById('history-list'); if(!container) return;
       const validHistory = history.filter(h => window.mangaDb[h.id]);
-      if(!validHistory.length) { container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>"; return;
+      
+      if(!validHistory.length) { 
+          container.className = '';
+          container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>"; 
+          return;
       }
       
+      container.className = 'grid'; // Применяем стиль сетки
       container.innerHTML = validHistory.map(h => {
         const m = window.mangaDb[h.id];
-        return `<div onclick="openTitle('${m.id}')" style="display:flex; gap:20px; background:var(--card-bg); margin-bottom:15px; padding:18px; border-radius:18px; cursor:pointer; align-items:center; border:1px solid var(--border-color); transition: 0.3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border-color)'">
-          <img src="${m.cover}" loading="lazy" style="width:70px; height:95px; object-fit:cover; border-radius:12px;">
-          <div style="flex:1">
-            <h4 style="margin-bottom:6px; font-size: 1.1rem;">${m.title}</h4>
-      
-            <p style="color:var(--accent); font-size:0.9rem; font-weight: 700;">Глава ${h.ch}</p>
-          </div>
-          <span style="color: #444; font-size: 1.5rem;">❯</span>
+        return `
+        <div class="card" onclick="openTitle('${m.id}')">
+          <span class="badge b-status" style="background: var(--accent); color: #000;">Глава ${h.ch}</span>
+          <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="manga"></div>
+          <div class="card-info"><h3>${m.title}</h3></div>
         </div>`;
       }).join('');
     }
@@ -1039,6 +1419,7 @@
       let data = Object.values(window.mangaDb);
       const getChecks = (id) => Array.from(document.querySelectorAll(`${id} input:checked`)).map(i => i.value);
       const statuses = getChecks('#filter-status'), years = getChecks('#filter-year'), genres = getChecks('#filter-genre');
+      
       if(statuses.length) data = data.filter(m => statuses.includes(m.status));
       if(years.length) data = data.filter(m => years.includes(m.year.toString()));
       if(genres.length) data = data.filter(m => genres.some(g => m.genres && m.genres.includes(g)));
@@ -1047,24 +1428,38 @@
       if(sort === 'rating') data.sort((a,b) => (rates[b.id] || 0) - (rates[a.id] || 0));
       if(sort === 'new') data.sort((a,b) => b.year - a.year);
       if(sort === 'updated') data.sort((a,b) => b.updatedAt - a.updatedAt);
+      
       renderGrid(data, 'catalog-grid');
     }
 
-    function toggleFav() { 
-      const isFav = favs.includes(curId);
-      favs = isFav ? favs.filter(i => i !== curId) : [...favs, curId]; 
-      localStorage.setItem('m_favs_v7', JSON.stringify(favs)); 
-      updateFavUI();
-      if(!isFav) { if(window.saveManga) window.saveManga(window.mangaDb[curId].title);
-      window.showToast("Добавлено в закладки!"); } 
-      else { window.showToast("Удалено из закладок", "error");
-      }
+    function toggleFav(type) { 
+      let arr = type === 'favs' ? favs : loved;
+      const isExist = arr.includes(curId);
+      arr = isExist ? arr.filter(i => i !== curId) : [...arr, curId];
+      
+      if(type === 'favs') { favs = arr; localStorage.setItem('m_favs_v7', JSON.stringify(favs)); }
+      else { loved = arr; localStorage.setItem('m_loved_v8', JSON.stringify(loved)); }
+      
+      updateFavUI(); updateSidebarBadges();
+      window.showToast(isExist ? "Удалено" : "Добавлено успешно!");
     }
 
     function updateFavUI() { 
-      const btn = document.getElementById('btn-fav');
-      if(btn) { const isFav = favs.includes(curId); btn.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В ЗАКЛАКИ';
-      btn.className = isFav ? 'btn btn-sec' : 'btn'; }
+      const bF = document.getElementById('btn-fav');
+      const bL = document.getElementById('btn-loved');
+      if(bF) { 
+          const isFav = favs.includes(curId);
+          bF.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В закладки';
+          bF.className = isFav ? 'btn btn-sec' : 'btn';
+          if(isFav) { bF.style.background = 'var(--accent)'; bF.style.color = '#000'; }
+          else { bF.style.background = ''; bF.style.color = ''; }
+      }
+      if(bL) {
+          const isLoved = loved.includes(curId);
+          bL.innerHTML = isLoved ? '💖 В ИЗБРАННОМ' : '❤️ В избранное';
+          if(isLoved) { bL.style.background = 'var(--loved)'; bL.style.color = '#fff'; bL.style.borderColor = 'var(--loved)'; }
+          else { bL.style.background = ''; bL.style.color = ''; bL.style.borderColor = 'var(--loved)'; }
+      }
     }
 
     function shareTitle() {
@@ -1079,15 +1474,10 @@
       const userData = getStorage('m_user_v7', null);
       
       let userName = "Анонимный читатель";
-      if (userData) {
-          userName = customNames[userData.sub] || userData.name;
-      } else if (customNames['anonymous']) {
-          userName = customNames['anonymous'];
-      }
+      if (userData) { userName = customNames[userData.sub] || userData.name; } 
+      else if (customNames['anonymous']) { userName = customNames['anonymous']; }
       
-      const avatarHtml = userData ?
-      `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">` : '👤';
-      
+      const avatarHtml = userData ? `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">` : '👤';
       const now = new Date();
       const prettyDate = now.toLocaleDateString() + ', ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       const newComment = { user: userName, avatar: avatarHtml, text: txt.value, date: prettyDate, timeId: Date.now(), likes: 0 };
@@ -1096,8 +1486,7 @@
       txt.value = "";
       if(window.sendCommentToCloud) {
           const success = await window.sendCommentToCloud(curId, newComment);
-          if(success) { window.showToast("Комментарий опубликован!"); } else { window.showToast("Ошибка отправки в облако", "error");
-          }
+          if(success) { window.showToast("Комментарий опубликован!"); } else { window.showToast("Ошибка отправки в облако", "error"); }
       }
     }
 
@@ -1107,29 +1496,22 @@
         if(comm) {
             const isLiked = likedComments.includes(timeId);
             if (isLiked) {
-                // Если уже лайкнули — убираем лайк
                 comm.likes = Math.max(0, (comm.likes || 1) - 1);
                 likedComments = likedComments.filter(id => id !== timeId);
             } else {
-                // Ставим лайк
                 comm.likes = (comm.likes || 0) + 1;
                 likedComments.push(timeId);
             }
             localStorage.setItem('m_liked_comments_v7', JSON.stringify(likedComments));
             renderComments();
-            
-            if(window.updateAllCommentsInCloud) {
-                window.updateAllCommentsInCloud(curId, globalCommentsList);
-            }
+            if(window.updateAllCommentsInCloud) { window.updateAllCommentsInCloud(curId, globalCommentsList); }
         }
     };
 
     function renderComments() {
       const container = document.getElementById('comments-list');
       if(!container) return;
-      
       let likedComments = JSON.parse(localStorage.getItem('m_liked_comments_v7') || '[]');
-      
       container.innerHTML = globalCommentsList.length ?
       globalCommentsList.map(c => `
         <div class="comm-card">
@@ -1147,8 +1529,7 @@
       `).reverse().join('') : `<p style="text-align:center; color: var(--text-dim); padding:30px;">Будьте первым, кто оставит комментарий!</p>`;
     }
 
-    function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters();
-    }
+    function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); }
     
     function closeReader() { 
       document.getElementById('reader').style.display = 'none';
@@ -1157,13 +1538,10 @@
     }
     
     function moveChapter(d) { 
-        if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) { openChapter(curCh+d);
-        } 
-        else { window.showToast("Глав больше нет", "error");
-        }
+        if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) { openChapter(curCh+d); } 
+        else { window.showToast("Глав больше нет", "error"); }
     }
     
-    /* --- ПРОКАЧАННАЯ ФУНКЦИЯ ПОИСКА --- */
     let searchTimeout;
     window.liveSearch = function(q) {
       clearTimeout(searchTimeout);
@@ -1173,7 +1551,6 @@
         const titleHeader = document.getElementById('home-section-title');
         const continueContainer = document.getElementById('continue-reading-container');
 
-        // Показываем/скрываем крестик
         if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
 
         if (!query) {
@@ -1184,28 +1561,22 @@
             return;
         }
 
-        // Прячем лишнее при поиске
         if(continueContainer) continueContainer.style.display = 'none';
-  
         if(titleHeader) titleHeader.innerHTML = `<span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent);"></span> 🔍 Результаты поиска`;
 
-        // Безопасный поиск по названию и жанрам
         const res = Object.values(window.mangaDb).filter(m => {
             const matchTitle = m.title && m.title.toLowerCase().includes(query);
             const matchGenre = m.genres && m.genres.some(g => g.toLowerCase().includes(query));
             return matchTitle || matchGenre;
         });
-       
+        
         renderGrid(res, 'home-grid');
-      }, 300); // чуть увеличил задержку для плавности
+      }, 300);
     };
 
     window.clearSearch = function() {
         const input = document.getElementById('search-input');
-        if(input) {
-            input.value = '';
-            window.liveSearch('');
-        }
+        if(input) { input.value = ''; window.liveSearch(''); }
     };
 
     function updateStarsUI() {
@@ -1215,7 +1586,8 @@
 
     window.startUI = () => { 
         initStars();
-        renderYears(); updateProfileUI();
+        renderYears(); 
+        updateProfileUI();
         window.renderNotifications();
         switchPage('home'); 
     };
