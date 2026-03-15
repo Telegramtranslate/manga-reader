@@ -2,38 +2,64 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0b0b0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
   <title>Цветная манга — Читать онлайн бесплатно на MangaCloud</title>
   <meta name="description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud. Обновления каждый день!">
   <meta name="keywords" content="цветная манга, читать мангу, манхва онлайн, цветная манхва, манга клауд, манга на русском">
   <meta property="og:title" content="Цветная манга онлайн — MangaCloud">
   <meta property="og:description" content="Лучшая коллекция цветной манги в одном месте. Читать удобно и быстро!">
-  <meta property="og:image" content="https://my-manga-cloud.vercel.app/cover.jpg"> 
-  <meta property="og:url" content="https://my-manga-cloud.vercel.app">
+  <meta property="og:image" content="[my-manga-cloud.vercel.app](https://my-manga-cloud.vercel.app/cover.jpg)"> 
+  <meta property="og:url" content="[my-manga-cloud.vercel.app](https://my-manga-cloud.vercel.app)">
   <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
   
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Preconnect для ускорения загрузки -->
+  <link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)">
+  <link rel="preconnect" href="[gstatic.com](https://www.gstatic.com)" crossorigin>
+  <link rel="preconnect" href="[accounts.google.com](https://accounts.google.com)">
+  
+  <script src="[accounts.google.com](https://accounts.google.com/gsi/client)" async defer></script>
   
   <style>
     :root {
       /* Темная тема (по умолчанию) */
       --bg: #0b0b0d;
       --card-bg: #161618;
-      --glass: rgba(22, 22, 24, 0.9);
+      --glass: rgba(22, 22, 24, 0.92);
       --accent: #00d2ff;
+      --accent-secondary: #7b2ff7;
       --accent-glow: rgba(0, 210, 255, 0.4);
       --text: #ffffff;
       --text-dim: #a0a0a5;
       --star: #ffcc00;
-      --loved: #ff4d4d; /* Цвет для избранного */
+      --loved: #ff4d4d;
+      --success: #00e676;
+      --warning: #ffa726;
       --br: 18px;
+      --br-sm: 12px;
+      --br-lg: 24px;
       --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      /* Добавленные переменные для удобного переключения тем */
+      --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
       --input-bg: #08080a;
       --border-color: #222;
       --border-light: #2a2a2d;
       --stat-bg: #111;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.15);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.2);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.3);
+      --shadow-glow: 0 0 30px var(--accent-glow);
+      
+      /* Адаптивные размеры */
+      --header-height: 65px;
+      --nav-height: 70px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
     }
 
     /* СВЕТЛАЯ ТЕМА */
@@ -49,314 +75,1784 @@
       --border-color: #e0e0e0;
       --border-light: #cccccc;
       --stat-bg: #f9f9f9;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.1);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.15);
     }
 
-    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); overflow-x: hidden; line-height: 1.6; transition: background 0.4s, color 0.4s; }
+    *, *::before, *::after { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    html { 
+      scroll-behavior: smooth;
+      font-size: 16px;
+      height: 100%;
+      overflow-x: hidden;
+    }
+    
+    body { 
+      background: var(--bg); 
+      color: var(--text); 
+      padding-top: var(--safe-top);
+      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 10px);
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+      overflow-x: hidden; 
+      line-height: 1.6;
+      transition: background 0.4s, color 0.4s;
+      min-height: 100%;
+      position: relative;
+    }
 
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 10px; border: 2px solid var(--bg); }
+    /* Улучшенный скроллбар */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { 
+      background: var(--border-light); 
+      border-radius: 10px; 
+      border: 2px solid var(--bg);
+      transition: background 0.3s;
+    }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    
+    /* Firefox scrollbar */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+    }
+
+    /* Selection color */
+    ::selection {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* Focus visible для доступности */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
 
     /* ЗАГРУЗКА */
-    #global-loader { position: fixed; inset: 0; background: var(--bg); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
-    .spinner { width: 60px; height: 60px; border: 5px solid rgba(0,210,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 20px var(--accent-glow); }
+    #global-loader { 
+      position: fixed; 
+      inset: 0; 
+      background: var(--bg); 
+      z-index: 99999; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+      padding: 20px;
+    }
+    #global-loader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .spinner { 
+      width: 60px; 
+      height: 60px; 
+      border: 4px solid rgba(0,210,255,0.1); 
+      border-top-color: var(--accent); 
+      border-radius: 50%; 
+      animation: spin 0.8s linear infinite; 
+      margin-bottom: 24px; 
+      box-shadow: var(--shadow-glow);
+    }
     @keyframes spin { 100% { transform: rotate(360deg); } }
+    
+    #global-loader h2 {
+      font-size: clamp(1rem, 4vw, 1.5rem);
+      font-weight: 800;
+      text-shadow: 0 0 20px var(--accent-glow);
+      text-align: center;
+    }
+
+    /* Скелетон для загрузки */
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        var(--card-bg) 25%,
+        var(--border-light) 50%,
+        var(--card-bg) 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--br-sm);
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skeleton-card {
+      aspect-ratio: 2/3;
+      border-radius: var(--br);
+    }
+    .skeleton-text {
+      height: 1em;
+      margin: 8px 0;
+    }
+    .skeleton-text.short { width: 60%; }
 
     /* ШАПКА */
-    header { background: var(--glass); backdrop-filter: blur(25px); padding: 15px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(128,128,128,0.1); display: flex; align-items: center; transition: var(--transition); }
-    .menu-btn { background: none; border: none; color: var(--text); font-size: 1.8rem; cursor: pointer; transition: 0.2s; padding: 5px; margin-right: 15px; display: flex; align-items: center; }
-    .menu-btn:hover { color: var(--accent); transform: scale(1.1); }
-    header h1 { font-size: 1.6rem; letter-spacing: -1px; font-weight: 900; margin: 0; flex: 1; text-align: left; }
-    header h1 span { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
-
-    /* Кнопка смены темы */
-    #btn-theme-toggle { position: fixed; top: 10px; right: 20px; z-index: 1001; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text); width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
-    #btn-theme-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
-
-    /* Кнопка уведомлений */
-    #btn-notifications { position: fixed; top: 10px; right: 75px; z-index: 1001; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text); width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
-    #btn-notifications:hover { transform: scale(1.1); border-color: var(--accent); }
-    
-    @keyframes pulseBadge { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(255, 77, 77, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); } }
-    #notif-badge { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; font-size: 0.7rem; font-weight: bold; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); animation: pulseBadge 2s infinite; }
-
-    /* Панель уведомлений */
-    #notifications-panel { position: fixed; top: 70px; right: 20px; width: 300px; max-height: 400px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--br); z-index: 1000; box-shadow: 0 15px 40px rgba(0,0,0,0.5); display: none; flex-direction: column; overflow: hidden; animation: fadeInNotif 0.3s ease; }
-    #notifications-panel.visible { display: flex; }
-    @keyframes fadeInNotif { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .notif-header { padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-    .notif-header h4 { margin: 0; font-size: 1rem; color: var(--text); }
-    #notif-list { overflow-y: auto; max-height: 340px; }
-    .notif-item { padding: 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; font-size: 0.85rem; color: var(--text-dim); line-height: 1.4; }
-    .notif-item:hover { background: var(--stat-bg); }
-    .notif-item.unread { background: rgba(0, 210, 255, 0.05); color: var(--text); border-left: 3px solid var(--accent); }
-    .notif-item:last-child { border-bottom: none; }
-
-    /* ==========================================
-       БОКОВОЕ МЕНЮ (САЙДБАР) 
-       ========================================== */
-    #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 9998; opacity: 0; visibility: hidden; transition: 0.3s ease; }
-    #sidebar-overlay.active { opacity: 1; visibility: visible; }
-    
-    /* ИСПРАВЛЕНИЕ: left: -100% вместо -320px для корректного скрытия на всех экранах */
-    #sidebar { position: fixed; top: 0; left: -100%; width: 300px; height: 100vh; background: var(--card-bg); z-index: 9999; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 10px 0 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow-y: auto; border-right: 1px solid var(--border-color); }
-    #sidebar.active { left: 0; }
-    
-    .sidebar-header { padding: 30px 20px; background: var(--stat-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 15px; }
-    .sidebar-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
-    .sidebar-user-info { display: flex; flex-direction: column; overflow: hidden; }
-    .sidebar-user-info h3 { font-size: 1.1rem; font-weight: 800; margin: 0; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--text); }
-    .sidebar-user-info p { font-size: 0.8rem; color: var(--text-dim); margin: 0; }
-    
-    .sidebar-menu { list-style: none; padding: 15px 0; flex: 1; }
-    .sidebar-menu li { padding: 16px 25px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; font-size: 1.05rem; font-weight: 600; color: var(--text); position: relative; }
-    .sidebar-menu li:hover { background: var(--stat-bg); color: var(--accent); padding-left: 30px; }
-    .sidebar-menu li i { font-size: 1.3rem; width: 24px; text-align: center; }
-    .sidebar-badge { position: absolute; right: 20px; background: var(--accent); color: #000; font-size: 0.75rem; font-weight: 900; padding: 2px 8px; border-radius: 10px; }
-    .sidebar-badge.red { background: var(--loved); color: white; }
-
-    /* ОСНОВНОЙ ЛЕЙАУТ */
-    main { max-width: 1400px; margin: 0 auto; padding: 25px; display: flex; gap: 30px; }
-    .content-area { flex: 1; min-width: 0; }
-    .page { display: none; width: 100%; animation: fadeIn 0.4s ease forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-    .filters-sidebar { width: 320px; background: var(--card-bg); border-radius: var(--br); padding: 24px; height: fit-content; position: sticky; top: 100px; border: 1px solid var(--border-color); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
-    .filter-group { margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 18px; }
-    .filter-group:last-child { border: none; }
-    .filter-group h4 { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 2px; font-weight: 800; opacity: 0.8; }
-    
-    select, input[type="text"], input[type="number"], textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border-light); color: var(--text); padding: 14px; border-radius: 12px; outline: none; transition: var(--transition); font-size: 0.95rem; }
-    select:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
-    
-    .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 200px; overflow-y: auto; padding-right: 8px; }
-    .checkbox-grid label { font-size: 0.85rem; display: flex; align-items: center; gap: 10px; color: var(--text-dim); cursor: pointer; transition: var(--transition); }
-    .checkbox-grid label:hover { color: var(--accent); }
-    .checkbox-grid input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; border-radius: 4px; }
-
-    /* КАРТОЧКИ И СЕТКА */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px; width: 100%; }
-    .card { background: var(--card-bg); border-radius: var(--br); overflow: hidden; position: relative; cursor: pointer; border: 1px solid var(--border-color); transition: var(--transition); display: flex; flex-direction: column; }
-    .card:hover { transform: translateY(-10px) scale(1.02); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.2), 0 0 25px var(--accent-glow); z-index: 2; }
-    .card-cover { position: relative; padding-top: 145%; overflow: hidden; background: var(--stat-bg); }
-    .card-cover img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: 0.6s cubic-bezier(0.33, 1, 0.68, 1); }
-    .card:hover .card-cover img { transform: scale(1.1) rotate(1deg); filter: brightness(1.1); }
-    
-    .badge { position: absolute; z-index: 10; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; backdrop-filter: blur(8px); pointer-events: none; }
-    .b-status { top: 12px; left: 12px; background: rgba(0, 210, 255, 0.25); border: 1px solid var(--accent); color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-    .b-rating { top: 12px; right: 12px; background: rgba(255, 204, 0, 0.95); color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-
-    .card-info { padding: 18px; background: linear-gradient(to top, var(--card-bg) 70%, transparent); flex-grow: 1; display: flex; align-items: center; }
-    .card-info h3 { font-size: 1rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3; }
-
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--glass); backdrop-filter: blur(30px); display: flex; justify-content: space-around; padding: 12px 5px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(128,128,128,0.1); z-index: 999; transition: transform 0.3s ease; }
-    .nav-item { color: var(--text-dim); text-decoration: none; font-size: 0.7rem; text-align: center; transition: var(--transition); flex: 1; position: relative; }
-    .nav-item.active { color: var(--accent); }
-    .nav-item.active::after { content: ''; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background: var(--accent); border-radius: 0 0 10px 10px; box-shadow: 0 0 15px var(--accent); }
-    .nav-item i { display: block; font-size: 1.6rem; font-style: normal; margin-bottom: 4px; transition: 0.2s; }
-    .nav-item:hover i { transform: translateY(-3px); color: var(--accent); }
-
-    .btn { background: var(--accent); color: #fff; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; width: 100%; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.5px; }
-    [data-theme="light"] .btn { color: #fff; }
-    .btn:hover { transform: scale(1.03); box-shadow: 0 10px 25px var(--accent-glow); }
-    .btn-sec { background: var(--stat-bg); color: var(--text); border: 1px solid var(--border-color); }
-    .btn-sec:hover { background: var(--border-light); transform: scale(1.03); }
-
-    /* ПРОФИЛЬ */
-    .profile-card { background: var(--card-bg); padding: 40px; border-radius: var(--br); border: 1px solid var(--border-color); text-align: center; width: 100%; max-width: 500px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
-    .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 20px; object-fit: cover; }
-    .profile-stats-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
-    .profile-stat { background: var(--stat-bg); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color); flex: 1; }
-    .profile-stat h3 { font-size: 1.8rem; font-weight: 900; margin-bottom: 5px; }
-    .level-container { background: var(--stat-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; margin-bottom: 25px; text-align: left; }
-    .level-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .level-title { font-weight: 800; color: var(--accent); font-size: 1.1rem; }
-    .level-progress-bg { width: 100%; height: 10px; background: var(--border-color); border-radius: 5px; overflow: hidden; }
-    .level-progress-fill { height: 100%; background: linear-gradient(90deg, #00d2ff, #3a7bd5); width: 0%; transition: width 1s ease; box-shadow: 0 0 10px var(--accent-glow); }
-
-    /* ВИДЖЕТ "ПРОДОЛЖИТЬ ЧТЕНИЕ" */
-    .continue-widget { display: flex; align-items: center; gap: 20px; background: linear-gradient(135deg, var(--accent-glow) 0%, var(--card-bg) 100%); border: 1px solid var(--accent); border-radius: var(--br); padding: 20px; margin-bottom: 35px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-    .continue-widget:hover { transform: translateY(-5px); box-shadow: 0 15px 35px var(--accent-glow); }
-    .continue-cover { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 2px solid var(--border-light); }
-    .continue-info { flex: 1; }
-    .continue-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-    .continue-chapter { color: var(--accent); font-weight: 700; font-size: 0.95rem; }
-
-    /* ==========================================
-       НОВЫЕ СТРАНИЦЫ (ДРУЗЬЯ, СООБЩЕНИЯ) 
-       ========================================== */
-    .list-item { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px 20px; border-radius: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; transition: 0.2s; cursor: pointer; }
-    .list-item:hover { border-color: var(--accent); background: var(--stat-bg); }
-    .list-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: var(--stat-bg); border: 2px solid var(--border-light); }
-    .list-info { flex: 1; }
-    .list-title { font-weight: 700; font-size: 1.1rem; color: var(--text); }
-    .list-sub { font-size: 0.85rem; color: var(--text-dim); margin-top: 4px; }
-    .list-action { background: var(--stat-bg); padding: 8px 15px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; transition: 0.2s; border: 1px solid var(--border-color); color: var(--text); cursor: pointer; }
-    .list-item:hover .list-action { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-    /* ЧАТ */
-    .chat-layout { display: flex; gap: 20px; width: 100%; max-width: 1200px; height: 70vh; margin-top: 20px; }
-    .chat-sidebar { width: 350px; background: var(--card-bg); border-radius: var(--br); padding: 15px; border: 1px solid var(--border-color); overflow-y: auto; }
-    .chat-box { flex: 1; background: var(--stat-bg); border: 1px solid var(--border-color); border-radius: var(--br); display: flex; flex-direction: column; overflow: hidden; }
-    .chat-header { padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); font-weight: 800; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
-    .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .msg-bubble { max-width: 70%; padding: 12px 18px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; position: relative; }
-    .msg-in { background: var(--card-bg); border: 1px solid var(--border-color); align-self: flex-start; border-bottom-left-radius: 4px; color: var(--text); }
-    .msg-out { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 600; box-shadow: 0 4px 10px var(--accent-glow); }
-    .chat-input-area { padding: 15px; background: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; gap: 10px; align-items: center; }
-
-    /* ЧИТАЛКА */
-    #reader { position: fixed; inset: 0; background: #0b0b0d; color: #fff; z-index: 5000; overflow-y: auto; scroll-behavior: auto; display: none; }
-    .reader-bar { position: sticky; top: 0; background: rgba(11,11,13,0.95); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a1a1c; z-index: 10; backdrop-filter: blur(10px); gap: 10px; }
-    .reader-progress-container { position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.1); }
-    .reader-progress-fill { height: 100%; background: #00d2ff; width: 0%; transition: 0.1s; box-shadow: 0 0 10px rgba(0, 210, 255, 0.4); }
-    #reader-images { max-width: 900px; margin: 0 auto; min-height: 100vh; transition: max-width 0.3s ease; }
-    #reader-images.reader-wide { max-width: 100% !important; }
-    #reader-images.reader-narrow { max-width: 600px !important; }
-    .reader-nav-btns { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 40px 20px 80px; background: linear-gradient(transparent, #0b0b0d 20%); flex-wrap: wrap; }
-    
-    .empty-state { width: 100%; text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 1.2rem; background: var(--card-bg); border-radius: var(--br); border: 1px dashed var(--border-color); }
-    
-    .stars { display: inline-flex; flex-direction: row; gap: 5px; cursor: pointer; }
-    .star { font-size: 2.2rem; color: var(--border-light); transition: var(--transition); }
-    .star:hover, .star:hover ~ .star { color: #888; } 
-    .star.active { color: var(--star); text-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
-
-    .comm-section { margin-top: 50px; }
-    .comm-input-area { background: var(--card-bg); padding: 20px; border-radius: var(--br); margin: 20px 0; border: 1px solid var(--border-color); }
-    .comm-card { background: var(--stat-bg); padding: 20px; border-radius: 14px; margin-bottom: 15px; border: 1px solid var(--border-color); transition: 0.3s; }
-    .comm-card:hover { border-color: var(--accent); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    .comm-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-    .comm-user { font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-    .comm-date { font-size: 0.85rem; color: var(--text-dim); }
-    .comm-text { font-size: 0.95rem; line-height: 1.5; margin-bottom: 10px; }
-    
-    @keyframes likeBounce { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-    .comm-like-btn { background: none; border: 1px solid var(--border-color); color: var(--text-dim); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 60px; }
-    .comm-like-btn:hover { color: #ff4d4d; border-color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
-    .comm-like-btn.liked { color: #ff4d4d; border-color: #ff4d4d; animation: likeBounce 0.35s ease-out; }
-
-    .title-header-layout { display: flex; gap: 45px; flex-wrap: wrap; }
-    .title-cover-img { width: 300px; border-radius: 20px; border: 1px solid var(--border-light); box-shadow: 0 15px 40px rgba(0,0,0,0.2); object-fit: cover; }
-    .title-info-block { flex: 1; min-width: 300px; }
-    .rating-box { background: var(--stat-bg); padding: 30px; border-radius: 24px; text-align: center; border: 1px solid var(--border-light); margin-top:30px; }
-
-    #toast-container { position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast { background: var(--card-bg); color: var(--text); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-left: 4px solid var(--accent); animation: slideInRight 0.4s ease forwards; transition: 0.4s ease; font-weight: 600; font-size: 0.9rem; }
-    .toast.error { border-left-color: #ff4d4d; }
-    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-    #btn-scroll-top { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 20px; background: var(--accent); color: #fff; width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 15px var(--accent-glow); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 900; }
-    #btn-scroll-top.visible { opacity: 1; visibility: visible; }
-
-    @media (max-width: 950px) {
-      main { flex-direction: column; padding: 15px; }
-      .filters-sidebar { width: 100%; position: static; order: -1; margin-bottom: 20px; }
-      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-      .title-header-layout { justify-content: center; text-align: center; }
-      .reader-nav-btns .btn { width: 100%; max-width: none !important; }
-      .chat-layout { flex-direction: column; height: auto; }
-      .chat-sidebar { width: 100%; max-height: 250px; }
-      .chat-box { height: 500px; }
+    header { 
+      background: var(--glass); 
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      padding: 0 20px;
+      height: var(--header-height);
+      position: sticky; 
+      top: 0; 
+      z-index: 1000; 
+      border-bottom: 1px solid rgba(128,128,128,0.1); 
+      display: flex; 
+      align-items: center;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
     }
     
+    header.scrolled {
+      background: var(--glass);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .menu-btn { 
+      background: none; 
+      border: none; 
+      color: var(--text); 
+      font-size: 1.6rem; 
+      cursor: pointer; 
+      transition: var(--transition-fast); 
+      padding: 8px;
+      margin-right: 12px;
+      margin-left: -8px;
+      display: flex; 
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--br-sm);
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .menu-btn:hover { 
+      color: var(--accent); 
+      background: rgba(0,210,255,0.1);
+    }
+    .menu-btn:active {
+      transform: scale(0.95);
+    }
+    
+    header h1 { 
+      font-size: clamp(1.2rem, 5vw, 1.6rem);
+      letter-spacing: -0.5px; 
+      font-weight: 900; 
+      margin: 0; 
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    header h1 span { 
+      color: var(--accent); 
+      text-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    /* Кнопки в шапке (theme, notifications) */
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .header-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      position: relative;
+    }
+    .header-btn:hover {
+      transform: scale(1.08);
+      border-color: var(--accent);
+      box-shadow: var(--shadow-md);
+    }
+    .header-btn:active {
+      transform: scale(0.95);
+    }
+
+    @keyframes pulseBadge { 
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); } 
+      70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(255, 77, 77, 0); } 
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); } 
+    }
+    
+    .notif-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: linear-gradient(135deg, #ff4d4d, #ff6b6b);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: bold;
+      border-radius: 50%;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(255,77,77,0.4);
+      animation: pulseBadge 2s infinite;
+      padding: 0 4px;
+    }
+
+    /* Панель уведомлений */
+    #notifications-panel {
+      position: fixed;
+      top: calc(var(--header-height) + 10px);
+      right: 15px;
+      width: min(340px, calc(100vw - 30px));
+      max-height: min(450px, 60vh);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--br);
+      z-index: 1001;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      transform-origin: top right;
+      animation: fadeInNotif 0.25s ease;
+    }
+    #notifications-panel.visible { display: flex; }
+    @keyframes fadeInNotif { 
+      from { opacity: 0; transform: scale(0.95) translateY(-10px); } 
+      to { opacity: 1; transform: scale(1) translateY(0); } 
+    }
+    
+    .notif-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--stat-bg);
+    }
+    .notif-header h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .notif-header button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: var(--br-sm);
+      transition: var(--transition-fast);
+    }
+    .notif-header button:hover {
+      background: rgba(0,210,255,0.1);
+    }
+    
+    #notif-list {
+      overflow-y: auto;
+      flex: 1;
+      overscroll-behavior: contain;
+    }
+    
+    .notif-item {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .notif-item:hover { background: var(--stat-bg); }
+    .notif-item.unread {
+      background: rgba(0, 210, 255, 0.05);
+      color: var(--text);
+      border-left: 3px solid var(--accent);
+    }
+    .notif-item:last-child { border-bottom: none; }
+
+    /* БОКОВОЕ МЕНЮ */
+    #sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9998;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+    #sidebar-overlay.active { opacity: 1; visibility: visible; }
+    
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: min(300px, 85vw);
+      height: 100vh;
+      height: 100dvh;
+      background: var(--card-bg);
+      z-index: 9999;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-right: 1px solid var(--border-color);
+      transform: translateX(-100%);
+    }
+    #sidebar.active { transform: translateX(0); }
+    
+    .sidebar-header {
+      padding: 30px 20px;
+      padding-top: calc(30px + var(--safe-top));
+      background: linear-gradient(135deg, var(--stat-bg), var(--card-bg));
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .sidebar-avatar {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 20px var(--accent-glow);
+      flex-shrink: 0;
+    }
+    .sidebar-user-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+    }
+    .sidebar-user-info h3 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin: 0;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      color: var(--text);
+    }
+    .sidebar-user-info p {
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin: 4px 0 0 0;
+      font-weight: 600;
+    }
+    
+    .sidebar-menu {
+      list-style: none;
+      padding: 12px 0;
+      flex: 1;
+    }
+    .sidebar-menu li {
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      position: relative;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-menu li:hover {
+      background: var(--stat-bg);
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+    .sidebar-menu li:active {
+      background: rgba(0,210,255,0.1);
+    }
+    .sidebar-menu li i {
+      font-size: 1.2rem;
+      width: 28px;
+      text-align: center;
+      font-style: normal;
+    }
+    .sidebar-badge {
+      position: absolute;
+      right: 20px;
+      background: var(--accent);
+      color: #000;
+      font-size: 0.7rem;
+      font-weight: 900;
+      padding: 3px 10px;
+      border-radius: 12px;
+      min-width: 24px;
+      text-align: center;
+    }
+    .sidebar-badge.red {
+      background: var(--loved);
+      color: white;
+    }
+
+    /* ОСНОВНОЙ ЛЕЙАУТ */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: clamp(15px, 4vw, 30px);
+      display: flex;
+      gap: clamp(20px, 3vw, 35px);
+    }
+    .content-area {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .page {
+      display: none;
+      width: 100%;
+      animation: fadeIn 0.4s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Фильтры сайдбар */
+    .filters-sidebar {
+      width: 320px;
+      background: var(--card-bg);
+      border-radius: var(--br);
+      padding: 24px;
+      height: fit-content;
+      position: sticky;
+      top: calc(var(--header-height) + 20px);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+      flex-shrink: 0;
+    }
+    .filter-group {
+      margin-bottom: 22px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 18px;
+    }
+    .filter-group:last-child { border: none; margin-bottom: 0; padding-bottom: 0; }
+    .filter-group h4 {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      letter-spacing: 1.5px;
+      font-weight: 800;
+    }
+    
+    /* Inputs */
+    select, input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: var(--br-sm);
+      outline: none;
+      transition: var(--transition);
+      font-size: 0.95rem;
+      -webkit-appearance: none;
+    }
+    select:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='[w3.org](http://www.w3.org/2000/svg)' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a0a0a5' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+    }
+    
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .checkbox-grid label {
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      padding: 6px 0;
+    }
+    .checkbox-grid label:hover { color: var(--accent); }
+    .checkbox-grid input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    /* КАРТОЧКИ И СЕТКА */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: clamp(12px, 2.5vw, 24px);
+      width: 100%;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--br);
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      will-change: transform;
+    }
+    
+    @media (hover: hover) {
+      .card:hover {
+        transform: translateY(-8px) scale(1.02);
+        border-color: var(--accent);
+        box-shadow: var(--shadow-lg), var(--shadow-glow);
+        z-index: 2;
+      }
+      .card:hover .card-cover img {
+        transform: scale(1.08);
+        filter: brightness(1.1);
+      }
+    }
+    
+    .card:active {
+      transform: scale(0.98);
+    }
+    
+    .card-cover {
+      position: relative;
+      padding-top: 145%;
+      overflow: hidden;
+      background: var(--stat-bg);
+    }
+    .card-cover img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1), filter 0.3s;
+    }
+    
+    .badge {
+      position: absolute;
+      z-index: 10;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+    .b-status {
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 210, 255, 0.25);
+      border: 1px solid var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .b-rating {
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 204, 0, 0.95);
+      color: #000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .card-info {
+      padding: 14px 12px;
+      background: var(--card-bg);
+      flex-grow: 1;
+      display: flex;
+      align-items: flex-start;
+    }
+    .card-info h3 {
+      font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+      font-weight: 600;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    /* Нижняя навигация */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--glass);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      display: flex;
+      justify-content: space-around;
+      align-items: stretch;
+      padding: 8px 5px;
+      padding-bottom: calc(8px + var(--safe-bottom));
+      border-top: 1px solid rgba(128,128,128,0.1);
+      z-index: 999;
+      transition: transform 0.3s ease;
+      min-height: var(--nav-height);
+    }
+    
+    .nav-item {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.65rem;
+      text-align: center;
+      transition: var(--transition-fast);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 4px;
+      border-radius: var(--br-sm);
+      position: relative;
+      min-height: 50px;
+    }
+    .nav-item.active { color: var(--accent); }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 0 12px var(--accent);
+    }
+    .nav-item i {
+      display: block;
+      font-size: 1.4rem;
+      font-style: normal;
+      margin-bottom: 3px;
+      transition: transform 0.2s;
+    }
+    .nav-item span {
+      font-weight: 500;
+    }
+    
+    @media (hover: hover) {
+      .nav-item:hover {
+        color: var(--accent);
+        background: rgba(0,210,255,0.05);
+      }
+      .nav-item:hover i { transform: translateY(-2px); }
+    }
+    
+    .nav-item:active {
+      transform: scale(0.95);
+    }
+
+    /* Кнопки */
+    .btn {
+      background: linear-gradient(135deg, var(--accent), #00a8cc);
+      color: #fff;
+      border: none;
+      padding: 14px 20px;
+      border-radius: var(--br-sm);
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: var(--transition);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.9rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .btn:hover::after { opacity: 1; }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--accent-glow);
+    }
+    .btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+    
+    .btn-sec {
+      background: var(--stat-bg);
+      color: var(--text);
+      border: 1px solid var(--border-color);
+    }
+    .btn-sec::after { display: none; }
+    .btn-sec:hover {
+      background: var(--border-light);
+      border-color: var(--accent);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ПРОФИЛЬ */
+    .profile-card {
+      background: var(--card-bg);
+      padding: clamp(25px, 5vw, 45px);
+      border-radius: var(--br-lg);
+      border: 1px solid var(--border-color);
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: var(--shadow-lg);
+      margin: 0 auto;
+    }
+    .profile-avatar {
+      width: clamp(90px, 20vw, 130px);
+      height: clamp(90px, 20vw, 130px);
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      margin-bottom: 20px;
+      object-fit: cover;
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+    .profile-stats-box {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+    .profile-stat {
+      background: var(--stat-bg);
+      padding: clamp(12px, 3vw, 18px) clamp(15px, 4vw, 25px);
+      border-radius: var(--br-sm);
+      border: 1px solid var(--border-color);
+      flex: 1;
+      min-width: 0;
+    }
+    .profile-stat h3 {
+      font-size: clamp(1.3rem, 5vw, 1.8rem);
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    .profile-stat p {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .level-container {
+      background: var(--stat-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--br-sm);
+      padding: 18px;
+      margin-bottom: 25px;
+      text-align: left;
+    }
+    .level-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .level-title {
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 1rem;
+    }
+    .level-progress-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .level-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+      width: 0%;
+      transition: width 1s ease;
+      box-shadow: 0 0 10px var(--accent-glow);
+      border-radius: 4px;
+    }
+
+    /* Виджет "Продолжить чтение" */
+    .continue-widget {
+      display: flex;
+      align-items: center;
+      gap: clamp(12px, 3vw, 20px);
+      background: linear-gradient(135deg, rgba(0,210,255,0.1), var(--card-bg));
+      border: 1px solid var(--accent);
+      border-radius: var(--br);
+      padding: clamp(14px, 3vw, 20px);
+      margin-bottom: 30px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .continue-widget::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--accent-glow), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .continue-widget:hover::before { opacity: 1; }
+    .continue-widget:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+    }
+    .continue-cover {
+      width: clamp(60px, 15vw, 80px);
+      height: clamp(60px, 15vw, 80px);
+      border-radius: var(--br-sm);
+      object-fit: cover;
+      border: 2px solid var(--border-light);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .continue-info {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .continue-title {
+      font-size: clamp(1rem, 3vw, 1.2rem);
+      font-weight: 800;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .continue-chapter {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    /* Списки (друзья, сообщения) */
+    .list-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 14px 18px;
+      border-radius: var(--br-sm);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: var(--transition-fast);
+      cursor: pointer;
+    }
+    .list-item:hover {
+      border-color: var(--accent);
+      background: var(--stat-bg);
+    }
+    .list-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--stat-bg);
+      border: 2px solid var(--border-light);
+      flex-shrink: 0;
+    }
+    .list-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .list-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .list-sub {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .list-action {
+      background: var(--stat-bg);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: var(--transition-fast);
+      border: 1px solid var(--border-color);
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .list-item:hover .list-action {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* ЧАТ */
+    .chat-layout {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      max-width: 1200px;
+      height: 65vh;
+      min-height: 400px;
+      margin-top: 20px;
+    }
+    .chat-sidebar {
+      width: 300px;
+      background: var(--card-bg);
+      border-radius: var(--br);
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .chat-box {
+      flex: 1;
+      background: var(--stat-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--br);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .chat-header {
+      padding: 14px 18px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overscroll-behavior: contain;
+    }
+    .msg-bubble {
+      max-width: 75%;
+      padding: 10px 16px;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+    .msg-in {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      color: var(--text);
+    }
+    .msg-out {
+      background: linear-gradient(135deg, var(--accent), #00a8cc);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+    .chat-input-area {
+      padding: 12px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .chat-input-area input {
+      flex: 1;
+    }
+    .chat-input-area .btn {
+      width: auto;
+      padding: 14px 20px;
+      min-width: 50px;
+    }
+
+    /* ЧИТАЛКА */
+    #reader {
+      position: fixed;
+      inset: 0;
+      background: #0b0b0d;
+      color: #fff;
+      z-index: 5000;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: auto;
+      display: none;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .reader-bar {
+      position: sticky;
+      top: 0;
+      background: rgba(11,11,13,0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 10px 16px;
+      padding-top: calc(10px + var(--safe-top));
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1a1a1c;
+      z-index: 10;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .reader-progress-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+    }
+    .reader-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+      width: 0%;
+      transition: width 0.1s;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+    
+    #reader-images {
+      max-width: 900px;
+      margin: 0 auto;
+      min-height: 100vh;
+      transition: max-width 0.3s ease;
+    }
+    #reader-images.reader-wide { max-width: 100% !important; }
+    #reader-images.reader-narrow { max-width: 600px !important; }
+    #reader-images img {
+      width: 100%;
+      display: block;
+      background: #111;
+    }
+    
+    .reader-nav-btns {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 30px 16px;
+      padding-bottom: calc(60px + var(--safe-bottom));
+      background: linear-gradient(transparent, #0b0b0d 30%);
+      flex-wrap: wrap;
+    }
+    .reader-nav-btns .btn {
+      flex: 1;
+      max-width: 180px;
+      min-width: 120px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      width: 100%;
+      text-align: center;
+      padding: clamp(40px, 10vw, 80px) 20px;
+      color: var(--text-dim);
+      font-size: clamp(1rem, 3vw, 1.2rem);
+      background: var(--card-bg);
+      border-radius: var(--br);
+      border: 1px dashed var(--border-color);
+      grid-column: 1 / -1;
+    }
+    
+    /* Рейтинг звёзды */
+    .stars {
+      display: inline-flex;
+      flex-direction: row;
+      gap: 4px;
+      cursor: pointer;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .star {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      color: var(--border-light);
+      transition: var(--transition-fast);
+      padding: 2px;
+    }
+    @media (hover: hover) {
+      .star:hover,
+      .star:hover ~ .star { color: #888; }
+    }
+    .star.active {
+      color: var(--star);
+      text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+    }
+
+    /* Комментарии */
+    .comm-section { margin-top: 50px; }
+    .comm-input-area {
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: var(--br);
+      margin: 18px 0;
+      border: 1px solid var(--border-color);
+    }
+    .comm-input-area textarea {
+      margin-bottom: 0;
+      min-height: 80px;
+      resize: vertical;
+    }
+    .comm-card {
+      background: var(--stat-bg);
+      padding: 18px;
+      border-radius: var(--br-sm);
+      margin-bottom: 12px;
+      border: 1px solid var(--border-color);
+      transition: var(--transition-fast);
+    }
+    .comm-card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+    .comm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .comm-user {
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .comm-date {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    .comm-text {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    
+    @keyframes likeBounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+    .comm-like-btn {
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--text-dim);
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .comm-like-btn:hover {
+      color: var(--loved);
+      border-color: var(--loved);
+      background: rgba(255, 77, 77, 0.1);
+    }
+    .comm-like-btn.liked {
+      color: var(--loved);
+      border-color: var(--loved);
+      animation: likeBounce 0.35s ease-out;
+    }
+
+    /* Страница тайтла */
+    .title-header-layout {
+      display: flex;
+      gap: clamp(25px, 5vw, 45px);
+      flex-wrap: wrap;
+    }
+    .title-cover-img {
+      width: clamp(200px, 30vw, 300px);
+      border-radius: var(--br);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-lg);
+      object-fit: cover;
+      aspect-ratio: 2/3;
+    }
+    .title-info-block {
+      flex: 1;
+      min-width: 280px;
+    }
+    .rating-box {
+      background: var(--stat-bg);
+      padding: clamp(20px, 4vw, 30px);
+      border-radius: var(--br);
+      text-align: center;
+      border: 1px solid var(--border-light);
+      margin-top: 25px;
+    }
+
+    /* Тосты */
+    #toast-container {
+      position: fixed;
+      bottom: calc(var(--nav-height) + var(--safe-bottom) + 15px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: calc(100% - 30px);
+      max-width: 400px;
+    }
+    .toast {
+      background: var(--card-bg);
+      color: var(--text);
+      padding: 14px 20px;
+      border-radius: var(--br-sm);
+      box-shadow: var(--shadow-lg);
+      border-left: 4px solid var(--accent);
+      animation: toastIn 0.4s ease forwards;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-align: center;
+      pointer-events: auto;
+    }
+    .toast.error { border-left-color: var(--loved); }
+    .toast.success { border-left-color: var(--success); }
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Кнопка наверх */
+    #btn-scroll-top {
+      position: fixed;
+      bottom: calc(var(--nav-height) + var(--safe-bottom) + 15px);
+      right: 15px;
+      background: linear-gradient(135deg, var(--accent), #00a8cc);
+      color: #fff;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      font-size: 1.3rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: var(--shadow-md), 0 0 20px var(--accent-glow);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: var(--transition);
+      z-index: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #btn-scroll-top.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    #btn-scroll-top:hover {
+      transform: translateY(-3px) scale(1.1);
+    }
+    #btn-scroll-top:active {
+      transform: scale(0.95);
+    }
+
+    /* Pull to refresh indicator */
+    .pull-indicator {
+      position: fixed;
+      top: var(--header-height);
+      left: 50%;
+      transform: translateX(-50%) translateY(-100%);
+      background: var(--card-bg);
+      padding: 10px 20px;
+      border-radius: 0 0 var(--br-sm) var(--br-sm);
+      box-shadow: var(--shadow-md);
+      z-index: 998;
+      transition: transform 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .pull-indicator.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+    .pull-indicator .spinner {
+      width: 20px;
+      height: 20px;
+      border-width: 2px;
+      margin: 0;
+    }
+
+    /* =====================
+       МЕДИА-ЗАПРОСЫ
+       ===================== */
+    
+    /* Большие экраны */
+    @media (min-width: 1600px) {
+      :root {
+        --header-height: 70px;
+      }
+      main {
+        max-width: 1600px;
+      }
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+    }
+    
+    /* Планшеты landscape */
+    @media (max-width: 1200px) {
+      .filters-sidebar {
+        width: 280px;
+      }
+    }
+    
+    /* Планшеты */
+    @media (max-width: 950px) {
+      main {
+        flex-direction: column;
+        padding: 15px;
+      }
+      .filters-sidebar {
+        width: 100%;
+        position: static;
+        order: -1;
+        margin-bottom: 20px;
+      }
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+      .title-header-layout {
+        justify-content: center;
+        text-align: center;
+      }
+      .title-info-block {
+        text-align: center;
+      }
+      .reader-nav-btns .btn {
+        max-width: none;
+      }
+      .chat-layout {
+        flex-direction: column;
+        height: auto;
+      }
+      .chat-sidebar {
+        width: 100%;
+        max-height: 220px;
+      }
+      .chat-box {
+        height: 450px;
+      }
+      .checkbox-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    /* Мобильные устройства */
     @media (max-width: 600px) {
-      header { text-align: left; padding: 15px 15px; display: flex; align-items: center; }
-      header h1 { font-size: 1.25rem; max-width: calc(100% - 100px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-      #btn-theme-toggle { top: 12px; right: 15px; width: 40px; height: 40px; font-size: 1rem; }
-      #btn-notifications { top: 12px; right: 65px; width: 40px; height: 40px; font-size: 1rem; }
-      #notifications-panel { top: 60px; right: 10px; width: calc(100% - 20px); }
-      #sidebar { width: 85%; }
-      main { padding: 10px; }
-      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .card-info { padding: 12px 10px; }
-      .card-info h3 { font-size: 0.85rem; }
-      .badge { padding: 4px 8px; font-size: 0.65rem; }
-      .title-cover-img { width: 100%; max-width: 240px; }
-      .title-info-block { min-width: 100%; }
-      #det-title { font-size: 2rem !important; }
-      #toast-container { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); left: 20px; right: 20px; align-items: center; }
-      .toast { width: 100%; text-align: center; animation: slideUpToast 0.4s ease forwards; }
-      @keyframes slideUpToast { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-      .continue-widget { flex-direction: column; text-align: center; gap: 10px; }
-      .reader-bar { padding: 10px 15px; }
-      #reader-info { font-size: 0.85rem !important; }
+      :root {
+        --header-height: 58px;
+        --nav-height: 65px;
+        --br: 14px;
+        --br-sm: 10px;
+        --br-lg: 18px;
+      }
+      
+      header {
+        padding: 0 12px;
+      }
+      header h1 {
+        font-size: 1.15rem;
+      }
+      
+      .header-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+      }
+      
+      .menu-btn {
+        min-width: 40px;
+        min-height: 40px;
+        margin-right: 8px;
+        font-size: 1.4rem;
+      }
+      
+      #sidebar {
+        width: 88vw;
+      }
+      
+      main {
+        padding: 12px;
+      }
+      
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      
+      .card-info {
+        padding: 10px 8px;
+      }
+      .card-info h3 {
+        font-size: 0.8rem;
+      }
+      
+      .badge {
+        padding: 4px 7px;
+        font-size: 0.6rem;
+        top: 8px;
+      }
+      .b-status { left: 8px; }
+      .b-rating { right: 8px; }
+      
+      .title-cover-img {
+        width: 100%;
+        max-width: 220px;
+        margin: 0 auto;
+      }
+      .title-info-block {
+        min-width: 100%;
+      }
+      #det-title {
+        font-size: 1.8rem !important;
+      }
+      
+      .continue-widget {
+        flex-direction: row;
+        text-align: left;
+      }
+      
+      .reader-bar {
+        padding: 8px 12px;
+        padding-top: calc(8px + var(--safe-top));
+      }
+      #reader-info {
+        font-size: 0.8rem !important;
+        order: 2;
+        width: 100%;
+        text-align: center;
+        margin-top: 6px;
+      }
+      
+      .reader-nav-btns {
+        padding: 20px 12px calc(40px + var(--safe-bottom));
+        gap: 8px;
+      }
+      .reader-nav-btns .btn {
+        min-width: 100px;
+        padding: 12px 16px;
+        font-size: 0.8rem;
+      }
+      
+      .profile-card {
+        padding: 20px 16px;
+      }
+      
+      .nav-item {
+        min-height: 46px;
+        padding: 4px 2px;
+      }
+      .nav-item i {
+        font-size: 1.2rem;
+      }
+      .nav-item span {
+        font-size: 0.6rem;
+      }
+      
+      .btn {
+        padding: 12px 16px;
+        font-size: 0.85rem;
+      }
+      
+      .checkbox-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .chat-layout {
+        height: auto;
+      }
+      .chat-sidebar {
+        max-height: 180px;
+      }
+      .chat-box {
+        height: 400px;
+      }
+      .msg-bubble {
+        max-width: 85%;
+      }
+      
+      #notifications-panel {
+        right: 10px;
+        left: 10px;
+        width: auto;
+      }
+    }
+    
+    /* Очень маленькие экраны */
+    @media (max-width: 380px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      
+      .profile-stats-box {
+        flex-direction: column;
+      }
+      
+      .title-header-layout > div:first-child {
+        display: flex;
+        justify-content: center;
+      }
+      
+      .nav-item span {
+        display: none;
+      }
+      .nav-item i {
+        margin-bottom: 0;
+      }
+    }
+    
+    /* Ландшафтная ориентация на мобильных */
+    @media (max-height: 500px) and (orientation: landscape) {
+      :root {
+        --header-height: 50px;
+        --nav-height: 55px;
+      }
+      
+      .reader-bar {
+        padding: 6px 12px;
+      }
+      
+      #reader-images {
+        max-width: 70vw;
+      }
+      
+      .chat-layout {
+        flex-direction: row;
+        height: 80vh;
+      }
+      .chat-sidebar {
+        width: 250px;
+        max-height: none;
+      }
+    }
+    
+    /* Тёмный режим системы */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+      }
+    }
+    
+    /* Уменьшение движения */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      html {
+        scroll-behavior: auto;
+      }
+    }
+    
+    /* Высокий контраст */
+    @media (prefers-contrast: high) {
+      :root {
+        --border-color: #444;
+        --border-light: #555;
+      }
+      [data-theme="light"] {
+        --border-color: #999;
+        --border-light: #777;
+      }
+    }
+    
+    /* Поддержка hover только для устройств с мышью */
+    @media (hover: none) {
+      .card:hover {
+        transform: none;
+        box-shadow: none;
+      }
+      .card:active {
+        transform: scale(0.98);
+        border-color: var(--accent);
+      }
+      
+      .nav-item:hover {
+        background: transparent;
+      }
+    }
+    
+    /* Print styles */
+    @media print {
+      header, .bottom-nav, #sidebar, #sidebar-overlay, 
+      #toast-container, #btn-scroll-top, #notifications-panel,
+      .header-actions {
+        display: none !important;
+      }
+      body {
+        padding: 0;
+        background: white;
+        color: black;
+      }
+      .card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
+      }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <button class="menu-btn" onclick="openSidebar()" title="Меню">☰</button>
+  <header id="main-header">
+    <button class="menu-btn" onclick="openSidebar()" title="Меню" aria-label="Открыть меню">☰</button>
     <h1>Manga<span>Cloud</span></h1>
+    <div class="header-actions">
+      <button class="header-btn" id="btn-notifications" onclick="toggleNotifications()" title="Уведомления" aria-label="Уведомления">
+        🔔
+        <span class="notif-badge" id="notif-badge" style="display: none;">0</span>
+      </button>
+      <button class="header-btn" id="btn-theme-toggle" onclick="toggleTheme()" title="Сменить тему" aria-label="Сменить тему">☀️</button>
+    </div>
   </header>
 
-  <button id="btn-theme-toggle" onclick="toggleTheme()" title="Сменить тему">☀️</button>
-  
-  <button id="btn-notifications" onclick="toggleNotifications()" title="Уведомления">
-    🔔
-    <span id="notif-badge" style="display: none;">0</span>
-  </button>
-
-  <div id="notifications-panel">
+  <div id="notifications-panel" role="dialog" aria-label="Панель уведомлений">
     <div class="notif-header">
       <h4>Уведомления</h4>
-      <button onclick="markAllAsRead()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.8rem; font-weight: bold;">Прочитано</button>
+      <button onclick="markAllAsRead()">Прочитано</button>
     </div>
     <div id="notif-list"></div>
   </div>
 
-  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
-  <nav id="sidebar">
+  <div id="sidebar-overlay" onclick="closeSidebar()" aria-hidden="true"></div>
+  <nav id="sidebar" role="navigation" aria-label="Главное меню">
     <div class="sidebar-header">
-      <img id="sb-avatar" src="https://via.placeholder.com/60/111/fff?text=👤" class="sidebar-avatar" alt="Avatar">
+      <img id="sb-avatar" src="[via.placeholder.com](https://via.placeholder.com/60/111/fff?text=👤)" class="sidebar-avatar" alt="Аватар пользователя">
       <div class="sidebar-user-info">
         <h3 id="sb-name">Гость</h3>
         <p id="sb-rank">Новичок</p>
       </div>
     </div>
     <ul class="sidebar-menu">
-      <li onclick="switchPage('profile')"><i>👤</i> Мой профиль</li>
-      <li onclick="switchPage('fav')"><i>🔖</i> Закладки <span class="sidebar-badge" id="badge-fav">0</span></li>
-      <li onclick="switchPage('loved')"><i>❤️</i> Избранное <span class="sidebar-badge red" id="badge-loved">0</span></li>
-      <li onclick="toggleNotifications(); closeSidebar();"><i>🔔</i> Уведомления <span class="sidebar-badge red" id="badge-notif-sb" style="display:none;">0</span></li>
-      <li onclick="switchPage('messages')"><i>✉️</i> Сообщения <span class="sidebar-badge" id="badge-msg" style="display:none;">0</span></li>
-      <li onclick="switchPage('friends')"><i>👥</i> Друзья</li>
-      <li onclick="switchPage('hist')"><i>🕒</i> История чтения</li>
+      <li onclick="switchPage('profile')" tabindex="0" role="menuitem"><i>👤</i> Мой профиль</li>
+      <li onclick="switchPage('fav')" tabindex="0" role="menuitem"><i>🔖</i> Закладки <span class="sidebar-badge" id="badge-fav">0</span></li>
+      <li onclick="switchPage('loved')" tabindex="0" role="menuitem"><i>❤️</i> Избранное <span class="sidebar-badge red" id="badge-loved">0</span></li>
+      <li onclick="toggleNotifications(); closeSidebar();" tabindex="0" role="menuitem"><i>🔔</i> Уведомления <span class="sidebar-badge red" id="badge-notif-sb" style="display:none;">0</span></li>
+      <li onclick="switchPage('messages')" tabindex="0" role="menuitem"><i>✉️</i> Сообщения <span class="sidebar-badge" id="badge-msg" style="display:none;">0</span></li>
+      <li onclick="switchPage('friends')" tabindex="0" role="menuitem"><i>👥</i> Друзья</li>
+      <li onclick="switchPage('hist')" tabindex="0" role="menuitem"><i>🕒</i> История чтения</li>
     </ul>
   </nav>
 
-  <div id="global-loader">
+  <div id="global-loader" aria-busy="true" aria-label="Загрузка">
     <div class="spinner"></div>
-    <h2 style="font-weight: 800; text-shadow: 0 0 10px var(--accent-glow);">Загрузка MangaCloud...</h2>
+    <h2>Загрузка MangaCloud...</h2>
   </div>
 
-  <div id="toast-container"></div>
-  <button id="btn-scroll-top" onclick="window.scrollTo(0,0)">↑</button>
+  <!-- Pull to refresh indicator -->
+  <div class="pull-indicator" id="pull-indicator">
+    <div class="spinner"></div>
+    <span>Обновление...</span>
+  </div>
 
-  <nav class="bottom-nav" id="bottom-nav">
-    <a href="javascript:void(0)" class="nav-item active" onclick="switchPage('home')"><i>🏠</i><span>Главная</span></a>
-    <a href="javascript:void(0)" class="nav-item" onclick="switchPage('catalog')"><i>📂</i><span>Каталог</span></a>
-    <a href="javascript:void(0)" class="nav-item" onclick="switchPage('hist')"><i>🕒</i><span>История</span></a>
-    <a href="javascript:void(0)" class="nav-item" onclick="switchPage('fav')"><i>🔖</i><span>Закладки</span></a>
-    <a href="javascript:void(0)" class="nav-item" onclick="switchPage('profile')"><i>👤</i><span>Профиль</span></a>
+  <div id="toast-container" role="alert" aria-live="polite"></div>
+  <button id="btn-scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Наверх">↑</button>
+
+  <nav class="bottom-nav" id="bottom-nav" role="navigation" aria-label="Основная навигация">
+    <a href="javascript:void(0)" class="nav-item active" onclick="switchPage('home')" role="link" aria-current="page"><i>🏠</i><span>Главная</span></a>
+    <a href="javascript:void(0)" class="nav-item" onclick="switchPage('catalog')" role="link"><i>📂</i><span>Каталог</span></a>
+    <a href="javascript:void(0)" class="nav-item" onclick="switchPage('hist')" role="link"><i>🕒</i><span>История</span></a>
+    <a href="javascript:void(0)" class="nav-item" onclick="switchPage('fav')" role="link"><i>🔖</i><span>Закладки</span></a>
+    <a href="javascript:void(0)" class="nav-item" onclick="switchPage('profile')" role="link"><i>👤</i><span>Профиль</span></a>
   </nav>
 
   <div id="home-page" class="page" style="display: block;">
     <main>
       <div class="content-area">
         <div style="position:relative; margin-bottom: 20px; display: flex; align-items: center;">
-          <input type="text" id="search-input" placeholder="Поиск любимого тайтла или жанра..." oninput="liveSearch(this.value)" style="padding-right: 40px;">
-          <button id="clear-search-btn" onclick="clearSearch()" style="position: absolute; right: 15px; background: none; border: none; color: var(--text-dim); cursor: pointer; display: none; font-size: 1.2rem; transition: 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">✖</button>
+          <input type="text" id="search-input" placeholder="Поиск любимого тайтла или жанра..." oninput="liveSearch(this.value)" style="padding-right: 44px;" aria-label="Поиск">
+          <button id="clear-search-btn" onclick="clearSearch()" style="position: absolute; right: 12px; background: none; border: none; color: var(--text-dim); cursor: pointer; display: none; font-size: 1.2rem; transition: 0.2s; padding: 8px;" aria-label="Очистить поиск">✖</button>
         </div>
         
         <div id="continue-reading-container"></div>
 
-        <h2 id="home-section-title" style="margin-bottom:25px; font-weight: 800; display: flex; align-items: center; gap: 12px;">
-          <span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent);"></span>
+        <h2 id="home-section-title" style="margin-bottom:25px; font-weight: 800; display: flex; align-items: center; gap: 12px; font-size: clamp(1.1rem, 4vw, 1.4rem);">
+          <span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent); flex-shrink: 0;"></span>
           ⚡ Популярное сегодня
         </h2>
         <div class="grid" id="home-grid"></div>
@@ -365,7 +1861,7 @@
   </div>
 
   <div id="catalog-page" class="page">
-    <header><h1>Каталог</h1></header>
+    <header><h1 style="padding: 20px 0; font-size: clamp(1.2rem, 4vw, 1.6rem);">Каталог</h1></header>
     <main>
       <div class="content-area">
         <div class="grid" id="catalog-grid"></div>
@@ -373,7 +1869,7 @@
       <aside class="filters-sidebar">
         <div class="filter-group">
           <h4>Сортировка</h4>
-          <select id="sort-main" onchange="applyFilters()">
+          <select id="sort-main" onchange="applyFilters()" aria-label="Сортировка">
             <option value="popular">Популярные</option>
             <option value="updated">Обновленные</option>
             <option value="rating">По рейтингу</option>
@@ -382,7 +1878,7 @@
         </div>
         <div class="filter-group">
           <h4>Жанры</h4>
-          <div class="checkbox-grid" id="filter-genre">
+          <div class="checkbox-grid" id="filter-genre" role="group" aria-label="Фильтр по жанрам">
             <label><input type="checkbox" value="Экшен" onchange="applyFilters()"><span>Экшен</span></label>
             <label><input type="checkbox" value="Фэнтези" onchange="applyFilters()"><span>Фэнтези</span></label>
             <label><input type="checkbox" value="Романтика" onchange="applyFilters()"><span>Романтика</span></label>
@@ -393,14 +1889,14 @@
         </div>
         <div class="filter-group">
           <h4>Статус</h4>
-          <div class="checkbox-grid" id="filter-status">
+          <div class="checkbox-grid" id="filter-status" role="group" aria-label="Фильтр по статусу">
             <label><input type="checkbox" value="Завершен" onchange="applyFilters()"><span>Завершен</span></label>
             <label><input type="checkbox" value="Продолжается" onchange="applyFilters()"><span>В процессе</span></label>
           </div>
         </div>
         <div class="filter-group">
           <h4>Год выпуска</h4>
-          <div class="checkbox-grid" id="filter-year"></div>
+          <div class="checkbox-grid" id="filter-year" role="group" aria-label="Фильтр по году"></div>
         </div>
         <button class="btn btn-sec" onclick="resetFilters()">Очистить фильтры</button>
       </aside>
@@ -408,59 +1904,59 @@
   </div>
 
   <div id="hist-page" class="page">
-    <header><h1>История чтения</h1></header>
+    <header><h1 style="padding: 20px 0; font-size: clamp(1.2rem, 4vw, 1.6rem);">История чтения</h1></header>
     <main style="display:block;"><div id="history-list"></div></main>
   </div>
   
   <div id="fav-page" class="page">
-    <header><h1>Мои Закладки</h1></header>
+    <header><h1 style="padding: 20px 0; font-size: clamp(1.2rem, 4vw, 1.6rem);">Мои Закладки</h1></header>
     <main><div class="grid" id="fav-grid"></div></main>
   </div>
 
   <div id="loved-page" class="page">
-    <header><h1 style="color: var(--loved);">❤️ Избранное</h1></header>
+    <header><h1 style="padding: 20px 0; color: var(--loved); font-size: clamp(1.2rem, 4vw, 1.6rem);">❤️ Избранное</h1></header>
     <main><div class="grid" id="loved-grid"></div></main>
   </div>
 
   <div id="friends-page" class="page">
-    <header><h1>👥 Друзья</h1></header>
+    <header><h1 style="padding: 20px 0; font-size: clamp(1.2rem, 4vw, 1.6rem);">👥 Друзья</h1></header>
     <main style="flex-direction: column; max-width: 800px;">
-      <p style="color: var(--text-dim); margin-bottom: 20px;">Ищите реальных пользователей MangaCloud по никнейму и отправляйте им заявки!</p>
+      <p style="color: var(--text-dim); margin-bottom: 20px; font-size: 0.9rem;">Ищите реальных пользователей MangaCloud по никнейму и отправляйте им заявки!</p>
       
-      <div style="display: flex; gap: 10px; margin-bottom: 25px;">
-          <input type="text" id="friend-search-input" placeholder="Введите никнейм для поиска...">
-          <button class="btn" style="width: auto; padding: 0 30px;" onclick="searchRealUsers()">Найти</button>
+      <div style="display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap;">
+          <input type="text" id="friend-search-input" placeholder="Введите никнейм для поиска..." style="flex: 1; min-width: 200px;" aria-label="Поиск друзей">
+          <button class="btn" style="width: auto; padding: 0 25px; min-width: 100px;" onclick="searchRealUsers()">Найти</button>
       </div>
       
       <div id="friend-search-results" style="margin-bottom: 30px;"></div>
       
-      <h3 style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Мой список друзей</h3>
+      <h3 style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; font-size: 1.1rem;">Мой список друзей</h3>
       <div id="friends-list"></div>
     </main>
   </div>
 
   <div id="messages-page" class="page">
-    <header><h1>✉️ Сообщения</h1></header>
+    <header><h1 style="padding: 20px 0; font-size: clamp(1.2rem, 4vw, 1.6rem);">✉️ Сообщения</h1></header>
     <main style="flex-direction: column; max-width: 1200px;">
         <div class="chat-layout">
             <div class="chat-sidebar" id="chat-dialogs">
-                <h3 style="margin-bottom: 15px;">Мои чаты</h3>
+                <h3 style="margin-bottom: 15px; font-size: 1rem;">Мои чаты</h3>
                 <div id="dialogs-container">
-                    <p style="color: var(--text-dim); text-align: center; font-size: 0.9rem;">Добавьте друзей, чтобы начать общение</p>
+                    <p style="color: var(--text-dim); text-align: center; font-size: 0.85rem;">Добавьте друзей, чтобы начать общение</p>
                 </div>
             </div>
             
             <div class="chat-box" id="active-chat-area">
                 <div class="chat-header">
-                    <img id="chat-partner-avatar" src="https://via.placeholder.com/40/111/fff?text=💬" style="width:30px; height:30px; border-radius:50%; object-fit: cover;"> 
+                    <img id="chat-partner-avatar" src="[via.placeholder.com](https://via.placeholder.com/40/111/fff?text=💬)" style="width:32px; height:32px; border-radius:50%; object-fit: cover;" alt="Аватар собеседника"> 
                     <span id="chat-partner-name">Выберите диалог</span>
                 </div>
                 <div class="chat-messages" id="chat-messages-container">
-                    <div style="text-align:center; color:var(--text-dim); margin-top:50px;">Здесь будут ваши сообщения</div>
+                    <div style="text-align:center; color:var(--text-dim); margin-top:50px; font-size: 0.9rem;">Здесь будут ваши сообщения</div>
                 </div>
                 <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="Выберите диалог слева..." onclick="checkChatActive()">
-                    <button class="btn" style="width:auto; padding: 0 25px;" id="chat-send-btn" onclick="sendRealMessage()">➤</button>
+                    <input type="text" id="chat-input" placeholder="Выберите диалог слева..." onclick="checkChatActive()" aria-label="Написать сообщение">
+                    <button class="btn" id="chat-send-btn" onclick="sendRealMessage()" aria-label="Отправить">➤</button>
                 </div>
             </div>
         </div>
@@ -468,17 +1964,17 @@
   </div>
 
   <div id="profile-page" class="page">
-    <header><h1>Личный кабинет</h1></header>
+    <header><h1 style="padding: 20px 0; font-size: clamp(1.2rem, 4vw, 1.6rem);">Личный кабинет</h1></header>
     <main style="justify-content: center; align-items: flex-start; min-height: 60vh;">
       <div class="profile-card" id="main-profile-card">
-        <img id="profile-avatar" class="profile-avatar" src="https://via.placeholder.com/120/111/fff?text=👤" alt="avatar">
+        <img id="profile-avatar" class="profile-avatar" src="[via.placeholder.com](https://via.placeholder.com/120/111/fff?text=👤)" alt="Аватар">
         
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
-            <h2 id="profile-name" style="margin: 0;">Анонимный Читатель</h2>
-            <button onclick="changeNickname()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Изменить ник">✏️</button>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; flex-wrap: wrap;">
+            <h2 id="profile-name" style="margin: 0; font-size: clamp(1.1rem, 4vw, 1.4rem);">Анонимный Читатель</h2>
+            <button onclick="changeNickname()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; transition: 0.2s; padding: 5px;" title="Изменить ник" aria-label="Изменить никнейм">✏️</button>
         </div>
 
-        <p id="profile-email" style="color: var(--text-dim); margin-bottom: 25px;">Локальный профиль</p>
+        <p id="profile-email" style="color: var(--text-dim); margin-bottom: 25px; font-size: 0.85rem;">Локальный профиль</p>
         
         <div id="auth-section" style="margin-bottom: 30px;">
             <p style="font-size: 0.85rem; color: var(--accent); margin-bottom: 10px;">Войди через Google, чтобы получить доступ к друзьям и сообщениям!</p>
@@ -488,13 +1984,13 @@
 
         <div class="level-container">
             <div class="level-header">
-                <span style="color: var(--text-dim); font-size: 0.9rem;">Ранг:</span>
+                <span style="color: var(--text-dim); font-size: 0.85rem;">Ранг:</span>
                 <span id="user-rank" class="level-title">Новичок</span>
             </div>
             <div class="level-progress-bg">
                 <div id="user-progress" class="level-progress-fill"></div>
             </div>
-            <div style="text-align: right; margin-top: 8px; font-size: 0.8rem; color: #777;">
+            <div style="text-align: right; margin-top: 8px; font-size: 0.75rem; color: #777;">
                 <span id="chapters-to-next">5</span> глав до повышения
             </div>
         </div>
@@ -502,11 +1998,11 @@
         <div class="profile-stats-box">
            <div class="profile-stat">
               <h3 id="stat-read" style="color:var(--accent);">0</h3>
-              <p style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase;">Прочитано глав</p>
+              <p style="color:var(--text-dim);">Прочитано глав</p>
            </div>
            <div class="profile-stat">
               <h3 id="stat-fav" style="color:var(--star);">0</h3>
-              <p style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase;">В закладках</p>
+              <p style="color:var(--text-dim);">В закладках</p>
            </div>
         </div>
 
@@ -517,40 +2013,42 @@
 
   <div id="title-page" class="page">
     <main style="flex-direction: column; max-width: 1000px;">
-      <button class="btn btn-sec" style="width: fit-content; margin-bottom: 30px;" onclick="switchPage(lastP)">❮ Назад</button>
+      <button class="btn btn-sec" style="width: fit-content; margin-bottom: 25px; padding: 12px 20px;" onclick="switchPage(lastP)">❮ Назад</button>
       
       <div class="title-header-layout">
-        <img id="det-cover" class="title-cover-img" alt="Cover">
+        <div>
+          <img id="det-cover" class="title-cover-img" alt="Обложка манги">
+        </div>
         <div class="title-info-block">
-          <h2 id="det-title" style="font-size: 2.8rem; line-height: 1.1; margin-bottom: 12px; font-weight: 900;"></h2>
-          <p id="det-meta" style="color: var(--accent); font-weight: bold; margin-bottom: 25px; letter-spacing: 1px;"></p>
+          <h2 id="det-title" style="font-size: clamp(1.6rem, 5vw, 2.8rem); line-height: 1.15; margin-bottom: 12px; font-weight: 900;"></h2>
+          <p id="det-meta" style="color: var(--accent); font-weight: bold; margin-bottom: 25px; letter-spacing: 0.5px; font-size: 0.9rem;"></p>
           
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn" id="btn-fav" onclick="toggleFav('favs')" style="flex: 1; padding: 18px 20px;">🔖 В закладки</button>
-            <button class="btn btn-sec" id="btn-loved" onclick="toggleFav('loved')" style="flex: 1; padding: 18px 20px; border-color: var(--loved);">❤️ В избранное</button>
-            <button class="btn btn-sec" onclick="shareTitle()" style="width: auto; padding: 18px 25px;" title="Поделиться">↗️</button>
+            <button class="btn" id="btn-fav" onclick="toggleFav('favs')" style="flex: 1; min-width: 140px; padding: 16px;">🔖 В закладки</button>
+            <button class="btn btn-sec" id="btn-loved" onclick="toggleFav('loved')" style="flex: 1; min-width: 140px; padding: 16px; border-color: var(--loved);">❤️ В избранное</button>
+            <button class="btn btn-sec" onclick="shareTitle()" style="width: auto; padding: 16px 22px;" title="Поделиться" aria-label="Поделиться">↗️</button>
           </div>
           
           <div class="rating-box">
-             <div style="font-size: 3.5rem; font-weight: 900; color: var(--star); transition: 0.3s;"><span id="det-rating-num">0.0</span> <small style="font-size: 1.2rem; color: var(--text-dim);">/ 10</small></div>
-             <p id="det-votes" style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px; transition: 0.3s;">Глобальный рейтинг</p>
+             <div style="font-size: clamp(2.5rem, 8vw, 3.5rem); font-weight: 900; color: var(--star); transition: 0.3s;"><span id="det-rating-num">0.0</span> <small style="font-size: clamp(0.9rem, 3vw, 1.2rem); color: var(--text-dim);">/ 10</small></div>
+             <p id="det-votes" style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 18px; transition: 0.3s;">Глобальный рейтинг</p>
              <div class="stars" id="rating-stars"></div>
           </div>
         </div>
       </div>
       
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 60px; flex-wrap: wrap; gap: 15px;">
-        <h3 style="font-size: 1.8rem; font-weight: 800; margin: 0;">Список глав</h3>
-        <input type="number" id="ch-search-input" placeholder="🔍 Найти номер главы..." oninput="filterChapters(this.value)" style="max-width: 250px; background: var(--card-bg);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 50px; flex-wrap: wrap; gap: 15px;">
+        <h3 style="font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 800; margin: 0;">Список глав</h3>
+        <input type="number" id="ch-search-input" placeholder="🔍 Номер главы..." oninput="filterChapters(this.value)" style="max-width: 200px; background: var(--card-bg);" aria-label="Поиск главы">
       </div>
 
-      <div id="det-chapters" style="margin-top: 25px; background: var(--card-bg); border-radius: 22px; border: 1px solid var(--border-color); overflow: hidden;"></div>
+      <div id="det-chapters" style="margin-top: 20px; background: var(--card-bg); border-radius: var(--br); border: 1px solid var(--border-color); overflow: hidden;"></div>
       
       <div class="comm-section">
-        <h3>Обсуждение тайтла (Общий чат)</h3>
+        <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Обсуждение тайтла (Общий чат)</h3>
         <div class="comm-input-area">
-          <textarea id="comment-text" placeholder="Оставьте свой комментарий. Его увидят все пользователи MangaCloud!" rows="3"></textarea>
-          <button class="btn" onclick="saveGlobalComment()" style="width:auto; padding: 14px 35px; margin-top: 15px;">Отправить всем</button>
+          <textarea id="comment-text" placeholder="Оставьте свой комментарий. Его увидят все пользователи MangaCloud!" rows="3" aria-label="Написать комментарий"></textarea>
+          <button class="btn" onclick="saveGlobalComment()" style="width:auto; padding: 12px 30px; margin-top: 12px;">Отправить всем</button>
         </div>
         <div id="comments-list">
            <div class="spinner" style="margin: 30px auto; width: 40px; height: 40px; border-width: 3px;"></div>
@@ -559,30 +2057,31 @@
     </main>
   </div>
 
-  <div id="reader">
+  <div id="reader" role="dialog" aria-modal="true" aria-label="Читалка манги">
     <div class="reader-bar">
-      <button onclick="closeReader()" class="btn btn-sec" style="width:auto; padding: 10px 20px; font-weight: 800; background: #222; color:#fff; border-color:#333;">✕ Выход</button>
+      <button onclick="closeReader()" class="btn btn-sec" style="width:auto; padding: 10px 18px; font-weight: 700; background: #222; color:#fff; border-color:#333; font-size: 0.85rem;">✕ Выход</button>
       
-      <div id="reader-info" style="font-weight: 700; color: #fff; font-size: 1rem; text-align: center; flex: 1; margin: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+      <button onclick="toggleReaderWidth()" class="btn btn-sec" style="width:auto; padding: 8px 12px; background: #222; color:#fff; border-color:#333; font-size: 1.1rem;" title="Изменить размер читалки" aria-label="Изменить размер">🔲</button>
       
-      <button onclick="toggleReaderWidth()" class="btn btn-sec" style="width:auto; padding: 5px 10px; margin-right: 15px; background: #222; color:#fff; border-color:#333; font-size: 1.2rem;" title="Изменить размер читалки">🔲</button>
+      <div style="width: 50px; text-align: right; color: #aaa; font-size: 0.8rem;" id="reader-progress-text">0%</div>
       
-      <div style="width: 50px; text-align: right; color: #aaa; font-size: 0.85rem;" id="reader-progress-text">0%</div>
+      <div id="reader-info" style="font-weight: 700; color: #fff; font-size: 0.9rem;"></div>
+      
       <div class="reader-progress-container">
           <div class="reader-progress-fill" id="reader-progress-fill"></div>
       </div>
     </div>
     <div id="reader-images"></div>
     <div class="reader-nav-btns">
-      <button class="btn btn-sec" id="btn-prev-ch" style="max-width: 200px; background: #222; color:#fff; border-color:#333;" onclick="moveChapter(-1)">❮ Предыдущая</button>
-      <button class="btn btn-sec" style="max-width: 200px; background: rgba(255,255,255,0.1); color:#fff; border-color:#333;" onclick="closeReader()">📂 К списку</button>
-      <button class="btn" id="btn-next-ch" style="max-width: 200px;" onclick="moveChapter(1)">Следующая ❯</button>
+      <button class="btn btn-sec" id="btn-prev-ch" style="background: #222; color:#fff; border-color:#333;" onclick="moveChapter(-1)">❮ Пред.</button>
+      <button class="btn btn-sec" style="background: rgba(255,255,255,0.1); color:#fff; border-color:#333;" onclick="closeReader()">📂 К списку</button>
+      <button class="btn" id="btn-next-ch" onclick="moveChapter(1)">След. ❯</button>
     </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { initializeApp } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js)";
+    import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc, onSnapshot, query, where, orderBy } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js)";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0", 
@@ -633,7 +2132,6 @@
 
     // --- ФУНКЦИИ ДЛЯ ДРУЗЕЙ И ЧАТОВ (FIREBASE) ---
     
-    // Новая логика прослушки своего профиля для заявок в друзья
     let userUnsub = null;
     window.listenToMyData = function(uid) {
         if(userUnsub) userUnsub();
@@ -641,11 +2139,9 @@
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 
-                // Обрабатываем заявки в друзья
                 window.currentFriendRequests = data.friendRequests || [];
-                window.renderNotifications(); // Перерисовываем уведомления
+                window.renderNotifications();
                 
-                // Синхронизируем друзей
                 if (data.friendsList) {
                     myFriends = data.friendsList;
                     localStorage.setItem('m_real_friends_v1', JSON.stringify(myFriends));
@@ -662,7 +2158,6 @@
             const q = searchQuery.toLowerCase();
             querySnapshot.forEach(doc => {
                 const data = doc.data();
-                // Убрали проверку uid !== myUid, чтобы пользователь мог найти себя
                 if(data.searchName && data.searchName.includes(q)) {
                     results.push(data);
                 }
@@ -670,7 +2165,6 @@
             return results;
         } catch(e) { console.error("Ошибка поиска:", e); return []; }
     };
-    // Отправка запроса в друзья
     window.sendFriendRequest = async function(targetUid, targetName, targetPic) {
         const user = JSON.parse(localStorage.getItem('m_user_v7'));
         if(!user) return;
@@ -689,7 +2183,6 @@
             window.showToast("Ошибка при отправке заявки", "error");
         }
     };
-    // Принятие запроса
     window.acceptFriend = async function(friendUid, friendName, friendPic) {
         const user = JSON.parse(localStorage.getItem('m_user_v7'));
         if(!user) return;
@@ -701,10 +2194,8 @@
         const friendRef = doc(db, "users_data", friendUid);
         
         try {
-            // Взаимно добавляем в друзья
             await setDoc(myRef, { friendsList: arrayUnion({ uid: friendUid, name: friendName, picture: friendPic }) }, { merge: true });
             await setDoc(friendRef, { friendsList: arrayUnion({ uid: user.sub, name: myName, picture: user.picture }) }, { merge: true });
-            // Удаляем заявку из массива
             const docSnap = await getDoc(myRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
@@ -714,7 +2205,6 @@
             window.showToast(`${friendName} добавлен в друзья!`);
         } catch(e) { console.error("Ошибка добавления:", e); }
     };
-    // Отклонение запроса
     window.declineFriend = async function(friendUid) {
         const user = JSON.parse(localStorage.getItem('m_user_v7'));
         if(!user) return;
@@ -730,7 +2220,6 @@
         } catch(e) { console.error("Ошибка отклонения:", e); }
     };
 
-    // --- УДАЛЕНИЕ ДРУГА И ЧАТА ---
     window.removeFriendAndChat = async function(friendUid, friendName) {
         const user = JSON.parse(localStorage.getItem('m_user_v7'));
         if(!user) return;
@@ -742,7 +2231,6 @@
         const chatId = [user.sub, friendUid].sort().join('_');
         const chatRef = doc(db, "chats_data", chatId);
         try {
-            // 1. Удаляем у себя
             const mySnap = await getDoc(myRef);
             if(mySnap.exists()) {
                 const data = mySnap.data();
@@ -750,7 +2238,6 @@
                 await setDoc(myRef, { friendsList: updated }, { merge: true });
             }
 
-            // 2. Удаляем у друга
             const friendSnap = await getDoc(friendRef);
             if(friendSnap.exists()) {
                 const data = friendSnap.data();
@@ -758,9 +2245,7 @@
                 await setDoc(friendRef, { friendsList: updated }, { merge: true });
             }
 
-            // 3. Очищаем чат (удаляем все сообщения внутри чата)
             await setDoc(chatRef, { messages: [] }, { merge: true });
-            // 4. Сбрасываем UI активного чата, если открыт диалог с этим другом
             if(window.clearActiveChatIfMatches) {
                 window.clearActiveChatIfMatches(friendUid);
             }
@@ -787,7 +2272,6 @@
             await setDoc(chatRef, { messages: arrayUnion(messageObj) }, { merge: true });
         } catch(e) { console.error("Ошибка отправки сообщения:", e); }
     };
-    // ---------------------------------------------
 
     window.listenToRating = function(mangaId, callback) {
         return onSnapshot(doc(db, "manga_ratings", mangaId), (docSnap) => {
@@ -868,17 +2352,21 @@
         }
         
         const loader = document.getElementById('global-loader');
-        loader.style.opacity = '0';
+        loader.classList.add('hidden');
         setTimeout(() => loader.style.display = 'none', 500);
         if(window.startUI) window.startUI();
       } catch (e) {
-        document.getElementById('global-loader').innerHTML = "<h2 style='color:#ff4d4d;'>Ошибка подключения к Google Cloud!</h2>";
+        document.getElementById('global-loader').innerHTML = "<h2 style='color:#ff4d4d;'>Ошибка подключения к Google Cloud!</h2><p style='color:var(--text-dim); margin-top:10px;'>Проверьте подключение к интернету</p>";
       }
     }
     loadCloudDatabase();
   </script>
 
   <script>
+    // =====================
+    // ОСНОВНАЯ ЛОГИКА
+    // =====================
+    
     let curId = null, curCh = 1, lastP = 'home';
     let ratingUnsub = null;
     let chatUnsub = null; 
@@ -891,26 +2379,99 @@
     let customNames = getStorage('m_custom_names_v7', {});
     let globalCommentsList = [];
     
-    // ДРУЗЬЯ
     let myFriends = getStorage('m_real_friends_v1', []);
-    window.currentFriendRequests = []; // Массив для входящих заявок
+    window.currentFriendRequests = [];
 
     let isLightMode = getStorage('m_theme_light', false);
     if(isLightMode) {
         document.documentElement.setAttribute('data-theme', 'light');
         document.getElementById('btn-theme-toggle').textContent = '🌙';
+        document.querySelector('meta[name="theme-color"]').content = '#f4f5f7';
     }
 
-    // --- БОКОВОЕ МЕНЮ (САЙДБАР) ---
+    // Header scroll effect
+    let lastScrollY = 0;
+    window.addEventListener('scroll', () => {
+        const header = document.getElementById('main-header');
+        const btn = document.getElementById('btn-scroll-top');
+        const currentScrollY = window.scrollY;
+        
+        if (currentScrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+        
+        if (currentScrollY > 500) {
+            btn.classList.add('visible');
+        } else {
+            btn.classList.remove('visible');
+        }
+        
+        lastScrollY = currentScrollY;
+    }, { passive: true });
+
+    // Pull to refresh (для мобильных)
+    let pullStartY = 0;
+    let isPulling = false;
+    
+    document.addEventListener('touchstart', (e) => {
+        if (window.scrollY === 0 && document.getElementById('reader').style.display !== 'block') {
+            pullStartY = e.touches[0].clientY;
+            isPulling = true;
+        }
+    }, { passive: true });
+    
+    document.addEventListener('touchmove', (e) => {
+        if (!isPulling) return;
+        const pullDistance = e.touches[0].clientY - pullStartY;
+        if (pullDistance > 80 && window.scrollY === 0) {
+            document.getElementById('pull-indicator').classList.add('visible');
+        }
+    }, { passive: true });
+    
+    document.addEventListener('touchend', () => {
+        if (document.getElementById('pull-indicator').classList.contains('visible')) {
+            location.reload();
+        }
+        isPulling = false;
+        document.getElementById('pull-indicator').classList.remove('visible');
+    });
+
+    // --- БОКОВОЕ МЕНЮ ---
     function openSidebar() {
         document.getElementById('sidebar').classList.add('active');
         document.getElementById('sidebar-overlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
         updateSidebarBadges();
     }
     function closeSidebar() {
         document.getElementById('sidebar').classList.remove('active');
         document.getElementById('sidebar-overlay').classList.remove('active');
+        document.body.style.overflow = '';
     }
+
+    // Закрытие меню по Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('sidebar').classList.contains('active')) {
+                closeSidebar();
+            }
+            if (document.getElementById('notifications-panel').classList.contains('visible')) {
+                document.getElementById('notifications-panel').classList.remove('visible');
+            }
+        }
+    });
+
+    // Поддержка клавиатуры для меню
+    document.querySelectorAll('.sidebar-menu li').forEach(item => {
+        item.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                item.click();
+            }
+        });
+    });
 
     function updateSidebarBadges() {
         document.getElementById('badge-fav').textContent = favs.length;
@@ -931,25 +2492,40 @@
     window.toggleTheme = function() {
         isLightMode = !isLightMode;
         localStorage.setItem('m_theme_light', isLightMode);
+        const themeColor = document.querySelector('meta[name="theme-color"]');
         if(isLightMode) {
             document.documentElement.setAttribute('data-theme', 'light');
             document.getElementById('btn-theme-toggle').textContent = '🌙';
-            window.showToast("Светлая тема включена ☀️");
+            themeColor.content = '#f4f5f7';
+            window.showToast("Светлая тема ☀️");
         } else {
             document.documentElement.removeAttribute('data-theme');
             document.getElementById('btn-theme-toggle').textContent = '☀️';
-            window.showToast("Темная тема включена 🌙");
+            themeColor.content = '#0b0b0d';
+            window.showToast("Тёмная тема 🌙");
         }
     };
+    
     let notifications = getStorage('m_notifs_v1', [
         { id: Date.now(), text: "Добро пожаловать в MangaCloud! Здесь будут появляться уведомления о новых главах.", read: false, mangaId: null }
     ]);
+    
     window.toggleNotifications = function() {
         const panel = document.getElementById('notifications-panel');
         panel.classList.toggle('visible');
-        if (panel.classList.contains('visible')) { window.renderNotifications();
+        if (panel.classList.contains('visible')) { 
+            window.renderNotifications();
         }
     };
+
+    // Закрытие панели уведомлений при клике вне
+    document.addEventListener('click', (e) => {
+        const panel = document.getElementById('notifications-panel');
+        const btn = document.getElementById('btn-notifications');
+        if (panel.classList.contains('visible') && !panel.contains(e.target) && !btn.contains(e.target)) {
+            panel.classList.remove('visible');
+        }
+    });
 
     window.renderNotifications = function() {
         const list = document.getElementById('notif-list');
@@ -969,28 +2545,26 @@
         updateSidebarBadges();
 
         let html = '';
-        // Рендер заявок в друзья (В самом верху)
         if (requestsCount > 0) {
             html += window.currentFriendRequests.map(req => `
                 <div class="notif-item unread" style="border-left-color: var(--loved);">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                        <img src="${req.picture}" style="width:30px; height:30px; border-radius:50%; border: 1px solid var(--accent);">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                        <img src="${req.picture}" style="width:32px; height:32px; border-radius:50%; border: 2px solid var(--accent); object-fit: cover;">
                         <div><strong>${req.name}</strong> хочет добавить вас в друзья!</div>
                     </div>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn" style="padding: 6px 15px; font-size: 0.8rem;" onclick="acceptFriend('${req.uid}', '${req.name}', '${req.picture}')">Принять</button>
-                        <button class="btn btn-sec" style="padding: 6px 15px; font-size: 0.8rem;" onclick="declineFriend('${req.uid}')">Отклонить</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn" style="padding: 8px 16px; font-size: 0.75rem; flex: 1;" onclick="acceptFriend('${req.uid}', '${req.name}', '${req.picture}')">Принять</button>
+                        <button class="btn btn-sec" style="padding: 8px 16px; font-size: 0.75rem; flex: 1;" onclick="declineFriend('${req.uid}')">Отклонить</button>
                     </div>
                 </div>
             `).join('');
         }
 
         if (notifications.length === 0 && requestsCount === 0) {
-            list.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-dim);">Нет новых уведомлений</div>`;
+            list.innerHTML = `<div style="padding: 30px 20px; text-align: center; color: var(--text-dim);">Нет новых уведомлений</div>`;
             return;
         }
 
-        // Рендер обычных уведомлений
         html += notifications.slice().reverse().map(n => `
             <div class="notif-item ${n.read ? '' : 'unread'}" onclick="readNotification(${n.id}, ${n.mangaId ? `'${n.mangaId}'` : 'null'})">
                 ${n.text}
@@ -1016,6 +2590,7 @@
         notifications.forEach(n => n.read = true);
         localStorage.setItem('m_notifs_v1', JSON.stringify(notifications));
         window.renderNotifications();
+        window.showToast("Все уведомления прочитаны");
     };
 
     window.addNotification = function(text, mangaId = null) {
@@ -1030,12 +2605,14 @@
         toast.className = `toast ${type}`;
         toast.textContent = message;
         container.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
+        setTimeout(() => { 
+            toast.style.opacity = '0'; 
+            toast.style.transform = 'translateY(20px)';
+            setTimeout(() => toast.remove(), 400); 
+        }, 3000);
     };
-    window.addEventListener('scroll', () => {
-        const btn = document.getElementById('btn-scroll-top');
-        if (window.scrollY > 500) btn.classList.add('visible'); else btn.classList.remove('visible');
-    });
+    
+    // Reader scroll progress
     const readerElement = document.getElementById('reader');
     readerElement.addEventListener('scroll', () => {
         const scrollTop = readerElement.scrollTop;
@@ -1044,7 +2621,9 @@
         document.getElementById('reader-progress-fill').style.width = scrollPercentage + '%';
         document.getElementById('reader-progress-text').textContent = Math.round(scrollPercentage) + '%';
         if(curId && curCh) { localStorage.setItem(`scroll_${curId}_${curCh}`, scrollTop); }
-    });
+    }, { passive: true });
+    
+    // Keyboard navigation in reader
     document.addEventListener('keydown', (e) => {
         if (readerElement.style.display === 'block') {
             if (e.key === 'ArrowRight' || e.key === 'd') moveChapter(1);
@@ -1052,6 +2631,31 @@
             if (e.key === 'Escape') closeReader();
         }
     });
+    
+    // Swipe navigation in reader
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    readerElement.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    readerElement.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        const swipeThreshold = 100;
+        const diff = touchStartX - touchEndX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                // Swipe left - next chapter
+                moveChapter(1);
+            } else {
+                // Swipe right - previous chapter
+                moveChapter(-1);
+            }
+        }
+    }, { passive: true });
+    
     // АВТОРИЗАЦИЯ
     window.isListeningToMyData = false;
 
@@ -1083,7 +2687,6 @@
       if(window.saveUserToDatabase) { await window.saveUserToDatabase(payload, finalName);
       }
       
-      // Запускаем прослушку заявок в друзья
       if(window.listenToMyData) {
           window.listenToMyData(payload.sub);
           window.isListeningToMyData = true;
@@ -1096,16 +2699,15 @@
     function logoutProfile() { 
       localStorage.removeItem('m_user_v7');
       if(userUnsub) userUnsub();
-      // Отключаем прослушку
       window.isListeningToMyData = false;
       updateProfileUI();
-      window.showToast('Вы вышли из аккаунта Google', 'error');
+      window.showToast('Вы вышли из аккаунта', 'error');
     }
 
     window.changeNickname = async function() {
         const user = getStorage('m_user_v7', null);
         let currentName = document.getElementById('profile-name').textContent;
-        let newName = prompt("Введи свой новый никнейм:", currentName);
+        let newName = prompt("Введите новый никнейм:", currentName);
         if (newName && newName.trim() !== "") {
             const trimmedName = newName.trim();
             if (user) {
@@ -1116,7 +2718,7 @@
             }
             localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames));
             updateProfileUI();
-            window.showToast("Никнейм успешно изменен и сохранен!");
+            window.showToast("Никнейм изменён!");
         }
     };
 
@@ -1125,7 +2727,6 @@
       const authSec = document.getElementById('auth-section');
       const btnLogout = document.getElementById('btn-logout');
       
-      // Запускаем прослушку базы если пользователь зашел, а страница просто перезагрузилась
       if (user && !window.isListeningToMyData && window.listenToMyData) {
           window.listenToMyData(user.sub);
           window.isListeningToMyData = true;
@@ -1139,14 +2740,10 @@
       let nextLevel = 5;
       let progress = 0;
 
-      if(readCount >= 50) { rank = "Божество Манги";
-      nextLevel = 100; }
-      else if(readCount >= 25) { rank = "Мастер"; nextLevel = 50;
-      }
-      else if(readCount >= 10) { rank = "Отаку"; nextLevel = 25;
-      }
-      else if(readCount >= 5) { rank = "Любитель"; nextLevel = 10;
-      }
+      if(readCount >= 50) { rank = "Божество Манги"; nextLevel = 100; }
+      else if(readCount >= 25) { rank = "Мастер"; nextLevel = 50; }
+      else if(readCount >= 10) { rank = "Отаку"; nextLevel = 25; }
+      else if(readCount >= 5) { rank = "Любитель"; nextLevel = 10; }
 
       if(readCount >= 100) { 
           progress = 100;
@@ -1172,22 +2769,22 @@
       } else {
           authSec.style.display = 'block';
           btnLogout.style.display = 'none';
-          document.getElementById('profile-avatar').src = 'https://via.placeholder.com/120/111/fff?text=👤';
+          document.getElementById('profile-avatar').src = '[via.placeholder.com](https://via.placeholder.com/120/111/fff?text=👤)';
           document.getElementById('profile-name').textContent = customNames['anonymous'] || "Анонимный Читатель";
           document.getElementById('profile-email').textContent = "Локальный профиль (Данные в браузере)";
           
-          document.getElementById('sb-avatar').src = 'https://via.placeholder.com/60/111/fff?text=👤';
+          document.getElementById('sb-avatar').src = '[via.placeholder.com](https://via.placeholder.com/60/111/fff?text=👤)';
           document.getElementById('sb-name').textContent = customNames['anonymous'] || "Гость";
       }
     }
 
     // =====================================
-    // ЛОГИКА ДРУЗЕЙ (РЕАЛЬНЫЙ ПОИСК И ЗАЯВКИ)
+    // ЛОГИКА ДРУЗЕЙ
     // =====================================
     window.searchRealUsers = async function() {
         const user = getStorage('m_user_v7', null);
         if(!user) {
-            window.showToast("Сначала войдите через Google в Профиле!", "error");
+            window.showToast("Сначала войдите через Google!", "error");
             return;
         }
 
@@ -1197,27 +2794,26 @@
         
         if(!query) return;
         
-        resDiv.innerHTML = '<div class="spinner" style="margin: 0 auto; width:30px; height:30px; border-width:3px;"></div>';
+        resDiv.innerHTML = '<div class="spinner" style="margin: 20px auto; width:30px; height:30px; border-width:3px;"></div>';
         if(window.searchUsersInCloud) {
             const results = await window.searchUsersInCloud(query);
             if(results.length > 0) {
                 resDiv.innerHTML = results.map(u => {
-                    // Проверяем: это сам пользователь, уже друг или кто-то новый
                     const isMe = user.sub === u.uid;
                     const isAlreadyFriend = myFriends.some(f => f.uid === u.uid);
                     
                     let actionButton = '';
                     if (isMe) {
-                        actionButton = `<span style="color: var(--text-dim); font-size: 0.85rem; font-weight: bold;">Это вы</span>`;
+                        actionButton = `<span style="color: var(--text-dim); font-size: 0.8rem; font-weight: 600;">Это вы</span>`;
                     } else if (isAlreadyFriend) {
-                        actionButton = `<span style="color: var(--accent); font-size: 0.85rem; font-weight: bold;">Уже в друзьях</span>`;
+                        actionButton = `<span style="color: var(--accent); font-size: 0.8rem; font-weight: 600;">Уже в друзьях</span>`;
                     } else {
                         actionButton = `<button class="list-action" onclick="sendFriendRequest('${u.uid}', '${u.customNickname || u.name}', '${u.picture}')">+ Добавить</button>`;
                     }
 
                     return `
                         <div class="list-item" style="border-color: var(--accent);">
-                            <img src="${u.picture || 'https://via.placeholder.com/50'}" class="list-avatar">
+                            <img src="${u.picture || '[via.placeholder.com](https://via.placeholder.com/50)'}" class="list-avatar">
                             <div class="list-info">
                                 <div class="list-title">${u.customNickname || u.name}</div>
                                 <div class="list-sub">Пользователь найден!</div>
@@ -1227,10 +2823,11 @@
                     `;
                 }).join('');
             } else {
-                resDiv.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Пользователь не найден. Проверьте правильность никнейма.</p>';
+                resDiv.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: 20px;">Пользователь не найден.</p>';
             }
         }
     };
+    
     function renderFriendsList() {
         const container = document.getElementById('friends-list');
         if(!container) return;
@@ -1240,16 +2837,16 @@
             <div class="list-item">
                 <img src="${f.picture}" class="list-avatar">
                 <div class="list-info"><div class="list-title">${f.name}</div></div>
-                <div style="display: flex; gap: 8px;">
-                 <button class="list-action" onclick="openRealChat('${f.uid}', '${f.name}', '${f.picture}')">Написать</button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="list-action" onclick="openRealChat('${f.uid}', '${f.name}', '${f.picture}')">Написать</button>
                     <button class="list-action" style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-color: #ff4d4d;" onclick="removeFriendAndChat('${f.uid}', '${f.name}')">Удалить</button>
                 </div>
             </div>
-        `).join('') : "<p style='color:var(--text-dim); text-align:center;'>У вас пока нет добавленных друзей.</p>";
+        `).join('') : "<p style='color:var(--text-dim); text-align:center; padding: 30px;'>У вас пока нет друзей.</p>";
     }
 
     // =====================================
-    // ЛОГИКА СООБЩЕНИЙ (РЕАЛЬНЫЕ ЧАТЫ)
+    // ЛОГИКА СООБЩЕНИЙ
     // =====================================
     function renderDialogsList() {
         const container = document.getElementById('dialogs-container');
@@ -1259,12 +2856,12 @@
             <div class="list-item" style="padding: 10px; margin-bottom: 8px;" onclick="openRealChat('${f.uid}', '${f.name}', '${f.picture}')">
                 <img src="${f.picture}" class="list-avatar" style="width:40px; height:40px;">
                 <div class="list-info">
-                    <div class="list-title" style="font-size:0.95rem;">${f.name}</div>
-                    <div class="list-sub" style="font-size:0.75rem;">Открыть чат...</div>
+                    <div class="list-title" style="font-size:0.9rem;">${f.name}</div>
+                    <div class="list-sub" style="font-size:0.7rem;">Открыть чат...</div>
                 </div>
-                <button class="list-action" style="padding: 6px 10px; background: rgba(255,77,77,0.1); border-color: #ff4d4d; color: #ff4d4d;" onclick="event.stopPropagation(); removeFriendAndChat('${f.uid}', '${f.name}')" title="Удалить друга и чат">🗑️</button>
+                <button class="list-action" style="padding: 6px 10px; background: rgba(255,77,77,0.1); border-color: #ff4d4d; color: #ff4d4d;" onclick="event.stopPropagation(); removeFriendAndChat('${f.uid}', '${f.name}')" title="Удалить">🗑️</button>
             </div>
-        `).join('') : "<p style='color: var(--text-dim); text-align: center; font-size: 0.9rem;'>Добавьте друзей, чтобы начать общение</p>";
+        `).join('') : "<p style='color: var(--text-dim); text-align: center; font-size: 0.85rem; padding: 20px;'>Добавьте друзей для общения</p>";
     }
 
     window.openRealChat = function(friendUid, friendName, friendPic) {
@@ -1288,14 +2885,14 @@
         if(window.listenToChatMessages) {
             chatUnsub = window.listenToChatMessages(chatId, (messages) => {
                 if(messages.length === 0) {
-                    msgContainer.innerHTML = `<div style="text-align:center; color:var(--text-dim); margin-top:50px;">Напишите первое сообщение пользователю ${friendName}!</div>`;
+                    msgContainer.innerHTML = `<div style="text-align:center; color:var(--text-dim); margin-top:50px; font-size: 0.9rem;">Напишите первое сообщение!</div>`;
                 } else {
                    msgContainer.innerHTML = messages.map(msg => {
                         const isMine = msg.senderUid === user.sub;
                         return `
                             <div class="msg-bubble ${isMine ? 'msg-out' : 'msg-in'}">
                                 ${msg.text}
-                                <div style="font-size: 0.65rem; opacity: 0.7; text-align: right; margin-top: 4px;">${msg.time}</div>
+                                <div style="font-size: 0.6rem; opacity: 0.7; text-align: right; margin-top: 4px;">${msg.time}</div>
                             </div>
                         `;
                     }).join('');
@@ -1304,30 +2901,32 @@
             });
         }
     };
+    
     window.clearActiveChatIfMatches = function(uid) {
         if(activeChatFriend && activeChatFriend.uid === uid) {
             activeChatFriend = null;
             document.getElementById('chat-partner-name').textContent = "Выберите диалог";
-            document.getElementById('chat-partner-avatar').src = "https://via.placeholder.com/40/111/fff?text=💬";
+            document.getElementById('chat-partner-avatar').src = "[via.placeholder.com](https://via.placeholder.com/40/111/fff?text=💬)";
             document.getElementById('chat-input').placeholder = "Выберите диалог слева...";
             document.getElementById('chat-messages-container').innerHTML = '<div style="text-align:center; color:var(--text-dim); margin-top:50px;">Здесь будут ваши сообщения</div>';
             if(chatUnsub) { chatUnsub(); chatUnsub = null; }
         }
     };
+    
     window.checkChatActive = function() {
         if(!activeChatFriend) {
-            window.showToast("Сначала выберите друга из списка слева!", "error");
+            window.showToast("Выберите друга из списка!", "error");
         }
     };
 
     window.sendRealMessage = async function() {
         const user = getStorage('m_user_v7', null);
         if(!user) {
-            window.showToast("Авторизуйтесь для общения!", "error");
+            window.showToast("Авторизуйтесь!", "error");
             return;
         }
         if(!activeChatFriend) {
-            window.showToast("Сначала выберите диалог из списка!", "error");
+            window.showToast("Выберите диалог!", "error");
             return;
         }
         
@@ -1354,8 +2953,11 @@
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') sendRealMessage();
     });
-    // =====================================
 
+    // =====================================
+    // ОСНОВНЫЕ ФУНКЦИИ UI
+    // =====================================
+    
     function renderContinueReading() {
         const container = document.getElementById('continue-reading-container');
         const lastRead = history.find(h => window.mangaDb[h.id]);
@@ -1363,9 +2965,9 @@
             const m = window.mangaDb[lastRead.id];
             container.innerHTML = `
                 <div class="continue-widget" onclick="openChapterFromWidget('${m.id}', ${lastRead.ch})">
-                    <img src="${m.cover}" class="continue-cover" alt="cover">
+                    <img src="${m.cover}" class="continue-cover" alt="cover" loading="lazy">
                     <div class="continue-info">
-                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить чтение</div>
+                        <div style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Продолжить чтение</div>
                         <div class="continue-title">${m.title}</div>
                         <div class="continue-chapter">Глава ${lastRead.ch} ❯</div>
                     </div>
@@ -1399,7 +3001,7 @@
           localStorage.setItem('m_rates_v7', JSON.stringify(rates));
           updateStarsUI();
           if(window.sendRatingToCloud) { window.sendRatingToCloud(curId, rates[curId]); }
-          window.showToast(`Вы оценили тайтл на ${rates[curId]}/10.`);
+          window.showToast(`Оценка: ${rates[curId]}/10`);
         };
         starsContainer.appendChild(star);
       }
@@ -1411,9 +3013,15 @@
       
       if(target) target.style.display = 'block'; 
       
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => {
+          i.classList.remove('active');
+          i.removeAttribute('aria-current');
+      });
       const nav = document.querySelector(`.nav-item[onclick*="'${p}'"]`);
-      if(nav) nav.classList.add('active');
+      if(nav) {
+          nav.classList.add('active');
+          nav.setAttribute('aria-current', 'page');
+      }
       
       closeSidebar();
       if(p !== 'title') lastP = p;
@@ -1438,14 +3046,24 @@
       const container = document.getElementById(target);
       if(!container) return;
       container.innerHTML = list.length ? list.map(m => `
-        <div class="card" onclick="openTitle('${m.id}')">
-          ${loved.includes(m.id) ? '<span class="badge" style="top:12px; right:12px; background:var(--loved); color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.5);">❤️</span>' : '<span class="badge b-rating">★ ' + (rates[m.id] || "0.0") + '</span>'}
+        <div class="card" onclick="openTitle('${m.id}')" tabindex="0" role="button" aria-label="Открыть ${m.title}">
+          ${loved.includes(m.id) ? '<span class="badge" style="top:10px; right:10px; background:var(--loved); color:#fff; box-shadow:0 2px 10px rgba(0,0,0,0.4);">❤️</span>' : '<span class="badge b-rating">★ ' + (rates[m.id] || "0.0") + '</span>'}
           <span class="badge b-status">${m.status}</span>
-          <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="manga"></div>
+          <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="${m.title}"></div>
           <div class="card-info"><h3>${m.title}</h3></div>
         </div>
       `).join('') 
-      : `<div class="empty-state">По вашему запросу ничего не найдено...</div>`;
+      : `<div class="empty-state">Ничего не найдено...</div>`;
+      
+      // Keyboard support for cards
+      container.querySelectorAll('.card').forEach(card => {
+          card.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  card.click();
+              }
+          });
+      });
     }
 
     window.filterChapters = function(val) {
@@ -1461,9 +3079,9 @@
     window.toggleReaderWidth = function() {
         readerWidthMode = (readerWidthMode + 1) % 3;
         const container = document.getElementById('reader-images');
-        if(readerWidthMode === 0) { container.className = ''; window.showToast('Размер: Стандартный'); }
-        if(readerWidthMode === 1) { container.className = 'reader-wide'; window.showToast('Размер: На весь экран'); }
-        if(readerWidthMode === 2) { container.className = 'reader-narrow'; window.showToast('Размер: Узкий'); }
+        if(readerWidthMode === 0) { container.className = ''; window.showToast('Стандартный размер'); }
+        if(readerWidthMode === 1) { container.className = 'reader-wide'; window.showToast('На весь экран'); }
+        if(readerWidthMode === 2) { container.className = 'reader-narrow'; window.showToast('Узкий режим'); }
     };
 
     async function openTitle(id) {
@@ -1476,13 +3094,13 @@
       document.getElementById('det-meta').textContent = `${m.year} • ${m.status} • ${(m.genres || []).join(', ')}`;
       
       document.getElementById('det-rating-num').textContent = "0.0";
-      document.getElementById('det-votes').textContent = "Загрузка оценок...";
+      document.getElementById('det-votes').textContent = "Загрузка...";
       document.getElementById('ch-search-input').value = "";
       if (ratingUnsub) { ratingUnsub(); } 
       if (window.listenToRating) {
           ratingUnsub = window.listenToRating(id, (ratingData) => {
               document.getElementById('det-rating-num').textContent = ratingData.average;
-              document.getElementById('det-votes').textContent = `Всего оценок: ${ratingData.total}`;
+              document.getElementById('det-votes').textContent = `Оценок: ${ratingData.total}`;
           });
       }
       
@@ -1491,13 +3109,25 @@
           chList.innerHTML = Object.keys(m.chapters).sort((a,b)=>b-a).map(n => {
             const isRead = history.some(h => h.id === id && h.ch == n) ? "opacity: 0.6; border-color: var(--accent);" : "";
             return `
-              <div class="chapter-item" data-ch="${n}" onclick="openChapter(${n})" style="padding:22px; border-bottom:1px solid var(--border-color); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: 0.2s; ${isRead}" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='none'">
-                <span style="font-weight:700; font-size: 1.1rem;">Глава ${n}</span>
-                <span style="color:var(--accent); font-size:0.85rem; font-weight: 800; letter-spacing: 1px;">${isRead ? "ПРОДОЛЖИТЬ" : "ЧИТАТЬ"}</span>
+              <div class="chapter-item" data-ch="${n}" onclick="openChapter(${n})" style="padding:18px 20px; border-bottom:1px solid var(--border-color); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: 0.2s; ${isRead}" tabindex="0" role="button">
+                <span style="font-weight:700; font-size: 1rem;">Глава ${n}</span>
+                <span style="color:var(--accent); font-size:0.8rem; font-weight: 700; letter-spacing: 0.5px;">${isRead ? "ПРОДОЛЖИТЬ" : "ЧИТАТЬ"}</span>
               </div>
             `;
           }).join('');
-      } else { chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы еще не загружены</p>"; }
+          
+          // Keyboard support
+          chList.querySelectorAll('.chapter-item').forEach(item => {
+              item.addEventListener('keydown', (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      item.click();
+                  }
+              });
+              item.addEventListener('mouseenter', function() { this.style.background = 'rgba(128,128,128,0.1)'; });
+              item.addEventListener('mouseleave', function() { this.style.background = 'none'; });
+          });
+      } else { chList.innerHTML = "<p style='padding:20px; text-align:center;'>Главы не загружены</p>"; }
       
       updateStarsUI(); updateFavUI(); switchPage('title');
       document.getElementById('comments-list').innerHTML = `<div class="spinner" style="margin: 30px auto; width: 40px; height: 40px; border-width: 3px;"></div>`;
@@ -1510,18 +3140,18 @@
       history = history.filter(h => h.id !== curId);
       history.unshift({ id: curId, ch: curCh, time: Date.now() });
       localStorage.setItem('m_hist_v7', JSON.stringify(history.slice(0, 50)));
-      document.getElementById('reader-info').textContent = `${window.mangaDb[curId].title} — Глава ${curCh}`;
+      document.getElementById('reader-info').textContent = `${window.mangaDb[curId].title} — Гл. ${curCh}`;
       
       const container = document.getElementById('reader-images');
       container.innerHTML = '<div class="spinner" style="margin: 50px auto;"></div>';
       const chapterData = window.mangaDb[curId].chapters[curCh];
       
       if (Array.isArray(chapterData)) {
-          container.innerHTML = chapterData.map(s => `
-              <img src="${s}" loading="lazy" style="width:100%; display:block; background: #111;" onerror="this.src='https://placehold.co/800x1200/111/fff?text=Ошибка+загрузки'">
+          container.innerHTML = chapterData.map((s, i) => `
+              <img src="${s}" loading="${i < 3 ? 'eager' : 'lazy'}" style="width:100%; display:block; background: #111;" onerror="this.src='[placehold.co](https://placehold.co/800x1200/111/fff?text=Ошибка)'" alt="Страница ${i+1}">
           `).join('');
       } else {
-          container.innerHTML = '<div class="empty-state">Ошибка: Глава пуста или имеет неверный формат в базе данных</div>';
+          container.innerHTML = '<div class="empty-state">Ошибка загрузки главы</div>';
       }
       
       document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
@@ -1542,7 +3172,7 @@
       
       if(!validHistory.length) { 
           container.className = '';
-          container.innerHTML = "<div class='empty-state'>Вы еще ничего не читали</div>"; 
+          container.innerHTML = "<div class='empty-state'>Вы ещё ничего не читали</div>"; 
           return;
       }
       
@@ -1550,9 +3180,9 @@
       container.innerHTML = validHistory.map(h => {
         const m = window.mangaDb[h.id];
         return `
-        <div class="card" onclick="openTitle('${m.id}')">
-          <span class="badge b-status" style="background: var(--accent); color: #000;">Глава ${h.ch}</span>
-          <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="manga"></div>
+        <div class="card" onclick="openTitle('${m.id}')" tabindex="0" role="button">
+          <span class="badge b-status" style="background: var(--accent); color: #000;">Гл. ${h.ch}</span>
+          <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="${m.title}"></div>
           <div class="card-info"><h3>${m.title}</h3></div>
         </div>`;
       }).join('');
@@ -1582,7 +3212,7 @@
       else { loved = arr; localStorage.setItem('m_loved_v8', JSON.stringify(loved)); }
       
       updateFavUI(); updateSidebarBadges();
-      window.showToast(isExist ? "Удалено" : "Добавлено успешно!");
+      window.showToast(isExist ? "Удалено" : "Добавлено!");
     }
 
     function updateFavUI() { 
@@ -1605,8 +3235,15 @@
 
     function shareTitle() {
         if (navigator.share) {
-            navigator.share({ title: window.mangaDb[curId].title, text: `Смотри какую классную мангу "${window.mangaDb[curId].title}" я читаю на MangaCloud!`, url: window.location.href }).catch(console.error);
-        } else { navigator.clipboard.writeText(window.location.href); window.showToast("Ссылка на тайтл скопирована!"); }
+            navigator.share({ 
+                title: window.mangaDb[curId].title, 
+                text: `Читаю "${window.mangaDb[curId].title}" на MangaCloud!`, 
+                url: window.location.href 
+            }).catch(console.error);
+        } else { 
+            navigator.clipboard.writeText(window.location.href); 
+            window.showToast("Ссылка скопирована!"); 
+        }
     }
 
     async function saveGlobalComment() {
@@ -1618,7 +3255,7 @@
       if (userData) { userName = customNames[userData.sub] || userData.name; } 
       else if (customNames['anonymous']) { userName = customNames['anonymous']; }
       
-      const avatarHtml = userData ? `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px;">` : '👤';
+      const avatarHtml = userData ? `<img src="${userData.picture}" style="width:24px; height:24px; border-radius:50%; margin-right:8px; object-fit: cover;">` : '👤';
       const now = new Date();
       const prettyDate = now.toLocaleDateString() + ', ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       const newComment = { user: userName, avatar: avatarHtml, text: txt.value, date: prettyDate, timeId: Date.now(), likes: 0 };
@@ -1627,7 +3264,7 @@
       txt.value = "";
       if(window.sendCommentToCloud) {
           const success = await window.sendCommentToCloud(curId, newComment);
-          if(success) { window.showToast("Комментарий опубликован!"); } else { window.showToast("Ошибка отправки в облако", "error"); }
+          if(success) { window.showToast("Комментарий опубликован!"); } else { window.showToast("Ошибка отправки", "error"); }
       }
     }
 
@@ -1648,6 +3285,7 @@
             if(window.updateAllCommentsInCloud) { window.updateAllCommentsInCloud(curId, globalCommentsList); }
         }
     };
+    
     function renderComments() {
       const container = document.getElementById('comments-list');
       if(!container) return;
@@ -1666,20 +3304,28 @@
             </button>
           </div>
         </div>
-      `).reverse().join('') : `<p style="text-align:center; color: var(--text-dim); padding:30px;">Будьте первым, кто оставит комментарий!</p>`;
+      `).reverse().join('') : `<p style="text-align:center; color: var(--text-dim); padding:30px;">Будьте первым!</p>`;
     }
 
-    function resetFilters() { document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); }
+    function resetFilters() { 
+        document.querySelectorAll('.filters-sidebar input[type="checkbox"]').forEach(c => c.checked = false); 
+        applyFilters(); 
+        window.showToast("Фильтры сброшены");
+    }
     
     function closeReader() { 
       document.getElementById('reader').style.display = 'none';
-      document.body.style.overflow = 'auto'; 
-      document.getElementById('bottom-nav').style.transform = 'translateY(0)'; openTitle(curId); 
+      document.body.style.overflow = ''; 
+      document.getElementById('bottom-nav').style.transform = 'translateY(0)'; 
+      openTitle(curId); 
     }
     
     function moveChapter(d) { 
-        if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) { openChapter(curCh+d); } 
-        else { window.showToast("Глав больше нет", "error"); }
+        if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) { 
+            openChapter(curCh+d); 
+        } else { 
+            window.showToast("Глав больше нет", "error"); 
+        }
     }
     
     let searchTimeout;
@@ -1694,7 +3340,7 @@
         if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
 
         if (!query) {
-            if(titleHeader) titleHeader.innerHTML = '<span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent);"></span> ⚡ Популярное сегодня';
+            if(titleHeader) titleHeader.innerHTML = '<span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent); flex-shrink: 0;"></span> ⚡ Популярное сегодня';
             if(continueContainer) continueContainer.style.display = 'block';
             renderContinueReading();
             renderGrid(Object.values(window.mangaDb), 'home-grid');
@@ -1702,7 +3348,7 @@
         }
 
         if(continueContainer) continueContainer.style.display = 'none';
-        if(titleHeader) titleHeader.innerHTML = `<span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent);"></span> 🔍 Результаты поиска`;
+        if(titleHeader) titleHeader.innerHTML = `<span style="background: var(--accent); width: 4px; height: 24px; border-radius: 4px; box-shadow: 0 0 10px var(--accent); flex-shrink: 0;"></span> 🔍 Результаты поиска`;
 
         const res = Object.values(window.mangaDb).filter(m => {
             const matchTitle = m.title && m.title.toLowerCase().includes(query);
@@ -1721,8 +3367,27 @@
 
     function updateStarsUI() {
       const v = rates[curId] || 0;
-      document.querySelectorAll('.star').forEach(s => { if(parseInt(s.dataset.v) <= v) { s.classList.add('active'); } else { s.classList.remove('active'); } });
+      document.querySelectorAll('.star').forEach(s => { 
+          if(parseInt(s.dataset.v) <= v) { s.classList.add('active'); } 
+          else { s.classList.remove('active'); } 
+      });
     }
+
+    // Expose functions globally
+    window.openSidebar = openSidebar;
+    window.closeSidebar = closeSidebar;
+    window.switchPage = switchPage;
+    window.openTitle = openTitle;
+    window.openChapter = openChapter;
+    window.closeReader = closeReader;
+    window.moveChapter = moveChapter;
+    window.toggleFav = toggleFav;
+    window.shareTitle = shareTitle;
+    window.saveGlobalComment = saveGlobalComment;
+    window.resetFilters = resetFilters;
+    window.applyFilters = applyFilters;
+    window.logoutProfile = logoutProfile;
+    window.handleCredentialResponse = handleCredentialResponse;
 
     window.startUI = () => { 
         initStars();
