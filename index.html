@@ -64,7 +64,7 @@
       --neon: #7c3aed;
       --text: #1a1a2e;
       --text-dim: #7070a0;
-      --text-mid: #5050808;
+      --text-mid: #505080;
       --input-bg: #ffffff;
       --border: rgba(124,58,237,0.15);
       --border-bright: rgba(124,58,237,0.4);
@@ -83,6 +83,7 @@
       line-height:1.6;
       transition:background .4s,color .4s;
       min-height:100vh;
+      overscroll-behavior-y:contain;
     }
     ::-webkit-scrollbar{width:6px;height:6px;}
     ::-webkit-scrollbar-track{background:transparent;}
@@ -114,6 +115,11 @@
     .loader-status{font-size:.85rem;color:var(--text-dim);text-align:center;min-height:1.2em;}
     .loader-tip{font-size:.75rem;color:rgba(124,58,237,.6);text-align:center;}
 
+    /* ====== PARTICLES BG ====== */
+    #particles-canvas{
+      position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.4;
+    }
+
     /* ====== HEADER ====== */
     header{
       background:var(--glass);
@@ -124,7 +130,9 @@
       border-bottom:1px solid var(--border);
       display:flex;align-items:center;gap:12px;
       box-shadow:0 4px 30px rgba(0,0,0,.2);
+      transition:transform .3s ease, box-shadow .3s ease;
     }
+    header.header-hidden{transform:translateY(-100%);}
     .menu-btn{
       background:none;border:none;color:var(--text);
       font-size:1.5rem;cursor:pointer;padding:8px;
@@ -135,8 +143,9 @@
     .menu-btn:hover{color:var(--accent2);background:rgba(124,58,237,.1);}
     .logo{
       font-family:var(--font-display);font-size:clamp(1rem,4vw,1.35rem);
-      font-weight:900;letter-spacing:-.5px;flex:1;
+      font-weight:900;letter-spacing:-.5px;flex-shrink:0;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      cursor:pointer;
     }
     .logo span{
       background:linear-gradient(135deg,var(--accent2),var(--accent3));
@@ -249,7 +258,7 @@
     .sidebar-divider{height:1px;background:var(--border);margin:8px 0;}
 
     /* ====== LAYOUT ====== */
-    main{max-width:1400px;margin:0 auto;padding:clamp(12px,3vw,28px);display:flex;gap:clamp(16px,2.5vw,28px);}
+    main{max-width:1400px;margin:0 auto;padding:clamp(12px,3vw,28px);display:flex;gap:clamp(16px,2.5vw,28px);position:relative;z-index:1;}
     .content-area{flex:1;min-width:0;}
     .page{display:none;width:100%;animation:fadeUp .35s ease forwards;}
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
@@ -315,7 +324,6 @@
     .card-info h3{font-size:.85rem;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35;margin:0;}
     .card-sub{font-size:.7rem;color:var(--text-dim);margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;}
     .card-genre-tag{background:rgba(124,58,237,.15);color:var(--accent2);padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:600;}
-    /* Shimmer skeleton */
     .skeleton{
       background:linear-gradient(90deg,var(--card-bg) 25%,var(--card-bg2) 50%,var(--card-bg) 75%);
       background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--br);
@@ -366,6 +374,61 @@
     .btn-sm{padding:8px 14px;font-size:.78rem;}
     .btn-icon{width:auto;padding:11px 14px;}
 
+    /* ====== HERO BANNER ====== */
+    .hero-banner{
+      position:relative;border-radius:var(--br-lg);overflow:hidden;
+      margin-bottom:28px;min-height:180px;
+      background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(232,121,249,.08));
+      border:1px solid var(--border-bright);
+      cursor:pointer;transition:var(--tr);
+    }
+    .hero-banner:hover{box-shadow:var(--sh-lg),var(--sh-glow);transform:translateY(-2px);}
+    .hero-banner-bg{
+      position:absolute;inset:0;background-size:cover;background-position:center;
+      filter:blur(20px) brightness(.4);transform:scale(1.1);
+    }
+    .hero-banner-content{
+      position:relative;z-index:2;padding:clamp(20px,4vw,40px);
+      display:flex;align-items:center;gap:clamp(16px,3vw,30px);
+    }
+    .hero-banner-cover{
+      width:clamp(90px,15vw,130px);aspect-ratio:2/3;
+      border-radius:var(--br);object-fit:cover;
+      border:2px solid var(--border-bright);
+      box-shadow:var(--sh-lg);flex-shrink:0;
+    }
+    .hero-banner-info{flex:1;min-width:0;}
+    .hero-banner-label{
+      font-size:.6rem;text-transform:uppercase;letter-spacing:2px;
+      color:var(--accent3);font-weight:800;font-family:var(--font-display);
+      margin-bottom:6px;
+    }
+    .hero-banner-title{
+      font-family:var(--font-display);font-size:clamp(1.1rem,3.5vw,1.8rem);
+      font-weight:900;line-height:1.2;margin-bottom:8px;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    }
+    .hero-banner-desc{
+      font-size:.82rem;color:var(--text-mid);line-height:1.4;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+      margin-bottom:14px;
+    }
+    .hero-banner .btn{width:auto;padding:10px 24px;font-size:.82rem;}
+
+    /* ====== QUICK STATS ====== */
+    .quick-stats{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;
+    }
+    .quick-stat{
+      background:var(--card-bg);border:1px solid var(--border);
+      border-radius:var(--br);padding:14px 10px;text-align:center;
+      transition:var(--tr);cursor:default;
+    }
+    .quick-stat:hover{border-color:var(--accent);box-shadow:var(--sh-sm);}
+    .quick-stat-icon{font-size:1.4rem;margin-bottom:4px;}
+    .quick-stat-val{font-family:var(--font-display);font-size:1.1rem;font-weight:900;color:var(--accent2);}
+    .quick-stat-label{font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+
     /* ====== CONTINUE WIDGET ====== */
     .continue-widget{
       display:flex;align-items:center;gap:16px;
@@ -403,6 +466,7 @@
       background:linear-gradient(180deg,var(--accent),var(--accent3));
       border-radius:4px;flex-shrink:0;
     }
+    .section-actions{display:flex;align-items:center;gap:10px;}
     .see-all{font-size:.8rem;color:var(--accent2);font-weight:700;cursor:pointer;transition:var(--tr-fast);}
     .see-all:hover{color:var(--accent3);}
 
@@ -415,6 +479,17 @@
       white-space:nowrap;
     }
     .genre-chip:hover,.genre-chip.active{background:rgba(124,58,237,.2);border-color:var(--accent);color:var(--accent2);}
+
+    /* ====== RANDOM BTN ====== */
+    .random-btn{
+      background:linear-gradient(135deg,var(--accent3),var(--accent));
+      border:none;color:#fff;padding:7px 16px;border-radius:30px;
+      font-size:.8rem;font-weight:700;cursor:pointer;
+      font-family:var(--font-body);transition:var(--tr);
+      white-space:nowrap;display:inline-flex;align-items:center;gap:5px;
+    }
+    .random-btn:hover{transform:scale(1.05);box-shadow:0 4px 20px var(--accent-glow);}
+    .random-btn:active{transform:scale(.95);}
 
     /* ====== PROFILE ====== */
     .profile-card{
@@ -449,6 +524,21 @@
     .level-bar-bg{width:100%;height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
     .level-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));width:0%;transition:width 1s ease;box-shadow:0 0 10px var(--accent-glow);border-radius:4px;}
 
+    /* ====== ACHIEVEMENTS ====== */
+    .achievements-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+      gap:10px;margin-top:18px;margin-bottom:22px;
+    }
+    .achievement{
+      background:var(--card-bg2);border:1px solid var(--border);
+      border-radius:var(--br-sm);padding:12px 8px;text-align:center;
+      transition:var(--tr);position:relative;overflow:hidden;
+    }
+    .achievement.unlocked{border-color:var(--accent);box-shadow:0 0 15px var(--accent-glow);}
+    .achievement.locked{opacity:.4;filter:grayscale(1);}
+    .achievement-icon{font-size:1.6rem;margin-bottom:4px;}
+    .achievement-name{font-size:.58rem;font-weight:700;color:var(--text-mid);line-height:1.2;}
+
     /* ====== LIST ITEM ====== */
     .list-item{
       background:var(--card-bg);border:1px solid var(--border);
@@ -473,7 +563,8 @@
     .chat-box{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--br-lg);display:flex;flex-direction:column;overflow:hidden;min-width:0;}
     .chat-header{padding:13px 16px;background:var(--card-bg);border-bottom:1px solid var(--border);font-weight:700;display:flex;align-items:center;gap:10px;font-size:.95rem;}
     .chat-messages{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain;}
-    .msg-bubble{max-width:75%;padding:10px 14px;border-radius:14px;font-size:.88rem;line-height:1.4;word-wrap:break-word;}
+    .msg-bubble{max-width:75%;padding:10px 14px;border-radius:14px;font-size:.88rem;line-height:1.4;word-wrap:break-word;animation:msgIn .25s ease;}
+    @keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
     .msg-in{background:var(--card-bg);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px;color:var(--text);}
     .msg-out{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;align-self:flex-end;border-bottom-right-radius:4px;font-weight:500;box-shadow:0 4px 14px var(--accent-glow);}
     .chat-input-area{padding:10px;background:var(--card-bg);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
@@ -541,6 +632,17 @@
     .ch-num{font-weight:800;font-size:.95rem;}
     .ch-action{color:var(--accent2);font-size:.75rem;font-weight:800;letter-spacing:.5px;font-family:var(--font-display);}
 
+    /* ====== TITLE PROGRESS ====== */
+    .title-progress{
+      background:var(--card-bg2);border:1px solid var(--border);
+      border-radius:var(--br-sm);padding:14px 18px;margin-top:14px;
+    }
+    .title-progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .title-progress-label{font-size:.78rem;color:var(--text-dim);font-weight:600;}
+    .title-progress-pct{font-size:.82rem;color:var(--accent2);font-weight:800;font-family:var(--font-display);}
+    .title-progress-bar{width:100%;height:6px;background:var(--border);border-radius:4px;overflow:hidden;}
+    .title-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:4px;transition:width .8s ease;box-shadow:0 0 8px var(--accent-glow);}
+
     /* ====== COMMENTS ====== */
     .comm-section{margin-top:48px;}
     .comm-input-area{background:var(--card-bg);padding:16px;border-radius:var(--br);margin:16px 0;border:1px solid var(--border);}
@@ -557,9 +659,8 @@
       transition:var(--tr-fast);display:inline-flex;align-items:center;gap:5px;
     }
     .comm-like-btn:hover{color:var(--loved);border-color:var(--loved);background:rgba(244,63,94,.08);}
-    .comm-like-btn.liked{color:var(--loved);border-color:var(--loved);}
+    .comm-like-btn.liked{color:var(--loved);border-color:var(--loved);animation:likeBounce .3s ease;}
     @keyframes likeBounce{0%{transform:scale(1);}50%{transform:scale(1.2);}100%{transform:scale(1);}}
-    .comm-like-btn.liked{animation:likeBounce .3s ease;}
 
     /* ====== TOAST ====== */
     #toast-container{
@@ -599,19 +700,6 @@
     .empty-state-text{font-size:1rem;font-weight:600;margin-bottom:6px;}
     .empty-state-sub{font-size:.82rem;color:var(--text-dim);}
 
-    /* ====== PULL INDICATOR ====== */
-    .pull-indicator{
-      position:fixed;top:var(--header-h);left:50%;
-      transform:translateX(-50%) translateY(-100%);
-      background:var(--card-bg);padding:10px 20px;
-      border-radius:0 0 var(--br-sm) var(--br-sm);
-      box-shadow:var(--sh-md);z-index:998;transition:transform .3s;
-      display:flex;align-items:center;gap:10px;font-size:.84rem;font-weight:600;
-    }
-    .pull-indicator.visible{transform:translateX(-50%) translateY(0);}
-    .pull-indicator .spinner{width:18px;height:18px;border:2px solid rgba(124,58,237,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0;}
-    @keyframes spin{100%{transform:rotate(360deg);}}
-
     /* ====== PAGE HEADERS ====== */
     .page-header{
       font-family:var(--font-display);font-size:clamp(1.15rem,4vw,1.55rem);
@@ -635,6 +723,18 @@
     }
     .stats-card-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);margin-top:3px;}
 
+    /* ====== READING TIME TRACKER ====== */
+    .reading-time-widget{
+      background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(124,58,237,.08));
+      border:1px solid rgba(16,185,129,.3);border-radius:var(--br);
+      padding:14px 18px;margin-bottom:20px;
+      display:flex;align-items:center;gap:14px;
+    }
+    .reading-time-icon{font-size:1.5rem;}
+    .reading-time-info{flex:1;}
+    .reading-time-label{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;}
+    .reading-time-val{font-family:var(--font-display);font-size:1.1rem;font-weight:900;color:var(--success);}
+
     /* ====== RESPONSIVE ====== */
     @media(max-width:950px){
       main{flex-direction:column;padding:12px;}
@@ -647,6 +747,7 @@
       .chat-sidebar{width:100%;max-height:200px;}
       .chat-box{height:420px;}
       .search-bar-wrap{display:none;}
+      .quick-stats{grid-template-columns:repeat(2,1fr);}
     }
     @media(max-width:600px){
       :root{--header-h:56px;--nav-h:62px;--br:13px;--br-sm:9px;}
@@ -665,12 +766,15 @@
       #notifications-panel{right:8px;left:8px;width:auto;}
       .chat-box{height:380px;}
       .msg-bubble{max-width:88%;}
+      .quick-stats{grid-template-columns:repeat(2,1fr);gap:8px;}
+      .hero-banner-cover{width:80px!important;}
     }
     @media(max-width:380px){
       .grid{grid-template-columns:repeat(2,1fr);gap:7px;}
       .nav-item span{display:none;}
       .nav-item i{margin-bottom:0;}
       .stats-bar{grid-template-columns:repeat(3,1fr);}
+      .quick-stats{grid-template-columns:repeat(2,1fr);}
     }
     @media(max-height:500px) and (orientation:landscape){
       :root{--header-h:48px;--nav-h:52px;}
@@ -680,9 +784,24 @@
     }
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}}
     @media(hover:none){.card:hover{transform:none;box-shadow:none;} .card:active{transform:scale(.97);border-color:var(--accent);}}
+
+    /* ====== ONLINE COUNTER ====== */
+    .online-indicator{
+      display:inline-flex;align-items:center;gap:5px;
+      font-size:.7rem;color:var(--success);font-weight:600;
+      margin-left:auto;
+    }
+    .online-dot{
+      width:7px;height:7px;background:var(--success);
+      border-radius:50%;animation:onlinePulse 2s infinite;
+    }
+    @keyframes onlinePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.4);}50%{opacity:.8;box-shadow:0 0 0 4px rgba(16,185,129,0);}}
   </style>
 </head>
 <body>
+
+  <!-- ======== PARTICLES ======== -->
+  <canvas id="particles-canvas"></canvas>
 
   <!-- ======== LOADER ======== -->
   <div id="global-loader">
@@ -691,23 +810,18 @@
       <div class="loader-bar" id="loader-bar"></div>
     </div>
     <div class="loader-status" id="loader-status">Подключение к облаку...</div>
-    <div class="loader-tip">Совет: Используй 🔖 для быстрого доступа к любимым тайтлам</div>
-  </div>
-
-  <!-- ======== PULL REFRESH ======== -->
-  <div class="pull-indicator" id="pull-indicator">
-    <div class="spinner"></div>
-    <span>Обновление...</span>
+    <div class="loader-tip" id="loader-tip">Совет: Используй 🔖 для быстрого доступа к любимым тайтлам</div>
   </div>
 
   <!-- ======== HEADER ======== -->
   <header id="main-header">
     <button class="menu-btn" onclick="openSidebar()" aria-label="Меню">☰</button>
-    <h1 class="logo">Manga<span>Cloud</span></h1>
+    <h1 class="logo" onclick="switchPage('home')" title="На главную">Manga<span>Cloud</span></h1>
     <div class="search-bar-wrap">
       <input type="text" id="search-input-header" placeholder="Поиск манги или жанра..." oninput="liveSearch(this.value)" aria-label="Поиск">
       <button class="clear-btn" id="clear-header-btn" onclick="clearSearch()" aria-label="Очистить">✕</button>
     </div>
+    <div class="online-indicator" id="online-indicator"><div class="online-dot"></div><span id="online-count">—</span> онлайн</div>
     <div class="header-actions">
       <button class="header-btn" id="btn-notifications" onclick="toggleNotifications()" aria-label="Уведомления">
         🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span>
@@ -746,6 +860,9 @@
       <li onclick="switchPage('friends')"><i>👥</i> Друзья</li>
       <div class="sidebar-divider"></div>
       <li onclick="switchPage('hist')"><i>🕒</i> История чтения</li>
+      <li onclick="openRandomManga()"><i>🎲</i> Случайная манга</li>
+      <div class="sidebar-divider"></div>
+      <li onclick="switchPage('home')" style="color:var(--text-dim);font-size:.82rem;"><i>🏠</i> На главную</li>
     </ul>
   </nav>
 
@@ -770,12 +887,22 @@
           <input type="text" id="search-input" placeholder="🔍 Поиск тайтла или жанра..." oninput="liveSearch(this.value)" aria-label="Поиск" style="padding-right:42px;">
           <button id="clear-search-btn" onclick="clearSearch()" style="position:absolute;right:12px;background:none;border:none;color:var(--text-dim);cursor:pointer;display:none;font-size:1.1rem;padding:8px;" aria-label="Очистить">✕</button>
         </div>
+        <!-- Hero Banner -->
+        <div id="hero-banner-container"></div>
+        <!-- Quick Stats -->
+        <div class="quick-stats" id="quick-stats"></div>
+        <!-- Continue Reading -->
         <div id="continue-reading-container"></div>
+        <!-- Reading Time -->
+        <div id="reading-time-container"></div>
         <!-- Genre chips quick filter -->
         <div class="genre-chips" id="genre-chips"></div>
         <div class="section-header">
           <div class="section-title" id="home-section-title">⚡ Популярное сегодня</div>
-          <span class="see-all" onclick="switchPage('catalog')">Смотреть всё →</span>
+          <div class="section-actions">
+            <button class="random-btn" onclick="openRandomManga()" title="Случайная манга">🎲 Рандом</button>
+            <span class="see-all" onclick="switchPage('catalog')">Смотреть всё →</span>
+          </div>
         </div>
         <div class="grid" id="home-grid"></div>
       </div>
@@ -787,7 +914,8 @@
     <main>
       <div class="content-area">
         <h2 class="page-header">Каталог</h2>
-        <div class="grid" id="catalog-grid" style="margin-top:20px;"></div>
+        <div id="catalog-results-info" style="margin-top:10px;margin-bottom:6px;font-size:.82rem;color:var(--text-dim);"></div>
+        <div class="grid" id="catalog-grid" style="margin-top:14px;"></div>
       </div>
       <aside class="filters-sidebar">
         <div class="filter-group">
@@ -831,7 +959,10 @@
   <!-- ======== HISTORY PAGE ======== -->
   <div id="hist-page" class="page">
     <main style="flex-direction:column;">
-      <h2 class="page-header">🕒 История чтения</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <h2 class="page-header">🕒 История чтения</h2>
+        <button class="btn btn-sec btn-sm" style="width:auto;" onclick="clearHistory()">🗑 Очистить</button>
+      </div>
       <div id="history-stats" style="margin-top:18px;"></div>
       <div id="history-list" style="margin-top:16px;"></div>
     </main>
@@ -922,6 +1053,9 @@
           <div class="level-bar-bg"><div id="user-progress" class="level-bar-fill"></div></div>
           <div style="text-align:right;margin-top:7px;font-size:.72rem;color:var(--text-dim);"><span id="chapters-to-next">5</span> глав до повышения</div>
         </div>
+        <!-- Achievements -->
+        <h4 style="font-family:var(--font-display);font-size:.82rem;margin-bottom:6px;text-align:left;">🏆 Достижения</h4>
+        <div class="achievements-grid" id="achievements-grid"></div>
         <button id="btn-logout" class="btn btn-sec" style="display:none;" onclick="logoutProfile()">Выйти из аккаунта</button>
       </div>
     </main>
@@ -941,6 +1075,14 @@
             <button class="btn" id="btn-fav" onclick="toggleFav('favs')" style="flex:1;min-width:130px;">🔖 В закладки</button>
             <button class="btn btn-sec" id="btn-loved" onclick="toggleFav('loved')" style="flex:1;min-width:130px;border-color:var(--loved);">❤️ В избранное</button>
             <button class="btn btn-sec btn-icon" onclick="shareTitle()" title="Поделиться">↗️</button>
+          </div>
+          <!-- Title Progress -->
+          <div class="title-progress" id="title-progress-container" style="display:none;">
+            <div class="title-progress-header">
+              <span class="title-progress-label">📖 Прогресс чтения</span>
+              <span class="title-progress-pct" id="title-progress-pct">0%</span>
+            </div>
+            <div class="title-progress-bar"><div class="title-progress-fill" id="title-progress-fill"></div></div>
           </div>
           <div class="rating-box">
             <div class="rating-num"><span id="det-rating-num">0.0</span> <small style="font-size:1rem;color:var(--text-dim);">/ 10</small></div>
@@ -1049,7 +1191,7 @@
         });
         if(needsSave) localStorage.setItem('m_last_seen_updates', JSON.stringify(lastSeen));
 
-        setLoaderProgress(100, 'Готово!');
+        setLoaderProgress(100, 'Готово! Найдено тайтлов: ' + Object.keys(window.mangaDb).length);
         setTimeout(() => { hideLoader(); window.startUI && window.startUI(); }, 400);
       } catch(e) {
         console.error('DB load error:', e);
@@ -1225,14 +1367,13 @@
       return [];
     };
 
-    // Start with timeout fallback
     const firebaseTimeout = setTimeout(() => {
       if(!window.firebaseReady) {
         console.warn('Firebase timeout — starting without cloud');
         hideLoader();
         window.startUI && window.startUI();
       }
-    }, 7000); // 7s timeout
+    }, 7000);
 
     initFirebase().then(() => clearTimeout(firebaseTimeout));
   </script>
@@ -1242,6 +1383,10 @@
     let curId = null, curCh = 1, lastP = 'home';
     let ratingUnsub = null, chatUnsub = null, activeChatFriend = null;
     window.currentFriendRequests = [];
+
+    // Reading time tracking
+    let readingStartTime = null;
+    let totalReadingTime = parseInt(localStorage.getItem('m_reading_time_sec') || '0');
 
     const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
     let favs    = getStorage('m_favs_v7', []);
@@ -1256,6 +1401,17 @@
     let myFriends = getStorage('m_real_friends_v1', []);
     let activeGenreFilter = null;
 
+    // Loader tips
+    const tips = [
+      "Совет: Используй 🔖 для быстрого доступа к любимым тайтлам",
+      "Совет: Свайпни влево/вправо в читалке для переключения глав",
+      "Совет: Нажми 🎲 чтобы найти новую мангу случайно!",
+      "Совет: Войди через Google чтобы общаться с друзьями",
+      "Совет: Клавиши A/D переключают главы в читалке"
+    ];
+    const tipEl = document.getElementById('loader-tip');
+    if(tipEl) tipEl.textContent = tips[Math.floor(Math.random()*tips.length)];
+
     // Theme init
     let isLightMode = getStorage('m_theme_light', false);
     if(isLightMode) {
@@ -1264,26 +1420,86 @@
       document.querySelector('meta[name="theme-color"]').content = '#f0f0f8';
     }
 
-    // Scroll effects
+    // ====== PARTICLES BACKGROUND ======
+    (function initParticles(){
+      const canvas = document.getElementById('particles-canvas');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      let w, h;
+      function resize(){
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      for(let i=0;i<35;i++){
+        particles.push({
+          x:Math.random()*w, y:Math.random()*h,
+          vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3,
+          r:Math.random()*2+.5,
+          alpha:Math.random()*.4+.1
+        });
+      }
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        const isDark = !document.documentElement.hasAttribute('data-theme');
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          if(p.x<0) p.x=w; if(p.x>w) p.x=0;
+          if(p.y<0) p.y=h; if(p.y>h) p.y=0;
+          ctx.beginPath();
+          ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+          ctx.fillStyle = isDark ? `rgba(124,58,237,${p.alpha})` : `rgba(124,58,237,${p.alpha*0.5})`;
+          ctx.fill();
+        });
+        // Draw connections
+        for(let i=0;i<particles.length;i++){
+          for(let j=i+1;j<particles.length;j++){
+            const dx=particles[i].x-particles[j].x;
+            const dy=particles[i].y-particles[j].y;
+            const dist=Math.sqrt(dx*dx+dy*dy);
+            if(dist<120){
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x,particles[i].y);
+              ctx.lineTo(particles[j].x,particles[j].y);
+              ctx.strokeStyle = isDark ? `rgba(124,58,237,${0.06*(1-dist/120)})` : `rgba(124,58,237,${0.03*(1-dist/120)})`;
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // ====== ONLINE COUNTER (simulated) ======
+    function updateOnlineCount(){
+      const base = 142 + Math.floor(Math.sin(Date.now()/60000)*30);
+      const jitter = Math.floor(Math.random()*8)-4;
+      document.getElementById('online-count').textContent = Math.max(50, base + jitter);
+    }
+    updateOnlineCount();
+    setInterval(updateOnlineCount, 15000);
+
+    // ====== HEADER HIDE ON SCROLL ======
+    let lastScrollY = 0, headerHidden = false;
     window.addEventListener('scroll', () => {
       const btn = document.getElementById('btn-scroll-top');
       btn.classList.toggle('visible', window.scrollY > 400);
-    }, { passive:true });
 
-    // Pull to refresh
-    let pullStartY = 0, isPulling = false;
-    document.addEventListener('touchstart', e => {
-      if(window.scrollY === 0 && document.getElementById('reader').style.display !== 'block') { pullStartY = e.touches[0].clientY; isPulling = true; }
+      // Auto-hide header on scroll down
+      const header = document.getElementById('main-header');
+      if(document.getElementById('reader').style.display === 'block') return;
+      if(window.scrollY > lastScrollY && window.scrollY > 200 && !headerHidden) {
+        header.classList.add('header-hidden');
+        headerHidden = true;
+      } else if(window.scrollY < lastScrollY && headerHidden) {
+        header.classList.remove('header-hidden');
+        headerHidden = false;
+      }
+      lastScrollY = window.scrollY;
     }, { passive:true });
-    document.addEventListener('touchmove', e => {
-      if(!isPulling) return;
-      if(e.touches[0].clientY - pullStartY > 80 && window.scrollY === 0) document.getElementById('pull-indicator').classList.add('visible');
-    }, { passive:true });
-    document.addEventListener('touchend', () => {
-      if(document.getElementById('pull-indicator').classList.contains('visible')) location.reload();
-      isPulling = false;
-      document.getElementById('pull-indicator').classList.remove('visible');
-    });
 
     // Keyboard
     document.addEventListener('keydown', e => {
@@ -1472,6 +1688,32 @@
       }
     };
 
+    // ====== ACHIEVEMENTS ======
+    function getAchievements() {
+      const rc = history.length;
+      const fc = favs.length;
+      const lc = loved.length;
+      return [
+        { icon:"📖", name:"Первый шаг", unlocked: rc >= 1, desc:"Прочитать 1 главу" },
+        { icon:"📚", name:"Книголюб", unlocked: rc >= 10, desc:"Прочитать 10 глав" },
+        { icon:"🏆", name:"Марафонец", unlocked: rc >= 50, desc:"Прочитать 50 глав" },
+        { icon:"👑", name:"Легенда", unlocked: rc >= 100, desc:"Прочитать 100 глав" },
+        { icon:"🔖", name:"Коллекционер", unlocked: fc >= 5, desc:"5 закладок" },
+        { icon:"❤️", name:"Романтик", unlocked: lc >= 3, desc:"3 избранных" },
+        { icon:"⭐", name:"Критик", unlocked: Object.keys(rates).length >= 5, desc:"Оценить 5 тайтлов" },
+        { icon:"🌙", name:"Полуночник", unlocked: new Date().getHours() >= 23 || new Date().getHours() < 5, desc:"Читать ночью" },
+      ];
+    }
+    function renderAchievements() {
+      const c = document.getElementById('achievements-grid');
+      if(!c) return;
+      c.innerHTML = getAchievements().map(a => `
+        <div class="achievement ${a.unlocked?'unlocked':'locked'}" title="${a.desc}">
+          <div class="achievement-icon">${a.icon}</div>
+          <div class="achievement-name">${a.name}</div>
+        </div>`).join('');
+    }
+
     function updateProfileUI() {
       const user = getStorage('m_user_v7', null);
       if(user && !window.isListeningToMyData && window.listenToMyData) { window.listenToMyData(user.sub); window.isListeningToMyData = true; }
@@ -1512,6 +1754,7 @@
         document.getElementById('sb-avatar').src = 'https://via.placeholder.com/60/7c3aed/fff?text=👤';
         document.getElementById('sb-name').textContent = customNames['anonymous'] || "Гость";
       }
+      renderAchievements();
     }
 
     // ====== FRIENDS ======
@@ -1549,7 +1792,7 @@
             <button class="list-action" onclick="openRealChat('${f.uid}','${f.name}','${f.picture}')">Написать</button>
             <button class="list-action" style="background:rgba(244,63,94,.1);color:var(--loved);border-color:var(--loved);" onclick="removeFriendAndChat('${f.uid}','${f.name}')">Удалить</button>
           </div>
-        </div>`).join('') : "<p style='color:var(--text-dim);text-align:center;padding:28px;'>У вас пока нет друзей.</p>";
+        </div>`).join('') : "<p style='color:var(--text-dim);text-align:center;padding:28px;'>У вас пока нет друзей. Найдите кого-нибудь в поиске!</p>";
     }
 
     // ====== MESSAGES ======
@@ -1610,6 +1853,61 @@
     };
     document.getElementById('chat-input').addEventListener('keypress', e => { if(e.key === 'Enter') sendRealMessage(); });
 
+    // ====== HERO BANNER ======
+    function renderHeroBanner() {
+      const c = document.getElementById('hero-banner-container');
+      const all = Object.values(window.mangaDb);
+      if(!all.length) { c.innerHTML = ''; return; }
+      // Pick random featured manga
+      const featured = all[Math.floor(Math.random()*all.length)];
+      c.innerHTML = `<div class="hero-banner" onclick="openTitle('${featured.id}')">
+        <div class="hero-banner-bg" style="background-image:url('${featured.cover}')"></div>
+        <div class="hero-banner-content">
+          <img class="hero-banner-cover" src="${featured.cover}" alt="${featured.title}" loading="lazy" onerror="this.src='https://placehold.co/130x195/12121e/7c3aed?text=?'">
+          <div class="hero-banner-info">
+            <div class="hero-banner-label">✨ Рекомендация дня</div>
+            <div class="hero-banner-title">${featured.title}</div>
+            <div class="hero-banner-desc">${(featured.genres||[]).join(' • ')} • ${featured.year||''} • ${featured.status||''}</div>
+            <button class="btn" onclick="event.stopPropagation();openTitle('${featured.id}')">Читать сейчас →</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // ====== QUICK STATS ======
+    function renderQuickStats() {
+      const c = document.getElementById('quick-stats');
+      if(!c) return;
+      const totalManga = Object.keys(window.mangaDb).length;
+      const totalChapters = Object.values(window.mangaDb).reduce((s,m) => s + (m.chapters ? Object.keys(m.chapters).length : 0), 0);
+      c.innerHTML = `
+        <div class="quick-stat"><div class="quick-stat-icon">📚</div><div class="quick-stat-val">${totalManga}</div><div class="quick-stat-label">Тайтлов</div></div>
+        <div class="quick-stat"><div class="quick-stat-icon">📄</div><div class="quick-stat-val">${totalChapters}</div><div class="quick-stat-label">Глав</div></div>
+        <div class="quick-stat"><div class="quick-stat-icon">📖</div><div class="quick-stat-val">${history.length}</div><div class="quick-stat-label">Прочитано</div></div>
+        <div class="quick-stat"><div class="quick-stat-icon">🔖</div><div class="quick-stat-val">${favs.length + loved.length}</div><div class="quick-stat-label">Сохранено</div></div>
+      `;
+    }
+
+    // ====== READING TIME ======
+    function formatReadingTime(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      if(h > 0) return `${h}ч ${m}м`;
+      return `${m}м`;
+    }
+    function renderReadingTime() {
+      const c = document.getElementById('reading-time-container');
+      if(!c) return;
+      if(totalReadingTime < 60) { c.innerHTML = ''; return; }
+      c.innerHTML = `<div class="reading-time-widget">
+        <div class="reading-time-icon">⏱️</div>
+        <div class="reading-time-info">
+          <div class="reading-time-label">Время чтения</div>
+          <div class="reading-time-val">${formatReadingTime(totalReadingTime)}</div>
+        </div>
+      </div>`;
+    }
+
     // ====== GENRE CHIPS ======
     function renderGenreChips() {
       const allGenres = new Set();
@@ -1617,7 +1915,7 @@
       const chips = document.getElementById('genre-chips');
       if(!chips || allGenres.size === 0) return;
       chips.innerHTML = '<span class="genre-chip active" onclick="filterByGenre(null, this)">Все</span>'
-        + [...allGenres].slice(0,8).map(g => `<span class="genre-chip" onclick="filterByGenre('${g}', this)">${g}</span>`).join('');
+        + [...allGenres].slice(0,10).map(g => `<span class="genre-chip" onclick="filterByGenre('${g}', this)">${g}</span>`).join('');
     }
     window.filterByGenre = function(genre, el) {
       activeGenreFilter = genre;
@@ -1628,6 +1926,15 @@
         : Object.values(window.mangaDb);
       document.getElementById('home-section-title').textContent = genre ? `🏷️ ${genre}` : '⚡ Популярное сегодня';
       renderGrid(data, 'home-grid');
+    };
+
+    // ====== RANDOM MANGA ======
+    window.openRandomManga = function() {
+      const all = Object.keys(window.mangaDb);
+      if(!all.length) { window.showToast("Каталог пуст!", "error"); return; }
+      const randomId = all[Math.floor(Math.random()*all.length)];
+      openTitle(randomId);
+      window.showToast("🎲 Случайный выбор!");
     };
 
     // ====== RENDER GRID ======
@@ -1694,7 +2001,7 @@
           localStorage.setItem('m_rates_v7', JSON.stringify(rates));
           updateStarsUI();
           if(window.sendRatingToCloud) window.sendRatingToCloud(curId, rates[curId]);
-          window.showToast(`Оценка: ${rates[curId]}/10`);
+          window.showToast(`Оценка: ${rates[curId]}/10 ⭐`);
         };
         c.appendChild(s);
       }
@@ -1713,11 +2020,22 @@
       const nav = document.querySelector(`.nav-item[onclick*="'${p}'"]`);
       if(nav) { nav.classList.add('active'); nav.setAttribute('aria-current','page'); }
       closeSidebar();
+      // Reset header hidden state
+      document.getElementById('main-header').classList.remove('header-hidden');
+      headerHidden = false;
+
       if(p !== 'title') lastP = p;
       if(p === 'home') {
         const si = document.getElementById('search-input');
         if(si && si.value.trim()) clearSearch();
-        else { renderGrid(Object.values(window.mangaDb), 'home-grid'); renderContinueReading(); renderGenreChips(); }
+        else {
+          renderHeroBanner();
+          renderQuickStats();
+          renderGrid(Object.values(window.mangaDb), 'home-grid');
+          renderContinueReading();
+          renderReadingTime();
+          renderGenreChips();
+        }
       }
       if(p === 'catalog') applyFilters();
       if(p === 'fav') renderGrid(favs.map(id=>window.mangaDb[id]).filter(Boolean), 'fav-grid');
@@ -1738,8 +2056,8 @@
       if(statsEl) {
         statsEl.innerHTML = `<div class="stats-bar">
           <div class="stats-card"><div class="stats-card-val">${valid.length}</div><div class="stats-card-label">Глав прочитано</div></div>
-          <div class="stats-card"><div class="stats-card-val">${new Set(valid.map(h=>h.id)).size}</div><div class="stats-card-label">Уникальных тайтлов</div></div>
-          <div class="stats-card"><div class="stats-card-val">${Math.round(valid.length * 1.5)}ч</div><div class="stats-card-label">Примерно часов</div></div>
+          <div class="stats-card"><div class="stats-card-val">${new Set(valid.map(h=>h.id)).size}</div><div class="stats-card-label">Уник. тайтлов</div></div>
+          <div class="stats-card"><div class="stats-card-val">${formatReadingTime(totalReadingTime)}</div><div class="stats-card-label">Время чтения</div></div>
         </div>`;
       }
       if(!valid.length) {
@@ -1757,6 +2075,14 @@
         </div>`;
       }).join('');
     }
+    window.clearHistory = function() {
+      if(!history.length) { window.showToast("История уже пуста"); return; }
+      if(!confirm("Очистить всю историю чтения?")) return;
+      history = [];
+      localStorage.setItem('m_hist_v7', JSON.stringify(history));
+      renderHistory();
+      window.showToast("История очищена");
+    };
 
     // ====== FILTERS ======
     function applyFilters() {
@@ -1768,8 +2094,11 @@
       if(genres.length) data = data.filter(m => genres.some(g => m.genres && m.genres.includes(g)));
       const sort = document.getElementById('sort-main').value;
       if(sort === 'rating') data.sort((a,b) => (rates[b.id]||0) - (rates[a.id]||0));
-      if(sort === 'new') data.sort((a,b) => b.year - a.year);
+      if(sort === 'new') data.sort((a,b) => (b.year||0) - (a.year||0));
       if(sort === 'updated') data.sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+      // Show results count
+      const info = document.getElementById('catalog-results-info');
+      if(info) info.textContent = `Найдено: ${data.length} тайтлов`;
       renderGrid(data, 'catalog-grid');
     }
 
@@ -1792,6 +2121,23 @@
           document.getElementById('det-votes').textContent = `Оценок: ${data.total}`;
         });
       }
+
+      // Title progress
+      if(m.chapters) {
+        const totalCh = Object.keys(m.chapters).length;
+        const readCh = history.filter(h => h.id === id).length;
+        const uniqueRead = new Set(history.filter(h => h.id === id).map(h => h.ch)).size;
+        const pct = totalCh > 0 ? Math.round((uniqueRead/totalCh)*100) : 0;
+        const pc = document.getElementById('title-progress-container');
+        if(uniqueRead > 0) {
+          pc.style.display = 'block';
+          document.getElementById('title-progress-pct').textContent = pct + '%';
+          setTimeout(() => { document.getElementById('title-progress-fill').style.width = pct + '%'; }, 100);
+        } else {
+          pc.style.display = 'none';
+        }
+      }
+
       // Chapters
       const chList = document.getElementById('det-chapters');
       if(m.chapters) {
@@ -1807,16 +2153,16 @@
         });
       } else { chList.innerHTML = "<p style='padding:20px;text-align:center;color:var(--text-dim);'>Главы не загружены</p>"; }
       updateStarsUI(); updateFavUI(); switchPage('title');
-      document.getElementById('comments-list').innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-dim);">Загрузка...</div>';
+      document.getElementById('comments-list').innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-dim);">Загрузка комментариев...</div>';
       if(window.loadCommentsFromCloud) globalCommentsList = await window.loadCommentsFromCloud(id);
       renderComments();
     }
 
     function openChapter(n) {
       curCh = parseInt(n);
-      history = history.filter(h => h.id !== curId);
+      history = history.filter(h => !(h.id === curId && h.ch === curCh));
       history.unshift({ id:curId, ch:curCh, time:Date.now() });
-      localStorage.setItem('m_hist_v7', JSON.stringify(history.slice(0,50)));
+      localStorage.setItem('m_hist_v7', JSON.stringify(history.slice(0,100)));
       document.getElementById('reader-info').textContent = `${window.mangaDb[curId].title} — Гл.${curCh}`;
       const container = document.getElementById('reader-images');
       container.innerHTML = '<div style="text-align:center;padding:60px;color:#666;">Загрузка страниц...</div>';
@@ -1832,6 +2178,8 @@
       const chs = window.mangaDb[curId].chapters;
       document.getElementById('btn-prev-ch').style.display = chs[curCh-1] ? 'block' : 'none';
       document.getElementById('btn-next-ch').style.display = chs[curCh+1] ? 'block' : 'none';
+      // Start reading time tracking
+      readingStartTime = Date.now();
     }
 
     // ====== FAV ======
@@ -1842,7 +2190,7 @@
       if(type === 'favs') { favs = arr; localStorage.setItem('m_favs_v7', JSON.stringify(favs)); }
       else { loved = arr; localStorage.setItem('m_loved_v8', JSON.stringify(loved)); }
       updateFavUI(); updateSidebarBadges();
-      window.showToast(exists ? "Удалено" : "Добавлено!");
+      window.showToast(exists ? "Удалено" : (type === 'favs' ? "🔖 Добавлено в закладки!" : "❤️ Добавлено в избранное!"));
     }
     function updateFavUI() {
       const bF = document.getElementById('btn-fav'), bL = document.getElementById('btn-loved');
@@ -1851,7 +2199,6 @@
         bF.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В закладки';
         bF.style.background = isFav ? 'var(--success)' : '';
         bF.style.color = isFav ? '#000' : '';
-        bF.className = isFav ? 'btn' : 'btn';
       }
       if(bL) {
         const isL = loved.includes(curId);
@@ -1865,13 +2212,13 @@
     // ====== SHARE ======
     function shareTitle() {
       if(navigator.share) { navigator.share({ title:window.mangaDb[curId].title, text:`Читаю "${window.mangaDb[curId].title}" на MangaCloud!`, url:window.location.href }).catch(()=>{}); }
-      else { navigator.clipboard && navigator.clipboard.writeText(window.location.href); window.showToast("Ссылка скопирована!"); }
+      else { navigator.clipboard && navigator.clipboard.writeText(window.location.href); window.showToast("Ссылка скопирована! 📋"); }
     }
 
     // ====== COMMENTS ======
     async function saveGlobalComment() {
       const txt = document.getElementById('comment-text');
-      if(!txt.value.trim()) return;
+      if(!txt.value.trim()) { window.showToast("Напишите что-нибудь!", "error"); return; }
       const user = getStorage('m_user_v7', null);
       let userName = user ? (customNames[user.sub] || user.name) : (customNames['anonymous'] || "Анонимный читатель");
       const avatarHtml = user ? `<img src="${user.picture}" style="width:22px;height:22px;border-radius:50%;margin-right:7px;object-fit:cover;">` : '👤';
@@ -1881,7 +2228,7 @@
       globalCommentsList.push(newComment); renderComments(); txt.value = '';
       if(window.sendCommentToCloud) {
         const ok = await window.sendCommentToCloud(curId, newComment);
-        window.showToast(ok ? "Комментарий опубликован!" : "Ошибка отправки", ok ? 'success' : 'error');
+        window.showToast(ok ? "Комментарий опубликован! 💬" : "Ошибка отправки", ok ? 'success' : 'error');
       }
     }
     window.likeComment = function(timeId) {
@@ -1918,12 +2265,19 @@
       readerWidthMode = (readerWidthMode+1)%3;
       const c = document.getElementById('reader-images');
       c.className = ['','reader-wide','reader-narrow'][readerWidthMode];
-      window.showToast(['Стандартный','Полный экран','Узкий'][readerWidthMode]);
+      window.showToast(['📐 Стандартный','🖥️ Полный экран','📱 Узкий'][readerWidthMode]);
     };
     function closeReader() {
       document.getElementById('reader').style.display = 'none';
       document.body.style.overflow = '';
       document.getElementById('bottom-nav').style.transform = 'translateY(0)';
+      // Track reading time
+      if(readingStartTime) {
+        const elapsed = Math.floor((Date.now() - readingStartTime) / 1000);
+        totalReadingTime += elapsed;
+        localStorage.setItem('m_reading_time_sec', totalReadingTime);
+        readingStartTime = null;
+      }
       openTitle(curId);
     }
     function moveChapter(d) {
@@ -1942,16 +2296,26 @@
         const titleHeader = document.getElementById('home-section-title');
         const cont = document.getElementById('continue-reading-container');
         const chips = document.getElementById('genre-chips');
+        const hero = document.getElementById('hero-banner-container');
+        const qs = document.getElementById('quick-stats');
+        const rt = document.getElementById('reading-time-container');
         if(clearBtn) clearBtn.style.display = query ? 'block' : 'none';
         if(clearBtnH) clearBtnH.style.display = query ? 'block' : 'none';
         if(!query) {
           if(titleHeader) titleHeader.textContent = '⚡ Популярное сегодня';
           if(cont) cont.style.display = 'block';
           if(chips) chips.style.display = 'flex';
-          renderContinueReading(); renderGrid(Object.values(window.mangaDb), 'home-grid'); return;
+          if(hero) hero.style.display = 'block';
+          if(qs) qs.style.display = '';
+          if(rt) rt.style.display = 'block';
+          renderHeroBanner(); renderQuickStats(); renderContinueReading(); renderReadingTime();
+          renderGrid(Object.values(window.mangaDb), 'home-grid'); return;
         }
         if(cont) cont.style.display = 'none';
         if(chips) chips.style.display = 'none';
+        if(hero) hero.style.display = 'none';
+        if(qs) qs.style.display = 'none';
+        if(rt) rt.style.display = 'none';
         if(titleHeader) titleHeader.textContent = `🔍 Результаты: "${q.trim()}"`;
         const res = Object.values(window.mangaDb).filter(m =>
           (m.title && m.title.toLowerCase().includes(query)) ||
@@ -1976,6 +2340,7 @@
     };
     window.resetFilters = function() {
       document.querySelectorAll('.filters-sidebar input[type="checkbox"]').forEach(c => c.checked = false);
+      document.getElementById('sort-main').value = 'popular';
       applyFilters(); window.showToast("Фильтры сброшены");
     };
 
