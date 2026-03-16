@@ -83,7 +83,7 @@
       line-height:1.6;
       transition:background .4s,color .4s;
       min-height:100vh;
-      overscroll-behavior-y:contain;
+      /* FIX: removed overscroll-behavior-y:contain — it blocked scrolling */
     }
     ::-webkit-scrollbar{width:6px;height:6px;}
     ::-webkit-scrollbar-track{background:transparent;}
@@ -575,7 +575,7 @@
     #reader{
       position:fixed;inset:0;background:#070710;color:#fff;
       z-index:5000;overflow-y:auto;overflow-x:hidden;
-      display:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+      display:none;-webkit-overflow-scrolling:touch;
     }
     .reader-bar{
       position:sticky;top:0;
@@ -647,12 +647,15 @@
     .comm-section{margin-top:48px;}
     .comm-input-area{background:var(--card-bg);padding:16px;border-radius:var(--br);margin:16px 0;border:1px solid var(--border);}
     .comm-input-area textarea{min-height:80px;resize:vertical;}
+    .comm-char-count{font-size:.7rem;color:var(--text-dim);text-align:right;margin-top:6px;}
+    .comm-char-count.warn{color:var(--warning);}
+    .comm-char-count.over{color:var(--loved);}
     .comm-card{background:var(--card-bg2);padding:16px;border-radius:var(--br-sm);margin-bottom:10px;border:1px solid var(--border);transition:var(--tr-fast);}
     .comm-card:hover{border-color:var(--accent);}
     .comm-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:10px;flex-wrap:wrap;gap:6px;}
     .comm-user{font-weight:700;color:var(--accent2);display:flex;align-items:center;gap:6px;font-size:.88rem;}
     .comm-date{font-size:.75rem;color:var(--text-dim);}
-    .comm-text{font-size:.88rem;line-height:1.55;margin-bottom:10px;}
+    .comm-text{font-size:.88rem;line-height:1.55;margin-bottom:10px;word-break:break-word;}
     .comm-like-btn{
       background:none;border:1px solid var(--border);color:var(--text-dim);
       padding:6px 13px;border-radius:20px;cursor:pointer;font-size:.78rem;
@@ -887,15 +890,10 @@
           <input type="text" id="search-input" placeholder="🔍 Поиск тайтла или жанра..." oninput="liveSearch(this.value)" aria-label="Поиск" style="padding-right:42px;">
           <button id="clear-search-btn" onclick="clearSearch()" style="position:absolute;right:12px;background:none;border:none;color:var(--text-dim);cursor:pointer;display:none;font-size:1.1rem;padding:8px;" aria-label="Очистить">✕</button>
         </div>
-        <!-- Hero Banner -->
         <div id="hero-banner-container"></div>
-        <!-- Quick Stats -->
         <div class="quick-stats" id="quick-stats"></div>
-        <!-- Continue Reading -->
         <div id="continue-reading-container"></div>
-        <!-- Reading Time -->
         <div id="reading-time-container"></div>
-        <!-- Genre chips quick filter -->
         <div class="genre-chips" id="genre-chips"></div>
         <div class="section-header">
           <div class="section-title" id="home-section-title">⚡ Популярное сегодня</div>
@@ -930,14 +928,7 @@
         <div class="filter-group">
           <div class="filter-title">Жанры</div>
           <div class="checkbox-grid" id="filter-genre">
-            <label><input type="checkbox" value="Экшен" onchange="applyFilters()"><span>Экшен</span></label>
-            <label><input type="checkbox" value="Фэнтези" onchange="applyFilters()"><span>Фэнтези</span></label>
-            <label><input type="checkbox" value="Романтика" onchange="applyFilters()"><span>Романтика</span></label>
-            <label><input type="checkbox" value="Драма" onchange="applyFilters()"><span>Драма</span></label>
-            <label><input type="checkbox" value="Исекай" onchange="applyFilters()"><span>Исекай</span></label>
-            <label><input type="checkbox" value="Приключения" onchange="applyFilters()"><span>Приключения</span></label>
-            <label><input type="checkbox" value="Комедия" onchange="applyFilters()"><span>Комедия</span></label>
-            <label><input type="checkbox" value="Мистика" onchange="applyFilters()"><span>Мистика</span></label>
+            <!-- FIX: Dynamic genres generated from real data in buildDynamicGenreFilters() -->
           </div>
         </div>
         <div class="filter-group">
@@ -1017,7 +1008,7 @@
             <div style="text-align:center;color:var(--text-dim);margin-top:50px;font-size:.9rem;">Здесь будут ваши сообщения</div>
           </div>
           <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="Выберите диалог слева..." onclick="checkChatActive()">
+            <input type="text" id="chat-input" placeholder="Выберите диалог слева..." onclick="checkChatActive()" maxlength="1000">
             <button class="btn btn-icon" id="chat-send-btn" onclick="sendRealMessage()" aria-label="Отправить">➤</button>
           </div>
         </div>
@@ -1053,7 +1044,6 @@
           <div class="level-bar-bg"><div id="user-progress" class="level-bar-fill"></div></div>
           <div style="text-align:right;margin-top:7px;font-size:.72rem;color:var(--text-dim);"><span id="chapters-to-next">5</span> глав до повышения</div>
         </div>
-        <!-- Achievements -->
         <h4 style="font-family:var(--font-display);font-size:.82rem;margin-bottom:6px;text-align:left;">🏆 Достижения</h4>
         <div class="achievements-grid" id="achievements-grid"></div>
         <button id="btn-logout" class="btn btn-sec" style="display:none;" onclick="logoutProfile()">Выйти из аккаунта</button>
@@ -1076,7 +1066,6 @@
             <button class="btn btn-sec" id="btn-loved" onclick="toggleFav('loved')" style="flex:1;min-width:130px;border-color:var(--loved);">❤️ В избранное</button>
             <button class="btn btn-sec btn-icon" onclick="shareTitle()" title="Поделиться">↗️</button>
           </div>
-          <!-- Title Progress -->
           <div class="title-progress" id="title-progress-container" style="display:none;">
             <div class="title-progress-header">
               <span class="title-progress-label">📖 Прогресс чтения</span>
@@ -1099,8 +1088,9 @@
       <div class="comm-section">
         <h3 style="font-size:1.05rem;margin-bottom:14px;font-family:var(--font-display);">💬 Обсуждение тайтла</h3>
         <div class="comm-input-area">
-          <textarea id="comment-text" placeholder="Оставьте комментарий — его увидят все читатели!" rows="3"></textarea>
-          <button class="btn" onclick="saveGlobalComment()" style="width:auto;padding:11px 28px;margin-top:12px;">Отправить</button>
+          <textarea id="comment-text" placeholder="Оставьте комментарий — его увидят все читатели!" rows="3" maxlength="500" oninput="updateCommentCharCount()"></textarea>
+          <div class="comm-char-count" id="comment-char-count">0 / 500</div>
+          <button class="btn" onclick="saveGlobalComment()" style="width:auto;padding:11px 28px;margin-top:8px;">Отправить</button>
         </div>
         <div id="comments-list"></div>
       </div>
@@ -1130,14 +1120,17 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    /* FIX: Import Realtime Database for real online presence */
+    import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0",
       projectId: "oauth-489621",
-      authDomain: "oauth-489621.firebaseapp.com"
+      authDomain: "oauth-489621.firebaseapp.com",
+      databaseURL: "https://oauth-489621-default-rtdb.firebaseio.com"
     };
 
-    let app, db;
+    let app, db, rtdb;
     window.mangaDb = {};
     window.firebaseReady = false;
 
@@ -1148,13 +1141,59 @@
       if(status) status.textContent = text;
     }
 
+    /* ====== REAL ONLINE PRESENCE SYSTEM ====== */
+    function initPresence() {
+      if(!rtdb) return;
+      try {
+        // Generate unique session ID
+        let sessionId = sessionStorage.getItem('m_session_id');
+        if(!sessionId) {
+          sessionId = 'sess_' + Math.random().toString(36).substr(2, 12) + '_' + Date.now();
+          sessionStorage.setItem('m_session_id', sessionId);
+        }
+        const presenceRef = ref(rtdb, '/presence/' + sessionId);
+        const connectedRef = ref(rtdb, '.info/connected');
+
+        onValue(connectedRef, (snap) => {
+          if(snap.val() === true) {
+            // Set our presence
+            set(presenceRef, { online: true, timestamp: serverTimestamp() });
+            // Remove on disconnect
+            onDisconnect(presenceRef).remove();
+          }
+        });
+
+        // Listen to total online count
+        const allPresenceRef = ref(rtdb, '/presence');
+        onValue(allPresenceRef, (snap) => {
+          const data = snap.val();
+          const count = data ? Object.keys(data).length : 1;
+          const el = document.getElementById('online-count');
+          if(el) el.textContent = count;
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+          try { remove(presenceRef); } catch(e) {}
+        });
+      } catch(e) {
+        console.warn('Presence init error:', e);
+      }
+    }
+
     async function initFirebase() {
       try {
         setLoaderProgress(20, 'Инициализация Firebase...');
         app = initializeApp(firebaseConfig);
         db = getFirestore(app);
+        rtdb = getDatabase(app);
         window.db = db;
+        window.rtdb = rtdb;
         window.firebaseReady = true;
+
+        // Start presence system
+        initPresence();
+
         setLoaderProgress(50, 'Загрузка каталога манги...');
         await loadCloudDatabase();
       } catch(e) {
@@ -1174,17 +1213,17 @@
         let isFirstLoad = Object.keys(lastSeen).length === 0;
         let needsSave = false;
 
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          data.id = doc.id;
-          window.mangaDb[doc.id] = data;
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          data.id = docSnap.id;
+          window.mangaDb[docSnap.id] = data;
           if(data.updatedAt) {
-            if(!isFirstLoad && (!lastSeen[doc.id] || data.updatedAt > lastSeen[doc.id])) {
-              window.addNotification && window.addNotification(`Вышло обновление: ${data.title}!`, doc.id);
-              lastSeen[doc.id] = data.updatedAt;
+            if(!isFirstLoad && (!lastSeen[docSnap.id] || data.updatedAt > lastSeen[docSnap.id])) {
+              window.addNotification && window.addNotification('Вышло обновление: ' + data.title + '!', docSnap.id);
+              lastSeen[docSnap.id] = data.updatedAt;
               needsSave = true;
-            } else if(isFirstLoad || !lastSeen[doc.id]) {
-              lastSeen[doc.id] = data.updatedAt;
+            } else if(isFirstLoad || !lastSeen[docSnap.id]) {
+              lastSeen[docSnap.id] = data.updatedAt;
               needsSave = true;
             }
           }
@@ -1246,10 +1285,10 @@
           window.currentFriendRequests = data.friendRequests || [];
           window.renderNotifications && window.renderNotifications();
           if(data.friendsList) {
-            myFriends = data.friendsList;
-            localStorage.setItem('m_real_friends_v1', JSON.stringify(myFriends));
-            if(document.getElementById('friends-page').style.display === 'block') renderFriendsList();
-            if(document.getElementById('messages-page').style.display === 'block') renderDialogsList();
+            window.myFriends = data.friendsList;
+            localStorage.setItem('m_real_friends_v1', JSON.stringify(window.myFriends));
+            if(document.getElementById('friends-page').style.display === 'block') window.renderFriendsList && window.renderFriendsList();
+            if(document.getElementById('messages-page').style.display === 'block') window.renderDialogsList && window.renderDialogsList();
           }
         }
       });
@@ -1266,17 +1305,17 @@
     window.sendFriendRequest = async function(targetUid, targetName, targetPic) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if(!user || !db) return;
-      let cn = JSON.parse(localStorage.getItem('m_custom_names_v7')) || {};
+      let cn = JSON.parse(localStorage.getItem('m_custom_names_v7') || '{}');
       const myName = cn[user.sub] || user.name;
       try {
         await setDoc(doc(db,"users_data",targetUid), { friendRequests: arrayUnion({ uid:user.sub, name:myName, picture:user.picture }) }, { merge:true });
-        window.showToast(`Заявка отправлена ${targetName}!`);
+        window.showToast('Заявка отправлена ' + esc(targetName) + '!');
       } catch(e) { window.showToast("Ошибка при отправке заявки", "error"); }
     };
     window.acceptFriend = async function(friendUid, friendName, friendPic) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if(!user || !db) return;
-      let cn = JSON.parse(localStorage.getItem('m_custom_names_v7')) || {};
+      let cn = JSON.parse(localStorage.getItem('m_custom_names_v7') || '{}');
       const myName = cn[user.sub] || user.name;
       const myRef = doc(db,"users_data",user.sub);
       const frRef = doc(db,"users_data",friendUid);
@@ -1288,7 +1327,7 @@
           const upd = (snap.data().friendRequests || []).filter(r => r.uid !== friendUid);
           await setDoc(myRef, { friendRequests: upd }, { merge:true });
         }
-        window.showToast(`${friendName} добавлен в друзья!`);
+        window.showToast(esc(friendName) + ' добавлен в друзья!');
       } catch(e) { console.error(e); }
     };
     window.declineFriend = async function(friendUid) {
@@ -1301,13 +1340,13 @@
           const upd = (snap.data().friendRequests || []).filter(r => r.uid !== friendUid);
           await setDoc(myRef, { friendRequests: upd }, { merge:true });
         }
-        window.showToast(`Заявка отклонена`);
+        window.showToast('Заявка отклонена');
       } catch(e) { console.error(e); }
     };
     window.removeFriendAndChat = async function(friendUid, friendName) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if(!user || !db) return;
-      if(!confirm(`Удалить ${friendName} из друзей и очистить переписку?`)) return;
+      if(!confirm('Удалить ' + friendName + ' из друзей и очистить переписку?')) return;
       const myRef = doc(db,"users_data",user.sub);
       const frRef = doc(db,"users_data",friendUid);
       const chatId = [user.sub, friendUid].sort().join('_');
@@ -1318,7 +1357,7 @@
         if(frSnap.exists()) { const upd = (frSnap.data().friendsList || []).filter(f => f.uid !== user.sub); await setDoc(frRef, { friendsList: upd }, { merge:true }); }
         await setDoc(doc(db,"chats_data",chatId), { messages: [] }, { merge:true });
         window.clearActiveChatIfMatches && window.clearActiveChatIfMatches(friendUid);
-        window.showToast(`${friendName} удалён из друзей`);
+        window.showToast(esc(friendName) + ' удалён из друзей');
       } catch(e) { window.showToast("Ошибка при удалении", "error"); }
     };
     window.listenToChatMessages = function(chatId, callback) {
@@ -1333,11 +1372,11 @@
       catch(e) { console.error(e); }
     };
     window.listenToRating = function(mangaId, callback) {
-      if(!db) { callback({ average:"0.0", total:0 }); return () => {}; }
+      if(!db) { callback({ average:"0.0", total:0 }); return null; }
       return onSnapshot(doc(db,"manga_ratings",mangaId), (snap) => {
         if(snap.exists()) {
           const scores = Object.values(snap.data());
-          const avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
+          const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : "0.0";
           callback({ average:avg, total:scores.length });
         } else { callback({ average:"0.0", total:0 }); }
       });
@@ -1388,17 +1427,28 @@
     let readingStartTime = null;
     let totalReadingTime = parseInt(localStorage.getItem('m_reading_time_sec') || '0');
 
+    // ====== XSS PROTECTION ======
+    function esc(str) {
+      if(typeof str !== 'string') return '';
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+    window.esc = esc;
+
     const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
     let favs    = getStorage('m_favs_v7', []);
     let loved   = getStorage('m_loved_v8', []);
     let rates   = getStorage('m_rates_v7', {});
-    let history = getStorage('m_hist_v7', []);
+    /* FIX: renamed history → readHistory to avoid conflict with window.history */
+    let readHistory = getStorage('m_hist_v7', []);
     let customNames = getStorage('m_custom_names_v7', {});
     let notifications = getStorage('m_notifs_v1', [
       { id: Date.now(), text: "Добро пожаловать в MangaCloud! Здесь будут появляться уведомления об обновлениях.", read: false, mangaId: null }
     ]);
     let globalCommentsList = [];
-    let myFriends = getStorage('m_real_friends_v1', []);
+    /* FIX: use window.myFriends so firebase module can update it */
+    window.myFriends = getStorage('m_real_friends_v1', []);
     let activeGenreFilter = null;
 
     // Loader tips
@@ -1412,15 +1462,15 @@
     const tipEl = document.getElementById('loader-tip');
     if(tipEl) tipEl.textContent = tips[Math.floor(Math.random()*tips.length)];
 
-    // Theme init
-    let isLightMode = getStorage('m_theme_light', false);
+    /* FIX: isLight stored as string 'true'/'false', not JSON */
+    let isLightMode = localStorage.getItem('m_theme_light') === 'true';
     if(isLightMode) {
       document.documentElement.setAttribute('data-theme','light');
       document.getElementById('btn-theme').textContent = '🌙';
       document.querySelector('meta[name="theme-color"]').content = '#f0f0f8';
     }
 
-    // ====== PARTICLES BACKGROUND ======
+    // ====== PARTICLES BACKGROUND (OPTIMIZED) ======
     (function initParticles(){
       const canvas = document.getElementById('particles-canvas');
       if(!canvas) return;
@@ -1442,6 +1492,16 @@
         });
       }
       function draw(){
+        /* FIX: Don't draw when loader is visible or reader is open */
+        const loaderEl = document.getElementById('global-loader');
+        const readerEl = document.getElementById('reader');
+        const loaderVisible = loaderEl && !loaderEl.classList.contains('hidden') && loaderEl.style.display !== 'none';
+        const readerOpen = readerEl && readerEl.style.display === 'block';
+        if(loaderVisible || readerOpen) {
+          requestAnimationFrame(draw);
+          return;
+        }
+
         ctx.clearRect(0,0,w,h);
         const isDark = !document.documentElement.hasAttribute('data-theme');
         particles.forEach(p => {
@@ -1450,10 +1510,9 @@
           if(p.y<0) p.y=h; if(p.y>h) p.y=0;
           ctx.beginPath();
           ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-          ctx.fillStyle = isDark ? `rgba(124,58,237,${p.alpha})` : `rgba(124,58,237,${p.alpha*0.5})`;
+          ctx.fillStyle = isDark ? 'rgba(124,58,237,'+p.alpha+')' : 'rgba(124,58,237,'+(p.alpha*0.5)+')';
           ctx.fill();
         });
-        // Draw connections
         for(let i=0;i<particles.length;i++){
           for(let j=i+1;j<particles.length;j++){
             const dx=particles[i].x-particles[j].x;
@@ -1463,7 +1522,7 @@
               ctx.beginPath();
               ctx.moveTo(particles[i].x,particles[i].y);
               ctx.lineTo(particles[j].x,particles[j].y);
-              ctx.strokeStyle = isDark ? `rgba(124,58,237,${0.06*(1-dist/120)})` : `rgba(124,58,237,${0.03*(1-dist/120)})`;
+              ctx.strokeStyle = isDark ? 'rgba(124,58,237,'+(0.06*(1-dist/120))+')' : 'rgba(124,58,237,'+(0.03*(1-dist/120))+')';
               ctx.stroke();
             }
           }
@@ -1473,22 +1532,12 @@
       draw();
     })();
 
-    // ====== ONLINE COUNTER (simulated) ======
-    function updateOnlineCount(){
-      const base = 142 + Math.floor(Math.sin(Date.now()/60000)*30);
-      const jitter = Math.floor(Math.random()*8)-4;
-      document.getElementById('online-count').textContent = Math.max(50, base + jitter);
-    }
-    updateOnlineCount();
-    setInterval(updateOnlineCount, 15000);
-
     // ====== HEADER HIDE ON SCROLL ======
     let lastScrollY = 0, headerHidden = false;
     window.addEventListener('scroll', () => {
       const btn = document.getElementById('btn-scroll-top');
       btn.classList.toggle('visible', window.scrollY > 400);
 
-      // Auto-hide header on scroll down
       const header = document.getElementById('main-header');
       if(document.getElementById('reader').style.display === 'block') return;
       if(window.scrollY > lastScrollY && window.scrollY > 200 && !headerHidden) {
@@ -1527,7 +1576,7 @@
       const pct = readerEl.scrollHeight - readerEl.clientHeight > 0 ? (readerEl.scrollTop / (readerEl.scrollHeight - readerEl.clientHeight)) * 100 : 0;
       document.getElementById('reader-progress-fill').style.width = pct + '%';
       document.getElementById('reader-progress-text').textContent = Math.round(pct) + '%';
-      if(curId && curCh) localStorage.setItem(`scroll_${curId}_${curCh}`, readerEl.scrollTop);
+      if(curId && curCh) localStorage.setItem('scroll_' + curId + '_' + curCh, readerEl.scrollTop);
     }, { passive:true });
 
     // Reader swipe
@@ -1537,6 +1586,11 @@
       const diff = tStartX - e.changedTouches[0].screenX;
       if(Math.abs(diff) > 90) moveChapter(diff > 0 ? 1 : -1);
     }, { passive:true });
+
+    /* FIX: Enter key in friend search */
+    document.getElementById('friend-search-input').addEventListener('keypress', e => {
+      if(e.key === 'Enter') window.searchRealUsers && window.searchRealUsers();
+    });
 
     // ====== SIDEBAR ======
     function openSidebar() {
@@ -1565,7 +1619,8 @@
     // ====== THEME ======
     window.toggleTheme = function() {
       isLightMode = !isLightMode;
-      localStorage.setItem('m_theme_light', isLightMode);
+      /* FIX: Store as string 'true'/'false' */
+      localStorage.setItem('m_theme_light', isLightMode ? 'true' : 'false');
       if(isLightMode) {
         document.documentElement.setAttribute('data-theme','light');
         document.getElementById('btn-theme').textContent = '🌙';
@@ -1580,13 +1635,24 @@
     };
 
     // ====== TOAST ======
-    window.showToast = function(msg, type = 'success') {
+    window.showToast = function(msg, type) {
+      type = type || 'success';
       const c = document.getElementById('toast-container');
       const t = document.createElement('div');
-      t.className = `toast ${type}`;
+      t.className = 'toast ' + type;
       t.textContent = msg;
       c.appendChild(t);
       setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(16px)'; setTimeout(() => t.remove(), 380); }, 3000);
+    };
+
+    // ====== COMMENT CHAR COUNTER ======
+    window.updateCommentCharCount = function() {
+      const ta = document.getElementById('comment-text');
+      const counter = document.getElementById('comment-char-count');
+      if(!ta || !counter) return;
+      const len = ta.value.length;
+      counter.textContent = len + ' / 500';
+      counter.className = 'comm-char-count' + (len > 480 ? ' warn' : '') + (len >= 500 ? ' over' : '');
     };
 
     // ====== NOTIFICATIONS ======
@@ -1606,26 +1672,27 @@
       updateSidebarBadges();
       let html = '';
       if(reqs > 0) {
-        html += (window.currentFriendRequests || []).map(req => `
-          <div class="notif-item unread" style="border-left-color:var(--loved);">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-              <img src="${req.picture}" style="width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;">
-              <div><strong>${req.name}</strong> хочет добавить вас в друзья!</div>
-            </div>
-            <div style="display:flex;gap:8px;">
-              <button class="btn btn-sm" style="flex:1;" onclick="acceptFriend('${req.uid}','${req.name}','${req.picture}')">Принять</button>
-              <button class="btn btn-sec btn-sm" style="flex:1;" onclick="declineFriend('${req.uid}')">Отклонить</button>
-            </div>
-          </div>`).join('');
+        html += (window.currentFriendRequests || []).map(function(req) {
+          return '<div class="notif-item unread" style="border-left-color:var(--loved);">'
+            + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+            + '<img src="' + esc(req.picture) + '" style="width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;">'
+            + '<div><strong>' + esc(req.name) + '</strong> хочет добавить вас в друзья!</div>'
+            + '</div>'
+            + '<div style="display:flex;gap:8px;">'
+            + '<button class="btn btn-sm" style="flex:1;" onclick="acceptFriend(\'' + esc(req.uid) + '\',\'' + esc(req.name) + '\',\'' + esc(req.picture) + '\')">Принять</button>'
+            + '<button class="btn btn-sec btn-sm" style="flex:1;" onclick="declineFriend(\'' + esc(req.uid) + '\')">Отклонить</button>'
+            + '</div></div>';
+        }).join('');
       }
       if(notifications.length === 0 && reqs === 0) {
-        list.innerHTML = `<div style="padding:30px 20px;text-align:center;color:var(--text-dim);">Нет новых уведомлений</div>`;
+        list.innerHTML = '<div style="padding:30px 20px;text-align:center;color:var(--text-dim);">Нет новых уведомлений</div>';
         return;
       }
-      html += notifications.slice().reverse().map(n => `
-        <div class="notif-item ${n.read?'':'unread'}" onclick="readNotification(${n.id},${n.mangaId?`'${n.mangaId}'`:'null'})">
-          ${n.text}
-        </div>`).join('');
+      html += notifications.slice().reverse().map(function(n) {
+        return '<div class="notif-item ' + (n.read?'':'unread') + '" onclick="readNotification(' + n.id + ',' + (n.mangaId ? "'" + esc(n.mangaId) + "'" : 'null') + ')">'
+          + esc(n.text)
+          + '</div>';
+      }).join('');
       list.innerHTML = html;
     };
     window.readNotification = function(id, mangaId) {
@@ -1639,8 +1706,9 @@
       renderNotifications();
       window.showToast("Все уведомления прочитаны");
     };
-    window.addNotification = function(text, mangaId = null) {
-      notifications.push({ id:Date.now(), text, read:false, mangaId });
+    window.addNotification = function(text, mangaId) {
+      mangaId = mangaId || null;
+      notifications.push({ id:Date.now(), text:text, read:false, mangaId:mangaId });
       localStorage.setItem('m_notifs_v1', JSON.stringify(notifications));
       renderNotifications();
     };
@@ -1656,13 +1724,13 @@
         const cd = await window.loadUserDataFromCloud(payload.sub);
         if(cd) {
           if(cd.customNickname) { customNames[payload.sub] = cd.customNickname; localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames)); finalName = cd.customNickname; }
-          if(cd.friendsList) { myFriends = cd.friendsList; localStorage.setItem('m_real_friends_v1', JSON.stringify(myFriends)); }
+          if(cd.friendsList) { window.myFriends = cd.friendsList; localStorage.setItem('m_real_friends_v1', JSON.stringify(window.myFriends)); }
         }
       }
       if(window.saveUserToDatabase) await window.saveUserToDatabase(payload, finalName);
       if(window.listenToMyData && !window.isListeningToMyData) { window.listenToMyData(payload.sub); window.isListeningToMyData = true; }
       updateProfileUI();
-      window.showToast(`С возвращением, ${finalName}!`);
+      window.showToast('С возвращением, ' + esc(finalName) + '!');
     }
     window.handleCredentialResponse = handleCredentialResponse;
 
@@ -1674,12 +1742,17 @@
     }
     window.logoutProfile = logoutProfile;
 
+    /* FIX: Nickname validation 3-20 characters */
     window.changeNickname = async function() {
       const user = getStorage('m_user_v7', null);
       const cur = document.getElementById('profile-name').textContent;
-      const newName = prompt("Введите новый никнейм:", cur);
+      const newName = prompt("Введите новый никнейм (3-20 символов):", cur);
       if(newName && newName.trim()) {
         const n = newName.trim();
+        if(n.length < 3 || n.length > 20) {
+          window.showToast("Никнейм должен быть от 3 до 20 символов!", "error");
+          return;
+        }
         customNames[user ? user.sub : 'anonymous'] = n;
         localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames));
         if(user && window.saveNicknameToCloud) await window.saveNicknameToCloud(n);
@@ -1690,7 +1763,7 @@
 
     // ====== ACHIEVEMENTS ======
     function getAchievements() {
-      const rc = history.length;
+      const rc = readHistory.length;
       const fc = favs.length;
       const lc = loved.length;
       return [
@@ -1707,21 +1780,22 @@
     function renderAchievements() {
       const c = document.getElementById('achievements-grid');
       if(!c) return;
-      c.innerHTML = getAchievements().map(a => `
-        <div class="achievement ${a.unlocked?'unlocked':'locked'}" title="${a.desc}">
-          <div class="achievement-icon">${a.icon}</div>
-          <div class="achievement-name">${a.name}</div>
-        </div>`).join('');
+      c.innerHTML = getAchievements().map(function(a) {
+        return '<div class="achievement ' + (a.unlocked?'unlocked':'locked') + '" title="' + esc(a.desc) + '">'
+          + '<div class="achievement-icon">' + a.icon + '</div>'
+          + '<div class="achievement-name">' + esc(a.name) + '</div>'
+          + '</div>';
+      }).join('');
     }
 
     function updateProfileUI() {
       const user = getStorage('m_user_v7', null);
       if(user && !window.isListeningToMyData && window.listenToMyData) { window.listenToMyData(user.sub); window.isListeningToMyData = true; }
-      document.getElementById('stat-read').textContent = history.length;
+      document.getElementById('stat-read').textContent = readHistory.length;
       document.getElementById('stat-fav').textContent = favs.length;
       document.getElementById('stat-loved').textContent = loved.length;
-      const rc = history.length;
-      let rank = "Новичок", nextLevel = 5, progress = 0;
+      const rc = readHistory.length;
+      let rank = "Новичок", progress = 0;
       if(rc >= 100) rank = "Легенда";
       else if(rc >= 50) rank = "Мастер";
       else if(rc >= 25) rank = "Отаку";
@@ -1730,12 +1804,12 @@
       if(rc >= 100) { progress = 100; document.getElementById('chapters-to-next').innerHTML = "Максимальный уровень!"; }
       else {
         const levels = [5,10,25,50,100];
-        nextLevel = levels.find(l => l > rc) || 100;
+        var nextLevel = levels.find(l => l > rc) || 100;
         progress = (rc / nextLevel) * 100;
-        document.getElementById('chapters-to-next').innerHTML = `<b>${nextLevel - rc}</b> глав до повышения`;
+        document.getElementById('chapters-to-next').innerHTML = '<b>' + (nextLevel - rc) + '</b> глав до повышения';
       }
       document.getElementById('user-rank').textContent = rank + ' ✦';
-      document.getElementById('user-progress').style.width = `${progress}%`;
+      document.getElementById('user-progress').style.width = progress + '%';
       document.getElementById('sb-rank').textContent = rank + ' ✦';
       if(user) {
         document.getElementById('auth-section').style.display = 'none';
@@ -1762,49 +1836,54 @@
       const user = getStorage('m_user_v7', null);
       if(!user) { window.showToast("Сначала войдите через Google!", "error"); return; }
       const input = document.getElementById('friend-search-input');
-      const q = input.value.trim(); const res = document.getElementById('friend-search-results');
+      const q = input.value.trim(); var res = document.getElementById('friend-search-results');
       if(!q) return;
       res.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;">Ищем...</div>';
       if(window.searchUsersInCloud) {
         const results = await window.searchUsersInCloud(q);
         if(results.length > 0) {
-          res.innerHTML = results.map(u => {
+          res.innerHTML = results.map(function(u) {
             const isMe = user.sub === u.uid;
-            const isFr = myFriends.some(f => f.uid === u.uid);
-            const btn = isMe ? `<span style="color:var(--text-dim);font-size:.8rem;">Это вы</span>`
-              : isFr ? `<span style="color:var(--accent2);font-size:.8rem;font-weight:700;">В друзьях ✓</span>`
-              : `<button class="list-action" onclick="sendFriendRequest('${u.uid}','${u.customNickname||u.name}','${u.picture}')">+ Добавить</button>`;
-            return `<div class="list-item" style="border-color:var(--accent);">
-              <img src="${u.picture||'https://via.placeholder.com/46/7c3aed/fff?text=👤'}" class="list-avatar">
-              <div class="list-info"><div class="list-title">${u.customNickname||u.name}</div><div class="list-sub">Найден в MangaCloud</div></div>
-              ${btn}</div>`;
+            const isFr = window.myFriends.some(f => f.uid === u.uid);
+            var btn;
+            if(isMe) btn = '<span style="color:var(--text-dim);font-size:.8rem;">Это вы</span>';
+            else if(isFr) btn = '<span style="color:var(--accent2);font-size:.8rem;font-weight:700;">В друзьях ✓</span>';
+            else btn = '<button class="list-action" onclick="sendFriendRequest(\'' + esc(u.uid) + '\',\'' + esc(u.customNickname||u.name) + '\',\'' + esc(u.picture) + '\')">+ Добавить</button>';
+            return '<div class="list-item" style="border-color:var(--accent);">'
+              + '<img src="' + esc(u.picture||'https://via.placeholder.com/46/7c3aed/fff?text=👤') + '" class="list-avatar">'
+              + '<div class="list-info"><div class="list-title">' + esc(u.customNickname||u.name) + '</div><div class="list-sub">Найден в MangaCloud</div></div>'
+              + btn + '</div>';
           }).join('');
         } else { res.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:20px;">Пользователь не найден.</p>'; }
       }
     };
-    function renderFriendsList() {
-      const c = document.getElementById('friends-list'); if(!c) return;
-      c.innerHTML = myFriends.length ? myFriends.map(f => `
-        <div class="list-item">
-          <img src="${f.picture}" class="list-avatar">
-          <div class="list-info"><div class="list-title">${f.name}</div></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="list-action" onclick="openRealChat('${f.uid}','${f.name}','${f.picture}')">Написать</button>
-            <button class="list-action" style="background:rgba(244,63,94,.1);color:var(--loved);border-color:var(--loved);" onclick="removeFriendAndChat('${f.uid}','${f.name}')">Удалить</button>
-          </div>
-        </div>`).join('') : "<p style='color:var(--text-dim);text-align:center;padding:28px;'>У вас пока нет друзей. Найдите кого-нибудь в поиске!</p>";
-    }
+    window.renderFriendsList = function() {
+      var c = document.getElementById('friends-list'); if(!c) return;
+      c.innerHTML = window.myFriends.length ? window.myFriends.map(function(f) {
+        return '<div class="list-item">'
+          + '<img src="' + esc(f.picture) + '" class="list-avatar">'
+          + '<div class="list-info"><div class="list-title">' + esc(f.name) + '</div></div>'
+          + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+          + '<button class="list-action" onclick="openRealChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\',\'' + esc(f.picture) + '\')">Написать</button>'
+          + '<button class="list-action" style="background:rgba(244,63,94,.1);color:var(--loved);border-color:var(--loved);" onclick="removeFriendAndChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\')">Удалить</button>'
+          + '</div></div>';
+      }).join('') : "<p style='color:var(--text-dim);text-align:center;padding:28px;'>У вас пока нет друзей. Найдите кого-нибудь в поиске!</p>";
+    };
+    function renderFriendsList() { window.renderFriendsList(); }
 
     // ====== MESSAGES ======
-    function renderDialogsList() {
-      const c = document.getElementById('dialogs-container'); if(!c) return;
-      c.innerHTML = myFriends.length ? myFriends.map(f => `
-        <div class="list-item" style="padding:10px;margin-bottom:7px;" onclick="openRealChat('${f.uid}','${f.name}','${f.picture}')">
-          <img src="${f.picture}" class="list-avatar" style="width:40px;height:40px;">
-          <div class="list-info"><div class="list-title" style="font-size:.88rem;">${f.name}</div><div class="list-sub" style="font-size:.7rem;">Открыть чат...</div></div>
-          <button class="list-action" style="padding:5px 9px;background:rgba(244,63,94,.1);border-color:var(--loved);color:var(--loved);" onclick="event.stopPropagation();removeFriendAndChat('${f.uid}','${f.name}')">🗑️</button>
-        </div>`).join('') : "<p style='color:var(--text-dim);text-align:center;font-size:.84rem;padding:18px;'>Добавьте друзей</p>";
-    }
+    window.renderDialogsList = function() {
+      var c = document.getElementById('dialogs-container'); if(!c) return;
+      c.innerHTML = window.myFriends.length ? window.myFriends.map(function(f) {
+        return '<div class="list-item" style="padding:10px;margin-bottom:7px;" onclick="openRealChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\',\'' + esc(f.picture) + '\')">'
+          + '<img src="' + esc(f.picture) + '" class="list-avatar" style="width:40px;height:40px;">'
+          + '<div class="list-info"><div class="list-title" style="font-size:.88rem;">' + esc(f.name) + '</div><div class="list-sub" style="font-size:.7rem;">Открыть чат...</div></div>'
+          + '<button class="list-action" style="padding:5px 9px;background:rgba(244,63,94,.1);border-color:var(--loved);color:var(--loved);" onclick="event.stopPropagation();removeFriendAndChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\')">🗑️</button>'
+          + '</div>';
+      }).join('') : "<p style='color:var(--text-dim);text-align:center;font-size:.84rem;padding:18px;'>Добавьте друзей</p>";
+    };
+    function renderDialogsList() { window.renderDialogsList(); }
+
     window.openRealChat = function(friendUid, friendName, friendPic) {
       const user = getStorage('m_user_v7', null);
       if(!user) { window.showToast("Авторизуйтесь для общения!", "error"); return; }
@@ -1818,11 +1897,11 @@
       const mc = document.getElementById('chat-messages-container');
       mc.innerHTML = '<div style="text-align:center;color:var(--text-dim);margin-top:40px;">Загрузка...</div>';
       if(window.listenToChatMessages) {
-        chatUnsub = window.listenToChatMessages(chatId, messages => {
-          if(!messages.length) { mc.innerHTML = `<div style="text-align:center;color:var(--text-dim);margin-top:50px;font-size:.9rem;">Напишите первое сообщение!</div>`; return; }
-          mc.innerHTML = messages.map(msg => {
+        chatUnsub = window.listenToChatMessages(chatId, function(messages) {
+          if(!messages.length) { mc.innerHTML = '<div style="text-align:center;color:var(--text-dim);margin-top:50px;font-size:.9rem;">Напишите первое сообщение!</div>'; return; }
+          mc.innerHTML = messages.map(function(msg) {
             const mine = msg.senderUid === user.sub;
-            return `<div class="msg-bubble ${mine?'msg-out':'msg-in'}">${msg.text}<div style="font-size:.6rem;opacity:.65;text-align:right;margin-top:4px;">${msg.time}</div></div>`;
+            return '<div class="msg-bubble ' + (mine?'msg-out':'msg-in') + '">' + esc(msg.text) + '<div style="font-size:.6rem;opacity:.65;text-align:right;margin-top:4px;">' + esc(msg.time) + '</div></div>';
           }).join('');
           mc.scrollTop = mc.scrollHeight;
         });
@@ -1839,16 +1918,19 @@
       }
     };
     window.checkChatActive = function() { if(!activeChatFriend) window.showToast("Выберите друга из списка!", "error"); };
+    /* FIX: Message validation max 1000 chars */
     window.sendRealMessage = async function() {
       const user = getStorage('m_user_v7', null);
       if(!user) { window.showToast("Авторизуйтесь!", "error"); return; }
       if(!activeChatFriend) { window.showToast("Выберите диалог!", "error"); return; }
       const input = document.getElementById('chat-input');
-      const text = input.value.trim(); if(!text) return;
+      const text = input.value.trim();
+      if(!text) return;
+      if(text.length > 1000) { window.showToast("Сообщение слишком длинное (макс 1000 символов)!", "error"); return; }
       input.value = '';
       const chatId = [user.sub, activeChatFriend.uid].sort().join('_');
       const now = new Date();
-      const msgObj = { senderUid:user.sub, text, time:`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`, timestamp:Date.now() };
+      const msgObj = { senderUid:user.sub, text:text, time:now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0'), timestamp:Date.now() };
       if(window.sendMessageToCloud) await window.sendMessageToCloud(chatId, msgObj);
     };
     document.getElementById('chat-input').addEventListener('keypress', e => { if(e.key === 'Enter') sendRealMessage(); });
@@ -1858,20 +1940,17 @@
       const c = document.getElementById('hero-banner-container');
       const all = Object.values(window.mangaDb);
       if(!all.length) { c.innerHTML = ''; return; }
-      // Pick random featured manga
       const featured = all[Math.floor(Math.random()*all.length)];
-      c.innerHTML = `<div class="hero-banner" onclick="openTitle('${featured.id}')">
-        <div class="hero-banner-bg" style="background-image:url('${featured.cover}')"></div>
-        <div class="hero-banner-content">
-          <img class="hero-banner-cover" src="${featured.cover}" alt="${featured.title}" loading="lazy" onerror="this.src='https://placehold.co/130x195/12121e/7c3aed?text=?'">
-          <div class="hero-banner-info">
-            <div class="hero-banner-label">✨ Рекомендация дня</div>
-            <div class="hero-banner-title">${featured.title}</div>
-            <div class="hero-banner-desc">${(featured.genres||[]).join(' • ')} • ${featured.year||''} • ${featured.status||''}</div>
-            <button class="btn" onclick="event.stopPropagation();openTitle('${featured.id}')">Читать сейчас →</button>
-          </div>
-        </div>
-      </div>`;
+      c.innerHTML = '<div class="hero-banner" onclick="openTitle(\'' + esc(featured.id) + '\')">'
+        + '<div class="hero-banner-bg" style="background-image:url(\'' + esc(featured.cover) + '\')"></div>'
+        + '<div class="hero-banner-content">'
+        + '<img class="hero-banner-cover" src="' + esc(featured.cover) + '" alt="' + esc(featured.title) + '" loading="lazy" onerror="this.src=\'https://placehold.co/130x195/12121e/7c3aed?text=?\'">'
+        + '<div class="hero-banner-info">'
+        + '<div class="hero-banner-label">✨ Рекомендация дня</div>'
+        + '<div class="hero-banner-title">' + esc(featured.title) + '</div>'
+        + '<div class="hero-banner-desc">' + esc((featured.genres||[]).join(' • ') + ' • ' + (featured.year||'') + ' • ' + (featured.status||'')) + '</div>'
+        + '<button class="btn" onclick="event.stopPropagation();openTitle(\'' + esc(featured.id) + '\')">Читать сейчас →</button>'
+        + '</div></div></div>';
     }
 
     // ====== QUICK STATS ======
@@ -1879,52 +1958,49 @@
       const c = document.getElementById('quick-stats');
       if(!c) return;
       const totalManga = Object.keys(window.mangaDb).length;
-      const totalChapters = Object.values(window.mangaDb).reduce((s,m) => s + (m.chapters ? Object.keys(m.chapters).length : 0), 0);
-      c.innerHTML = `
-        <div class="quick-stat"><div class="quick-stat-icon">📚</div><div class="quick-stat-val">${totalManga}</div><div class="quick-stat-label">Тайтлов</div></div>
-        <div class="quick-stat"><div class="quick-stat-icon">📄</div><div class="quick-stat-val">${totalChapters}</div><div class="quick-stat-label">Глав</div></div>
-        <div class="quick-stat"><div class="quick-stat-icon">📖</div><div class="quick-stat-val">${history.length}</div><div class="quick-stat-label">Прочитано</div></div>
-        <div class="quick-stat"><div class="quick-stat-icon">🔖</div><div class="quick-stat-val">${favs.length + loved.length}</div><div class="quick-stat-label">Сохранено</div></div>
-      `;
+      const totalChapters = Object.values(window.mangaDb).reduce(function(s,m) { return s + (m.chapters ? Object.keys(m.chapters).length : 0); }, 0);
+      c.innerHTML = '<div class="quick-stat"><div class="quick-stat-icon">📚</div><div class="quick-stat-val">' + totalManga + '</div><div class="quick-stat-label">Тайтлов</div></div>'
+        + '<div class="quick-stat"><div class="quick-stat-icon">📄</div><div class="quick-stat-val">' + totalChapters + '</div><div class="quick-stat-label">Глав</div></div>'
+        + '<div class="quick-stat"><div class="quick-stat-icon">📖</div><div class="quick-stat-val">' + readHistory.length + '</div><div class="quick-stat-label">Прочитано</div></div>'
+        + '<div class="quick-stat"><div class="quick-stat-icon">🔖</div><div class="quick-stat-val">' + (favs.length + loved.length) + '</div><div class="quick-stat-label">Сохранено</div></div>';
     }
 
     // ====== READING TIME ======
     function formatReadingTime(seconds) {
       const h = Math.floor(seconds / 3600);
       const m = Math.floor((seconds % 3600) / 60);
-      if(h > 0) return `${h}ч ${m}м`;
-      return `${m}м`;
+      if(h > 0) return h + 'ч ' + m + 'м';
+      return m + 'м';
     }
     function renderReadingTime() {
       const c = document.getElementById('reading-time-container');
       if(!c) return;
       if(totalReadingTime < 60) { c.innerHTML = ''; return; }
-      c.innerHTML = `<div class="reading-time-widget">
-        <div class="reading-time-icon">⏱️</div>
-        <div class="reading-time-info">
-          <div class="reading-time-label">Время чтения</div>
-          <div class="reading-time-val">${formatReadingTime(totalReadingTime)}</div>
-        </div>
-      </div>`;
+      c.innerHTML = '<div class="reading-time-widget">'
+        + '<div class="reading-time-icon">⏱️</div>'
+        + '<div class="reading-time-info">'
+        + '<div class="reading-time-label">Время чтения</div>'
+        + '<div class="reading-time-val">' + formatReadingTime(totalReadingTime) + '</div>'
+        + '</div></div>';
     }
 
     // ====== GENRE CHIPS ======
     function renderGenreChips() {
       const allGenres = new Set();
-      Object.values(window.mangaDb).forEach(m => { if(m.genres) m.genres.forEach(g => allGenres.add(g)); });
+      Object.values(window.mangaDb).forEach(function(m) { if(m.genres) m.genres.forEach(function(g) { allGenres.add(g); }); });
       const chips = document.getElementById('genre-chips');
       if(!chips || allGenres.size === 0) return;
       chips.innerHTML = '<span class="genre-chip active" onclick="filterByGenre(null, this)">Все</span>'
-        + [...allGenres].slice(0,10).map(g => `<span class="genre-chip" onclick="filterByGenre('${g}', this)">${g}</span>`).join('');
+        + Array.from(allGenres).slice(0,10).map(function(g) { return '<span class="genre-chip" onclick="filterByGenre(\'' + esc(g) + '\', this)">' + esc(g) + '</span>'; }).join('');
     }
     window.filterByGenre = function(genre, el) {
       activeGenreFilter = genre;
       document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
       el.classList.add('active');
-      const data = genre
+      var data = genre
         ? Object.values(window.mangaDb).filter(m => m.genres && m.genres.includes(genre))
         : Object.values(window.mangaDb);
-      document.getElementById('home-section-title').textContent = genre ? `🏷️ ${genre}` : '⚡ Популярное сегодня';
+      document.getElementById('home-section-title').textContent = genre ? '🏷️ ' + genre : '⚡ Популярное сегодня';
       renderGrid(data, 'home-grid');
     };
 
@@ -1941,53 +2017,89 @@
     function renderGrid(list, targetId) {
       const c = document.getElementById(targetId); if(!c) return;
       if(!list.length) {
-        c.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Ничего не найдено</div><div class="empty-state-sub">Попробуйте изменить запрос или сбросить фильтры</div></div>`;
+        c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Ничего не найдено</div><div class="empty-state-sub">Попробуйте изменить запрос или сбросить фильтры</div></div>';
         return;
       }
-      c.innerHTML = list.map(m => {
+      c.innerHTML = list.map(function(m) {
         const isLoved = loved.includes(m.id);
         const r = rates[m.id] || 0;
         const isNew = m.updatedAt && (Date.now()/1000 - m.updatedAt) < 7*24*3600;
-        return `<div class="card" onclick="openTitle('${m.id}')" tabindex="0" role="button" aria-label="${m.title}">
-          ${isNew ? `<span class="badge b-new" style="top:9px;left:9px;">NEW</span>` : `<span class="badge b-status">${m.status||''}</span>`}
-          ${isLoved ? `<span class="badge" style="top:9px;right:9px;background:var(--loved);color:#fff;">❤️</span>` : `<span class="badge b-rating">★ ${r || (m.rating||'?')}</span>`}
-          <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="${m.title}" onerror="this.src='https://placehold.co/300x450/12121e/7c3aed?text=?'"></div>
-          <div class="card-info">
-            <h3>${m.title}</h3>
-            <div class="card-sub">${(m.genres||[]).slice(0,2).map(g=>`<span class="card-genre-tag">${g}</span>`).join('')}</div>
-          </div>
-        </div>`;
+        return '<div class="card" onclick="openTitle(\'' + esc(m.id) + '\')" tabindex="0" role="button" aria-label="' + esc(m.title) + '">'
+          + (isNew ? '<span class="badge b-new" style="top:9px;left:9px;">NEW</span>' : '<span class="badge b-status">' + esc(m.status||'') + '</span>')
+          + (isLoved ? '<span class="badge" style="top:9px;right:9px;background:var(--loved);color:#fff;">❤️</span>' : '<span class="badge b-rating">★ ' + (r || (m.rating||'?')) + '</span>')
+          + '<div class="card-cover"><img src="' + esc(m.cover) + '" loading="lazy" alt="' + esc(m.title) + '" onerror="this.src=\'https://placehold.co/300x450/12121e/7c3aed?text=?\'"></div>'
+          + '<div class="card-info"><h3>' + esc(m.title) + '</h3>'
+          + '<div class="card-sub">' + (m.genres||[]).slice(0,2).map(function(g) { return '<span class="card-genre-tag">' + esc(g) + '</span>'; }).join('') + '</div></div></div>';
       }).join('');
-      c.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') { e.preventDefault(); card.click(); } });
+      c.querySelectorAll('.card').forEach(function(card) {
+        card.addEventListener('keydown', function(e) { if(e.key==='Enter'||e.key===' ') { e.preventDefault(); card.click(); } });
       });
     }
 
     // ====== CONTINUE READING ======
     function renderContinueReading() {
       const c = document.getElementById('continue-reading-container');
-      const lastRead = history.find(h => window.mangaDb[h.id]);
+      const lastRead = readHistory.find(h => window.mangaDb[h.id]);
       if(lastRead) {
         const m = window.mangaDb[lastRead.id];
-        c.innerHTML = `<div class="continue-widget" onclick="openChapterFromWidget('${m.id}',${lastRead.ch})">
-          <img src="${m.cover}" class="continue-cover" alt="cover" loading="lazy">
-          <div class="continue-info">
-            <div class="continue-label">Продолжить чтение</div>
-            <div class="continue-title">${m.title}</div>
-            <div class="continue-ch">Глава ${lastRead.ch}</div>
-          </div>
-          <div class="continue-arrow">→</div>
-        </div>`;
+        c.innerHTML = '<div class="continue-widget" onclick="openChapterFromWidget(\'' + esc(m.id) + '\',' + lastRead.ch + ')">'
+          + '<img src="' + esc(m.cover) + '" class="continue-cover" alt="cover" loading="lazy">'
+          + '<div class="continue-info">'
+          + '<div class="continue-label">Продолжить чтение</div>'
+          + '<div class="continue-title">' + esc(m.title) + '</div>'
+          + '<div class="continue-ch">Глава ' + lastRead.ch + '</div>'
+          + '</div>'
+          + '<div class="continue-arrow">→</div></div>';
       } else { c.innerHTML = ''; }
     }
-    function openChapterFromWidget(id, ch) { openTitle(id); setTimeout(() => openChapter(ch), 300); }
+
+    /* FIX: openChapterFromWidget now waits for page load via Promise */
+    window.openChapterFromWidget = function(id, ch) {
+      return new Promise(function(resolve) {
+        openTitle(id);
+        // Wait for title page to be rendered and DOM ready
+        var checkInterval = setInterval(function() {
+          var chaptersList = document.getElementById('det-chapters');
+          if(chaptersList && chaptersList.children.length > 0) {
+            clearInterval(checkInterval);
+            openChapter(ch);
+            resolve();
+          }
+        }, 50);
+        // Timeout safety
+        setTimeout(function() {
+          clearInterval(checkInterval);
+          openChapter(ch);
+          resolve();
+        }, 2000);
+      });
+    };
 
     // ====== YEAR FILTER ======
     function renderYears() {
       const box = document.getElementById('filter-year'); if(!box) return;
       let html = '';
-      for(let y=2026; y>=1980; y--) html += `<label><input type="checkbox" value="${y}" onchange="applyFilters()"><span>${y}</span></label>`;
+      for(let y=2026; y>=1980; y--) html += '<label><input type="checkbox" value="' + y + '" onchange="applyFilters()"><span>' + y + '</span></label>';
       box.innerHTML = html;
+    }
+
+    /* FIX: Dynamic genre filters built from real manga data */
+    function buildDynamicGenreFilters() {
+      const genreSet = new Set();
+      Object.values(window.mangaDb).forEach(function(m) {
+        if(m.genres) m.genres.forEach(function(g) { genreSet.add(g); });
+      });
+      const box = document.getElementById('filter-genre');
+      if(!box) return;
+      if(genreSet.size === 0) {
+        // Fallback static genres
+        box.innerHTML = ['Экшен','Фэнтези','Романтика','Драма','Исекай','Приключения','Комедия','Мистика']
+          .map(function(g) { return '<label><input type="checkbox" value="' + g + '" onchange="applyFilters()"><span>' + g + '</span></label>'; }).join('');
+        return;
+      }
+      box.innerHTML = Array.from(genreSet).sort().map(function(g) {
+        return '<label><input type="checkbox" value="' + esc(g) + '" onchange="applyFilters()"><span>' + esc(g) + '</span></label>';
+      }).join('');
     }
 
     // ====== STARS ======
@@ -2001,14 +2113,14 @@
           localStorage.setItem('m_rates_v7', JSON.stringify(rates));
           updateStarsUI();
           if(window.sendRatingToCloud) window.sendRatingToCloud(curId, rates[curId]);
-          window.showToast(`Оценка: ${rates[curId]}/10 ⭐`);
+          window.showToast('Оценка: ' + rates[curId] + '/10 ⭐');
         };
         c.appendChild(s);
       }
     }
     function updateStarsUI() {
       const v = rates[curId] || 0;
-      document.querySelectorAll('.star').forEach(s => s.classList.toggle('active', parseInt(s.dataset.v) <= v));
+      document.querySelectorAll('.star').forEach(function(s) { s.classList.toggle('active', parseInt(s.dataset.v) <= v); });
     }
 
     // ====== SWITCH PAGE ======
@@ -2016,17 +2128,16 @@
       document.querySelectorAll('.page').forEach(el => el.style.display = 'none');
       const target = document.getElementById(p + '-page');
       if(target) target.style.display = 'block';
-      document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active'); i.removeAttribute('aria-current'); });
-      const nav = document.querySelector(`.nav-item[onclick*="'${p}'"]`);
+      document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); i.removeAttribute('aria-current'); });
+      const nav = document.querySelector('.nav-item[onclick*="\'' + p + '\'"]');
       if(nav) { nav.classList.add('active'); nav.setAttribute('aria-current','page'); }
       closeSidebar();
-      // Reset header hidden state
       document.getElementById('main-header').classList.remove('header-hidden');
       headerHidden = false;
 
       if(p !== 'title') lastP = p;
       if(p === 'home') {
-        const si = document.getElementById('search-input');
+        var si = document.getElementById('search-input');
         if(si && si.value.trim()) clearSearch();
         else {
           renderHeroBanner();
@@ -2037,9 +2148,9 @@
           renderGenreChips();
         }
       }
-      if(p === 'catalog') applyFilters();
-      if(p === 'fav') renderGrid(favs.map(id=>window.mangaDb[id]).filter(Boolean), 'fav-grid');
-      if(p === 'loved') renderGrid(loved.map(id=>window.mangaDb[id]).filter(Boolean), 'loved-grid');
+      if(p === 'catalog') { buildDynamicGenreFilters(); applyFilters(); }
+      if(p === 'fav') renderGrid(favs.map(function(id) { return window.mangaDb[id]; }).filter(Boolean), 'fav-grid');
+      if(p === 'loved') renderGrid(loved.map(function(id) { return window.mangaDb[id]; }).filter(Boolean), 'loved-grid');
       if(p === 'hist') renderHistory();
       if(p === 'profile') updateProfileUI();
       if(p === 'friends') renderFriendsList();
@@ -2052,34 +2163,33 @@
       const statsEl = document.getElementById('history-stats');
       const listEl = document.getElementById('history-list');
       if(!listEl) return;
-      const valid = history.filter(h => window.mangaDb[h.id]);
+      const valid = readHistory.filter(h => window.mangaDb[h.id]);
       if(statsEl) {
-        statsEl.innerHTML = `<div class="stats-bar">
-          <div class="stats-card"><div class="stats-card-val">${valid.length}</div><div class="stats-card-label">Глав прочитано</div></div>
-          <div class="stats-card"><div class="stats-card-val">${new Set(valid.map(h=>h.id)).size}</div><div class="stats-card-label">Уник. тайтлов</div></div>
-          <div class="stats-card"><div class="stats-card-val">${formatReadingTime(totalReadingTime)}</div><div class="stats-card-label">Время чтения</div></div>
-        </div>`;
+        statsEl.innerHTML = '<div class="stats-bar">'
+          + '<div class="stats-card"><div class="stats-card-val">' + valid.length + '</div><div class="stats-card-label">Глав прочитано</div></div>'
+          + '<div class="stats-card"><div class="stats-card-val">' + new Set(valid.map(h=>h.id)).size + '</div><div class="stats-card-label">Уник. тайтлов</div></div>'
+          + '<div class="stats-card"><div class="stats-card-val">' + formatReadingTime(totalReadingTime) + '</div><div class="stats-card-label">Время чтения</div></div>'
+          + '</div>';
       }
       if(!valid.length) {
         listEl.className = '';
-        listEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🕒</div><div class="empty-state-text">История пуста</div><div class="empty-state-sub">Начните читать, и здесь появится история</div></div>`;
+        listEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🕒</div><div class="empty-state-text">История пуста</div><div class="empty-state-sub">Начните читать, и здесь появится история</div></div>';
         return;
       }
       listEl.className = 'grid';
-      listEl.innerHTML = valid.map(h => {
+      listEl.innerHTML = valid.map(function(h) {
         const m = window.mangaDb[h.id];
-        return `<div class="card" onclick="openTitle('${m.id}')" tabindex="0" role="button">
-          <span class="badge b-status" style="background:var(--accent);color:#fff;">Гл.${h.ch}</span>
-          <div class="card-cover"><img src="${m.cover}" loading="lazy" alt="${m.title}" onerror="this.src='https://placehold.co/300x450/12121e/7c3aed?text=?'"></div>
-          <div class="card-info"><h3>${m.title}</h3></div>
-        </div>`;
+        return '<div class="card" onclick="openTitle(\'' + esc(m.id) + '\')" tabindex="0" role="button">'
+          + '<span class="badge b-status" style="background:var(--accent);color:#fff;">Гл.' + h.ch + '</span>'
+          + '<div class="card-cover"><img src="' + esc(m.cover) + '" loading="lazy" alt="' + esc(m.title) + '" onerror="this.src=\'https://placehold.co/300x450/12121e/7c3aed?text=?\'"></div>'
+          + '<div class="card-info"><h3>' + esc(m.title) + '</h3></div></div>';
       }).join('');
     }
     window.clearHistory = function() {
-      if(!history.length) { window.showToast("История уже пуста"); return; }
+      if(!readHistory.length) { window.showToast("История уже пуста"); return; }
       if(!confirm("Очистить всю историю чтения?")) return;
-      history = [];
-      localStorage.setItem('m_hist_v7', JSON.stringify(history));
+      readHistory = [];
+      localStorage.setItem('m_hist_v7', JSON.stringify(readHistory));
       renderHistory();
       window.showToast("История очищена");
     };
@@ -2087,7 +2197,7 @@
     // ====== FILTERS ======
     function applyFilters() {
       let data = Object.values(window.mangaDb);
-      const getChecks = id => Array.from(document.querySelectorAll(`${id} input:checked`)).map(i => i.value);
+      var getChecks = function(id) { return Array.from(document.querySelectorAll(id + ' input:checked')).map(i => i.value); };
       const statuses = getChecks('#filter-status'), years = getChecks('#filter-year'), genres = getChecks('#filter-genre');
       if(statuses.length) data = data.filter(m => statuses.includes(m.status));
       if(years.length) data = data.filter(m => years.includes(String(m.year)));
@@ -2096,9 +2206,8 @@
       if(sort === 'rating') data.sort((a,b) => (rates[b.id]||0) - (rates[a.id]||0));
       if(sort === 'new') data.sort((a,b) => (b.year||0) - (a.year||0));
       if(sort === 'updated') data.sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
-      // Show results count
       const info = document.getElementById('catalog-results-info');
-      if(info) info.textContent = `Найдено: ${data.length} тайтлов`;
+      if(info) info.textContent = 'Найдено: ' + data.length + ' тайтлов';
       renderGrid(data, 'catalog-grid');
     }
 
@@ -2108,31 +2217,33 @@
       const m = window.mangaDb[id]; if(!m) return;
       document.getElementById('det-cover').src = m.cover;
       document.getElementById('det-title').textContent = m.title;
-      document.getElementById('det-meta').textContent = `${m.year||''} • ${m.status||''} • ${(m.genres||[]).join(', ')}`;
+      document.getElementById('det-meta').textContent = (m.year||'') + ' • ' + (m.status||'') + ' • ' + (m.genres||[]).join(', ');
       const genresEl = document.getElementById('det-genres');
-      if(genresEl) genresEl.innerHTML = (m.genres||[]).map(g => `<span class="genre-tag">${g}</span>`).join('');
+      if(genresEl) genresEl.innerHTML = (m.genres||[]).map(function(g) { return '<span class="genre-tag">' + esc(g) + '</span>'; }).join('');
       document.getElementById('det-rating-num').textContent = "0.0";
       document.getElementById('det-votes').textContent = "Загрузка...";
       document.getElementById('ch-search-input').value = '';
-      if(ratingUnsub) ratingUnsub();
+
+      /* FIX: ratingUnsub — properly nullify after unsubscribe */
+      if(ratingUnsub) { ratingUnsub(); ratingUnsub = null; }
       if(window.listenToRating) {
-        ratingUnsub = window.listenToRating(id, data => {
+        var unsub = window.listenToRating(id, function(data) {
           document.getElementById('det-rating-num').textContent = data.average;
-          document.getElementById('det-votes').textContent = `Оценок: ${data.total}`;
+          document.getElementById('det-votes').textContent = 'Оценок: ' + data.total;
         });
+        ratingUnsub = unsub;
       }
 
       // Title progress
       if(m.chapters) {
         const totalCh = Object.keys(m.chapters).length;
-        const readCh = history.filter(h => h.id === id).length;
-        const uniqueRead = new Set(history.filter(h => h.id === id).map(h => h.ch)).size;
+        const uniqueRead = new Set(readHistory.filter(h => h.id === id).map(h => h.ch)).size;
         const pct = totalCh > 0 ? Math.round((uniqueRead/totalCh)*100) : 0;
         const pc = document.getElementById('title-progress-container');
         if(uniqueRead > 0) {
           pc.style.display = 'block';
           document.getElementById('title-progress-pct').textContent = pct + '%';
-          setTimeout(() => { document.getElementById('title-progress-fill').style.width = pct + '%'; }, 100);
+          setTimeout(function() { document.getElementById('title-progress-fill').style.width = pct + '%'; }, 100);
         } else {
           pc.style.display = 'none';
         }
@@ -2141,15 +2252,14 @@
       // Chapters
       const chList = document.getElementById('det-chapters');
       if(m.chapters) {
-        chList.innerHTML = Object.keys(m.chapters).sort((a,b)=>b-a).map(n => {
-          const isRead = history.some(h => h.id === id && h.ch == n);
-          return `<div class="chapter-item ${isRead?'read':''}" data-ch="${n}" onclick="openChapter(${n})" tabindex="0" role="button">
-            <span class="ch-num">Глава ${n}</span>
-            <span class="ch-action">${isRead?'ПРОДОЛЖИТЬ ›':'ЧИТАТЬ ›'}</span>
-          </div>`;
+        chList.innerHTML = Object.keys(m.chapters).sort((a,b)=>b-a).map(function(n) {
+          const isRead = readHistory.some(h => h.id === id && h.ch == n);
+          return '<div class="chapter-item ' + (isRead?'read':'') + '" data-ch="' + n + '" onclick="openChapter(' + n + ')" tabindex="0" role="button">'
+            + '<span class="ch-num">Глава ' + n + '</span>'
+            + '<span class="ch-action">' + (isRead?'ПРОДОЛЖИТЬ ›':'ЧИТАТЬ ›') + '</span></div>';
         }).join('');
-        chList.querySelectorAll('.chapter-item').forEach(item => {
-          item.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') { e.preventDefault(); item.click(); } });
+        chList.querySelectorAll('.chapter-item').forEach(function(item) {
+          item.addEventListener('keydown', function(e) { if(e.key==='Enter'||e.key===' ') { e.preventDefault(); item.click(); } });
         });
       } else { chList.innerHTML = "<p style='padding:20px;text-align:center;color:var(--text-dim);'>Главы не загружены</p>"; }
       updateStarsUI(); updateFavUI(); switchPage('title');
@@ -2160,25 +2270,24 @@
 
     function openChapter(n) {
       curCh = parseInt(n);
-      history = history.filter(h => !(h.id === curId && h.ch === curCh));
-      history.unshift({ id:curId, ch:curCh, time:Date.now() });
-      localStorage.setItem('m_hist_v7', JSON.stringify(history.slice(0,100)));
-      document.getElementById('reader-info').textContent = `${window.mangaDb[curId].title} — Гл.${curCh}`;
+      readHistory = readHistory.filter(h => !(h.id === curId && h.ch === curCh));
+      readHistory.unshift({ id:curId, ch:curCh, time:Date.now() });
+      localStorage.setItem('m_hist_v7', JSON.stringify(readHistory.slice(0,100)));
+      document.getElementById('reader-info').textContent = window.mangaDb[curId].title + ' — Гл.' + curCh;
       const container = document.getElementById('reader-images');
       container.innerHTML = '<div style="text-align:center;padding:60px;color:#666;">Загрузка страниц...</div>';
       const ch = window.mangaDb[curId].chapters[curCh];
       if(Array.isArray(ch)) {
-        container.innerHTML = ch.map((s, i) => `<img src="${s}" loading="${i<3?'eager':'lazy'}" style="width:100%;display:block;" onerror="this.src='https://placehold.co/800x1200/0d0d15/7c3aed?text=Стр.${i+1}'" alt="Страница ${i+1}">`).join('');
+        container.innerHTML = ch.map(function(s, i) { return '<img src="' + esc(s) + '" loading="' + (i<3?'eager':'lazy') + '" style="width:100%;display:block;" onerror="this.src=\'https://placehold.co/800x1200/0d0d15/7c3aed?text=Стр.' + (i+1) + '\'" alt="Страница ' + (i+1) + '">'; }).join('');
       } else { container.innerHTML = '<div class="empty-state" style="margin:40px;background:#0d0d15;">Ошибка загрузки главы</div>'; }
       document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
       document.getElementById('reader').style.display = 'block';
       document.body.style.overflow = 'hidden';
-      const saved = localStorage.getItem(`scroll_${curId}_${curCh}`);
+      const saved = localStorage.getItem('scroll_' + curId + '_' + curCh);
       document.getElementById('reader').scrollTop = saved ? parseInt(saved) : 0;
       const chs = window.mangaDb[curId].chapters;
       document.getElementById('btn-prev-ch').style.display = chs[curCh-1] ? 'block' : 'none';
       document.getElementById('btn-next-ch').style.display = chs[curCh+1] ? 'block' : 'none';
-      // Start reading time tracking
       readingStartTime = Date.now();
     }
 
@@ -2186,7 +2295,7 @@
     function toggleFav(type) {
       let arr = type === 'favs' ? favs : loved;
       const exists = arr.includes(curId);
-      arr = exists ? arr.filter(i => i !== curId) : [...arr, curId];
+      arr = exists ? arr.filter(i => i !== curId) : arr.concat([curId]);
       if(type === 'favs') { favs = arr; localStorage.setItem('m_favs_v7', JSON.stringify(favs)); }
       else { loved = arr; localStorage.setItem('m_loved_v8', JSON.stringify(loved)); }
       updateFavUI(); updateSidebarBadges();
@@ -2211,21 +2320,25 @@
 
     // ====== SHARE ======
     function shareTitle() {
-      if(navigator.share) { navigator.share({ title:window.mangaDb[curId].title, text:`Читаю "${window.mangaDb[curId].title}" на MangaCloud!`, url:window.location.href }).catch(()=>{}); }
+      if(navigator.share) { navigator.share({ title:window.mangaDb[curId].title, text:'Читаю "' + window.mangaDb[curId].title + '" на MangaCloud!', url:window.location.href }).catch(function(){}); }
       else { navigator.clipboard && navigator.clipboard.writeText(window.location.href); window.showToast("Ссылка скопирована! 📋"); }
     }
 
     // ====== COMMENTS ======
+    /* FIX: Comment validation max 500 chars */
     async function saveGlobalComment() {
       const txt = document.getElementById('comment-text');
-      if(!txt.value.trim()) { window.showToast("Напишите что-нибудь!", "error"); return; }
+      var text = txt.value.trim();
+      if(!text) { window.showToast("Напишите что-нибудь!", "error"); return; }
+      if(text.length > 500) { window.showToast("Комментарий слишком длинный (макс 500 символов)!", "error"); return; }
       const user = getStorage('m_user_v7', null);
       let userName = user ? (customNames[user.sub] || user.name) : (customNames['anonymous'] || "Анонимный читатель");
-      const avatarHtml = user ? `<img src="${user.picture}" style="width:22px;height:22px;border-radius:50%;margin-right:7px;object-fit:cover;">` : '👤';
+      const avatarUrl = user ? user.picture : '';
       const now = new Date();
       const prettyDate = now.toLocaleDateString() + ', ' + now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-      const newComment = { user:userName, avatar:avatarHtml, text:txt.value.trim(), date:prettyDate, timeId:Date.now(), likes:0 };
+      const newComment = { user:userName, avatarUrl:avatarUrl, text:text, date:prettyDate, timeId:Date.now(), likes:0 };
       globalCommentsList.push(newComment); renderComments(); txt.value = '';
+      updateCommentCharCount();
       if(window.sendCommentToCloud) {
         const ok = await window.sendCommentToCloud(curId, newComment);
         window.showToast(ok ? "Комментарий опубликован! 💬" : "Ошибка отправки", ok ? 'success' : 'error');
@@ -2247,16 +2360,20 @@
       const c = document.getElementById('comments-list'); if(!c) return;
       const liked = JSON.parse(localStorage.getItem('m_liked_comments_v7') || '[]');
       c.innerHTML = globalCommentsList.length
-        ? globalCommentsList.slice().reverse().map(x => `
-          <div class="comm-card">
-            <div class="comm-header">
-              <span class="comm-user">${x.avatar||'👤'} ${x.user}</span>
-              <span class="comm-date">${x.date}</span>
-            </div>
-            <div class="comm-text">${x.text}</div>
-            <button class="comm-like-btn ${liked.includes(x.timeId)?'liked':''}" onclick="likeComment(${x.timeId})">❤️ ${x.likes||0}</button>
-          </div>`).join('')
-        : `<p style="text-align:center;color:var(--text-dim);padding:28px;">Будьте первым! Напишите комментарий 👆</p>`;
+        ? globalCommentsList.slice().reverse().map(function(x) {
+          var avatarHtml = x.avatarUrl
+            ? '<img src="' + esc(x.avatarUrl) + '" style="width:22px;height:22px;border-radius:50%;margin-right:7px;object-fit:cover;" alt="">'
+            : (x.avatar || '👤');
+          return '<div class="comm-card">'
+            + '<div class="comm-header">'
+            + '<span class="comm-user">' + avatarHtml + ' ' + esc(x.user) + '</span>'
+            + '<span class="comm-date">' + esc(x.date) + '</span>'
+            + '</div>'
+            + '<div class="comm-text">' + esc(x.text) + '</div>'
+            + '<button class="comm-like-btn ' + (liked.includes(x.timeId)?'liked':'') + '" onclick="likeComment(' + x.timeId + ')">❤️ ' + (x.likes||0) + '</button>'
+            + '</div>';
+        }).join('')
+        : '<p style="text-align:center;color:var(--text-dim);padding:28px;">Будьте первым! Напишите комментарий 👆</p>';
     }
 
     // ====== READER ======
@@ -2271,7 +2388,6 @@
       document.getElementById('reader').style.display = 'none';
       document.body.style.overflow = '';
       document.getElementById('bottom-nav').style.transform = 'translateY(0)';
-      // Track reading time
       if(readingStartTime) {
         const elapsed = Math.floor((Date.now() - readingStartTime) / 1000);
         totalReadingTime += elapsed;
@@ -2289,7 +2405,7 @@
     let searchTimeout;
     window.liveSearch = function(q) {
       clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
+      searchTimeout = setTimeout(function() {
         const query = q.trim().toLowerCase();
         const clearBtn = document.getElementById('clear-search-btn');
         const clearBtnH = document.getElementById('clear-header-btn');
@@ -2316,13 +2432,12 @@
         if(hero) hero.style.display = 'none';
         if(qs) qs.style.display = 'none';
         if(rt) rt.style.display = 'none';
-        if(titleHeader) titleHeader.textContent = `🔍 Результаты: "${q.trim()}"`;
-        const res = Object.values(window.mangaDb).filter(m =>
-          (m.title && m.title.toLowerCase().includes(query)) ||
-          (m.genres && m.genres.some(g => g.toLowerCase().includes(query)))
-        );
+        if(titleHeader) titleHeader.textContent = '🔍 Результаты: "' + q.trim() + '"';
+        const res = Object.values(window.mangaDb).filter(function(m) {
+          return (m.title && m.title.toLowerCase().includes(query)) ||
+            (m.genres && m.genres.some(function(g) { return g.toLowerCase().includes(query); }));
+        });
         renderGrid(res, 'home-grid');
-        // Sync header search input
         const hi = document.getElementById('search-input-header');
         const mi = document.getElementById('search-input');
         if(hi && hi.value !== q) hi.value = q;
@@ -2330,11 +2445,11 @@
       }, 280);
     };
     window.clearSearch = function() {
-      ['search-input','search-input-header'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+      ['search-input','search-input-header'].forEach(function(id) { var el = document.getElementById(id); if(el) el.value = ''; });
       window.liveSearch('');
     };
     window.filterChapters = function(val) {
-      document.querySelectorAll('.chapter-item').forEach(item => {
+      document.querySelectorAll('.chapter-item').forEach(function(item) {
         item.style.display = !val || item.dataset.ch.includes(val) ? 'flex' : 'none';
       });
     };
@@ -2354,7 +2469,7 @@
 
     // ====== START UI ======
     window.startUI = function() {
-      initStars(); renderYears(); updateProfileUI();
+      initStars(); renderYears(); buildDynamicGenreFilters(); updateProfileUI();
       renderNotifications(); switchPage('home');
     };
   </script>
