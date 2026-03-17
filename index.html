@@ -83,7 +83,6 @@
       line-height:1.6;
       transition:background .4s,color .4s;
       min-height:100vh;
-      /* FIX: removed overscroll-behavior-y:contain — it blocked scrolling */
     }
     ::-webkit-scrollbar{width:6px;height:6px;}
     ::-webkit-scrollbar-track{background:transparent;}
@@ -159,6 +158,13 @@
       justify-content:center;transition:var(--tr);position:relative;
     }
     .header-btn:hover{transform:scale(1.08);border-color:var(--accent);}
+    .header-avatar-btn{
+      width:42px;height:42px;border-radius:50%;border:2px solid var(--accent);
+      cursor:pointer;overflow:hidden;transition:var(--tr);flex-shrink:0;
+      box-shadow:0 0 12px var(--accent-glow);
+    }
+    .header-avatar-btn:hover{transform:scale(1.1);box-shadow:0 0 20px var(--accent-glow);}
+    .header-avatar-btn img{width:100%;height:100%;object-fit:cover;display:block;}
     .notif-badge{
       position:absolute;top:-3px;right:-3px;
       background:linear-gradient(135deg,#f43f5e,#fb7185);
@@ -181,6 +187,181 @@
       background:none;border:none;color:var(--text-dim);cursor:pointer;
       font-size:1rem;padding:2px;display:none;
     }
+
+    /* ====== AUTH MODAL ====== */
+    #auth-modal-overlay{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.75);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      z-index:10000;
+      display:none;align-items:center;justify-content:center;
+      padding:20px;
+      animation:authFadeIn .3s ease;
+    }
+    #auth-modal-overlay.visible{display:flex;}
+    @keyframes authFadeIn{from{opacity:0;}to{opacity:1;}}
+    .auth-modal{
+      background:var(--card-bg);
+      border:1px solid var(--border-bright);
+      border-radius:var(--br-lg);
+      width:min(440px,100%);
+      padding:0;overflow:hidden;
+      box-shadow:var(--sh-lg),0 0 80px var(--accent-glow);
+      animation:authModalIn .4s cubic-bezier(.4,0,.2,1);
+      position:relative;
+    }
+    @keyframes authModalIn{from{opacity:0;transform:scale(.92) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .auth-modal-header{
+      background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));
+      padding:36px 32px 28px;text-align:center;position:relative;overflow:hidden;
+    }
+    .auth-modal-header::before{
+      content:'';position:absolute;inset:0;
+      background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .auth-modal-logo{
+      font-family:var(--font-display);font-size:1.6rem;font-weight:900;
+      color:#fff;margin-bottom:6px;position:relative;z-index:1;
+      text-shadow:0 2px 12px rgba(0,0,0,.3);
+    }
+    .auth-modal-subtitle{
+      font-size:.88rem;color:rgba(255,255,255,.85);position:relative;z-index:1;
+      font-weight:500;
+    }
+    .auth-close-btn{
+      position:absolute;top:14px;right:14px;z-index:2;
+      background:rgba(255,255,255,.15);border:none;color:#fff;
+      width:34px;height:34px;border-radius:50%;cursor:pointer;
+      font-size:1.1rem;display:flex;align-items:center;justify-content:center;
+      transition:var(--tr-fast);backdrop-filter:blur(4px);
+    }
+    .auth-close-btn:hover{background:rgba(255,255,255,.3);transform:scale(1.1);}
+    .auth-modal-body{padding:32px;}
+    .auth-tabs{display:flex;gap:4px;margin-bottom:28px;background:var(--input-bg);border-radius:12px;padding:4px;border:1px solid var(--border);}
+    .auth-tab{
+      flex:1;padding:12px;text-align:center;border-radius:10px;
+      font-weight:700;font-size:.88rem;cursor:pointer;
+      transition:var(--tr-fast);color:var(--text-dim);
+      font-family:var(--font-body);border:none;background:none;
+    }
+    .auth-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 16px var(--accent-glow);}
+    .auth-tab:not(.active):hover{color:var(--text);background:rgba(124,58,237,.08);}
+    .auth-form-section{display:none;}
+    .auth-form-section.active{display:block;animation:authFormIn .3s ease;}
+    @keyframes authFormIn{from{opacity:0;transform:translateX(10px);}to{opacity:1;transform:translateX(0);}}
+    .auth-input-group{margin-bottom:18px;}
+    .auth-input-label{font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:7px;display:block;}
+    .auth-input{
+      width:100%;background:var(--input-bg);border:1px solid var(--border);
+      color:var(--text);padding:14px 16px;border-radius:12px;
+      font-size:.95rem;font-family:var(--font-body);outline:none;
+      transition:var(--tr);
+    }
+    .auth-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow2);}
+    .auth-input::placeholder{color:var(--text-dim);}
+    .auth-password-wrap{position:relative;}
+    .auth-password-wrap .auth-input{padding-right:48px;}
+    .auth-eye-btn{
+      position:absolute;right:14px;top:50%;transform:translateY(-50%);
+      background:none;border:none;color:var(--text-dim);cursor:pointer;
+      font-size:1.1rem;padding:4px;transition:var(--tr-fast);
+    }
+    .auth-eye-btn:hover{color:var(--accent2);}
+    .auth-error{
+      background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3);
+      color:var(--loved);padding:10px 14px;border-radius:10px;
+      font-size:.82rem;margin-bottom:16px;display:none;
+      animation:authShake .4s ease;
+    }
+    @keyframes authShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+    .auth-error.visible{display:block;}
+    .auth-success{
+      background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);
+      color:var(--success);padding:10px 14px;border-radius:10px;
+      font-size:.82rem;margin-bottom:16px;display:none;
+    }
+    .auth-success.visible{display:block;}
+    .auth-submit-btn{
+      width:100%;padding:15px;border:none;border-radius:12px;
+      font-size:.95rem;font-weight:800;cursor:pointer;
+      font-family:var(--font-body);transition:var(--tr);
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff;position:relative;overflow:hidden;
+    }
+    .auth-submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--accent-glow);}
+    .auth-submit-btn:active{transform:scale(.97);}
+    .auth-submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+    .auth-submit-btn .btn-spinner{
+      display:none;width:20px;height:20px;border:2px solid rgba(255,255,255,.3);
+      border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;
+      margin:0 auto;
+    }
+    .auth-submit-btn.loading .btn-text{display:none;}
+    .auth-submit-btn.loading .btn-spinner{display:block;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .auth-divider{
+      display:flex;align-items:center;gap:14px;margin:24px 0;
+      color:var(--text-dim);font-size:.8rem;font-weight:600;
+    }
+    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+    .google-signin-btn{
+      width:100%;padding:14px;border:1px solid var(--border);
+      border-radius:12px;background:var(--card-bg2);
+      color:var(--text);font-size:.92rem;font-weight:700;
+      cursor:pointer;font-family:var(--font-body);
+      transition:var(--tr);display:flex;align-items:center;
+      justify-content:center;gap:12px;
+    }
+    .google-signin-btn:hover{border-color:var(--accent);background:rgba(124,58,237,.06);transform:translateY(-1px);box-shadow:var(--sh-md);}
+    .google-signin-btn:active{transform:scale(.98);}
+    .google-signin-btn svg{width:22px;height:22px;flex-shrink:0;}
+    .auth-footer-text{text-align:center;font-size:.78rem;color:var(--text-dim);margin-top:18px;line-height:1.5;}
+    .auth-footer-text a{color:var(--accent2);text-decoration:none;font-weight:600;cursor:pointer;}
+    .auth-footer-text a:hover{text-decoration:underline;}
+    .auth-remember{display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:.84rem;color:var(--text-mid);cursor:pointer;}
+    .auth-remember input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;}
+    .auth-forgot{font-size:.82rem;color:var(--accent2);text-decoration:none;cursor:pointer;font-weight:600;float:right;margin-top:-12px;margin-bottom:18px;}
+    .auth-forgot:hover{text-decoration:underline;}
+    .password-strength{height:4px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden;}
+    .password-strength-fill{height:100%;width:0%;transition:width .3s,background .3s;border-radius:3px;}
+    .password-strength-text{font-size:.68rem;color:var(--text-dim);margin-top:4px;}
+
+    /* ====== USER MENU DROPDOWN ====== */
+    #user-dropdown{
+      position:fixed;
+      top:calc(var(--header-h) + 8px);right:12px;
+      width:min(280px,calc(100vw - 24px));
+      background:var(--card-bg);border:1px solid var(--border-bright);
+      border-radius:var(--br-lg);z-index:1001;
+      box-shadow:var(--sh-lg),var(--sh-glow);
+      display:none;flex-direction:column;overflow:hidden;
+      transform-origin:top right;
+      animation:popIn .25s ease;
+    }
+    #user-dropdown.visible{display:flex;}
+    .user-dropdown-header{
+      padding:20px;
+      background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(232,121,249,.06));
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:14px;
+    }
+    .user-dropdown-avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
+    .user-dropdown-info{flex:1;min-width:0;}
+    .user-dropdown-name{font-weight:800;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .user-dropdown-email{font-size:.75rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .user-dropdown-rank{font-size:.7rem;color:var(--accent2);font-weight:700;margin-top:2px;}
+    .user-dropdown-menu{padding:8px 0;}
+    .user-dropdown-item{
+      padding:12px 20px;display:flex;align-items:center;gap:12px;
+      cursor:pointer;transition:var(--tr-fast);font-size:.88rem;font-weight:600;
+      color:var(--text);border:none;background:none;width:100%;text-align:left;
+      font-family:var(--font-body);
+    }
+    .user-dropdown-item:hover{background:rgba(124,58,237,.08);color:var(--accent2);}
+    .user-dropdown-item i{font-style:normal;width:24px;text-align:center;font-size:1.1rem;}
+    .user-dropdown-divider{height:1px;background:var(--border);margin:4px 0;}
+    .user-dropdown-item.danger{color:var(--loved);}
+    .user-dropdown-item.danger:hover{background:rgba(244,63,94,.08);}
 
     /* ====== NOTIFICATIONS ====== */
     #notifications-panel{
@@ -236,7 +417,9 @@
       padding:28px 20px;padding-top:calc(28px + var(--safe-t));
       background:linear-gradient(135deg,var(--card-bg2),var(--card-bg));
       border-bottom:1px solid var(--border);
+      cursor:pointer;
     }
+    .sidebar-header:hover{background:linear-gradient(135deg,rgba(124,58,237,.08),var(--card-bg));}
     .sidebar-avatar-wrap{position:relative;width:60px;margin-bottom:14px;}
     .sidebar-avatar{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);box-shadow:0 0 20px var(--accent-glow);}
     .sidebar-online{
@@ -245,6 +428,7 @@
     }
     .sb-name{font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:3px;}
     .sb-rank{font-size:.75rem;color:var(--accent2);font-weight:600;}
+    .sb-login-hint{font-size:.72rem;color:var(--text-dim);margin-top:4px;}
     .sidebar-menu{list-style:none;padding:10px 0;flex:1;}
     .sidebar-menu li{
       padding:13px 20px;display:flex;align-items:center;gap:13px;cursor:pointer;
@@ -757,6 +941,7 @@
       header{padding:0 10px;}
       .logo{font-size:1.05rem;}
       .header-btn{width:38px;height:38px;}
+      .header-avatar-btn{width:38px;height:38px;}
       .menu-btn{min-width:38px;min-height:38px;}
       .grid{grid-template-columns:repeat(2,1fr);gap:9px;}
       .card-info{padding:9px 8px;}
@@ -767,10 +952,12 @@
       .stats-bar{grid-template-columns:repeat(3,1fr);}
       .reader-nav-btns .btn{max-width:none;}
       #notifications-panel{right:8px;left:8px;width:auto;}
+      #user-dropdown{right:8px;left:8px;width:auto;}
       .chat-box{height:380px;}
       .msg-bubble{max-width:88%;}
       .quick-stats{grid-template-columns:repeat(2,1fr);gap:8px;}
       .hero-banner-cover{width:80px!important;}
+      .auth-modal-body{padding:24px 18px;}
     }
     @media(max-width:380px){
       .grid{grid-template-columns:repeat(2,1fr);gap:7px;}
@@ -803,10 +990,8 @@
 </head>
 <body>
 
-  <!-- ======== PARTICLES ======== -->
   <canvas id="particles-canvas"></canvas>
 
-  <!-- ======== LOADER ======== -->
   <div id="global-loader">
     <div class="loader-logo">MangaCloud</div>
     <div class="loader-bar-wrap">
@@ -816,7 +1001,100 @@
     <div class="loader-tip" id="loader-tip">Совет: Используй 🔖 для быстрого доступа к любимым тайтлам</div>
   </div>
 
-  <!-- ======== HEADER ======== -->
+  <div id="auth-modal-overlay">
+    <div class="auth-modal">
+      
+      <div class="auth-modal-header">
+        <button class="auth-close-btn" onclick="closeAuthModal()" aria-label="Закрыть">✕</button>
+        <div class="auth-modal-logo">Manga<span style="color:#e879f9;">Cloud</span></div>
+        <div class="auth-modal-subtitle">Читай. Обсуждай. Коллекционируй.</div>
+      </div>
+      <div class="auth-modal-body">
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="switchAuthTab('login')">Вход</button>
+          <button class="auth-tab" onclick="switchAuthTab('register')">Регистрация</button>
+        </div>
+
+        <div class="auth-error" id="auth-error"></div>
+        <div class="auth-success" id="auth-success"></div>
+
+        <div class="auth-form-section active" id="auth-login-form">
+          <div class="auth-input-group">
+            <label class="auth-input-label" for="login-email">Email</label>
+            <input class="auth-input" type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="auth-input-group">
+            <label class="auth-input-label" for="login-password">Пароль</label>
+            <div class="auth-password-wrap">
+              <input class="auth-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+              <button class="auth-eye-btn" onclick="togglePasswordVisibility('login-password', this)" type="button" aria-label="Показать пароль">👁️</button>
+            </div>
+          </div>
+          <a class="auth-forgot" onclick="showForgotPassword()">Забыли пароль?</a>
+          <label class="auth-remember">
+            <input type="checkbox" id="login-remember" checked> Запомнить меня
+          </label>
+          <button class="auth-submit-btn" onclick="handleEmailLogin()" id="btn-email-login">
+            <span class="btn-text">Войти</span>
+            <div class="btn-spinner"></div>
+          </button>
+          <div class="auth-divider">или</div>
+          <button class="google-signin-btn" onclick="triggerGoogleSignIn()" id="btn-google-signin">
+            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Войти через Google
+          </button>
+         
+          <div class="auth-footer-text">
+            Нет аккаунта?
+            <a onclick="switchAuthTab('register')">Создать аккаунт</a>
+          </div>
+        </div>
+
+        <div class="auth-form-section" id="auth-register-form">
+          <div class="auth-input-group">
+            <label class="auth-input-label" for="reg-nickname">Никнейм</label>
+            <input class="auth-input" type="text" id="reg-nickname" placeholder="MangaLover" maxlength="20" autocomplete="username">
+          </div>
+      
+          <div class="auth-input-group">
+            <label class="auth-input-label" for="reg-email">Email</label>
+            <input class="auth-input" type="email" id="reg-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="auth-input-group">
+            <label class="auth-input-label" for="reg-password">Пароль</label>
+            <div class="auth-password-wrap">
+              <input class="auth-input" type="password" id="reg-password" placeholder="Минимум 6 символов" autocomplete="new-password" oninput="updatePasswordStrength(this.value)">
+              <button class="auth-eye-btn" onclick="togglePasswordVisibility('reg-password', this)" type="button" aria-label="Показать пароль">👁️</button>
+            </div>
+            <div class="password-strength"><div class="password-strength-fill" id="password-strength-fill"></div></div>
+            <div class="password-strength-text" id="password-strength-text"></div>
+          </div>
+          <div class="auth-input-group">
+            
+            <label class="auth-input-label" for="reg-password2">Подтвердите пароль</label>
+            <div class="auth-password-wrap">
+              <input class="auth-input" type="password" id="reg-password2" placeholder="Повторите пароль" autocomplete="new-password">
+              <button class="auth-eye-btn" onclick="togglePasswordVisibility('reg-password2', this)" type="button" aria-label="Показать пароль">👁️</button>
+            </div>
+          </div>
+          <button class="auth-submit-btn" onclick="handleEmailRegister()" id="btn-email-register">
+            <span class="btn-text">Создать аккаунт</span>
+            <div class="btn-spinner"></div>
+          </button>
+          <div class="auth-divider">или</div>
+          <button class="google-signin-btn" onclick="triggerGoogleSignIn()">
+            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Регистрация через Google
+          </button>
+          <div class="auth-footer-text">
+            Уже есть аккаунт?
+            <a onclick="switchAuthTab('login')">Войти</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <header id="main-header">
     <button class="menu-btn" onclick="openSidebar()" aria-label="Меню">☰</button>
     <h1 class="logo" onclick="switchPage('home')" title="На главную">Manga<span>Cloud</span></h1>
@@ -825,15 +1103,41 @@
       <button class="clear-btn" id="clear-header-btn" onclick="clearSearch()" aria-label="Очистить">✕</button>
     </div>
     <div class="online-indicator" id="online-indicator"><div class="online-dot"></div><span id="online-count">—</span> онлайн</div>
+   
     <div class="header-actions">
       <button class="header-btn" id="btn-notifications" onclick="toggleNotifications()" aria-label="Уведомления">
         🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span>
       </button>
       <button class="header-btn" id="btn-theme" onclick="toggleTheme()" aria-label="Тема">☀️</button>
+      <div id="header-auth-area">
+        <button class="header-btn" id="btn-header-login" onclick="openAuthModal()" title="Войти" style="font-size:.75rem;font-weight:800;width:auto;padding:0 14px;border-radius:20px;">Войти</button>
+      </div>
     </div>
   </header>
 
-  <!-- ======== NOTIFICATIONS PANEL ======== -->
+  <div id="user-dropdown" role="dialog" aria-label="Меню пользователя">
+  
+    <div class="user-dropdown-header">
+      <img id="dropdown-avatar" class="user-dropdown-avatar" src="" alt="Аватар">
+      <div class="user-dropdown-info">
+        <div class="user-dropdown-name" id="dropdown-name"></div>
+        <div class="user-dropdown-email" id="dropdown-email"></div>
+        <div class="user-dropdown-rank" id="dropdown-rank"></div>
+      </div>
+    </div>
+    <div class="user-dropdown-menu">
+      <button class="user-dropdown-item" onclick="switchPage('profile');closeUserDropdown();"><i>👤</i> Мой профиль</button>
+      <button class="user-dropdown-item" onclick="switchPage('fav');closeUserDropdown();"><i>🔖</i> Закладки</button>
+      <button class="user-dropdown-item" onclick="switchPage('loved');closeUserDropdown();"><i>❤️</i> Избранное</button>
+      <button class="user-dropdown-item" onclick="switchPage('friends');closeUserDropdown();"><i>👥</i> Друзья</button>
+      <button class="user-dropdown-item" onclick="switchPage('messages');closeUserDropdown();"><i>✉️</i> Сообщения</button>
+      <div class="user-dropdown-divider"></div>
+      <button class="user-dropdown-item" onclick="changeNickname();closeUserDropdown();"><i>✏️</i> Изменить ник</button>
+      <div class="user-dropdown-divider"></div>
+      <button class="user-dropdown-item danger" onclick="logoutProfile();closeUserDropdown();"><i>🚪</i> Выйти</button>
+    </div>
+  </div>
+
   <div id="notifications-panel" role="dialog" aria-label="Уведомления">
     <div class="notif-header">
       <h4>🔔 Уведомления</h4>
@@ -842,19 +1146,20 @@
     <div id="notif-list"></div>
   </div>
 
-  <!-- ======== SIDEBAR ======== -->
   <div id="sidebar-overlay" onclick="closeSidebar()"></div>
   <nav id="sidebar" role="navigation">
-    <div class="sidebar-header">
+    <div class="sidebar-header" onclick="handleSidebarProfileClick()">
       <div class="sidebar-avatar-wrap">
         <img id="sb-avatar" src="https://via.placeholder.com/60/7c3aed/fff?text=👤" class="sidebar-avatar" alt="Аватар">
         <div class="sidebar-online"></div>
       </div>
       <div class="sb-name" id="sb-name">Гость</div>
       <div class="sb-rank" id="sb-rank">Новичок ✦</div>
+      <div class="sb-login-hint" id="sb-login-hint">Нажмите, чтобы войти →</div>
     </div>
     <ul class="sidebar-menu">
       <li onclick="switchPage('profile')"><i>👤</i> Мой профиль</li>
+      
       <li onclick="switchPage('fav')"><i>🔖</i> Закладки <span class="sidebar-badge" id="badge-fav">0</span></li>
       <li onclick="switchPage('loved')"><i>❤️</i> Избранное <span class="sidebar-badge red" id="badge-loved">0</span></li>
       <div class="sidebar-divider"></div>
@@ -866,14 +1171,13 @@
       <li onclick="openRandomManga()"><i>🎲</i> Случайная манга</li>
       <div class="sidebar-divider"></div>
       <li onclick="switchPage('home')" style="color:var(--text-dim);font-size:.82rem;"><i>🏠</i> На главную</li>
+ 
     </ul>
   </nav>
 
-  <!-- ======== TOAST ======== -->
   <div id="toast-container" role="alert" aria-live="polite"></div>
   <button id="btn-scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Наверх">↑</button>
 
-  <!-- ======== BOTTOM NAV ======== -->
   <nav class="bottom-nav" id="bottom-nav">
     <a href="javascript:void(0)" class="nav-item active" onclick="switchPage('home')"><i>🏠</i><span>Главная</span></a>
     <a href="javascript:void(0)" class="nav-item" onclick="switchPage('catalog')"><i>📂</i><span>Каталог</span></a>
@@ -882,10 +1186,10 @@
     <a href="javascript:void(0)" class="nav-item" onclick="switchPage('profile')"><i>👤</i><span>Профиль</span></a>
   </nav>
 
-  <!-- ======== HOME PAGE ======== -->
   <div id="home-page" class="page" style="display:block;">
     <main>
       <div class="content-area">
+       
         <div style="position:relative;margin-bottom:18px;display:flex;align-items:center;">
           <input type="text" id="search-input" placeholder="🔍 Поиск тайтла или жанра..." oninput="liveSearch(this.value)" aria-label="Поиск" style="padding-right:42px;">
           <button id="clear-search-btn" onclick="clearSearch()" style="position:absolute;right:12px;background:none;border:none;color:var(--text-dim);cursor:pointer;display:none;font-size:1.1rem;padding:8px;" aria-label="Очистить">✕</button>
@@ -898,6 +1202,7 @@
         <div class="section-header">
           <div class="section-title" id="home-section-title">⚡ Популярное сегодня</div>
           <div class="section-actions">
+           
             <button class="random-btn" onclick="openRandomManga()" title="Случайная манга">🎲 Рандом</button>
             <span class="see-all" onclick="switchPage('catalog')">Смотреть всё →</span>
           </div>
@@ -907,11 +1212,11 @@
     </main>
   </div>
 
-  <!-- ======== CATALOG PAGE ======== -->
   <div id="catalog-page" class="page">
     <main>
       <div class="content-area">
         <h2 class="page-header">Каталог</h2>
+       
         <div id="catalog-results-info" style="margin-top:10px;margin-bottom:6px;font-size:.82rem;color:var(--text-dim);"></div>
         <div class="grid" id="catalog-grid" style="margin-top:14px;"></div>
       </div>
@@ -922,17 +1227,17 @@
             <option value="popular">Популярные</option>
             <option value="updated">Обновлённые</option>
             <option value="rating">По рейтингу</option>
+ 
             <option value="new">По новинкам</option>
           </select>
         </div>
         <div class="filter-group">
           <div class="filter-title">Жанры</div>
-          <div class="checkbox-grid" id="filter-genre">
-            <!-- FIX: Dynamic genres generated from real data in buildDynamicGenreFilters() -->
-          </div>
+          <div class="checkbox-grid" id="filter-genre"></div>
         </div>
         <div class="filter-group">
           <div class="filter-title">Статус</div>
+         
           <div class="checkbox-grid" id="filter-status">
             <label><input type="checkbox" value="Завершен" onchange="applyFilters()"><span>Завершён</span></label>
             <label><input type="checkbox" value="Продолжается" onchange="applyFilters()"><span>В процессе</span></label>
@@ -942,12 +1247,12 @@
           <div class="filter-title">Год</div>
           <div class="checkbox-grid" id="filter-year"></div>
         </div>
+        
         <button class="btn btn-sec" onclick="resetFilters()" style="margin-top:4px;">🗑 Сбросить фильтры</button>
       </aside>
     </main>
   </div>
 
-  <!-- ======== HISTORY PAGE ======== -->
   <div id="hist-page" class="page">
     <main style="flex-direction:column;">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
@@ -959,7 +1264,6 @@
     </main>
   </div>
 
-  <!-- ======== FAV PAGE ======== -->
   <div id="fav-page" class="page">
     <main style="flex-direction:column;">
       <h2 class="page-header">🔖 Мои закладки</h2>
@@ -967,15 +1271,14 @@
     </main>
   </div>
 
-  <!-- ======== LOVED PAGE ======== -->
   <div id="loved-page" class="page">
     <main style="flex-direction:column;">
       <h2 class="page-header" style="color:var(--loved);">❤️ Избранное</h2>
+      
       <div class="grid" id="loved-grid" style="margin-top:20px;"></div>
     </main>
   </div>
 
-  <!-- ======== FRIENDS PAGE ======== -->
   <div id="friends-page" class="page">
     <main style="flex-direction:column;max-width:780px;">
       <h2 class="page-header">👥 Друзья</h2>
@@ -990,7 +1293,6 @@
     </main>
   </div>
 
-  <!-- ======== MESSAGES PAGE ======== -->
   <div id="messages-page" class="page">
     <main style="flex-direction:column;max-width:1150px;">
       <h2 class="page-header">✉️ Сообщения</h2>
@@ -1009,6 +1311,7 @@
           </div>
           <div class="chat-input-area">
             <input type="text" id="chat-input" placeholder="Выберите диалог слева..." onclick="checkChatActive()" maxlength="1000">
+        
             <button class="btn btn-icon" id="chat-send-btn" onclick="sendRealMessage()" aria-label="Отправить">➤</button>
           </div>
         </div>
@@ -1016,7 +1319,6 @@
     </main>
   </div>
 
-  <!-- ======== PROFILE PAGE ======== -->
   <div id="profile-page" class="page">
     <main style="justify-content:center;align-items:flex-start;min-height:60vh;">
       <div class="profile-card">
@@ -1027,11 +1329,11 @@
         <h2 id="profile-name" style="font-family:var(--font-display);font-size:clamp(1rem,4vw,1.35rem);margin-bottom:4px;"></h2>
         <p id="profile-email" style="color:var(--text-dim);margin-bottom:22px;font-size:.82rem;"></p>
         <div id="auth-section" style="margin-bottom:26px;">
-          <p style="font-size:.84rem;color:var(--accent2);margin-bottom:12px;">Войди через Google для доступа к друзьям и чатам!</p>
-          <div id="g_id_onload" data-client_id="263581962151-lvpcil2qlnv9btimsvsgtth0bm2cbl3v.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
-          <div class="g_id_signin" data-type="standard" style="display:flex;justify-content:center;"></div>
+          <p style="font-size:.84rem;color:var(--accent2);margin-bottom:12px;">Войди для доступа к друзьям, чатам и облачной синхронизации!</p>
+          <button class="btn" onclick="openAuthModal()" style="max-width:280px;margin:0 auto;">🔐 Войти / Регистрация</button>
         </div>
         <div class="stats-bar" style="margin-bottom:20px;">
+        
           <div class="stats-card"><div class="stats-card-val" id="stat-read">0</div><div class="stats-card-label">Глав прочитано</div></div>
           <div class="stats-card"><div class="stats-card-val" id="stat-fav">0</div><div class="stats-card-label">В закладках</div></div>
           <div class="stats-card"><div class="stats-card-val" id="stat-loved">0</div><div class="stats-card-label">Избранное</div></div>
@@ -1040,18 +1342,18 @@
           <div class="level-header">
             <span style="color:var(--text-dim);font-size:.84rem;">Ранг</span>
             <span id="user-rank" class="level-title">Новичок</span>
+         
           </div>
           <div class="level-bar-bg"><div id="user-progress" class="level-bar-fill"></div></div>
           <div style="text-align:right;margin-top:7px;font-size:.72rem;color:var(--text-dim);"><span id="chapters-to-next">5</span> глав до повышения</div>
         </div>
         <h4 style="font-family:var(--font-display);font-size:.82rem;margin-bottom:6px;text-align:left;">🏆 Достижения</h4>
         <div class="achievements-grid" id="achievements-grid"></div>
-        <button id="btn-logout" class="btn btn-sec" style="display:none;" onclick="logoutProfile()">Выйти из аккаунта</button>
+        <button id="btn-logout" class="btn btn-sec" style="display:none;" onclick="logoutProfile()">🚪 Выйти из аккаунта</button>
       </div>
     </main>
   </div>
 
-  <!-- ======== TITLE PAGE ======== -->
   <div id="title-page" class="page">
     <main style="flex-direction:column;max-width:960px;">
       <button class="btn btn-sec btn-sm" style="width:fit-content;margin-bottom:22px;" onclick="switchPage(lastP)">❮ Назад</button>
@@ -1063,13 +1365,15 @@
           <div class="title-genres" id="det-genres"></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
             <button class="btn" id="btn-fav" onclick="toggleFav('favs')" style="flex:1;min-width:130px;">🔖 В закладки</button>
-            <button class="btn btn-sec" id="btn-loved" onclick="toggleFav('loved')" style="flex:1;min-width:130px;border-color:var(--loved);">❤️ В избранное</button>
+       
+             <button class="btn btn-sec" id="btn-loved" onclick="toggleFav('loved')" style="flex:1;min-width:130px;border-color:var(--loved);">❤️ В избранное</button>
             <button class="btn btn-sec btn-icon" onclick="shareTitle()" title="Поделиться">↗️</button>
           </div>
           <div class="title-progress" id="title-progress-container" style="display:none;">
             <div class="title-progress-header">
               <span class="title-progress-label">📖 Прогресс чтения</span>
               <span class="title-progress-pct" id="title-progress-pct">0%</span>
+  
             </div>
             <div class="title-progress-bar"><div class="title-progress-fill" id="title-progress-fill"></div></div>
           </div>
@@ -1077,6 +1381,7 @@
             <div class="rating-num"><span id="det-rating-num">0.0</span> <small style="font-size:1rem;color:var(--text-dim);">/ 10</small></div>
             <p id="det-votes" style="font-size:.82rem;color:var(--text-dim);margin-bottom:16px;">Глобальный рейтинг</p>
             <div class="stars" id="rating-stars"></div>
+        
           </div>
         </div>
       </div>
@@ -1097,10 +1402,10 @@
     </main>
   </div>
 
-  <!-- ======== READER ======== -->
   <div id="reader" role="dialog" aria-modal="true" aria-label="Читалка">
     <div class="reader-bar">
       <button onclick="closeReader()" class="btn btn-sec btn-sm" style="background:#1a1a2e;color:#fff;border-color:#2a2a4e;">✕ Выход</button>
+    
       <button onclick="toggleReaderWidth()" class="btn btn-sec btn-sm" style="background:#1a1a2e;color:#fff;border-color:#2a2a4e;width:auto;padding:8px 12px;" title="Размер">🔲</button>
       <div id="reader-info" style="font-weight:700;color:#fff;font-size:.88rem;flex:1;text-align:center;"></div>
       <div style="display:flex;align-items:center;gap:6px;color:#888;font-size:.78rem;">
@@ -1116,24 +1421,23 @@
     </div>
   </div>
 
-  <!-- ======== FIREBASE MODULE ======== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, setDoc, arrayUnion, collection, getDocs, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    /* FIX: Import Realtime Database for real online presence */
     import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    
     const firebaseConfig = {
       apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0",
       projectId: "oauth-489621",
       authDomain: "oauth-489621.firebaseapp.com",
       databaseURL: "https://oauth-489621-default-rtdb.firebaseio.com"
     };
-
-    let app, db, rtdb;
+    
+    let app, db, rtdb, auth;
     window.mangaDb = {};
     window.firebaseReady = false;
-
+    
     function setLoaderProgress(pct, text) {
       const bar = document.getElementById('loader-bar');
       const status = document.getElementById('loader-status');
@@ -1145,7 +1449,6 @@
     function initPresence() {
       if(!rtdb) return;
       try {
-        // Generate unique session ID
         let sessionId = sessionStorage.getItem('m_session_id');
         if(!sessionId) {
           sessionId = 'sess_' + Math.random().toString(36).substr(2, 12) + '_' + Date.now();
@@ -1156,14 +1459,11 @@
 
         onValue(connectedRef, (snap) => {
           if(snap.val() === true) {
-            // Set our presence
             set(presenceRef, { online: true, timestamp: serverTimestamp() });
-            // Remove on disconnect
             onDisconnect(presenceRef).remove();
           }
         });
-
-        // Listen to total online count
+        
         const allPresenceRef = ref(rtdb, '/presence');
         onValue(allPresenceRef, (snap) => {
           const data = snap.val();
@@ -1171,8 +1471,7 @@
           const el = document.getElementById('online-count');
           if(el) el.textContent = count;
         });
-
-        // Cleanup on page unload
+        
         window.addEventListener('beforeunload', () => {
           try { remove(presenceRef); } catch(e) {}
         });
@@ -1187,11 +1486,49 @@
         app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         rtdb = getDatabase(app);
+        auth = getAuth(app);
         window.db = db;
         window.rtdb = rtdb;
+        window.firebaseAuth = auth;
         window.firebaseReady = true;
 
-        // Start presence system
+        // Firebase Auth state listener
+        onAuthStateChanged(auth, async (user) => {
+          if(user) {
+            // User is signed in (Firebase Auth — email or Google)
+            const payload = {
+              sub: user.uid,
+              name: user.displayName || user.email.split('@')[0],
+              email: user.email,
+              picture: user.photoURL || ''
+            };
+            localStorage.setItem('m_user_v7', JSON.stringify(payload));
+
+            // Load cloud data
+            if(window.loadUserDataFromCloud) {
+             
+              const cd = await window.loadUserDataFromCloud(user.uid);
+              if(cd) {
+                let cn = JSON.parse(localStorage.getItem('m_custom_names_v7') || '{}');
+                if(cd.customNickname) { cn[user.uid] = cd.customNickname; localStorage.setItem('m_custom_names_v7', JSON.stringify(cn)); }
+                if(cd.friendsList) { window.myFriends = cd.friendsList; localStorage.setItem('m_real_friends_v1', JSON.stringify(window.myFriends));
+                }
+              }
+            }
+            if(window.saveUserToDatabase) {
+              let cn = JSON.parse(localStorage.getItem('m_custom_names_v7') || '{}');
+              await window.saveUserToDatabase(payload, cn[user.uid] || payload.name);
+            }
+            if(window.listenToMyData && !window.isListeningToMyData) { window.listenToMyData(user.uid);
+              window.isListeningToMyData = true; }
+            window.updateProfileUI && window.updateProfileUI();
+            window.updateHeaderAuth && window.updateHeaderAuth();
+          } else {
+            // User signed out
+            window.updateHeaderAuth && window.updateHeaderAuth();
+          }
+        });
+
         initPresence();
 
         setLoaderProgress(50, 'Загрузка каталога манги...');
@@ -1212,7 +1549,7 @@
         let lastSeen = JSON.parse(localStorage.getItem('m_last_seen_updates') || '{}');
         let isFirstLoad = Object.keys(lastSeen).length === 0;
         let needsSave = false;
-
+        
         querySnapshot.forEach((docSnap) => {
           const data = docSnap.data();
           data.id = docSnap.id;
@@ -1220,6 +1557,7 @@
           if(data.updatedAt) {
             if(!isFirstLoad && (!lastSeen[docSnap.id] || data.updatedAt > lastSeen[docSnap.id])) {
               window.addNotification && window.addNotification('Вышло обновление: ' + data.title + '!', docSnap.id);
+        
               lastSeen[docSnap.id] = data.updatedAt;
               needsSave = true;
             } else if(isFirstLoad || !lastSeen[docSnap.id]) {
@@ -1227,7 +1565,8 @@
               needsSave = true;
             }
           }
-        });
+     
+         });
         if(needsSave) localStorage.setItem('m_last_seen_updates', JSON.stringify(lastSeen));
 
         setLoaderProgress(100, 'Готово! Найдено тайтлов: ' + Object.keys(window.mangaDb).length);
@@ -1245,19 +1584,52 @@
       setTimeout(() => loader.style.display = 'none', 600);
     }
 
+    // ====== FIREBASE AUTH FUNCTIONS ======
+    window.firebaseEmailLogin = async function(email, password) {
+      if(!auth) throw new Error('Firebase не инициализирован');
+      return await signInWithEmailAndPassword(auth, email, password);
+    };
+    window.firebaseEmailRegister = async function(email, password, nickname) {
+      if(!auth) throw new Error('Firebase не инициализирован');
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      if(nickname) {
+        await updateProfile(cred.user, { displayName: nickname });
+      }
+      return cred;
+    };
+    window.firebaseGoogleSignIn = async function() {
+      if(!auth) throw new Error('Firebase не инициализирован');
+      const provider = new GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+      return await signInWithPopup(auth, provider);
+    };
+    
+    window.firebaseSignOut = async function() {
+      if(!auth) return;
+      await signOut(auth);
+    };
+    
+    window.firebaseSendPasswordReset = async function(email) {
+      if(!auth) throw new Error('Firebase не инициализирован');
+      await sendPasswordResetEmail(auth, email);
+    };
+    
     // ====== CLOUD FUNCTIONS ======
     window.saveManga = async function(mangaTitle) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if(!user || !db) return;
-      try { await setDoc(doc(db,"users_data",user.sub), { favorites: arrayUnion(mangaTitle) }, { merge:true }); }
+      try { await setDoc(doc(db,"users_data",user.sub), { favorites: arrayUnion(mangaTitle) }, { merge:true });
+      }
       catch(e) { console.error(e); }
     };
+    
     window.saveUserToDatabase = async function(payload, nickname) {
       if(!db) return;
       try {
         await setDoc(doc(db,"users_data",payload.sub), {
           uid: payload.sub, name: payload.name, email: payload.email,
-          picture: payload.picture, customNickname: nickname || payload.name,
+          picture: payload.picture || '', customNickname: nickname || payload.name,
           searchName: (nickname || payload.name).toLowerCase()
         }, { merge:true });
       } catch(e) { console.error(e); }
@@ -1265,12 +1637,15 @@
     window.saveNicknameToCloud = async function(nickname) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if(!user || !db) return;
-      try { await setDoc(doc(db,"users_data",user.sub), { customNickname: nickname, searchName: nickname.toLowerCase() }, { merge:true }); }
+      try { await setDoc(doc(db,"users_data",user.sub), { customNickname: nickname, searchName: nickname.toLowerCase() }, { merge:true });
+      }
       catch(e) { console.error(e); }
     };
+    
     window.loadUserDataFromCloud = async function(userId) {
       if(!db) return null;
-      try { const snap = await getDoc(doc(db,"users_data",userId)); if(snap.exists()) return snap.data(); }
+      try { const snap = await getDoc(doc(db,"users_data",userId));
+      if(snap.exists()) return snap.data(); }
       catch(e) { console.error(e); }
       return null;
     };
@@ -1287,6 +1662,7 @@
           if(data.friendsList) {
             window.myFriends = data.friendsList;
             localStorage.setItem('m_real_friends_v1', JSON.stringify(window.myFriends));
+         
             if(document.getElementById('friends-page').style.display === 'block') window.renderFriendsList && window.renderFriendsList();
             if(document.getElementById('messages-page').style.display === 'block') window.renderDialogsList && window.renderDialogsList();
           }
@@ -1297,21 +1673,24 @@
       if(!db) return [];
       try {
         const snap = await getDocs(collection(db,"users_data"));
-        let res = []; const lower = q.toLowerCase();
+        let res = [];
+        const lower = q.toLowerCase();
         snap.forEach(d => { const data = d.data(); if(data.searchName && data.searchName.includes(lower)) res.push(data); });
         return res;
       } catch(e) { console.error(e); return []; }
     };
+    
     window.sendFriendRequest = async function(targetUid, targetName, targetPic) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if(!user || !db) return;
       let cn = JSON.parse(localStorage.getItem('m_custom_names_v7') || '{}');
       const myName = cn[user.sub] || user.name;
       try {
-        await setDoc(doc(db,"users_data",targetUid), { friendRequests: arrayUnion({ uid:user.sub, name:myName, picture:user.picture }) }, { merge:true });
-        window.showToast('Заявка отправлена ' + esc(targetName) + '!');
+        await setDoc(doc(db,"users_data",targetUid), { friendRequests: arrayUnion({ uid:user.sub, name:myName, picture:user.picture||'' }) }, { merge:true });
+        window.showToast('Заявка отправлена ' + window.esc(targetName) + '!');
       } catch(e) { window.showToast("Ошибка при отправке заявки", "error"); }
     };
+    
     window.acceptFriend = async function(friendUid, friendName, friendPic) {
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       if(!user || !db) return;
@@ -1321,13 +1700,13 @@
       const frRef = doc(db,"users_data",friendUid);
       try {
         await setDoc(myRef, { friendsList: arrayUnion({ uid:friendUid, name:friendName, picture:friendPic }) }, { merge:true });
-        await setDoc(frRef, { friendsList: arrayUnion({ uid:user.sub, name:myName, picture:user.picture }) }, { merge:true });
+        await setDoc(frRef, { friendsList: arrayUnion({ uid:user.sub, name:myName, picture:user.picture||'' }) }, { merge:true });
         const snap = await getDoc(myRef);
         if(snap.exists()) {
           const upd = (snap.data().friendRequests || []).filter(r => r.uid !== friendUid);
           await setDoc(myRef, { friendRequests: upd }, { merge:true });
         }
-        window.showToast(esc(friendName) + ' добавлен в друзья!');
+        window.showToast(window.esc(friendName) + ' добавлен в друзья!');
       } catch(e) { console.error(e); }
     };
     window.declineFriend = async function(friendUid) {
@@ -1352,13 +1731,16 @@
       const chatId = [user.sub, friendUid].sort().join('_');
       try {
         const mySnap = await getDoc(myRef);
-        if(mySnap.exists()) { const upd = (mySnap.data().friendsList || []).filter(f => f.uid !== friendUid); await setDoc(myRef, { friendsList: upd }, { merge:true }); }
+        if(mySnap.exists()) { const upd = (mySnap.data().friendsList || []).filter(f => f.uid !== friendUid);
+        await setDoc(myRef, { friendsList: upd }, { merge:true }); }
         const frSnap = await getDoc(frRef);
-        if(frSnap.exists()) { const upd = (frSnap.data().friendsList || []).filter(f => f.uid !== user.sub); await setDoc(frRef, { friendsList: upd }, { merge:true }); }
+        if(frSnap.exists()) { const upd = (frSnap.data().friendsList || []).filter(f => f.uid !== user.sub);
+        await setDoc(frRef, { friendsList: upd }, { merge:true }); }
         await setDoc(doc(db,"chats_data",chatId), { messages: [] }, { merge:true });
         window.clearActiveChatIfMatches && window.clearActiveChatIfMatches(friendUid);
-        window.showToast(esc(friendName) + ' удалён из друзей');
-      } catch(e) { window.showToast("Ошибка при удалении", "error"); }
+        window.showToast(window.esc(friendName) + ' удалён из друзей');
+      } catch(e) { window.showToast("Ошибка при удалении", "error");
+      }
     };
     window.listenToChatMessages = function(chatId, callback) {
       if(!db) return () => {};
@@ -1369,10 +1751,12 @@
     window.sendMessageToCloud = async function(chatId, msgObj) {
       if(!db) return;
       try { await setDoc(doc(db,"chats_data",chatId), { messages: arrayUnion(msgObj) }, { merge:true }); }
-      catch(e) { console.error(e); }
+      catch(e) { console.error(e);
+      }
     };
     window.listenToRating = function(mangaId, callback) {
-      if(!db) { callback({ average:"0.0", total:0 }); return null; }
+      if(!db) { callback({ average:"0.0", total:0 });
+      return null; }
       return onSnapshot(doc(db,"manga_ratings",mangaId), (snap) => {
         if(snap.exists()) {
           const scores = Object.values(snap.data());
@@ -1385,23 +1769,31 @@
       if(!db) return;
       const user = JSON.parse(localStorage.getItem('m_user_v7'));
       let userId = user ? user.sub : localStorage.getItem('m_anon_id');
-      if(!userId) { userId = 'anon_' + Math.random().toString(36).substr(2,9); localStorage.setItem('m_anon_id', userId); }
-      try { await setDoc(doc(db,"manga_ratings",mangaId), { [userId]: score }, { merge:true }); }
+      if(!userId) { userId = 'anon_' + Math.random().toString(36).substr(2,9); localStorage.setItem('m_anon_id', userId);
+      }
+      try { await setDoc(doc(db,"manga_ratings",mangaId), { [userId]: score }, { merge:true });
+      }
       catch(e) { console.error(e); }
     };
+    
     window.sendCommentToCloud = async function(mangaId, commentData) {
       if(!db) return false;
-      try { await setDoc(doc(db,"manga_comments",mangaId), { list: arrayUnion(commentData) }, { merge:true }); return true; }
+      try { await setDoc(doc(db,"manga_comments",mangaId), { list: arrayUnion(commentData) }, { merge:true }); return true;
+      }
       catch(e) { return false; }
     };
+    
     window.updateAllCommentsInCloud = async function(mangaId, newList) {
       if(!db) return;
-      try { await setDoc(doc(db,"manga_comments",mangaId), { list:newList }); }
+      try { await setDoc(doc(db,"manga_comments",mangaId), { list:newList });
+      }
       catch(e) { console.error(e); }
     };
+    
     window.loadCommentsFromCloud = async function(mangaId) {
       if(!db) return [];
-      try { const snap = await getDoc(doc(db,"manga_comments",mangaId)); if(snap.exists() && snap.data().list) return snap.data().list; }
+      try { const snap = await getDoc(doc(db,"manga_comments",mangaId));
+      if(snap.exists() && snap.data().list) return snap.data().list; }
       catch(e) {}
       return [];
     };
@@ -1413,20 +1805,19 @@
         window.startUI && window.startUI();
       }
     }, 7000);
-
+    
     initFirebase().then(() => clearTimeout(firebaseTimeout));
   </script>
 
-  <!-- ======== MAIN APP SCRIPT ======== -->
   <script>
     let curId = null, curCh = 1, lastP = 'home';
     let ratingUnsub = null, chatUnsub = null, activeChatFriend = null;
     window.currentFriendRequests = [];
-
+    
     // Reading time tracking
     let readingStartTime = null;
     let totalReadingTime = parseInt(localStorage.getItem('m_reading_time_sec') || '0');
-
+    
     // ====== XSS PROTECTION ======
     function esc(str) {
       if(typeof str !== 'string') return '';
@@ -1435,22 +1826,23 @@
       return div.innerHTML;
     }
     window.esc = esc;
-
+    
     const getStorage = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
+    
     let favs    = getStorage('m_favs_v7', []);
     let loved   = getStorage('m_loved_v8', []);
     let rates   = getStorage('m_rates_v7', {});
-    /* FIX: renamed history → readHistory to avoid conflict with window.history */
     let readHistory = getStorage('m_hist_v7', []);
     let customNames = getStorage('m_custom_names_v7', {});
+    
     let notifications = getStorage('m_notifs_v1', [
       { id: Date.now(), text: "Добро пожаловать в MangaCloud! Здесь будут появляться уведомления об обновлениях.", read: false, mangaId: null }
     ]);
+    
     let globalCommentsList = [];
-    /* FIX: use window.myFriends so firebase module can update it */
     window.myFriends = getStorage('m_real_friends_v1', []);
     let activeGenreFilter = null;
-
+    
     // Loader tips
     const tips = [
       "Совет: Используй 🔖 для быстрого доступа к любимым тайтлам",
@@ -1459,10 +1851,10 @@
       "Совет: Войди через Google чтобы общаться с друзьями",
       "Совет: Клавиши A/D переключают главы в читалке"
     ];
+    
     const tipEl = document.getElementById('loader-tip');
     if(tipEl) tipEl.textContent = tips[Math.floor(Math.random()*tips.length)];
 
-    /* FIX: isLight stored as string 'true'/'false', not JSON */
     let isLightMode = localStorage.getItem('m_theme_light') === 'true';
     if(isLightMode) {
       document.documentElement.setAttribute('data-theme','light');
@@ -1470,7 +1862,304 @@
       document.querySelector('meta[name="theme-color"]').content = '#f0f0f8';
     }
 
-    // ====== PARTICLES BACKGROUND (OPTIMIZED) ======
+    // ====== AUTH MODAL SYSTEM ======
+    window.openAuthModal = function() {
+      document.getElementById('auth-modal-overlay').classList.add('visible');
+      document.body.style.overflow = 'hidden';
+      clearAuthErrors();
+      // Focus first input
+      setTimeout(() => {
+        const activeForm = document.querySelector('.auth-form-section.active');
+        if(activeForm) { const inp = activeForm.querySelector('input'); if(inp) inp.focus(); }
+      }, 300);
+    };
+    window.closeAuthModal = function() {
+      document.getElementById('auth-modal-overlay').classList.remove('visible');
+      document.body.style.overflow = '';
+    };
+    
+    function clearAuthErrors() {
+      document.getElementById('auth-error').classList.remove('visible');
+      document.getElementById('auth-error').textContent = '';
+      document.getElementById('auth-success').classList.remove('visible');
+      document.getElementById('auth-success').textContent = '';
+    }
+    function showAuthError(msg) {
+      const el = document.getElementById('auth-error');
+      el.textContent = msg; el.classList.add('visible');
+      document.getElementById('auth-success').classList.remove('visible');
+    }
+    function showAuthSuccess(msg) {
+      const el = document.getElementById('auth-success');
+      el.textContent = msg;
+      el.classList.add('visible');
+      document.getElementById('auth-error').classList.remove('visible');
+    }
+    window.switchAuthTab = function(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form-section').forEach(f => f.classList.remove('active'));
+      if(tab === 'login') {
+        document.querySelector('.auth-tab:first-child').classList.add('active');
+        document.getElementById('auth-login-form').classList.add('active');
+      } else {
+        document.querySelector('.auth-tab:last-child').classList.add('active');
+        document.getElementById('auth-register-form').classList.add('active');
+      }
+      clearAuthErrors();
+    };
+    
+    window.togglePasswordVisibility = function(inputId, btn) {
+      const inp = document.getElementById(inputId);
+      if(inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈';
+      }
+      else { inp.type = 'password'; btn.textContent = '👁️'; }
+    };
+    
+    window.updatePasswordStrength = function(val) {
+      const fill = document.getElementById('password-strength-fill');
+      const text = document.getElementById('password-strength-text');
+      if(!val) { fill.style.width = '0%'; text.textContent = ''; return; }
+      let score = 0;
+      if(val.length >= 6) score++;
+      if(val.length >= 10) score++;
+      if(/[A-Z]/.test(val)) score++;
+      if(/[0-9]/.test(val)) score++;
+      if(/[^A-Za-z0-9]/.test(val)) score++;
+      const levels = [
+        { w:'20%', c:'#f43f5e', t:'Очень слабый' },
+        { w:'40%', c:'#f59e0b', t:'Слабый' },
+        { w:'60%', c:'#f59e0b', t:'Средний' },
+        { w:'80%', c:'#10b981', t:'Хороший' },
+        { w:'100%', c:'#10b981', t:'Отличный!'
+        }
+      ];
+      const lvl = levels[Math.min(score, levels.length-1)];
+      fill.style.width = lvl.w; fill.style.background = lvl.c;
+      text.textContent = lvl.t; text.style.color = lvl.c;
+    };
+
+    // ====== EMAIL LOGIN ======
+    window.handleEmailLogin = async function() {
+      clearAuthErrors();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      if(!email) { showAuthError('Введите email'); return;
+      }
+      if(!password) { showAuthError('Введите пароль'); return;
+      }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAuthError('Некорректный email'); return;
+      }
+
+      const btn = document.getElementById('btn-email-login');
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        if(window.firebaseEmailLogin) {
+          await window.firebaseEmailLogin(email, password);
+          closeAuthModal();
+          window.showToast('🎉 Добро пожаловать!');
+        } else {
+          showAuthError('Firebase ещё загружается, подождите...');
+        }
+      } catch(e) {
+        console.error('Login error:', e);
+        const code = e.code || '';
+        if(code === 'auth/user-not-found') showAuthError('Пользователь не найден. Зарегистрируйтесь!');
+        else if(code === 'auth/wrong-password' || code === 'auth/invalid-credential') showAuthError('Неверный пароль');
+        else if(code === 'auth/too-many-requests') showAuthError('Слишком много попыток. Попробуйте позже.');
+        else if(code === 'auth/invalid-email') showAuthError('Некорректный email');
+        else showAuthError('Ошибка входа: ' + (e.message || 'Попробуйте позже'));
+      } finally {
+        btn.classList.remove('loading'); btn.disabled = false;
+      }
+    };
+    
+    // ====== EMAIL REGISTER ======
+    window.handleEmailRegister = async function() {
+      clearAuthErrors();
+      const nickname = document.getElementById('reg-nickname').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const password2 = document.getElementById('reg-password2').value;
+      if(!nickname || nickname.length < 3 || nickname.length > 20) { showAuthError('Никнейм должен быть от 3 до 20 символов'); return;
+      }
+      if(!email) { showAuthError('Введите email'); return;
+      }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAuthError('Некорректный email'); return;
+      }
+      if(!password || password.length < 6) { showAuthError('Пароль минимум 6 символов'); return;
+      }
+      if(password !== password2) { showAuthError('Пароли не совпадают'); return;
+      }
+
+      const btn = document.getElementById('btn-email-register');
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        if(window.firebaseEmailRegister) {
+          const cred = await window.firebaseEmailRegister(email, password, nickname);
+          // Save nickname
+          customNames[cred.user.uid] = nickname;
+          localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames));
+          closeAuthModal();
+          window.showToast('🎉 Аккаунт создан! Добро пожаловать, ' + esc(nickname) + '!');
+        } else {
+          showAuthError('Firebase ещё загружается, подождите...');
+        }
+      } catch(e) {
+        console.error('Register error:', e);
+        const code = e.code || '';
+        if(code === 'auth/email-already-in-use') showAuthError('Этот email уже зарегистрирован. Войдите!');
+        else if(code === 'auth/weak-password') showAuthError('Пароль слишком слабый (минимум 6 символов)');
+        else if(code === 'auth/invalid-email') showAuthError('Некорректный email');
+        else showAuthError('Ошибка регистрации: ' + (e.message || 'Попробуйте позже'));
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    };
+
+    // ====== GOOGLE SIGN IN (via Firebase Auth popup) ======
+    window.triggerGoogleSignIn = async function() {
+      clearAuthErrors();
+      try {
+        if(window.firebaseGoogleSignIn) {
+          await window.firebaseGoogleSignIn();
+          closeAuthModal();
+          window.showToast('🎉 Вход через Google выполнен!');
+        } else {
+          showAuthError('Firebase ещё загружается, подождите...');
+        }
+      } catch(e) {
+        console.error('Google sign-in error:', e);
+        if(e.code === 'auth/popup-closed-by-user') {
+          // User closed popup, do nothing
+        } else if(e.code === 'auth/popup-blocked') {
+          showAuthError('Всплывающее окно заблокировано. Разрешите попапы для этого сайта.');
+        } else {
+          showAuthError('Ошибка входа через Google: ' + (e.message || ''));
+        }
+      }
+    };
+    
+    // Also keep legacy handleCredentialResponse for Google One Tap (if it fires)
+    window.handleCredentialResponse = async function(response) {
+      const base64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+      localStorage.setItem('m_user_v7', JSON.stringify(payload));
+      let finalName = payload.name;
+      if(window.loadUserDataFromCloud) {
+        const cd = await window.loadUserDataFromCloud(payload.sub);
+        if(cd) {
+          if(cd.customNickname) { customNames[payload.sub] = cd.customNickname; localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames));
+          finalName = cd.customNickname; }
+          if(cd.friendsList) { window.myFriends = cd.friendsList; localStorage.setItem('m_real_friends_v1', JSON.stringify(window.myFriends));
+          }
+        }
+      }
+      if(window.saveUserToDatabase) await window.saveUserToDatabase(payload, finalName);
+      if(window.listenToMyData && !window.isListeningToMyData) { window.listenToMyData(payload.sub); window.isListeningToMyData = true; }
+      updateProfileUI();
+      updateHeaderAuth();
+      closeAuthModal();
+      window.showToast('С возвращением, ' + esc(finalName) + '!');
+    };
+
+    // ====== FORGOT PASSWORD ======
+    window.showForgotPassword = async function() {
+      const email = document.getElementById('login-email').value.trim();
+      if(!email) {
+        showAuthError('Введите email в поле выше, затем нажмите "Забыли пароль?"');
+        return;
+      }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showAuthError('Введите корректный email');
+        return;
+      }
+      try {
+        if(window.firebaseSendPasswordReset) {
+          await window.firebaseSendPasswordReset(email);
+          showAuthSuccess('Письмо для сброса пароля отправлено на ' + esc(email) + '!');
+        } else {
+          showAuthError('Firebase ещё загружается');
+        }
+      } catch(e) {
+        if(e.code === 'auth/user-not-found') showAuthError('Пользователь с таким email не найден');
+        else showAuthError('Ошибка: ' + (e.message || ''));
+      }
+    };
+    
+    // Enter key for auth forms
+    document.getElementById('login-password').addEventListener('keypress', e => { if(e.key === 'Enter') handleEmailLogin(); });
+    document.getElementById('login-email').addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('login-password').focus(); });
+    document.getElementById('reg-password2').addEventListener('keypress', e => { if(e.key === 'Enter') handleEmailRegister(); });
+    
+    // Click outside auth modal to close
+    document.getElementById('auth-modal-overlay').addEventListener('click', function(e) {
+      if(e.target === this) closeAuthModal();
+    });
+    
+    // ====== HEADER AUTH UI ======
+    window.updateHeaderAuth = function() {
+      const user = getStorage('m_user_v7', null);
+      const area = document.getElementById('header-auth-area');
+      if(user) {
+        const cn = getStorage('m_custom_names_v7', {});
+        const displayName = cn[user.sub] || user.name || 'User';
+        const pic = user.picture || 'https://via.placeholder.com/42/7c3aed/fff?text=' + encodeURIComponent(displayName.charAt(0).toUpperCase());
+        area.innerHTML = '<div class="header-avatar-btn" onclick="toggleUserDropdown()" title="' + esc(displayName) + '">'
+          + '<img src="' + esc(pic) + '" alt="' + esc(displayName) + '" onerror="this.src=\'https://via.placeholder.com/42/7c3aed/fff?text=' + encodeURIComponent(displayName.charAt(0).toUpperCase()) + '\'">'
+          + '</div>';
+          
+        // Update dropdown
+        document.getElementById('dropdown-avatar').src = pic;
+        document.getElementById('dropdown-name').textContent = displayName;
+        document.getElementById('dropdown-email').textContent = user.email || '';
+        
+        const rc = readHistory.length;
+        let rank = "Новичок";
+        if(rc >= 100) rank = "Легенда";
+        else if(rc >= 50) rank = "Мастер";
+        else if(rc >= 25) rank = "Отаку";
+        else if(rc >= 10) rank = "Любитель";
+        else if(rc >= 5) rank = "Читатель";
+        document.getElementById('dropdown-rank').textContent = rank + ' ✦';
+        
+        // Hide sidebar login hint
+        document.getElementById('sb-login-hint').style.display = 'none';
+      } else {
+        area.innerHTML = '<button class="header-btn" id="btn-header-login" onclick="openAuthModal()" title="Войти" style="font-size:.75rem;font-weight:800;width:auto;padding:0 14px;border-radius:20px;">Войти</button>';
+        document.getElementById('sb-login-hint').style.display = 'block';
+      }
+    };
+
+    // ====== USER DROPDOWN ======
+    window.toggleUserDropdown = function() {
+      const dd = document.getElementById('user-dropdown');
+      dd.classList.toggle('visible');
+      // Close notifications if open
+      document.getElementById('notifications-panel').classList.remove('visible');
+    };
+    
+    window.closeUserDropdown = function() {
+      document.getElementById('user-dropdown').classList.remove('visible');
+    };
+    
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+      const dd = document.getElementById('user-dropdown');
+      const avatarBtn = document.querySelector('.header-avatar-btn');
+      if(dd.classList.contains('visible') && !dd.contains(e.target) && (!avatarBtn || !avatarBtn.contains(e.target))) {
+        dd.classList.remove('visible');
+      }
+    });
+    
+    // ====== SIDEBAR PROFILE CLICK ======
+    window.handleSidebarProfileClick = function() {
+      const user = getStorage('m_user_v7', null);
+      if(user) { switchPage('profile'); }
+      else { closeSidebar(); openAuthModal(); }
+    };
+    
+    // ====== PARTICLES BACKGROUND ======
     (function initParticles(){
       const canvas = document.getElementById('particles-canvas');
       if(!canvas) return;
@@ -1482,6 +2171,7 @@
         h = canvas.height = window.innerHeight;
       }
       resize();
+      
       window.addEventListener('resize', resize);
       for(let i=0;i<35;i++){
         particles.push({
@@ -1492,7 +2182,6 @@
         });
       }
       function draw(){
-        /* FIX: Don't draw when loader is visible or reader is open */
         const loaderEl = document.getElementById('global-loader');
         const readerEl = document.getElementById('reader');
         const loaderVisible = loaderEl && !loaderEl.classList.contains('hidden') && loaderEl.style.display !== 'none';
@@ -1501,7 +2190,6 @@
           requestAnimationFrame(draw);
           return;
         }
-
         ctx.clearRect(0,0,w,h);
         const isDark = !document.documentElement.hasAttribute('data-theme');
         particles.forEach(p => {
@@ -1545,16 +2233,19 @@
         headerHidden = true;
       } else if(window.scrollY < lastScrollY && headerHidden) {
         header.classList.remove('header-hidden');
+       
         headerHidden = false;
       }
       lastScrollY = window.scrollY;
     }, { passive:true });
-
+    
     // Keyboard
     document.addEventListener('keydown', e => {
       if(e.key === 'Escape') {
         closeSidebar();
         document.getElementById('notifications-panel').classList.remove('visible');
+        closeUserDropdown();
+        if(document.getElementById('auth-modal-overlay').classList.contains('visible')) closeAuthModal();
         if(document.getElementById('reader').style.display === 'block') closeReader();
       }
       if(document.getElementById('reader').style.display === 'block') {
@@ -1562,14 +2253,14 @@
         if(e.key === 'ArrowLeft' || e.key === 'a') moveChapter(-1);
       }
     });
-
+    
     // Close notif on outside click
     document.addEventListener('click', e => {
       const p = document.getElementById('notifications-panel');
       const b = document.getElementById('btn-notifications');
       if(p.classList.contains('visible') && !p.contains(e.target) && !b.contains(e.target)) p.classList.remove('visible');
     });
-
+    
     // Reader scroll
     const readerEl = document.getElementById('reader');
     readerEl.addEventListener('scroll', () => {
@@ -1578,7 +2269,7 @@
       document.getElementById('reader-progress-text').textContent = Math.round(pct) + '%';
       if(curId && curCh) localStorage.setItem('scroll_' + curId + '_' + curCh, readerEl.scrollTop);
     }, { passive:true });
-
+    
     // Reader swipe
     let tStartX = 0;
     readerEl.addEventListener('touchstart', e => { tStartX = e.changedTouches[0].screenX; }, { passive:true });
@@ -1586,12 +2277,11 @@
       const diff = tStartX - e.changedTouches[0].screenX;
       if(Math.abs(diff) > 90) moveChapter(diff > 0 ? 1 : -1);
     }, { passive:true });
-
-    /* FIX: Enter key in friend search */
+    
     document.getElementById('friend-search-input').addEventListener('keypress', e => {
       if(e.key === 'Enter') window.searchRealUsers && window.searchRealUsers();
     });
-
+    
     // ====== SIDEBAR ======
     function openSidebar() {
       document.getElementById('sidebar').classList.add('active');
@@ -1612,14 +2302,15 @@
       const reqs = (window.currentFriendRequests || []).length;
       const total = unread + reqs;
       const sb = document.getElementById('badge-notif-sb');
-      if(total > 0) { sb.style.display = 'inline-block'; sb.textContent = total > 9 ? '9+' : total; }
-      else { sb.style.display = 'none'; }
+      if(total > 0) { sb.style.display = 'inline-block'; sb.textContent = total > 9 ? '9+' : total;
+      }
+      else { sb.style.display = 'none';
+      }
     }
 
     // ====== THEME ======
     window.toggleTheme = function() {
       isLightMode = !isLightMode;
-      /* FIX: Store as string 'true'/'false' */
       localStorage.setItem('m_theme_light', isLightMode ? 'true' : 'false');
       if(isLightMode) {
         document.documentElement.setAttribute('data-theme','light');
@@ -1633,7 +2324,7 @@
         window.showToast("Тёмная тема 🌙");
       }
     };
-
+    
     // ====== TOAST ======
     window.showToast = function(msg, type) {
       type = type || 'success';
@@ -1644,7 +2335,7 @@
       c.appendChild(t);
       setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(16px)'; setTimeout(() => t.remove(), 380); }, 3000);
     };
-
+    
     // ====== COMMENT CHAR COUNTER ======
     window.updateCommentCharCount = function() {
       const ta = document.getElementById('comment-text');
@@ -1659,6 +2350,7 @@
     window.toggleNotifications = function() {
       const p = document.getElementById('notifications-panel');
       p.classList.toggle('visible');
+      closeUserDropdown();
       if(p.classList.contains('visible')) renderNotifications();
     };
     window.renderNotifications = function() {
@@ -1667,8 +2359,10 @@
       const unread = notifications.filter(n => !n.read).length;
       const reqs = (window.currentFriendRequests || []).length;
       const total = unread + reqs;
-      if(total > 0) { badge.style.display = 'flex'; badge.textContent = total > 9 ? '9+' : total; }
-      else { badge.style.display = 'none'; }
+      if(total > 0) { badge.style.display = 'flex'; badge.textContent = total > 9 ?
+      '9+' : total; }
+      else { badge.style.display = 'none';
+      }
       updateSidebarBadges();
       let html = '';
       if(reqs > 0) {
@@ -1677,7 +2371,8 @@
             + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
             + '<img src="' + esc(req.picture) + '" style="width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;">'
             + '<div><strong>' + esc(req.name) + '</strong> хочет добавить вас в друзья!</div>'
-            + '</div>'
+            + 
+            '</div>'
             + '<div style="display:flex;gap:8px;">'
             + '<button class="btn btn-sm" style="flex:1;" onclick="acceptFriend(\'' + esc(req.uid) + '\',\'' + esc(req.name) + '\',\'' + esc(req.picture) + '\')">Принять</button>'
             + '<button class="btn btn-sec btn-sm" style="flex:1;" onclick="declineFriend(\'' + esc(req.uid) + '\')">Отклонить</button>'
@@ -1698,7 +2393,8 @@
     window.readNotification = function(id, mangaId) {
       const n = notifications.find(x => x.id === id);
       if(n && !n.read) { n.read = true; localStorage.setItem('m_notifs_v1', JSON.stringify(notifications)); renderNotifications(); }
-      if(mangaId) { openTitle(mangaId); document.getElementById('notifications-panel').classList.remove('visible'); }
+      if(mangaId) { openTitle(mangaId); document.getElementById('notifications-panel').classList.remove('visible');
+      }
     };
     window.markAllAsRead = function() {
       notifications.forEach(n => n.read = true);
@@ -1712,37 +2408,21 @@
       localStorage.setItem('m_notifs_v1', JSON.stringify(notifications));
       renderNotifications();
     };
-
+    
     // ====== AUTH ======
     window.isListeningToMyData = false;
-    async function handleCredentialResponse(response) {
-      const base64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-      const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-      localStorage.setItem('m_user_v7', JSON.stringify(payload));
-      let finalName = payload.name;
-      if(window.loadUserDataFromCloud) {
-        const cd = await window.loadUserDataFromCloud(payload.sub);
-        if(cd) {
-          if(cd.customNickname) { customNames[payload.sub] = cd.customNickname; localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames)); finalName = cd.customNickname; }
-          if(cd.friendsList) { window.myFriends = cd.friendsList; localStorage.setItem('m_real_friends_v1', JSON.stringify(window.myFriends)); }
-        }
-      }
-      if(window.saveUserToDatabase) await window.saveUserToDatabase(payload, finalName);
-      if(window.listenToMyData && !window.isListeningToMyData) { window.listenToMyData(payload.sub); window.isListeningToMyData = true; }
-      updateProfileUI();
-      window.showToast('С возвращением, ' + esc(finalName) + '!');
-    }
-    window.handleCredentialResponse = handleCredentialResponse;
-
     function logoutProfile() {
+      if(window.firebaseSignOut) {
+        window.firebaseSignOut().catch(function(e){ console.error(e); });
+      }
       localStorage.removeItem('m_user_v7');
       window.isListeningToMyData = false;
       updateProfileUI();
+      updateHeaderAuth();
       window.showToast('Вы вышли из аккаунта', 'error');
     }
     window.logoutProfile = logoutProfile;
 
-    /* FIX: Nickname validation 3-20 characters */
     window.changeNickname = async function() {
       const user = getStorage('m_user_v7', null);
       const cur = document.getElementById('profile-name').textContent;
@@ -1757,10 +2437,11 @@
         localStorage.setItem('m_custom_names_v7', JSON.stringify(customNames));
         if(user && window.saveNicknameToCloud) await window.saveNicknameToCloud(n);
         updateProfileUI();
+        updateHeaderAuth();
         window.showToast("Никнейм изменён!");
       }
     };
-
+    
     // ====== ACHIEVEMENTS ======
     function getAchievements() {
       const rc = readHistory.length;
@@ -1772,9 +2453,11 @@
         { icon:"🏆", name:"Марафонец", unlocked: rc >= 50, desc:"Прочитать 50 глав" },
         { icon:"👑", name:"Легенда", unlocked: rc >= 100, desc:"Прочитать 100 глав" },
         { icon:"🔖", name:"Коллекционер", unlocked: fc >= 5, desc:"5 закладок" },
+ 
         { icon:"❤️", name:"Романтик", unlocked: lc >= 3, desc:"3 избранных" },
         { icon:"⭐", name:"Критик", unlocked: Object.keys(rates).length >= 5, desc:"Оценить 5 тайтлов" },
-        { icon:"🌙", name:"Полуночник", unlocked: new Date().getHours() >= 23 || new Date().getHours() < 5, desc:"Читать ночью" },
+        { icon:"🌙", name:"Полуночник", unlocked: new Date().getHours() >= 23 ||
+        new Date().getHours() < 5, desc:"Читать ночью" },
       ];
     }
     function renderAchievements() {
@@ -1788,7 +2471,7 @@
       }).join('');
     }
 
-    function updateProfileUI() {
+    window.updateProfileUI = function() {
       const user = getStorage('m_user_v7', null);
       if(user && !window.isListeningToMyData && window.listenToMyData) { window.listenToMyData(user.sub); window.isListeningToMyData = true; }
       document.getElementById('stat-read').textContent = readHistory.length;
@@ -1801,7 +2484,8 @@
       else if(rc >= 25) rank = "Отаку";
       else if(rc >= 10) rank = "Любитель";
       else if(rc >= 5) rank = "Читатель";
-      if(rc >= 100) { progress = 100; document.getElementById('chapters-to-next').innerHTML = "Максимальный уровень!"; }
+      if(rc >= 100) { progress = 100; document.getElementById('chapters-to-next').innerHTML = "Максимальный уровень!";
+      }
       else {
         const levels = [5,10,25,50,100];
         var nextLevel = levels.find(l => l > rc) || 100;
@@ -1814,11 +2498,13 @@
       if(user) {
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('btn-logout').style.display = 'block';
-        document.getElementById('profile-avatar').src = user.picture;
+        const pic = user.picture || 'https://via.placeholder.com/120/7c3aed/fff?text=' + encodeURIComponent((customNames[user.sub] || user.name || 'U').charAt(0).toUpperCase());
+        document.getElementById('profile-avatar').src = pic;
         document.getElementById('profile-name').textContent = customNames[user.sub] || user.name;
         document.getElementById('profile-email').textContent = user.email;
-        document.getElementById('sb-avatar').src = user.picture;
+        document.getElementById('sb-avatar').src = pic;
         document.getElementById('sb-name').textContent = customNames[user.sub] || user.name;
+        document.getElementById('sb-login-hint').style.display = 'none';
       } else {
         document.getElementById('auth-section').style.display = 'block';
         document.getElementById('btn-logout').style.display = 'none';
@@ -1827,14 +2513,17 @@
         document.getElementById('profile-email').textContent = "Локальный профиль";
         document.getElementById('sb-avatar').src = 'https://via.placeholder.com/60/7c3aed/fff?text=👤';
         document.getElementById('sb-name').textContent = customNames['anonymous'] || "Гость";
+        document.getElementById('sb-login-hint').style.display = 'block';
       }
       renderAchievements();
+    };
+    function updateProfileUI() { window.updateProfileUI();
     }
 
     // ====== FRIENDS ======
     window.searchRealUsers = async function() {
       const user = getStorage('m_user_v7', null);
-      if(!user) { window.showToast("Сначала войдите через Google!", "error"); return; }
+      if(!user) { window.showToast("Сначала войдите!", "error"); openAuthModal(); return; }
       const input = document.getElementById('friend-search-input');
       const q = input.value.trim(); var res = document.getElementById('friend-search-results');
       if(!q) return;
@@ -1848,23 +2537,27 @@
             var btn;
             if(isMe) btn = '<span style="color:var(--text-dim);font-size:.8rem;">Это вы</span>';
             else if(isFr) btn = '<span style="color:var(--accent2);font-size:.8rem;font-weight:700;">В друзьях ✓</span>';
-            else btn = '<button class="list-action" onclick="sendFriendRequest(\'' + esc(u.uid) + '\',\'' + esc(u.customNickname||u.name) + '\',\'' + esc(u.picture) + '\')">+ Добавить</button>';
+            else btn = '<button class="list-action" onclick="sendFriendRequest(\'' + esc(u.uid) + '\',\'' + esc(u.customNickname||u.name) + '\',\'' + esc(u.picture||'') + '\')">+ Добавить</button>';
             return '<div class="list-item" style="border-color:var(--accent);">'
               + '<img src="' + esc(u.picture||'https://via.placeholder.com/46/7c3aed/fff?text=👤') + '" class="list-avatar">'
               + '<div class="list-info"><div class="list-title">' + esc(u.customNickname||u.name) + '</div><div class="list-sub">Найден в MangaCloud</div></div>'
+         
               + btn + '</div>';
           }).join('');
-        } else { res.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:20px;">Пользователь не найден.</p>'; }
+        } else { res.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:20px;">Пользователь не найден.</p>';
+        }
       }
     };
+    
     window.renderFriendsList = function() {
       var c = document.getElementById('friends-list'); if(!c) return;
-      c.innerHTML = window.myFriends.length ? window.myFriends.map(function(f) {
+      c.innerHTML = window.myFriends.length ?
+      window.myFriends.map(function(f) {
         return '<div class="list-item">'
-          + '<img src="' + esc(f.picture) + '" class="list-avatar">'
+          + '<img src="' + esc(f.picture||'https://via.placeholder.com/46/7c3aed/fff?text=👤') + '" class="list-avatar">'
           + '<div class="list-info"><div class="list-title">' + esc(f.name) + '</div></div>'
           + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-          + '<button class="list-action" onclick="openRealChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\',\'' + esc(f.picture) + '\')">Написать</button>'
+          + '<button class="list-action" onclick="openRealChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\',\'' + esc(f.picture||'') + '\')">Написать</button>'
           + '<button class="list-action" style="background:rgba(244,63,94,.1);color:var(--loved);border-color:var(--loved);" onclick="removeFriendAndChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\')">Удалить</button>'
           + '</div></div>';
       }).join('') : "<p style='color:var(--text-dim);text-align:center;padding:28px;'>У вас пока нет друзей. Найдите кого-нибудь в поиске!</p>";
@@ -1873,24 +2566,27 @@
 
     // ====== MESSAGES ======
     window.renderDialogsList = function() {
-      var c = document.getElementById('dialogs-container'); if(!c) return;
+      var c = document.getElementById('dialogs-container');
+      if(!c) return;
       c.innerHTML = window.myFriends.length ? window.myFriends.map(function(f) {
-        return '<div class="list-item" style="padding:10px;margin-bottom:7px;" onclick="openRealChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\',\'' + esc(f.picture) + '\')">'
-          + '<img src="' + esc(f.picture) + '" class="list-avatar" style="width:40px;height:40px;">'
+        return '<div class="list-item" style="padding:10px;margin-bottom:7px;" onclick="openRealChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\',\'' + esc(f.picture||'') + '\')">'
+          + '<img src="' + esc(f.picture||'https://via.placeholder.com/40/7c3aed/fff?text=👤') + '" class="list-avatar" style="width:40px;height:40px;">'
           + '<div class="list-info"><div class="list-title" style="font-size:.88rem;">' + esc(f.name) + '</div><div class="list-sub" style="font-size:.7rem;">Открыть чат...</div></div>'
           + '<button class="list-action" style="padding:5px 9px;background:rgba(244,63,94,.1);border-color:var(--loved);color:var(--loved);" onclick="event.stopPropagation();removeFriendAndChat(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\')">🗑️</button>'
+       
           + '</div>';
       }).join('') : "<p style='color:var(--text-dim);text-align:center;font-size:.84rem;padding:18px;'>Добавьте друзей</p>";
     };
-    function renderDialogsList() { window.renderDialogsList(); }
+    function renderDialogsList() { window.renderDialogsList();
+    }
 
     window.openRealChat = function(friendUid, friendName, friendPic) {
       const user = getStorage('m_user_v7', null);
-      if(!user) { window.showToast("Авторизуйтесь для общения!", "error"); return; }
+      if(!user) { window.showToast("Авторизуйтесь для общения!", "error"); openAuthModal(); return; }
       switchPage('messages');
       activeChatFriend = { uid:friendUid, name:friendName, picture:friendPic };
       document.getElementById('chat-partner-name').textContent = friendName;
-      document.getElementById('chat-partner-avatar').src = friendPic;
+      document.getElementById('chat-partner-avatar').src = friendPic || 'https://via.placeholder.com/40/7c3aed/fff?text=💬';
       document.getElementById('chat-input').placeholder = "Написать " + friendName + "...";
       const chatId = [user.sub, friendUid].sort().join('_');
       if(chatUnsub) chatUnsub();
@@ -1902,6 +2598,7 @@
           mc.innerHTML = messages.map(function(msg) {
             const mine = msg.senderUid === user.sub;
             return '<div class="msg-bubble ' + (mine?'msg-out':'msg-in') + '">' + esc(msg.text) + '<div style="font-size:.6rem;opacity:.65;text-align:right;margin-top:4px;">' + esc(msg.time) + '</div></div>';
+      
           }).join('');
           mc.scrollTop = mc.scrollHeight;
         });
@@ -1917,22 +2614,27 @@
         if(chatUnsub) { chatUnsub(); chatUnsub = null; }
       }
     };
+    
     window.checkChatActive = function() { if(!activeChatFriend) window.showToast("Выберите друга из списка!", "error"); };
-    /* FIX: Message validation max 1000 chars */
+    
     window.sendRealMessage = async function() {
       const user = getStorage('m_user_v7', null);
-      if(!user) { window.showToast("Авторизуйтесь!", "error"); return; }
-      if(!activeChatFriend) { window.showToast("Выберите диалог!", "error"); return; }
+      if(!user) { window.showToast("Авторизуйтесь!", "error"); return;
+      }
+      if(!activeChatFriend) { window.showToast("Выберите диалог!", "error"); return;
+      }
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
       if(!text) return;
-      if(text.length > 1000) { window.showToast("Сообщение слишком длинное (макс 1000 символов)!", "error"); return; }
+      if(text.length > 1000) { window.showToast("Сообщение слишком длинное (макс 1000 символов)!", "error"); return;
+      }
       input.value = '';
       const chatId = [user.sub, activeChatFriend.uid].sort().join('_');
       const now = new Date();
       const msgObj = { senderUid:user.sub, text:text, time:now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0'), timestamp:Date.now() };
       if(window.sendMessageToCloud) await window.sendMessageToCloud(chatId, msgObj);
     };
+    
     document.getElementById('chat-input').addEventListener('keypress', e => { if(e.key === 'Enter') sendRealMessage(); });
 
     // ====== HERO BANNER ======
@@ -1948,7 +2650,8 @@
         + '<div class="hero-banner-info">'
         + '<div class="hero-banner-label">✨ Рекомендация дня</div>'
         + '<div class="hero-banner-title">' + esc(featured.title) + '</div>'
-        + '<div class="hero-banner-desc">' + esc((featured.genres||[]).join(' • ') + ' • ' + (featured.year||'') + ' • ' + (featured.status||'')) + '</div>'
+        + 
+        '<div class="hero-banner-desc">' + esc((featured.genres||[]).join(' • ') + ' • ' + (featured.year||'') + ' • ' + (featured.status||'')) + '</div>'
         + '<button class="btn" onclick="event.stopPropagation();openTitle(\'' + esc(featured.id) + '\')">Читать сейчас →</button>'
         + '</div></div></div>';
     }
@@ -1975,7 +2678,8 @@
     function renderReadingTime() {
       const c = document.getElementById('reading-time-container');
       if(!c) return;
-      if(totalReadingTime < 60) { c.innerHTML = ''; return; }
+      if(totalReadingTime < 60) { c.innerHTML = ''; return;
+      }
       c.innerHTML = '<div class="reading-time-widget">'
         + '<div class="reading-time-icon">⏱️</div>'
         + '<div class="reading-time-info">'
@@ -1998,12 +2702,14 @@
       document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
       el.classList.add('active');
       var data = genre
-        ? Object.values(window.mangaDb).filter(m => m.genres && m.genres.includes(genre))
+        ?
+        Object.values(window.mangaDb).filter(m => m.genres && m.genres.includes(genre))
         : Object.values(window.mangaDb);
-      document.getElementById('home-section-title').textContent = genre ? '🏷️ ' + genre : '⚡ Популярное сегодня';
+      document.getElementById('home-section-title').textContent = genre ?
+      '🏷️ ' + genre : '⚡ Популярное сегодня';
       renderGrid(data, 'home-grid');
     };
-
+    
     // ====== RANDOM MANGA ======
     window.openRandomManga = function() {
       const all = Object.keys(window.mangaDb);
@@ -2015,7 +2721,8 @@
 
     // ====== RENDER GRID ======
     function renderGrid(list, targetId) {
-      const c = document.getElementById(targetId); if(!c) return;
+      const c = document.getElementById(targetId);
+      if(!c) return;
       if(!list.length) {
         c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Ничего не найдено</div><div class="empty-state-sub">Попробуйте изменить запрос или сбросить фильтры</div></div>';
         return;
@@ -2024,454 +2731,562 @@
         const isLoved = loved.includes(m.id);
         const r = rates[m.id] || 0;
         const isNew = m.updatedAt && (Date.now()/1000 - m.updatedAt) < 7*24*3600;
-        return '<div class="card" onclick="openTitle(\'' + esc(m.id) + '\')" tabindex="0" role="button" aria-label="' + esc(m.title) + '">'
-          + (isNew ? '<span class="badge b-new" style="top:9px;left:9px;">NEW</span>' : '<span class="badge b-status">' + esc(m.status||'') + '</span>')
-          + (isLoved ? '<span class="badge" style="top:9px;right:9px;background:var(--loved);color:#fff;">❤️</span>' : '<span class="badge b-rating">★ ' + (r || (m.rating||'?')) + '</span>')
-          + '<div class="card-cover"><img src="' + esc(m.cover) + '" loading="lazy" alt="' + esc(m.title) + '" onerror="this.src=\'https://placehold.co/300x450/12121e/7c3aed?text=?\'"></div>'
-          + '<div class="card-info"><h3>' + esc(m.title) + '</h3>'
-          + '<div class="card-sub">' + (m.genres||[]).slice(0,2).map(function(g) { return '<span class="card-genre-tag">' + esc(g) + '</span>'; }).join('') + '</div></div></div>';
+        return '<div class="card" onclick="openTitle(\'' + esc(m.id) + '\')">'
+          + '<div class="card-cover">'
+          + (isNew ? '<span class="badge b-new">NEW</span>' : '<span class="badge b-status">' + esc(m.status || '') + '</span>')
+          + (r ? '<span class="badge b-rating">★ ' + r + '</span>' : '')
+          + '<img src="' + esc(m.cover) + '" alt="' + esc(m.title) + '" loading="lazy" onerror="this.src=\'https://placehold.co/300x450/12121e/7c3aed?text=?\'">'
+          + '</div>'
+          + '<div class="card-info">'
+          + '<h3>' + esc(m.title) + '</h3>'
+      
+          + '<div class="card-sub">'
+          + (m.genres ? m.genres.slice(0,2).map(function(g){ return '<span class="card-genre-tag">' + esc(g) + '</span>';
+          }).join('') : '')
+          + (isLoved ? ' <span style="color:var(--loved);">❤️</span>' : '')
+          + '</div>'
+          + '</div></div>';
       }).join('');
-      c.querySelectorAll('.card').forEach(function(card) {
-        card.addEventListener('keydown', function(e) { if(e.key==='Enter'||e.key===' ') { e.preventDefault(); card.click(); } });
-      });
     }
 
-    // ====== CONTINUE READING ======
+    // ====== CONTINUE READING WIDGET ======
     function renderContinueReading() {
       const c = document.getElementById('continue-reading-container');
-      const lastRead = readHistory.find(h => window.mangaDb[h.id]);
-      if(lastRead) {
-        const m = window.mangaDb[lastRead.id];
-        c.innerHTML = '<div class="continue-widget" onclick="openChapterFromWidget(\'' + esc(m.id) + '\',' + lastRead.ch + ')">'
-          + '<img src="' + esc(m.cover) + '" class="continue-cover" alt="cover" loading="lazy">'
-          + '<div class="continue-info">'
-          + '<div class="continue-label">Продолжить чтение</div>'
-          + '<div class="continue-title">' + esc(m.title) + '</div>'
-          + '<div class="continue-ch">Глава ' + lastRead.ch + '</div>'
-          + '</div>'
-          + '<div class="continue-arrow">→</div></div>';
-      } else { c.innerHTML = ''; }
-    }
-
-    /* FIX: openChapterFromWidget now waits for page load via Promise */
-    window.openChapterFromWidget = function(id, ch) {
-      return new Promise(function(resolve) {
-        openTitle(id);
-        // Wait for title page to be rendered and DOM ready
-        var checkInterval = setInterval(function() {
-          var chaptersList = document.getElementById('det-chapters');
-          if(chaptersList && chaptersList.children.length > 0) {
-            clearInterval(checkInterval);
-            openChapter(ch);
-            resolve();
-          }
-        }, 50);
-        // Timeout safety
-        setTimeout(function() {
-          clearInterval(checkInterval);
-          openChapter(ch);
-          resolve();
-        }, 2000);
-      });
-    };
-
-    // ====== YEAR FILTER ======
-    function renderYears() {
-      const box = document.getElementById('filter-year'); if(!box) return;
-      let html = '';
-      for(let y=2026; y>=1980; y--) html += '<label><input type="checkbox" value="' + y + '" onchange="applyFilters()"><span>' + y + '</span></label>';
-      box.innerHTML = html;
-    }
-
-    /* FIX: Dynamic genre filters built from real manga data */
-    function buildDynamicGenreFilters() {
-      const genreSet = new Set();
-      Object.values(window.mangaDb).forEach(function(m) {
-        if(m.genres) m.genres.forEach(function(g) { genreSet.add(g); });
-      });
-      const box = document.getElementById('filter-genre');
-      if(!box) return;
-      if(genreSet.size === 0) {
-        // Fallback static genres
-        box.innerHTML = ['Экшен','Фэнтези','Романтика','Драма','Исекай','Приключения','Комедия','Мистика']
-          .map(function(g) { return '<label><input type="checkbox" value="' + g + '" onchange="applyFilters()"><span>' + g + '</span></label>'; }).join('');
-        return;
+      if(!c) return;
+      if(!readHistory.length) { c.innerHTML = ''; return; }
+      const last = readHistory[readHistory.length - 1];
+      const manga = window.mangaDb[last.id];
+      if(!manga) { c.innerHTML = ''; return;
       }
-      box.innerHTML = Array.from(genreSet).sort().map(function(g) {
-        return '<label><input type="checkbox" value="' + esc(g) + '" onchange="applyFilters()"><span>' + esc(g) + '</span></label>';
-      }).join('');
-    }
-
-    // ====== STARS ======
-    function initStars() {
-      const c = document.getElementById('rating-stars'); c.innerHTML = '';
-      for(let i=1; i<=10; i++) {
-        const s = document.createElement('span');
-        s.className = 'star'; s.dataset.v = i; s.textContent = '★';
-        s.onclick = function() {
-          rates[curId] = parseInt(this.dataset.v);
-          localStorage.setItem('m_rates_v7', JSON.stringify(rates));
-          updateStarsUI();
-          if(window.sendRatingToCloud) window.sendRatingToCloud(curId, rates[curId]);
-          window.showToast('Оценка: ' + rates[curId] + '/10 ⭐');
-        };
-        c.appendChild(s);
-      }
-    }
-    function updateStarsUI() {
-      const v = rates[curId] || 0;
-      document.querySelectorAll('.star').forEach(function(s) { s.classList.toggle('active', parseInt(s.dataset.v) <= v); });
-    }
-
-    // ====== SWITCH PAGE ======
-    function switchPage(p) {
-      document.querySelectorAll('.page').forEach(el => el.style.display = 'none');
-      const target = document.getElementById(p + '-page');
-      if(target) target.style.display = 'block';
-      document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); i.removeAttribute('aria-current'); });
-      const nav = document.querySelector('.nav-item[onclick*="\'' + p + '\'"]');
-      if(nav) { nav.classList.add('active'); nav.setAttribute('aria-current','page'); }
-      closeSidebar();
-      document.getElementById('main-header').classList.remove('header-hidden');
-      headerHidden = false;
-
-      if(p !== 'title') lastP = p;
-      if(p === 'home') {
-        var si = document.getElementById('search-input');
-        if(si && si.value.trim()) clearSearch();
-        else {
-          renderHeroBanner();
-          renderQuickStats();
-          renderGrid(Object.values(window.mangaDb), 'home-grid');
-          renderContinueReading();
-          renderReadingTime();
-          renderGenreChips();
-        }
-      }
-      if(p === 'catalog') { buildDynamicGenreFilters(); applyFilters(); }
-      if(p === 'fav') renderGrid(favs.map(function(id) { return window.mangaDb[id]; }).filter(Boolean), 'fav-grid');
-      if(p === 'loved') renderGrid(loved.map(function(id) { return window.mangaDb[id]; }).filter(Boolean), 'loved-grid');
-      if(p === 'hist') renderHistory();
-      if(p === 'profile') updateProfileUI();
-      if(p === 'friends') renderFriendsList();
-      if(p === 'messages') renderDialogsList();
-      window.scrollTo({ top:0, behavior:'smooth' });
-    }
-
-    // ====== HISTORY ======
-    function renderHistory() {
-      const statsEl = document.getElementById('history-stats');
-      const listEl = document.getElementById('history-list');
-      if(!listEl) return;
-      const valid = readHistory.filter(h => window.mangaDb[h.id]);
-      if(statsEl) {
-        statsEl.innerHTML = '<div class="stats-bar">'
-          + '<div class="stats-card"><div class="stats-card-val">' + valid.length + '</div><div class="stats-card-label">Глав прочитано</div></div>'
-          + '<div class="stats-card"><div class="stats-card-val">' + new Set(valid.map(h=>h.id)).size + '</div><div class="stats-card-label">Уник. тайтлов</div></div>'
-          + '<div class="stats-card"><div class="stats-card-val">' + formatReadingTime(totalReadingTime) + '</div><div class="stats-card-label">Время чтения</div></div>'
-          + '</div>';
-      }
-      if(!valid.length) {
-        listEl.className = '';
-        listEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🕒</div><div class="empty-state-text">История пуста</div><div class="empty-state-sub">Начните читать, и здесь появится история</div></div>';
-        return;
-      }
-      listEl.className = 'grid';
-      listEl.innerHTML = valid.map(function(h) {
-        const m = window.mangaDb[h.id];
-        return '<div class="card" onclick="openTitle(\'' + esc(m.id) + '\')" tabindex="0" role="button">'
-          + '<span class="badge b-status" style="background:var(--accent);color:#fff;">Гл.' + h.ch + '</span>'
-          + '<div class="card-cover"><img src="' + esc(m.cover) + '" loading="lazy" alt="' + esc(m.title) + '" onerror="this.src=\'https://placehold.co/300x450/12121e/7c3aed?text=?\'"></div>'
-          + '<div class="card-info"><h3>' + esc(m.title) + '</h3></div></div>';
-      }).join('');
-    }
-    window.clearHistory = function() {
-      if(!readHistory.length) { window.showToast("История уже пуста"); return; }
-      if(!confirm("Очистить всю историю чтения?")) return;
-      readHistory = [];
-      localStorage.setItem('m_hist_v7', JSON.stringify(readHistory));
-      renderHistory();
-      window.showToast("История очищена");
-    };
-
-    // ====== FILTERS ======
-    function applyFilters() {
-      let data = Object.values(window.mangaDb);
-      var getChecks = function(id) { return Array.from(document.querySelectorAll(id + ' input:checked')).map(i => i.value); };
-      const statuses = getChecks('#filter-status'), years = getChecks('#filter-year'), genres = getChecks('#filter-genre');
-      if(statuses.length) data = data.filter(m => statuses.includes(m.status));
-      if(years.length) data = data.filter(m => years.includes(String(m.year)));
-      if(genres.length) data = data.filter(m => genres.some(g => m.genres && m.genres.includes(g)));
-      const sort = document.getElementById('sort-main').value;
-      if(sort === 'rating') data.sort((a,b) => (rates[b.id]||0) - (rates[a.id]||0));
-      if(sort === 'new') data.sort((a,b) => (b.year||0) - (a.year||0));
-      if(sort === 'updated') data.sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
-      const info = document.getElementById('catalog-results-info');
-      if(info) info.textContent = 'Найдено: ' + data.length + ' тайтлов';
-      renderGrid(data, 'catalog-grid');
-    }
-
-    // ====== TITLE PAGE ======
-    async function openTitle(id) {
-      curId = id;
-      const m = window.mangaDb[id]; if(!m) return;
-      document.getElementById('det-cover').src = m.cover;
-      document.getElementById('det-title').textContent = m.title;
-      document.getElementById('det-meta').textContent = (m.year||'') + ' • ' + (m.status||'') + ' • ' + (m.genres||[]).join(', ');
-      const genresEl = document.getElementById('det-genres');
-      if(genresEl) genresEl.innerHTML = (m.genres||[]).map(function(g) { return '<span class="genre-tag">' + esc(g) + '</span>'; }).join('');
-      document.getElementById('det-rating-num').textContent = "0.0";
-      document.getElementById('det-votes').textContent = "Загрузка...";
-      document.getElementById('ch-search-input').value = '';
-
-      /* FIX: ratingUnsub — properly nullify after unsubscribe */
-      if(ratingUnsub) { ratingUnsub(); ratingUnsub = null; }
-      if(window.listenToRating) {
-        var unsub = window.listenToRating(id, function(data) {
-          document.getElementById('det-rating-num').textContent = data.average;
-          document.getElementById('det-votes').textContent = 'Оценок: ' + data.total;
-        });
-        ratingUnsub = unsub;
-      }
-
-      // Title progress
-      if(m.chapters) {
-        const totalCh = Object.keys(m.chapters).length;
-        const uniqueRead = new Set(readHistory.filter(h => h.id === id).map(h => h.ch)).size;
-        const pct = totalCh > 0 ? Math.round((uniqueRead/totalCh)*100) : 0;
-        const pc = document.getElementById('title-progress-container');
-        if(uniqueRead > 0) {
-          pc.style.display = 'block';
-          document.getElementById('title-progress-pct').textContent = pct + '%';
-          setTimeout(function() { document.getElementById('title-progress-fill').style.width = pct + '%'; }, 100);
-        } else {
-          pc.style.display = 'none';
-        }
-      }
-
-      // Chapters
-      const chList = document.getElementById('det-chapters');
-      if(m.chapters) {
-        chList.innerHTML = Object.keys(m.chapters).sort((a,b)=>b-a).map(function(n) {
-          const isRead = readHistory.some(h => h.id === id && h.ch == n);
-          return '<div class="chapter-item ' + (isRead?'read':'') + '" data-ch="' + n + '" onclick="openChapter(' + n + ')" tabindex="0" role="button">'
-            + '<span class="ch-num">Глава ' + n + '</span>'
-            + '<span class="ch-action">' + (isRead?'ПРОДОЛЖИТЬ ›':'ЧИТАТЬ ›') + '</span></div>';
-        }).join('');
-        chList.querySelectorAll('.chapter-item').forEach(function(item) {
-          item.addEventListener('keydown', function(e) { if(e.key==='Enter'||e.key===' ') { e.preventDefault(); item.click(); } });
-        });
-      } else { chList.innerHTML = "<p style='padding:20px;text-align:center;color:var(--text-dim);'>Главы не загружены</p>"; }
-      updateStarsUI(); updateFavUI(); switchPage('title');
-      document.getElementById('comments-list').innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-dim);">Загрузка комментариев...</div>';
-      if(window.loadCommentsFromCloud) globalCommentsList = await window.loadCommentsFromCloud(id);
-      renderComments();
-    }
-
-    function openChapter(n) {
-      curCh = parseInt(n);
-      readHistory = readHistory.filter(h => !(h.id === curId && h.ch === curCh));
-      readHistory.unshift({ id:curId, ch:curCh, time:Date.now() });
-      localStorage.setItem('m_hist_v7', JSON.stringify(readHistory.slice(0,100)));
-      document.getElementById('reader-info').textContent = window.mangaDb[curId].title + ' — Гл.' + curCh;
-      const container = document.getElementById('reader-images');
-      container.innerHTML = '<div style="text-align:center;padding:60px;color:#666;">Загрузка страниц...</div>';
-      const ch = window.mangaDb[curId].chapters[curCh];
-      if(Array.isArray(ch)) {
-        container.innerHTML = ch.map(function(s, i) { return '<img src="' + esc(s) + '" loading="' + (i<3?'eager':'lazy') + '" style="width:100%;display:block;" onerror="this.src=\'https://placehold.co/800x1200/0d0d15/7c3aed?text=Стр.' + (i+1) + '\'" alt="Страница ' + (i+1) + '">'; }).join('');
-      } else { container.innerHTML = '<div class="empty-state" style="margin:40px;background:#0d0d15;">Ошибка загрузки главы</div>'; }
-      document.getElementById('bottom-nav').style.transform = 'translateY(100%)';
-      document.getElementById('reader').style.display = 'block';
-      document.body.style.overflow = 'hidden';
-      const saved = localStorage.getItem('scroll_' + curId + '_' + curCh);
-      document.getElementById('reader').scrollTop = saved ? parseInt(saved) : 0;
-      const chs = window.mangaDb[curId].chapters;
-      document.getElementById('btn-prev-ch').style.display = chs[curCh-1] ? 'block' : 'none';
-      document.getElementById('btn-next-ch').style.display = chs[curCh+1] ? 'block' : 'none';
-      readingStartTime = Date.now();
-    }
-
-    // ====== FAV ======
-    function toggleFav(type) {
-      let arr = type === 'favs' ? favs : loved;
-      const exists = arr.includes(curId);
-      arr = exists ? arr.filter(i => i !== curId) : arr.concat([curId]);
-      if(type === 'favs') { favs = arr; localStorage.setItem('m_favs_v7', JSON.stringify(favs)); }
-      else { loved = arr; localStorage.setItem('m_loved_v8', JSON.stringify(loved)); }
-      updateFavUI(); updateSidebarBadges();
-      window.showToast(exists ? "Удалено" : (type === 'favs' ? "🔖 Добавлено в закладки!" : "❤️ Добавлено в избранное!"));
-    }
-    function updateFavUI() {
-      const bF = document.getElementById('btn-fav'), bL = document.getElementById('btn-loved');
-      if(bF) {
-        const isFav = favs.includes(curId);
-        bF.innerHTML = isFav ? '✅ В ЗАКЛАДКАХ' : '🔖 В закладки';
-        bF.style.background = isFav ? 'var(--success)' : '';
-        bF.style.color = isFav ? '#000' : '';
-      }
-      if(bL) {
-        const isL = loved.includes(curId);
-        bL.innerHTML = isL ? '💖 В ИЗБРАННОМ' : '❤️ В избранное';
-        bL.style.background = isL ? 'var(--loved)' : '';
-        bL.style.color = isL ? '#fff' : '';
-        bL.style.borderColor = 'var(--loved)';
-      }
-    }
-
-    // ====== SHARE ======
-    function shareTitle() {
-      if(navigator.share) { navigator.share({ title:window.mangaDb[curId].title, text:'Читаю "' + window.mangaDb[curId].title + '" на MangaCloud!', url:window.location.href }).catch(function(){}); }
-      else { navigator.clipboard && navigator.clipboard.writeText(window.location.href); window.showToast("Ссылка скопирована! 📋"); }
-    }
-
-    // ====== COMMENTS ======
-    /* FIX: Comment validation max 500 chars */
-    async function saveGlobalComment() {
-      const txt = document.getElementById('comment-text');
-      var text = txt.value.trim();
-      if(!text) { window.showToast("Напишите что-нибудь!", "error"); return; }
-      if(text.length > 500) { window.showToast("Комментарий слишком длинный (макс 500 символов)!", "error"); return; }
-      const user = getStorage('m_user_v7', null);
-      let userName = user ? (customNames[user.sub] || user.name) : (customNames['anonymous'] || "Анонимный читатель");
-      const avatarUrl = user ? user.picture : '';
-      const now = new Date();
-      const prettyDate = now.toLocaleDateString() + ', ' + now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-      const newComment = { user:userName, avatarUrl:avatarUrl, text:text, date:prettyDate, timeId:Date.now(), likes:0 };
-      globalCommentsList.push(newComment); renderComments(); txt.value = '';
-      updateCommentCharCount();
-      if(window.sendCommentToCloud) {
-        const ok = await window.sendCommentToCloud(curId, newComment);
-        window.showToast(ok ? "Комментарий опубликован! 💬" : "Ошибка отправки", ok ? 'success' : 'error');
-      }
-    }
-    window.likeComment = function(timeId) {
-      let liked = JSON.parse(localStorage.getItem('m_liked_comments_v7') || '[]');
-      const c = globalCommentsList.find(x => x.timeId === timeId);
-      if(c) {
-        const isLiked = liked.includes(timeId);
-        if(isLiked) { c.likes = Math.max(0,(c.likes||1)-1); liked = liked.filter(id => id !== timeId); }
-        else { c.likes = (c.likes||0)+1; liked.push(timeId); }
-        localStorage.setItem('m_liked_comments_v7', JSON.stringify(liked));
-        renderComments();
-        if(window.updateAllCommentsInCloud) window.updateAllCommentsInCloud(curId, globalCommentsList);
-      }
-    };
-    function renderComments() {
-      const c = document.getElementById('comments-list'); if(!c) return;
-      const liked = JSON.parse(localStorage.getItem('m_liked_comments_v7') || '[]');
-      c.innerHTML = globalCommentsList.length
-        ? globalCommentsList.slice().reverse().map(function(x) {
-          var avatarHtml = x.avatarUrl
-            ? '<img src="' + esc(x.avatarUrl) + '" style="width:22px;height:22px;border-radius:50%;margin-right:7px;object-fit:cover;" alt="">'
-            : (x.avatar || '👤');
-          return '<div class="comm-card">'
-            + '<div class="comm-header">'
-            + '<span class="comm-user">' + avatarHtml + ' ' + esc(x.user) + '</span>'
-            + '<span class="comm-date">' + esc(x.date) + '</span>'
-            + '</div>'
-            + '<div class="comm-text">' + esc(x.text) + '</div>'
-            + '<button class="comm-like-btn ' + (liked.includes(x.timeId)?'liked':'') + '" onclick="likeComment(' + x.timeId + ')">❤️ ' + (x.likes||0) + '</button>'
-            + '</div>';
-        }).join('')
-        : '<p style="text-align:center;color:var(--text-dim);padding:28px;">Будьте первым! Напишите комментарий 👆</p>';
-    }
-
-    // ====== READER ======
-    let readerWidthMode = 0;
-    window.toggleReaderWidth = function() {
-      readerWidthMode = (readerWidthMode+1)%3;
-      const c = document.getElementById('reader-images');
-      c.className = ['','reader-wide','reader-narrow'][readerWidthMode];
-      window.showToast(['📐 Стандартный','🖥️ Полный экран','📱 Узкий'][readerWidthMode]);
-    };
-    function closeReader() {
-      document.getElementById('reader').style.display = 'none';
-      document.body.style.overflow = '';
-      document.getElementById('bottom-nav').style.transform = 'translateY(0)';
-      if(readingStartTime) {
-        const elapsed = Math.floor((Date.now() - readingStartTime) / 1000);
-        totalReadingTime += elapsed;
-        localStorage.setItem('m_reading_time_sec', totalReadingTime);
-        readingStartTime = null;
-      }
-      openTitle(curId);
-    }
-    function moveChapter(d) {
-      if(window.mangaDb[curId] && window.mangaDb[curId].chapters && window.mangaDb[curId].chapters[curCh+d]) openChapter(curCh+d);
-      else window.showToast("Глав больше нет", "error");
+      c.innerHTML = '<div class="continue-widget" onclick="openTitle(\'' + esc(last.id) + '\')">'
+        + '<img class="continue-cover" src="' + esc(manga.cover) + '" alt="' + esc(manga.title) + '" loading="lazy" onerror="this.src=\'https://placehold.co/72x72/12121e/7c3aed?text=?\'">'
+        + '<div class="continue-info">'
+        + '<div class="continue-label">▶ Продолжить чтение</div>'
+        + '<div class="continue-title">' + esc(manga.title) + '</div>'
+        + '<div class="continue-ch">Глава ' + last.ch + '</div>'
+        + '</div>'
+    
+        + '<div class="continue-arrow">→</div>'
+        + '</div>';
     }
 
     // ====== SEARCH ======
-    let searchTimeout;
     window.liveSearch = function(q) {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(function() {
-        const query = q.trim().toLowerCase();
-        const clearBtn = document.getElementById('clear-search-btn');
-        const clearBtnH = document.getElementById('clear-header-btn');
-        const titleHeader = document.getElementById('home-section-title');
-        const cont = document.getElementById('continue-reading-container');
-        const chips = document.getElementById('genre-chips');
-        const hero = document.getElementById('hero-banner-container');
-        const qs = document.getElementById('quick-stats');
-        const rt = document.getElementById('reading-time-container');
-        if(clearBtn) clearBtn.style.display = query ? 'block' : 'none';
-        if(clearBtnH) clearBtnH.style.display = query ? 'block' : 'none';
-        if(!query) {
-          if(titleHeader) titleHeader.textContent = '⚡ Популярное сегодня';
-          if(cont) cont.style.display = 'block';
-          if(chips) chips.style.display = 'flex';
-          if(hero) hero.style.display = 'block';
-          if(qs) qs.style.display = '';
-          if(rt) rt.style.display = 'block';
-          renderHeroBanner(); renderQuickStats(); renderContinueReading(); renderReadingTime();
-          renderGrid(Object.values(window.mangaDb), 'home-grid'); return;
-        }
-        if(cont) cont.style.display = 'none';
-        if(chips) chips.style.display = 'none';
-        if(hero) hero.style.display = 'none';
-        if(qs) qs.style.display = 'none';
-        if(rt) rt.style.display = 'none';
-        if(titleHeader) titleHeader.textContent = '🔍 Результаты: "' + q.trim() + '"';
-        const res = Object.values(window.mangaDb).filter(function(m) {
-          return (m.title && m.title.toLowerCase().includes(query)) ||
-            (m.genres && m.genres.some(function(g) { return g.toLowerCase().includes(query); }));
-        });
-        renderGrid(res, 'home-grid');
-        const hi = document.getElementById('search-input-header');
-        const mi = document.getElementById('search-input');
-        if(hi && hi.value !== q) hi.value = q;
-        if(mi && mi.value !== q) mi.value = q;
-      }, 280);
+      q = q.trim().toLowerCase();
+      const clearBtn = document.getElementById('clear-search-btn');
+      const clearHeaderBtn = document.getElementById('clear-header-btn');
+      if(clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+      if(clearHeaderBtn) clearHeaderBtn.style.display = q ? 'block' : 'none';
+      // Sync both inputs
+      document.getElementById('search-input').value = q;
+      document.getElementById('search-input-header').value = q;
+      if(!q) {
+        renderGrid(Object.values(window.mangaDb), 'home-grid');
+        document.getElementById('home-section-title').textContent = '⚡ Популярное сегодня';
+        return;
+      }
+      const results = Object.values(window.mangaDb).filter(function(m) {
+        return m.title.toLowerCase().includes(q)
+          || (m.genres && m.genres.some(function(g){ return g.toLowerCase().includes(q); }))
+          || (m.author && m.author.toLowerCase().includes(q));
+      });
+      document.getElementById('home-section-title').textContent = '🔍 Результаты: «' + esc(q) + '» (' + results.length + ')';
+      renderGrid(results, 'home-grid');
     };
+    
     window.clearSearch = function() {
-      ['search-input','search-input-header'].forEach(function(id) { var el = document.getElementById(id); if(el) el.value = ''; });
-      window.liveSearch('');
+      document.getElementById('search-input').value = '';
+      document.getElementById('search-input-header').value = '';
+      document.getElementById('clear-search-btn').style.display = 'none';
+      document.getElementById('clear-header-btn').style.display = 'none';
+      document.getElementById('home-section-title').textContent = '⚡ Популярное сегодня';
+      renderGrid(Object.values(window.mangaDb), 'home-grid');
     };
+    
+    // ====== CATALOG FILTERS ======
+    function buildFilters() {
+      const allGenres = new Set();
+      const allYears = new Set();
+      Object.values(window.mangaDb).forEach(function(m) {
+        if(m.genres) m.genres.forEach(function(g){ allGenres.add(g); });
+        if(m.year) allYears.add(m.year);
+      });
+      const gC = document.getElementById('filter-genre');
+      if(gC) {
+        gC.innerHTML = Array.from(allGenres).sort().map(function(g) {
+          return '<label><input type="checkbox" value="' + esc(g) + '" onchange="applyFilters()"><span>' + esc(g) + '</span></label>';
+        }).join('');
+      }
+      const yC = document.getElementById('filter-year');
+      if(yC) {
+        yC.innerHTML = Array.from(allYears).sort(function(a,b){ return b-a; }).map(function(y) {
+          return '<label><input type="checkbox" value="' + y + '" onchange="applyFilters()"><span>' + y + '</span></label>';
+        }).join('');
+      }
+    }
+    window.applyFilters = function() {
+      const sort = document.getElementById('sort-main').value;
+      const selGenres = Array.from(document.querySelectorAll('#filter-genre input:checked')).map(function(i){ return i.value; });
+      const selStatus = Array.from(document.querySelectorAll('#filter-status input:checked')).map(function(i){ return i.value; });
+      const selYears = Array.from(document.querySelectorAll('#filter-year input:checked')).map(function(i){ return parseInt(i.value); });
+      let list = Object.values(window.mangaDb);
+      if(selGenres.length) list = list.filter(function(m){ return m.genres && selGenres.some(function(g){ return m.genres.includes(g); }); });
+      if(selStatus.length) list = list.filter(function(m){ return selStatus.includes(m.status); });
+      if(selYears.length) list = list.filter(function(m){ return selYears.includes(m.year); });
+      if(sort === 'rating') list.sort(function(a,b){ return (rates[b.id]||0) - (rates[a.id]||0); });
+      else if(sort === 'new') list.sort(function(a,b){ return (b.year||0) - (a.year||0); });
+      else if(sort === 'updated') list.sort(function(a,b){ return (b.updatedAt||0) - (a.updatedAt||0); });
+      document.getElementById('catalog-results-info').textContent = 'Найдено: ' + list.length + ' тайтлов';
+      renderGrid(list, 'catalog-grid');
+    };
+    
+    window.resetFilters = function() {
+      document.querySelectorAll('.filters-sidebar input[type="checkbox"]').forEach(function(i){ i.checked = false; });
+      document.getElementById('sort-main').value = 'popular';
+      applyFilters();
+      window.showToast("Фильтры сброшены");
+    };
+
+    // ====== SWITCH PAGE ======
+    window.switchPage = function(page) {
+      closeSidebar();
+      closeUserDropdown();
+      document.getElementById('notifications-panel').classList.remove('visible');
+      if(page !== 'title') lastP = page;
+      document.querySelectorAll('.page').forEach(function(p){ p.style.display = 'none'; });
+      const target = document.getElementById(page + '-page');
+      if(target) { target.style.display = 'block'; window.scrollTo({top:0,behavior:'smooth'}); }
+      document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+      const navMap = {home:0, catalog:1, hist:2, fav:3, profile:4};
+      if(navMap[page] !== undefined) document.querySelectorAll('.nav-item')[navMap[page]].classList.add('active');
+      
+      // Render page-specific content
+      if(page === 'fav') renderFavGrid();
+      if(page === 'loved') renderLovedGrid();
+      if(page === 'hist') renderHistoryList();
+      if(page === 'friends') { renderFriendsList(); }
+      if(page === 'messages') { renderDialogsList();
+      }
+      if(page === 'catalog') { applyFilters();
+      }
+      if(page === 'profile') updateProfileUI();
+    };
+    
+    // ====== FAV / LOVED GRID ======
+    function renderFavGrid() {
+      const list = favs.map(function(id){ return window.mangaDb[id]; }).filter(Boolean);
+      if(!list.length) {
+        document.getElementById('fav-grid').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔖</div><div class="empty-state-text">Закладок пока нет</div><div class="empty-state-sub">Добавляйте мангу в закладки, чтобы не потерять</div></div>';
+        return;
+      }
+      renderGrid(list, 'fav-grid');
+    }
+    function renderLovedGrid() {
+      const list = loved.map(function(id){ return window.mangaDb[id]; }).filter(Boolean);
+      if(!list.length) {
+        document.getElementById('loved-grid').innerHTML = '<div class="empty-state"><div class="empty-state-icon">❤️</div><div class="empty-state-text">В избранном пусто</div><div class="empty-state-sub">Отмечайте любимые тайтлы сердечком</div></div>';
+        return;
+      }
+      renderGrid(list, 'loved-grid');
+    }
+
+    // ====== HISTORY ======
+    function renderHistoryList() {
+      const c = document.getElementById('history-list');
+      const sc = document.getElementById('history-stats');
+      if(!c) return;
+      if(sc) {
+        sc.innerHTML = '<div class="stats-bar">'
+          + '<div class="stats-card"><div class="stats-card-val">' + readHistory.length + '</div><div class="stats-card-label">Глав прочитано</div></div>'
+          + '<div class="stats-card"><div class="stats-card-val">' + new Set(readHistory.map(function(h){ return h.id; })).size + '</div><div class="stats-card-label">Тайтлов</div></div>'
+          + '<div class="stats-card"><div class="stats-card-val">' + formatReadingTime(totalReadingTime) + '</div><div class="stats-card-label">Время чтения</div></div>'
+          + '</div>';
+      }
+      if(!readHistory.length) {
+        c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🕒</div><div class="empty-state-text">История пуста</div><div class="empty-state-sub">Начните читать мангу!</div></div>';
+        return;
+      }
+      c.innerHTML = readHistory.slice().reverse().map(function(h) {
+        const m = window.mangaDb[h.id];
+        if(!m) return '';
+        return '<div class="list-item" onclick="openTitle(\'' + esc(h.id) + '\')">'
+          + '<img src="' + esc(m.cover) + '" class="list-avatar" style="border-radius:8px;" alt="' + esc(m.title) + '" onerror="this.src=\'https://placehold.co/46x46/12121e/7c3aed?text=?\'">'
+          + '<div class="list-info"><div class="list-title">' + esc(m.title) + '</div><div class="list-sub">Глава ' + h.ch + '</div></div>'
+       
+          + '<span class="list-action">Читать</span>'
+          + '</div>';
+      }).join('');
+    }
+    window.clearHistory = function() {
+      if(!confirm('Очистить всю историю чтения?')) return;
+      readHistory = [];
+      localStorage.setItem('m_hist_v7', JSON.stringify(readHistory));
+      totalReadingTime = 0;
+      localStorage.setItem('m_reading_time_sec', '0');
+      renderHistoryList();
+      updateProfileUI();
+      window.showToast("История очищена");
+    };
+    
+    // ====== OPEN TITLE ======
+    window.openTitle = function(id) {
+      curId = id;
+      const m = window.mangaDb[id];
+      if(!m) { window.showToast("Тайтл не найден!", "error"); return; }
+      switchPage('title');
+      document.getElementById('det-cover').src = m.cover;
+      document.getElementById('det-cover').onerror = function(){ this.src='https://placehold.co/280x420/12121e/7c3aed?text=?'; };
+      document.getElementById('det-title').textContent = m.title;
+      document.getElementById('det-meta').textContent = (m.author || 'Неизвестен') + ' • ' + (m.year || '') + ' • ' + (m.status || '');
+      document.getElementById('det-genres').innerHTML = (m.genres || []).map(function(g) {
+        return '<span class="genre-tag">' + esc(g) + '</span>';
+      }).join('');
+      
+      // Fav / Loved buttons
+      document.getElementById('btn-fav').innerHTML = favs.includes(id) ?
+      '🔖 В закладках ✓' : '🔖 В закладки';
+      document.getElementById('btn-fav').style.background = favs.includes(id) ? 'var(--accent)' : '';
+      document.getElementById('btn-loved').innerHTML = loved.includes(id) ?
+      '❤️ В избранном ✓' : '❤️ В избранное';
+      document.getElementById('btn-loved').style.borderColor = loved.includes(id) ? 'var(--loved)' : 'var(--border)';
+      document.getElementById('btn-loved').style.background = loved.includes(id) ?
+      'rgba(244,63,94,.15)' : '';
+      document.getElementById('btn-loved').style.color = loved.includes(id) ? 'var(--loved)' : '';
+
+      // Title progress
+      renderTitleProgress(id);
+      
+      // Rating
+      if(ratingUnsub) { ratingUnsub(); ratingUnsub = null;
+      }
+      if(window.listenToRating) {
+        ratingUnsub = window.listenToRating(id, function(data) {
+          document.getElementById('det-rating-num').textContent = data.average;
+          document.getElementById('det-votes').textContent = 'Голосов: ' + data.total;
+        });
+      }
+      renderRatingStars(id);
+
+      // Chapters
+      renderChapters(id);
+      
+      // Comments
+      loadAndRenderComments(id);
+    };
+
+    // ====== TITLE PROGRESS ======
+    function renderTitleProgress(id) {
+      const m = window.mangaDb[id];
+      if(!m || !m.chapters) return;
+      const totalCh = Object.keys(m.chapters).length;
+      const readChs = readHistory.filter(function(h){ return h.id === id; });
+      const uniqueRead = new Set(readChs.map(function(h){ return h.ch; })).size;
+      const pct = totalCh > 0 ?
+      Math.round((uniqueRead / totalCh) * 100) : 0;
+      const container = document.getElementById('title-progress-container');
+      if(uniqueRead > 0) {
+        container.style.display = 'block';
+        document.getElementById('title-progress-pct').textContent = pct + '%';
+        document.getElementById('title-progress-fill').style.width = pct + '%';
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    // ====== RATING STARS ======
+    function renderRatingStars(id) {
+      const starsC = document.getElementById('rating-stars');
+      const userRate = rates[id] || 0;
+      let html = '';
+      for(let i = 1; i <= 10; i++) {
+        html += '<span class="star ' + (i <= userRate ? 'active' : '') + '" onclick="rateTitle(' + i + ')" title="' + i + '/10">★</span>';
+      }
+      starsC.innerHTML = html;
+    }
+    window.rateTitle = function(score) {
+      if(!curId) return;
+      rates[curId] = score;
+      localStorage.setItem('m_rates_v7', JSON.stringify(rates));
+      renderRatingStars(curId);
+      if(window.sendRatingToCloud) window.sendRatingToCloud(curId, score);
+      window.showToast("Оценка: " + score + "/10 ⭐");
+    };
+    
+    // ====== CHAPTERS ======
+    function renderChapters(id) {
+      const m = window.mangaDb[id];
+      const c = document.getElementById('det-chapters');
+      if(!m || !m.chapters) { c.innerHTML = '<p style="padding:20px;color:var(--text-dim);text-align:center;">Нет доступных глав</p>'; return;
+      }
+      const chapters = Object.keys(m.chapters).map(Number).sort(function(a,b){ return a - b; });
+      c.innerHTML = chapters.map(function(ch) {
+        const isRead = readHistory.some(function(h){ return h.id === id && h.ch === ch; });
+        return '<div class="chapter-item ' + (isRead ? 'read' : '') + '" onclick="openReader(\'' + esc(id) + '\',' + ch + ')">'
+          + '<span class="ch-num">Глава ' + ch + (isRead ? ' ✓' : '') + '</span>'
+          + '<span class="ch-action">ЧИТАТЬ →</span>'
+          + '</div>';
+ 
+      }).join('');
+    }
     window.filterChapters = function(val) {
-      document.querySelectorAll('.chapter-item').forEach(function(item) {
-        item.style.display = !val || item.dataset.ch.includes(val) ? 'flex' : 'none';
+      if(!curId) return;
+      const items = document.querySelectorAll('#det-chapters .chapter-item');
+      items.forEach(function(item) {
+        const num = item.querySelector('.ch-num').textContent.replace(/[^\d]/g, '');
+        item.style.display = (!val || num.includes(val)) ? '' : 'none';
       });
     };
-    window.resetFilters = function() {
-      document.querySelectorAll('.filters-sidebar input[type="checkbox"]').forEach(c => c.checked = false);
-      document.getElementById('sort-main').value = 'popular';
-      applyFilters(); window.showToast("Фильтры сброшены");
+
+    // ====== TOGGLE FAV / LOVED ======
+    window.toggleFav = function(type) {
+      if(!curId) return;
+      let arr = type === 'favs' ? favs : loved;
+      const key = type === 'favs' ? 'm_favs_v7' : 'm_loved_v8';
+      const idx = arr.indexOf(curId);
+      if(idx >= 0) {
+        arr.splice(idx, 1);
+        window.showToast(type === 'favs' ? "Убрано из закладок" : "Убрано из избранного");
+      } else {
+        arr.push(curId);
+        window.showToast(type === 'favs' ? "Добавлено в закладки 🔖" : "Добавлено в избранное ❤️");
+        if(window.saveManga) window.saveManga(curId);
+      }
+      localStorage.setItem(key, JSON.stringify(arr));
+      // Update buttons
+      document.getElementById('btn-fav').innerHTML = favs.includes(curId) ?
+      '🔖 В закладках ✓' : '🔖 В закладки';
+      document.getElementById('btn-fav').style.background = favs.includes(curId) ? 'var(--accent)' : '';
+      document.getElementById('btn-loved').innerHTML = loved.includes(curId) ?
+      '❤️ В избранном ✓' : '❤️ В избранное';
+      document.getElementById('btn-loved').style.borderColor = loved.includes(curId) ? 'var(--loved)' : 'var(--border)';
+      document.getElementById('btn-loved').style.background = loved.includes(curId) ?
+      'rgba(244,63,94,.15)' : '';
+      document.getElementById('btn-loved').style.color = loved.includes(curId) ? 'var(--loved)' : '';
+      updateSidebarBadges();
+      updateProfileUI();
+    };
+    
+    // ====== SHARE ======
+    window.shareTitle = function() {
+      const m = window.mangaDb[curId];
+      if(!m) return;
+      const text = m.title + ' — читай на MangaCloud!';
+      if(navigator.share) {
+        navigator.share({ title: m.title, text: text, url: window.location.href }).catch(function(){});
+      } else {
+        navigator.clipboard.writeText(text + ' ' + window.location.href).then(function(){
+          window.showToast("Ссылка скопирована!");
+        }).catch(function(){});
+      }
     };
 
-    // Expose
-    window.openSidebar = openSidebar; window.closeSidebar = closeSidebar;
-    window.switchPage = switchPage; window.openTitle = openTitle;
-    window.openChapter = openChapter; window.closeReader = closeReader;
-    window.moveChapter = moveChapter; window.toggleFav = toggleFav;
-    window.shareTitle = shareTitle; window.saveGlobalComment = saveGlobalComment;
-    window.applyFilters = applyFilters;
+    // ====== COMMENTS ======
+    async function loadAndRenderComments(mangaId) {
+      const c = document.getElementById('comments-list');
+      c.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:20px;">Загрузка комментариев...</p>';
+      if(window.loadCommentsFromCloud) {
+        globalCommentsList = await window.loadCommentsFromCloud(mangaId);
+      } else {
+        globalCommentsList = [];
+      }
+      renderComments();
+    }
+    function renderComments() {
+      const c = document.getElementById('comments-list');
+      if(!globalCommentsList.length) {
+        c.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:20px;">Комментариев пока нет. Будьте первым!</p>';
+        return;
+      }
+      c.innerHTML = globalCommentsList.slice().reverse().map(function(comment, idx) {
+        const realIdx = globalCommentsList.length - 1 - idx;
+        return '<div class="comm-card">'
+          + '<div class="comm-header">'
+          + '<span class="comm-user">👤 ' + esc(comment.name || 'Аноним') + '</span>'
+          + '<span class="comm-date">' + esc(comment.date || '') + '</span>'
+          + '</div>'
+     
+          + '<div class="comm-text">' + esc(comment.text) + '</div>'
+          + '<button class="comm-like-btn ' + (isCommentLiked(realIdx) ? 'liked' : '') + '" onclick="toggleCommentLike(' + realIdx + ')">'
+          + '❤️ ' + (comment.likes || 0)
+          + '</button>'
+          + '</div>';
+      }).join('');
+    }
+    function isCommentLiked(idx) {
+      const liked = getStorage('m_comm_likes_v1', []);
+      return liked.includes(curId + '_' + idx);
+    }
+    window.toggleCommentLike = async function(idx) {
+      let liked = getStorage('m_comm_likes_v1', []);
+      const key = curId + '_' + idx;
+      if(liked.includes(key)) {
+        liked = liked.filter(function(k){ return k !== key; });
+        if(globalCommentsList[idx]) globalCommentsList[idx].likes = Math.max(0, (globalCommentsList[idx].likes || 0) - 1);
+      } else {
+        liked.push(key);
+        if(globalCommentsList[idx]) globalCommentsList[idx].likes = (globalCommentsList[idx].likes || 0) + 1;
+      }
+      localStorage.setItem('m_comm_likes_v1', JSON.stringify(liked));
+      if(window.updateAllCommentsInCloud) await window.updateAllCommentsInCloud(curId, globalCommentsList);
+      renderComments();
+    };
+    window.saveGlobalComment = async function() {
+      const ta = document.getElementById('comment-text');
+      const text = ta.value.trim();
+      if(!text) { window.showToast("Напишите комментарий!", "error"); return; }
+      if(text.length > 500) { window.showToast("Максимум 500 символов!", "error");
+      return; }
+      const user = getStorage('m_user_v7', null);
+      let name = 'Аноним';
+      if(user) {
+        name = customNames[user.sub] || user.name || 'Аноним';
+      }
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('ru-RU') + ' ' + now.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+      const commentData = { name: name, text: text, date: dateStr, likes: 0 };
+      if(window.sendCommentToCloud) {
+        const ok = await window.sendCommentToCloud(curId, commentData);
+        if(ok) {
+          globalCommentsList.push(commentData);
+          renderComments();
+          ta.value = '';
+          updateCommentCharCount();
+          window.showToast("Комментарий добавлен! 💬");
+        } else {
+          window.showToast("Ошибка при отправке", "error");
+        }
+      } else {
+        globalCommentsList.push(commentData);
+        renderComments();
+        ta.value = '';
+        updateCommentCharCount();
+        window.showToast("Комментарий сохранён локально");
+      }
+    };
+    
+    // ====== READER ======
+    window.openReader = function(id, ch) {
+      curId = id;
+      curCh = ch;
+      const m = window.mangaDb[id];
+      if(!m || !m.chapters || !m.chapters[ch]) { window.showToast("Глава не найдена!", "error"); return;
+      }
+      const reader = document.getElementById('reader');
+      reader.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      document.getElementById('reader-info').textContent = m.title + ' — Гл. ' + ch;
+      const images = m.chapters[ch];
+      const imagesContainer = document.getElementById('reader-images');
+      imagesContainer.innerHTML = (Array.isArray(images) ? images : [images]).map(function(url, i) {
+        return '<img src="' + esc(url) + '" alt="Страница ' + (i+1) + '" loading="' + (i < 3 ? 'eager' : 'lazy') + '" onerror="this.src=\'https://placehold.co/800x1200/12121e/7c3aed?text=Ошибка+загрузки\'">';
+      }).join('');
+      
+      // Navigation buttons
+      const chapters = Object.keys(m.chapters).map(Number).sort(function(a,b){ return a - b; });
+      const chIdx = chapters.indexOf(ch);
+      document.getElementById('btn-prev-ch').disabled = chIdx <= 0;
+      document.getElementById('btn-prev-ch').style.opacity = chIdx <= 0 ? '.3' : '1';
+      document.getElementById('btn-next-ch').disabled = chIdx >= chapters.length - 1;
+      document.getElementById('btn-next-ch').style.opacity = chIdx >= chapters.length - 1 ? '.3' : '1';
+      
+      // Save to history
+      const exists = readHistory.find(function(h){ return h.id === id && h.ch === ch; });
+      if(!exists) {
+        readHistory.push({ id: id, ch: ch, date: Date.now() });
+        localStorage.setItem('m_hist_v7', JSON.stringify(readHistory));
+      }
 
+      // Update title page
+      renderChapters(id);
+      renderTitleProgress(id);
+      updateProfileUI();
+      
+      // Restore scroll
+      const savedScroll = localStorage.getItem('scroll_' + id + '_' + ch);
+      if(savedScroll) {
+        setTimeout(function(){ reader.scrollTop = parseInt(savedScroll); }, 300);
+      } else {
+        reader.scrollTop = 0;
+      }
+
+      // Reading time tracking
+      readingStartTime = Date.now();
+    };
+    
+    window.closeReader = function() {
+      document.getElementById('reader').style.display = 'none';
+      document.body.style.overflow = '';
+      
+      // Save reading time
+      if(readingStartTime) {
+        const elapsed = Math.round((Date.now() - readingStartTime) / 1000);
+        if(elapsed > 5 && elapsed < 7200) { // Between 5s and 2h
+          totalReadingTime += elapsed;
+          localStorage.setItem('m_reading_time_sec', totalReadingTime.toString());
+        }
+        readingStartTime = null;
+      }
+    };
+    
+    window.moveChapter = function(dir) {
+      const m = window.mangaDb[curId];
+      if(!m || !m.chapters) return;
+      const chapters = Object.keys(m.chapters).map(Number).sort(function(a,b){ return a - b; });
+      const curIdx = chapters.indexOf(curCh);
+      const newIdx = curIdx + dir;
+      if(newIdx >= 0 && newIdx < chapters.length) {
+        // Save reading time before switching
+        if(readingStartTime) {
+          const elapsed = Math.round((Date.now() - readingStartTime) / 1000);
+          if(elapsed > 5 && elapsed < 7200) {
+            totalReadingTime += elapsed;
+            localStorage.setItem('m_reading_time_sec', totalReadingTime.toString());
+          }
+        }
+        openReader(curId, chapters[newIdx]);
+      } else {
+        window.showToast(dir > 0 ? "Это последняя глава!" : "Это первая глава!", "error");
+      }
+    };
+    window.toggleReaderWidth = function() {
+      const imgs = document.getElementById('reader-images');
+      if(imgs.classList.contains('reader-wide')) {
+        imgs.classList.remove('reader-wide');
+        imgs.classList.add('reader-narrow');
+        window.showToast("Узкий режим");
+      } else if(imgs.classList.contains('reader-narrow')) {
+        imgs.classList.remove('reader-narrow');
+        window.showToast("Стандартный режим");
+      } else {
+        imgs.classList.add('reader-wide');
+        window.showToast("Широкий режим");
+      }
+    };
+    
     // ====== START UI ======
     window.startUI = function() {
-      initStars(); renderYears(); buildDynamicGenreFilters(); updateProfileUI();
-      renderNotifications(); switchPage('home');
+      const all = Object.values(window.mangaDb);
+      renderHeroBanner();
+      renderQuickStats();
+      renderContinueReading();
+      renderReadingTime();
+      renderGenreChips();
+      renderGrid(all, 'home-grid');
+      buildFilters();
+      updateProfileUI();
+      updateHeaderAuth();
+      renderNotifications();
+      updateSidebarBadges();
     };
+    
+    // Fallback: if Firebase doesn't load within 8s
+    setTimeout(function() {
+      if(!document.getElementById('global-loader').classList.contains('hidden')) {
+        document.getElementById('global-loader').classList.add('hidden');
+        setTimeout(function(){ document.getElementById('global-loader').style.display = 'none'; }, 600);
+        window.startUI();
+      }
+    }, 8000);
   </script>
 </body>
 </html>
