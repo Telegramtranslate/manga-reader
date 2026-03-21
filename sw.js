@@ -1,8 +1,9 @@
-const CACHE_NAME = "mangacloud-shell-v2";
+const CACHE_NAME = "mangacloud-shell-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./robots.txt",
   "./icon-192.svg",
   "./icon-512.svg"
 ];

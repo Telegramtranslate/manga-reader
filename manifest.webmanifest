@@ -1,13 +1,20 @@
 {
+  "id": "./",
   "name": "MangaCloud",
   "short_name": "MangaCloud",
-  "description": "Чтение манги и манхвы с персональными рекомендациями, историей и офлайн-оболочкой.",
-  "start_url": "./index.html",
+  "description": "Чтение манги и манхвы с поиском, рекомендациями, историей и офлайн-режимом.",
+  "lang": "ru",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#07070f",
   "theme_color": "#07070f",
   "orientation": "portrait-primary",
+  "categories": [
+    "books",
+    "entertainment",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "./icon-192.svg",
