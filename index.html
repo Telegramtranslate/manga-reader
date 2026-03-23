@@ -10,6 +10,7 @@
   <meta name="google-site-verification" content="2wKTVCLvchMuikC0BJdWp0eAHfPakGmMlvAx5hmmZsM"/>
   <title>MangaCloud — Читать мангу онлайн бесплатно</title>
   <meta name="description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud."/>
+  <meta name="keywords" content="манга, манхва, маньхуа, читать мангу онлайн, manga, manhwa, webtoon, manga cloud"/>
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
   <meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
   <meta name="application-name" content="MangaCloud"/>
@@ -67,6 +68,8 @@
     :focus-visible{outline:2px solid var(--a2);outline-offset:3px;border-radius:4px;}
     img{display:block;}
     button{cursor:pointer;}
+    button,[onclick]{touch-action:manipulation;}
+    [onclick]{cursor:pointer;}
     .sr-only{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0,0,0,0) !important;white-space:nowrap !important;border:0 !important;}
 
     /* LOADER */
@@ -350,16 +353,16 @@
     .btn-icon{width:auto;padding:10px 13px;}
 
     /* TELEGRAM FLOAT */
-    .tg-float-btn{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 70px);right:14px;z-index:900;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
-    .tg-btn{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;font-weight:700;font-size:.8rem;text-decoration:none;border:none;cursor:pointer;font-family:var(--ff-body);box-shadow:0 6px 24px rgba(0,136,204,.45),0 0 0 3px rgba(0,136,204,.15);transition:var(--tr-spring);white-space:nowrap;animation:floatPulse 3s ease-in-out infinite;}
+    .tg-float-btn{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 70px);right:14px;z-index:900;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none;}
+    .tg-btn{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;font-weight:700;font-size:.8rem;text-decoration:none;border:none;cursor:pointer;font-family:var(--ff-body);box-shadow:0 6px 24px rgba(0,136,204,.45),0 0 0 3px rgba(0,136,204,.15);transition:var(--tr-spring);white-space:nowrap;animation:floatPulse 3s ease-in-out infinite;pointer-events:auto;}
     .tg-btn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 12px 32px rgba(0,136,204,.55),0 0 0 6px rgba(0,136,204,.1);}
-    .mail-btn{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;font-weight:700;font-size:.8rem;text-decoration:none;border:none;cursor:pointer;font-family:var(--ff-body);box-shadow:0 6px 24px var(--glow),0 0 0 3px var(--glow2);transition:var(--tr-spring);white-space:nowrap;}
+    .mail-btn{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;font-weight:700;font-size:.8rem;text-decoration:none;border:none;cursor:pointer;font-family:var(--ff-body);box-shadow:0 6px 24px var(--glow),0 0 0 3px var(--glow2);transition:var(--tr-spring);white-space:nowrap;pointer-events:auto;}
     .mail-btn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 12px 32px var(--glow),0 0 0 6px var(--glow2);}
     @keyframes floatPulse{0%,100%{box-shadow:0 6px 24px rgba(0,136,204,.45),0 0 0 3px rgba(0,136,204,.15)}50%{box-shadow:0 6px 24px rgba(0,136,204,.65),0 0 0 8px rgba(0,136,204,.08)}}
 
     /* MUSIC FAB */
-    .music-fab{position:fixed;left:14px;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);z-index:901;display:flex;flex-direction:column;align-items:flex-start;gap:10px;}
-    .music-panel{width:min(272px,calc(100vw - 28px));background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border2);border-radius:20px;padding:14px;box-shadow:0 18px 42px rgba(0,0,0,.38),0 0 22px var(--glow2);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px) scale(.97);transition:var(--tr);}
+    .music-fab{position:fixed;left:14px;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);z-index:901;display:flex;flex-direction:column;align-items:flex-start;gap:10px;pointer-events:none;}
+    .music-panel{position:absolute;left:0;bottom:58px;width:min(318px,calc(100vw - 24px));background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border2);border-radius:20px;padding:14px;box-shadow:0 18px 42px rgba(0,0,0,.38),0 0 22px var(--glow2);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px) scale(.97);transition:var(--tr);}
     .music-panel.show{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1);}
     .music-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;}
     .music-kicker{font-size:.62rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--a3);font-weight:800;font-family:var(--ff-display);}
@@ -370,7 +373,7 @@
     .music-search-input{flex:1;width:auto;background:rgba(139,92,246,.07);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;font-size:.8rem;font-family:var(--ff-body);}
     .music-search-btn{width:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.82rem;font-weight:800;font-family:var(--ff-body);transition:var(--tr-fast);}
     .music-search-btn:hover{border-color:var(--a2);color:var(--a3);}
-    .music-search-results{display:grid;gap:8px;max-height:220px;overflow-y:auto;padding-right:2px;margin-bottom:12px;}
+    .music-search-results{display:grid;gap:8px;max-height:248px;overflow-y:auto;padding-right:2px;margin-bottom:12px;}
     .music-result{display:flex;align-items:center;gap:10px;padding:9px;border-radius:14px;border:1px solid var(--border);background:rgba(139,92,246,.05);transition:var(--tr-fast);text-align:left;width:100%;color:var(--text);font-family:var(--ff-body);cursor:pointer;}
     .music-result:hover{border-color:var(--a2);background:rgba(139,92,246,.12);}
     .music-result.active{border-color:var(--a2);background:linear-gradient(135deg,rgba(109,40,217,.2),rgba(17,17,34,.96));box-shadow:0 8px 20px rgba(109,40,217,.14);}
@@ -389,12 +392,21 @@
     .music-track-btn:hover{border-color:var(--a2);background:rgba(139,92,246,.12);}
     .music-track-btn.active{border-color:var(--a2);background:linear-gradient(135deg,rgba(109,40,217,.22),rgba(232,121,249,.08));box-shadow:0 10px 24px rgba(109,40,217,.16);}
     .music-track-meta{display:block;font-size:.68rem;font-weight:600;color:var(--text2);margin-top:2px;}
-    .music-controls{display:flex;align-items:center;gap:10px;margin-top:12px;}
+    .music-controls{display:grid;grid-template-columns:40px 40px auto minmax(0,1fr);align-items:center;gap:8px;margin-top:12px;}
     .music-mini-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:var(--tr-fast);}
     .music-mini-btn:hover{border-color:var(--a2);color:var(--a3);}
+    .music-mini-btn:disabled{opacity:.45;cursor:not-allowed;}
+    .music-mini-btn.active{border-color:var(--a2);background:rgba(139,92,246,.16);color:var(--a3);}
+    .music-mini-btn.wide{width:auto;min-width:56px;padding:0 10px;font-size:.72rem;font-weight:800;}
     .music-volume{flex:1;accent-color:var(--a3);}
+    .music-progress-wrap{margin-top:10px;padding:10px 11px;border-radius:14px;background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.14);}
+    .music-progress{width:100%;accent-color:var(--a3);}
+    .music-progress:disabled{opacity:.45;cursor:not-allowed;}
+    .music-progress-times{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;font-family:var(--ff-mono);font-size:.68rem;color:var(--text2);}
+    .music-progress-times strong{color:var(--text3);font-weight:700;}
+    .music-progress-live{color:var(--a3);letter-spacing:.4px;}
     .music-status{margin-top:10px;font-size:.72rem;color:var(--text2);line-height:1.45;min-height:2.2em;}
-    .music-fab-btn{width:46px;height:46px;border-radius:50%;border:1px solid var(--border2);background:linear-gradient(135deg,#0f172a,var(--a1));color:#fff;font-size:1.15rem;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 18px var(--glow2);transition:var(--tr-spring);}
+    .music-fab-btn{width:46px;height:46px;border-radius:50%;border:1px solid var(--border2);background:linear-gradient(135deg,#0f172a,var(--a1));color:#fff;font-size:1.15rem;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 18px var(--glow2);transition:var(--tr-spring);pointer-events:auto;}
     .music-fab-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 28px rgba(0,0,0,.34),0 0 24px var(--glow);}
     .music-fab-btn.playing{animation:musicPulse 2.4s ease-in-out infinite;}
     @keyframes musicPulse{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 18px var(--glow2)}50%{box-shadow:0 12px 32px rgba(0,0,0,.34),0 0 28px var(--glow)}}
@@ -436,7 +448,7 @@
     .sec-title{font-family:var(--ff-display);font-size:clamp(.95rem,3vw,1.2rem);font-weight:800;display:flex;align-items:center;gap:8px;}
     .sec-title::before{content:'';display:block;width:3px;height:20px;background:linear-gradient(180deg,var(--a2),var(--a4));border-radius:3px;flex-shrink:0;}
     .sec-actions{display:flex;align-items:center;gap:9px;}
-    .see-all{font-size:.76rem;color:var(--a3);font-weight:700;cursor:pointer;transition:var(--tr-fast);}
+    .see-all{font-size:.76rem;color:var(--a3);font-weight:700;cursor:pointer;transition:var(--tr-fast);background:none;border:none;padding:0;font-family:var(--ff-body);}
     .see-all:hover{color:var(--a4);}
 
     /* GENRE CHIPS */
@@ -451,7 +463,7 @@
 
     /* HOME DASHBOARD */
     .hero-dashboard{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:12px;margin-bottom:22px;}
-    .focus-panel,.quick-panel,.title-next-card{background:var(--card);border:1px solid var(--border);border-radius:var(--br-lg);overflow:hidden;position:relative;}
+    .focus-panel,.quick-panel,.title-next-card{background:var(--card);border:1px solid var(--border);border-radius:var(--br-lg);overflow:hidden;position:relative;isolation:isolate;}
     .focus-panel{padding:20px;background:
       radial-gradient(circle at top right,rgba(232,121,249,.16),transparent 30%),
       linear-gradient(135deg,rgba(109,40,217,.18),rgba(17,17,34,.94) 65%);
@@ -493,6 +505,10 @@
     .spot-card-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--a1),var(--a4));box-shadow:0 0 10px var(--glow);}
     .spot-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
     .spot-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--border);font-size:.63rem;font-weight:700;color:var(--text3);}
+    .see-all,.home-mode,.quick-action,.trend-item,.trend-tag,.discover-mini-card,.spot-card,.continue-widget{position:relative;z-index:1;}
+    .card-img,.card-img *,.card-info,.card-info *,.trend-item *,.discover-mini-card *,.spot-card *,.continue-widget *{pointer-events:none;}
+    .search-shell{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;position:relative;z-index:3;}
+    .search-shell input,.search-shell button,.search-shell .search-history,.search-shell .search-history *{position:relative;z-index:4;}
 
     /* PROFILE */
     .profile-card{background:var(--card);padding:clamp(20px,4vw,36px);border-radius:var(--br-lg);border:1px solid var(--border);text-align:center;width:100%;max-width:500px;margin:0 auto;box-shadow:0 16px 50px rgba(0,0,0,.25);}
@@ -659,7 +675,6 @@
 
     /* SEARCH HIGHLIGHT */
     .search-highlight{background:rgba(139,92,246,.25);border-radius:3px;padding:0 2px;}
-    .search-shell{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
     .search-history{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:20px;}
     .search-history-label{font-size:.68rem;color:var(--text2);font-weight:700;letter-spacing:.4px;}
     .search-history-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(139,92,246,.06);font-size:.74rem;font-weight:700;color:var(--text3);transition:var(--tr-fast);}
@@ -755,6 +770,12 @@
     .settings-stat{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px 12px;text-align:center;}
     .settings-stat strong{display:block;font-family:var(--ff-mono);font-size:1.1rem;color:var(--a3);}
     .settings-stat span{display:block;margin-top:4px;font-size:.67rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+    .settings-install-box{display:grid;gap:12px;padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(15,118,110,.12),rgba(20,184,166,.07));border:1px solid rgba(20,184,166,.22);}
+    .settings-install-note{font-size:.76rem;color:var(--text2);line-height:1.5;}
+    .settings-install-state{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.72rem;font-weight:700;width:fit-content;}
+    .settings-inline-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+    .settings-muted-link{font-size:.75rem;color:var(--a3);text-decoration:none;font-weight:700;}
+    .settings-muted-link:hover{text-decoration:underline;}
     .switch{display:inline-flex;align-items:center;cursor:pointer;user-select:none;position:relative;}
     .switch input{position:absolute;opacity:0;pointer-events:none;}
     .switch-track{width:48px;height:28px;border-radius:999px;background:var(--card2);border:1px solid var(--border2);padding:3px;display:flex;align-items:center;transition:var(--tr);}
@@ -780,8 +801,8 @@
     /* RESPONSIVE */
     @media(max-width:950px){main{flex-direction:column;padding:11px;}.filters{width:100%;position:static;order:-1;margin-bottom:16px;}.grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}.title-hero{justify-content:center;text-align:center;}.title-info{text-align:center;}.title-genres{justify-content:center;}.chat-layout{flex-direction:column;height:auto;}.chat-sb{width:100%;max-height:190px;}.chat-box{height:410px;}.hdr-search{display:none;}.qstats{grid-template-columns:repeat(2,1fr);}.online-pill{display:none;}.tg-float-btn{bottom:calc(var(--nav-h) + var(--safe-b) + 14px);right:8px;}.hero-dashboard,.discover-grid,.analytics-grid,.settings-grid{grid-template-columns:1fr;}.spotlight-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.reader-bar{justify-content:center;}.reader-topline,.reader-meta{width:100%;justify-content:center;}.reader-topline{order:1;min-width:0;}.reader-meta{order:2;}.stats-bar{grid-template-columns:repeat(2,1fr);}.title-next-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}.title-next-actions .btn{width:100%;min-width:0;}}
     @media(max-width:820px){header{gap:8px;}.hero-content{padding:16px;align-items:flex-start;}.hero-desc{font-size:.74rem;-webkit-line-clamp:3;margin-bottom:10px;}.sec-hd{align-items:flex-start;}.sec-actions{width:100%;justify-content:space-between;}.discover-actions{display:grid;grid-template-columns:1fr;gap:8px;width:100%;}.discover-actions .btn{width:100%;}.avatar-presets{grid-template-columns:repeat(4,1fr);}.alert-actions,.avatar-actions{flex-direction:column;}.toast{min-width:0;width:100%;}.filters{padding:16px;}.chk-grid{grid-template-columns:1fr;}}
-    @media(max-width:600px){:root{--header-h:54px;--nav-h:60px;}header{padding:0 9px;}.logo{font-size:1rem;}.hdr-btn{width:37px;height:37px;}.hdr-avatar{width:37px;height:37px;}.menu-btn{width:37px;height:37px;}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.card-info{padding:8px 7px;}.card-info h3{font-size:.76rem;}.badge{padding:3px 7px;font-size:.56rem;}.title-cover{width:100%;max-width:190px;margin:0 auto;}.title-info{min-width:100%;}#notif-panel,#user-dd{right:7px;left:7px;width:auto;}.chat-box{height:min(68vh,420px);}.msg{max-width:88%;}.qstats{grid-template-columns:repeat(2,1fr);gap:7px;}.hero-cover{width:76px !important;}.auth-body{padding:22px 16px;}.auth-box,.avatar-modal-box,.alert-box{max-height:calc(100dvh - 24px);}.avatar-modal-body,.auth-body{overflow-y:auto;}.reader-nav{padding:18px 10px calc(34px + var(--safe-b));}.reader-nav .btn{max-width:none;}.tg-btn span,.mail-btn span{display:none;}.tg-btn,.mail-btn{padding:11px;border-radius:50%;width:46px;height:46px;justify-content:center;}.music-fab{left:8px;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);}.music-panel{width:min(250px,calc(100vw - 16px));}.focus-stats,.quick-actions,.discover-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.spotlight-grid{grid-template-columns:1fr;}.spot-card{padding:10px;}.spot-card-cover{width:64px;height:92px;}.reader-topline{min-width:0;}.reader-meta{width:100%;justify-content:center;gap:6px;}.reader-select{max-width:100%;min-width:0;}.reader-pages{font-size:.66rem;padding:6px 9px;}.offline-banner{left:9px;right:9px;max-width:none;width:auto;transform:translateY(-16px);}.offline-banner.show{transform:translateY(0);}#community-banner{grid-template-columns:1fr !important;}#community-banner a{padding:14px !important;align-items:flex-start !important;}.title-next-actions .btn{width:100%;}.chart-bars{height:140px;gap:6px;}.search-history{gap:6px;}.bot-nav{overflow-x:auto;justify-content:flex-start;gap:6px;padding:6px 8px calc(6px + var(--safe-b));scroll-snap-type:x proximity;}.nav-item{flex:0 0 72px;min-width:72px;padding:6px 4px;scroll-snap-align:start;}.settings-row{flex-direction:column;align-items:flex-start;}.settings-select,.settings-range{max-width:none;width:100%;}.settings-stats{grid-template-columns:1fr;}.trend-item{padding:10px;align-items:flex-start;}.trend-name{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}.discover-sub{font-size:.78rem;}.filters .btn{width:100%;}.rt-widget{padding:12px 14px;align-items:flex-start;}}
-    @media(max-width:480px){:root{--header-h:52px;--nav-h:58px;}main{padding:9px;}.qstats,.stats-bar,.focus-stats,.quick-actions,.discover-mini-grid{grid-template-columns:1fr;}.spotlight-grid,.settings-grid,.analytics-grid{grid-template-columns:1fr;}.hero-dashboard{gap:10px;}.hero-content{padding:14px;gap:12px;}.hero-title{font-size:1rem;}.hero-desc{display:none;}.focus-title,.focus-sub{max-width:none;}.sec-actions{gap:8px;}.sec-actions .rand-btn,.sec-actions .see-all{width:100%;text-align:center;justify-content:center;}.toast{padding:12px 14px;font-size:.8rem;}.toast-icon{font-size:1rem;}.avatar-presets{grid-template-columns:repeat(3,1fr);}.avatar-modal-body{padding:16px;}.music-panel{width:min(236px,calc(100vw - 16px));padding:12px;}.reader-bar{padding-left:10px;padding-right:10px;}.reader-pages,.reader-font-ctrl,.reader-top-btn{width:100%;justify-content:center;}.reader-nav{gap:8px;}.reader-nav .btn,.reader-top-btn{width:100%;min-width:0;}.title-next-actions{grid-template-columns:1fr;}.ch-item{padding:12px;gap:8px;align-items:flex-start;}.ch-act{font-size:.68rem;}.auth-top{padding:28px 18px 20px;}.auth-logo{font-size:1.35rem;}.offline-banner{padding:10px 12px;border-radius:14px;}.offline-banner-text{font-size:.74rem;}.chart-bars{overflow-x:auto;grid-template-columns:repeat(7,minmax(28px,1fr));padding-bottom:4px;}.chart-col{min-width:28px;}.install-app-btn{padding:10px 12px;}}
+    @media(max-width:600px){:root{--header-h:54px;--nav-h:60px;}header{padding:0 9px;}.logo{font-size:1rem;}.hdr-btn{width:37px;height:37px;}.hdr-avatar{width:37px;height:37px;}.menu-btn{width:37px;height:37px;}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.card-info{padding:8px 7px;}.card-info h3{font-size:.76rem;}.badge{padding:3px 7px;font-size:.56rem;}.title-cover{width:100%;max-width:190px;margin:0 auto;}.title-info{min-width:100%;}#notif-panel,#user-dd{right:7px;left:7px;width:auto;}.chat-box{height:min(68vh,420px);}.msg{max-width:88%;}.qstats{grid-template-columns:repeat(2,1fr);gap:7px;}.hero-cover{width:76px !important;}.auth-body{padding:22px 16px;}.auth-box,.avatar-modal-box,.alert-box{max-height:calc(100dvh - 24px);}.avatar-modal-body,.auth-body{overflow-y:auto;}.reader-nav{padding:18px 10px calc(34px + var(--safe-b));}.reader-nav .btn{max-width:none;}.tg-float-btn{pointer-events:none;}.tg-btn,.mail-btn{pointer-events:auto;padding:11px;border-radius:50%;width:46px;height:46px;justify-content:center;}.tg-btn span,.mail-btn span{display:none;}.music-fab{left:8px;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);}.music-panel{left:0;bottom:52px;width:min(292px,calc(100vw - 16px));}.music-controls{grid-template-columns:38px 38px auto minmax(0,1fr);}.music-mini-btn{width:38px;height:38px;}.music-progress-wrap{padding:9px 10px;}.focus-stats,.quick-actions,.discover-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.spotlight-grid{grid-template-columns:1fr;}.spot-card{padding:10px;}.spot-card-cover{width:64px;height:92px;}.reader-topline{min-width:0;}.reader-meta{width:100%;justify-content:center;gap:6px;}.reader-select{max-width:100%;min-width:0;}.reader-pages{font-size:.66rem;padding:6px 9px;}.offline-banner{left:9px;right:9px;max-width:none;width:auto;transform:translateY(-16px);}.offline-banner.show{transform:translateY(0);}#community-banner{grid-template-columns:1fr !important;}#community-banner a{padding:14px !important;align-items:flex-start !important;}.title-next-actions .btn{width:100%;}.chart-bars{height:140px;gap:6px;}.search-history{gap:6px;}.bot-nav{overflow-x:auto;justify-content:flex-start;gap:6px;padding:6px 8px calc(6px + var(--safe-b));scroll-snap-type:x proximity;}.nav-item{flex:0 0 72px;min-width:72px;padding:6px 4px;scroll-snap-align:start;}.settings-row{flex-direction:column;align-items:flex-start;}.settings-select,.settings-range{max-width:none;width:100%;}.settings-stats{grid-template-columns:1fr;}.settings-inline-actions{width:100%;}.settings-inline-actions .btn{width:100%;}.trend-item{padding:10px;align-items:flex-start;}.trend-name{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}.discover-sub{font-size:.78rem;}.filters .btn{width:100%;}.rt-widget{padding:12px 14px;align-items:flex-start;}}
+    @media(max-width:480px){:root{--header-h:52px;--nav-h:58px;}main{padding:9px;}.qstats,.stats-bar,.focus-stats,.quick-actions,.discover-mini-grid{grid-template-columns:1fr;}.spotlight-grid,.settings-grid,.analytics-grid{grid-template-columns:1fr;}.hero-dashboard{gap:10px;}.hero-content{padding:14px;gap:12px;}.hero-title{font-size:1rem;}.hero-desc{display:none;}.focus-title,.focus-sub{max-width:none;}.sec-actions{gap:8px;}.sec-actions .rand-btn,.sec-actions .see-all{width:100%;text-align:center;justify-content:center;}.toast{padding:12px 14px;font-size:.8rem;}.toast-icon{font-size:1rem;}.avatar-presets{grid-template-columns:repeat(3,1fr);}.avatar-modal-body{padding:16px;}.music-panel{width:min(274px,calc(100vw - 14px));padding:12px;}.music-controls{grid-template-columns:36px 36px auto minmax(0,1fr);gap:6px;}.music-mini-btn{width:36px;height:36px;border-radius:10px;}.music-mini-btn.wide{min-width:52px;padding:0 8px;}.music-progress-times{font-size:.64rem;gap:6px;}.reader-bar{padding-left:10px;padding-right:10px;}.reader-pages,.reader-font-ctrl,.reader-top-btn{width:100%;justify-content:center;}.reader-nav{gap:8px;}.reader-nav .btn,.reader-top-btn{width:100%;min-width:0;}.title-next-actions{grid-template-columns:1fr;}.ch-item{padding:12px;gap:8px;align-items:flex-start;}.ch-act{font-size:.68rem;}.auth-top{padding:28px 18px 20px;}.auth-logo{font-size:1.35rem;}.offline-banner{padding:10px 12px;border-radius:14px;}.offline-banner-text{font-size:.74rem;}.chart-bars{overflow-x:auto;grid-template-columns:repeat(7,minmax(28px,1fr));padding-bottom:4px;}.chart-col{min-width:28px;}.install-app-btn{padding:10px 12px;}}
     @media(max-width:380px){.grid{gap:6px;}.nav-item span{display:none;}.nav-item i{margin-bottom:0;}}
     @media(max-height:500px) and (orientation:landscape){:root{--header-h:46px;--nav-h:50px;}.chat-layout{flex-direction:row;height:80vh;}.chat-sb{width:230px;max-height:none;}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}}
@@ -1002,8 +1023,6 @@
       <li onclick="goPage('profile');closeSB()"><i>👤</i> Мой профиль</li>
       <li onclick="goPage('fav');closeSB()"><i>🔖</i> Закладки <span class="sb-badge" id="badge-fav">0</span></li>
       <li onclick="goPage('loved');closeSB()"><i>❤️</i> Избранное <span class="sb-badge red" id="badge-loved">0</span></li>
-      <div class="sb-sep"></div>
-      <li onclick="toggleNotif();closeSB()"><i>🔔</i> Уведомления <span class="sb-badge red" id="badge-notif-sb" style="display:none">0</span></li>
       <li onclick="goPage('messages');closeSB()"><i>✉️</i> Сообщения <span class="sb-badge" id="badge-msg" style="display:none">0</span></li>
       <li onclick="goPage('friends');closeSB()"><i>👥</i> Друзья</li>
       <li onclick="goPage('discoveries');closeSB()"><i>🧭</i> Открытия</li>
@@ -1068,9 +1087,19 @@
       </div>
       <div class="music-controls">
         <button class="music-mini-btn" id="music-toggle-btn" type="button" onclick="toggleMusicPlayback()" aria-label="Воспроизведение">▶</button>
+        <button class="music-mini-btn" id="music-next-btn" type="button" onclick="playNextMusicTrack()" aria-label="Следующий трек">⏭</button>
+        <button class="music-mini-btn wide" id="music-auto-btn" type="button" onclick="toggleMusicAutoNext()" aria-label="Автопереход">AUTO</button>
         <input class="music-volume" id="music-volume" type="range" min="0" max="100" step="1" value="45" oninput="setMusicVolume(this.value)" aria-label="Громкость музыки"/>
       </div>
-      <div class="music-status" id="music-status">Встроенная музыка сайта. Запускается по нажатию и не требует сторонних сервисов.</div>
+      <div class="music-progress-wrap">
+        <input class="music-progress" id="music-progress" type="range" min="0" max="1000" step="1" value="0" oninput="previewMusicSeek(this.value)" onchange="seekMusicTrack(this.value)" aria-label="Перемотка трека"/>
+        <div class="music-progress-times">
+          <strong id="music-time-now">0:00</strong>
+          <span id="music-time-label" class="music-progress-live">LIVE</span>
+          <strong id="music-time-left">-0:00</strong>
+        </div>
+      </div>
+      <div class="music-status" id="music-status">Поиск работает по большой бесплатной базе Audius. Можно искать треки вручную, переключать следующий и держать авто-переход включённым.</div>
     </div>
     <button class="music-fab-btn" id="music-fab-btn" type="button" onclick="toggleMusicMenu()" aria-label="Открыть музыку">♪</button>
   </div>
@@ -1114,7 +1143,7 @@
         <div class="home-spotlight">
           <div class="sec-hd">
             <div class="sec-title">✨ Персональная лента</div>
-            <span class="see-all" onclick="setHomeMode('recommended')">Подстроить под меня →</span>
+            <button class="see-all" type="button" onclick="setHomeMode('recommended')">Подстроить под меня →</button>
           </div>
           <div class="spotlight-grid" id="spotlight-grid"></div>
         </div>
@@ -1124,7 +1153,7 @@
           <div class="sec-title" id="home-sec-title">⚡ Популярное сегодня</div>
           <div class="sec-actions">
             <button class="rand-btn" onclick="openRandom()">🎲 Рандом</button>
-            <span class="see-all" onclick="goPage('catalog')">Смотреть всё →</span>
+            <button class="see-all" type="button" onclick="goPage('catalog')">Смотреть всё →</button>
           </div>
         </div>
         <div class="grid" id="home-grid"></div>
@@ -1434,6 +1463,28 @@
             </div>
           </section>
           <section class="settings-card">
+            <h3>Приложение и музыка</h3>
+            <p>Установка MangaCloud как приложения и поведение музыкального мини-плеера на любых устройствах.</p>
+            <div class="settings-install-box">
+              <span class="settings-install-state" id="install-state-pill">PWA</span>
+              <div class="settings-install-note" id="install-status-copy">После публикации по HTTPS сайт можно будет установить как приложение на Android, iPhone, iPad и ПК.</div>
+              <div class="settings-inline-actions">
+                <button class="btn btn-sm" id="settings-install-btn" type="button" onclick="promptInstallApp()">Установить приложение</button>
+                <a class="settings-muted-link" href="https://search.google.com/search-console/about" target="_blank" rel="noopener">Google Search Console</a>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-copy">
+                <div class="settings-name">Автопереход к следующему треку</div>
+                <div class="settings-note">Когда песня заканчивается, мини-плеер сам переключает её на следующую из текущих результатов поиска.</div>
+              </div>
+              <label class="switch">
+                <input id="set-music-auto-next" type="checkbox" onchange="setMusicAutoNextSetting(this.checked)"/>
+                <span class="switch-track"><span class="switch-thumb"></span></span>
+              </label>
+            </div>
+          </section>
+          <section class="settings-card">
             <h3>Локальные данные</h3>
             <p>Быстрые действия для истории и базовых параметров сайта.</p>
             <div class="settings-actions">
@@ -1658,6 +1709,7 @@
     let activeCatalogTags=_store('mc_catalog_tags',[]);
     let randomHistory=_store('mc_random_history',[]);
     let deferredInstallPrompt=null;
+    let pwaInstalled=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;
     let readerLastTap=0;
     let cachedHighRatingThreshold=null;
     const DEFAULT_SEO_TITLE='MangaCloud — Читать мангу онлайн бесплатно';
@@ -1869,12 +1921,16 @@
       return url;
     }
     function syncRoute(page=currentPage,overrides={},opts={}){
-      if(opts.skipRoute||!window.history||!window.history.pushState)return;
-      const url=buildRouteUrl(page,overrides);
-      const next=url.pathname+url.search;
-      const current=location.pathname+location.search;
-      if(next===current&&!opts.force)return;
-      history[opts.replace?'replaceState':'pushState']({page,...overrides},'',next);
+      if(opts.skipRoute||!window.history||!window.history.pushState||location.protocol==='file:')return;
+      try{
+        const url=buildRouteUrl(page,overrides);
+        const next=url.pathname+url.search;
+        const current=location.pathname+location.search;
+        if(next===current&&!opts.force)return;
+        history[opts.replace?'replaceState':'pushState']({page,...overrides},'',next);
+      }catch(e){
+        console.warn('Route sync skipped',e);
+      }
     }
     function updateSeoMeta(page=currentPage,context={}){
       const titleManga=context.manga||((page==='title'&&curId&&window.mangaDB[curId])?window.mangaDB[curId]:null);
@@ -2056,9 +2112,11 @@
       document.getElementById('set-particles').checked=uiSettings.particles!==false;
       document.getElementById('set-search-history').checked=uiSettings.searchHistory!==false;
       document.getElementById('set-safe-random').checked=uiSettings.safeRandom!==false;
+      document.getElementById('set-music-auto-next').checked=musicAutoNext;
       document.getElementById('set-reader-width').value=readerWidthMode;
       document.getElementById('set-reader-font').value=readerFontSize;
       document.getElementById('set-reader-font-val').textContent=readerFontSize+'%';
+      syncInstallButtons();
       stats.innerHTML='<div class="settings-stat"><strong>'+readHist.length+'</strong><span>Глав прочитано</span></div>'
         +'<div class="settings-stat"><strong>'+searchHistory.length+'</strong><span>Запросов в истории</span></div>'
         +'<div class="settings-stat"><strong>'+randomHistory.length+'</strong><span>Последних рандомов</span></div>';
@@ -2068,6 +2126,7 @@
     window.resetBasicSettings=resetBasicSettings;
     window.renderSettingsPage=renderSettingsPage;
     window.refreshCatalogFromCloud=refreshCatalogFromCloud;
+    window.syncInstallButtons=syncInstallButtons;
     applyBasicSettings();
 
     // ── LOADER TIPS ──
@@ -2087,23 +2146,76 @@
       if(!banner)return;
       banner.classList.toggle('show',!navigator.onLine);
     }
+    function isStandaloneMode(){
+      return !!(pwaInstalled||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true);
+    }
+    function getInstallUiState(){
+      if(isStandaloneMode())return{state:'installed',pill:'APP ACTIVE',button:'Уже установлено',note:'MangaCloud уже открыт как отдельное приложение. Можно запускать его прямо с домашнего экрана или рабочего стола.',sidebar:false,interactive:false};
+      if(deferredInstallPrompt)return{state:'ready',pill:'READY TO INSTALL',button:'Установить приложение',note:'Браузер уже разрешил установку. Нажмите кнопку, и MangaCloud можно будет открыть как полноценное приложение.',sidebar:true,interactive:true};
+      if(location.protocol!=='https:'&&location.hostname!=='localhost')return{state:'https',pill:'HTTPS REQUIRED',button:'Как включить установку',note:'Для установки как приложения сайт должен быть опубликован по HTTPS. После этого Android, iPhone и ПК начнут видеть PWA корректно.',sidebar:false,interactive:true};
+      if(/iphone|ipad|ipod/i.test(navigator.userAgent))return{state:'ios',pill:'ADD TO HOME',button:'Как установить на iPhone',note:'На iPhone и iPad установка делается через Safari: Поделиться → На экран Домой. После этого сайт запускается как приложение.',sidebar:false,interactive:true};
+      if(!('serviceWorker' in navigator))return{state:'unsupported',pill:'BROWSER LIMIT',button:'Открыть подсказку',note:'Этот браузер не поддерживает установку PWA полностью. Лучше использовать Chrome, Edge, Samsung Internet или Safari.',sidebar:false,interactive:true};
+      return{state:'pending',pill:'PWA READY',button:'Проверить установку',note:'Manifest и service worker уже подключены. После публикации на домене браузер предложит установить сайт как приложение.',sidebar:false,interactive:true};
+    }
+    function syncInstallButtons(){
+      const state=getInstallUiState();
+      const sidebarBtn=document.getElementById('install-app-btn');
+      const settingsBtn=document.getElementById('settings-install-btn');
+      const pill=document.getElementById('install-state-pill');
+      const note=document.getElementById('install-status-copy');
+      if(sidebarBtn){
+        sidebarBtn.style.display=state.sidebar?'flex':'none';
+        sidebarBtn.disabled=!state.interactive;
+      }
+      if(settingsBtn){
+        settingsBtn.textContent=state.button;
+        settingsBtn.disabled=!state.interactive;
+      }
+      if(pill)pill.textContent=state.pill;
+      if(note)note.textContent=state.note;
+    }
+    if(window.matchMedia){
+      const displayModeQuery=window.matchMedia('(display-mode: standalone)');
+      if(displayModeQuery&&displayModeQuery.addEventListener){
+        displayModeQuery.addEventListener('change',event=>{
+          pwaInstalled=!!event.matches;
+          syncInstallButtons();
+          renderSettingsPage();
+        });
+      }
+    }
     window.addEventListener('offline',()=>{updateOfflineBanner();toast('Нет сети: доступен локальный режим','warning');});
     window.addEventListener('online',()=>{updateOfflineBanner();toast('Соединение восстановлено','success');if((!window.mangaDB||!Object.keys(window.mangaDB).length)&&window.refreshCatalogFromCloud)window.refreshCatalogFromCloud();});
     window.addEventListener('popstate',()=>applyUrlState());
     window.addEventListener('beforeinstallprompt',e=>{
       e.preventDefault();
       deferredInstallPrompt=e;
-      const btn=document.getElementById('install-app-btn');
-      if(btn)btn.style.display='flex';
+      syncInstallButtons();
+    });
+    window.addEventListener('appinstalled',()=>{
+      pwaInstalled=true;
+      deferredInstallPrompt=null;
+      syncInstallButtons();
+      renderSettingsPage();
+      toast('MangaCloud установлен как приложение','success');
     });
     async function promptInstallApp(){
-      if(!deferredInstallPrompt){toast('Установка пока недоступна в этом браузере','info');return;}
+      const state=getInstallUiState();
+      if(state.state==='installed'){toast('Приложение уже установлено','info');return;}
+      if(state.state==='ios'){
+        showAlert({icon:'📲',title:'Установка на iPhone / iPad',msg:'Откройте сайт в Safari, нажмите “Поделиться”, затем выберите “На экран Домой”. После этого MangaCloud будет запускаться как обычное приложение.',confirmText:'Понятно'});
+        return;
+      }
+      if(state.state==='https'){
+        showAlert({icon:'🔒',title:'Нужен HTTPS',msg:'Чтобы браузер показал установку приложения, сайт должен открываться по HTTPS. После выкладки на защищённый домен установка заработает автоматически.',confirmText:'Ок'});
+        return;
+      }
+      if(!deferredInstallPrompt){toast('Браузер ещё не предложил установку. Обычно это появляется после публикации по HTTPS и пары посещений сайта.','info');return;}
       deferredInstallPrompt.prompt();
       const choice=await deferredInstallPrompt.userChoice;
       if(choice&&choice.outcome==='accepted')toast('MangaCloud можно запускать как приложение','success');
       deferredInstallPrompt=null;
-      const btn=document.getElementById('install-app-btn');
-      if(btn)btn.style.display='none';
+      syncInstallButtons();
     }
     async function registerServiceWorker(){
       if(!('serviceWorker' in navigator))return;
@@ -2127,14 +2239,28 @@
     let musicCtx=null,musicMasterGain=null,musicLoopTimer=null,musicStep=0,musicMenuOpen=false;
     let musicMode=localStorage.getItem('mc_music_mode')||'chill';
     let musicVolume=Math.max(0,Math.min(1,parseFloat(localStorage.getItem('mc_music_volume')||'0.45')));
+    let musicAutoNext=localStorage.getItem('mc_music_auto_next')!=='off';
     let musicPlaying=false,musicSource='preset';
     let musicSearchQuery='',musicSearchError='',musicSearchLoading=false,musicSearchTimer=null,musicSearchRequestId=0;
     let musicSearchResults=[],musicCurrentTrack=null,musicAudiusHost=localStorage.getItem('mc_audius_host')||'';
+    let musicSeekPreviewValue=null;
     const musicAudio=new Audio();
     musicAudio.preload='none';
     musicAudio.crossOrigin='anonymous';
-    function persistMusicPrefs(){localStorage.setItem('mc_music_mode',musicMode);localStorage.setItem('mc_music_volume',String(musicVolume.toFixed(2)));}
+    function persistMusicPrefs(){localStorage.setItem('mc_music_mode',musicMode);localStorage.setItem('mc_music_volume',String(musicVolume.toFixed(2)));localStorage.setItem('mc_music_auto_next',musicAutoNext?'on':'off');}
     function formatMusicDuration(seconds){const total=Math.max(0,Math.round(Number(seconds)||0));const m=Math.floor(total/60),s=String(total%60).padStart(2,'0');return m+':'+s;}
+    function formatMusicClock(seconds){
+      const total=Math.max(0,Math.floor(Number(seconds)||0));
+      const h=Math.floor(total/3600);
+      const m=Math.floor((total%3600)/60);
+      const s=String(total%60).padStart(2,'0');
+      return h>0?h+':'+String(m).padStart(2,'0')+':'+s:m+':'+s;
+    }
+    function getActiveMusicDuration(){
+      const metaDuration=musicCurrentTrack&&musicCurrentTrack.duration?Number(musicCurrentTrack.duration):0;
+      const audioDuration=Number.isFinite(musicAudio.duration)?musicAudio.duration:0;
+      return audioDuration>0?audioDuration:Math.max(metaDuration,0);
+    }
     function getTrackArtwork(track){const art=track&&track.artwork?track.artwork:{};const userPic=track&&track.user&&track.user.profile_picture?track.user.profile_picture:{};return art['150x150']||art['480x480']||art['1000x1000']||userPic['150x150']||userPic['480x480']||userPic['1000x1000']||'https://placehold.co/64x64/111122/8b5cf6?text=%E2%99%AA';}
     function normalizeAudiusHost(host){return String(host||'').replace(/\/+$/,'');}
     async function resolveAudiusHost(force=false){
@@ -2210,6 +2336,7 @@
     function stopMusicLoop(){if(musicLoopTimer){clearInterval(musicLoopTimer);musicLoopTimer=null;}}
     function stopAudiusPlayback(clearSrc=false){
       musicAudio.pause();
+      musicSeekPreviewValue=null;
       if(clearSrc){
         musicAudio.removeAttribute('src');
         musicAudio.load();
@@ -2230,6 +2357,7 @@
       stopAudiusPlayback();
       musicSource='preset';
       musicCurrentTrack=null;
+      musicSeekPreviewValue=null;
       musicPlaying=true;
       musicStep=0;
       if(musicMasterGain)musicMasterGain.gain.setTargetAtTime(musicVolume,ctx.currentTime,0.08);
@@ -2253,9 +2381,16 @@
       musicSearchLoading=true;
       updateMusicUI();
       try{
-        const body=await fetchAudiusJson('/v1/tracks/search?query='+encodeURIComponent(value)+'&app_name='+encodeURIComponent(MUSIC_APP_NAME)+'&limit=8');
+        const body=await fetchAudiusJson('/v1/tracks/search?query='+encodeURIComponent(value)+'&app_name='+encodeURIComponent(MUSIC_APP_NAME)+'&limit=12');
         if(requestId!==musicSearchRequestId)return;
-        musicSearchResults=Array.isArray(body&&body.data)?body.data.filter(track=>track&&track.id&&track.title):[];
+        let nextResults=Array.isArray(body&&body.data)?body.data.filter(track=>track&&track.id&&track.title):[];
+        if(!nextResults.length){
+          const fallback=await fetchAudiusJson('/v1/search/autocomplete?query='+encodeURIComponent(value)+'&kind=tracks&app_name='+encodeURIComponent(MUSIC_APP_NAME)+'&limit=12');
+          if(requestId!==musicSearchRequestId)return;
+          const fallbackData=fallback&&fallback.data;
+          nextResults=Array.isArray(fallbackData&&fallbackData.tracks)?fallbackData.tracks.filter(track=>track&&track.id&&track.title):Array.isArray(fallbackData)?fallbackData.filter(track=>track&&track.id&&track.title):[];
+        }
+        musicSearchResults=nextResults.slice(0,12);
         if(!musicSearchResults.length)musicSearchError='По этому запросу треков пока не нашлось.';
       }catch(e){
         if(requestId!==musicSearchRequestId)return;
@@ -2286,6 +2421,7 @@
       stopMusicLoop();
       musicSource='audius';
       musicCurrentTrack=track;
+      musicSeekPreviewValue=null;
       musicPlaying=false;
       const streamUrl=musicAudiusHost+'/v1/tracks/'+encodeURIComponent(track.id)+'/stream?app_name='+encodeURIComponent(MUSIC_APP_NAME);
       if(musicAudio.src!==streamUrl)musicAudio.src=streamUrl;
@@ -2299,6 +2435,72 @@
     async function playAudiusTrackAt(index){
       const track=musicSearchResults[index];
       if(track)await playAudiusTrack(track);
+    }
+    function getCurrentMusicIndex(){
+      return musicCurrentTrack?musicSearchResults.findIndex(track=>String(track.id)===String(musicCurrentTrack.id)):-1;
+    }
+    async function playNextMusicTrack(opts={}){
+      if(!musicSearchResults.length){
+        if(!opts.silent)toast('Сначала найдите треки через поиск','info');
+        return;
+      }
+      let nextIndex=getCurrentMusicIndex();
+      nextIndex=nextIndex>=0?nextIndex+1:0;
+      if(nextIndex>=musicSearchResults.length)nextIndex=0;
+      await playAudiusTrackAt(nextIndex);
+      if(!opts.silent)toast('Следующий трек','info');
+    }
+    function toggleMusicAutoNext(){
+      musicAutoNext=!musicAutoNext;
+      persistMusicPrefs();
+      updateMusicUI();
+      renderSettingsPage();
+      toast(musicAutoNext?'Автопереход включён':'Автопереход выключен','info');
+    }
+    function setMusicAutoNextSetting(nextValue){
+      musicAutoNext=!!nextValue;
+      persistMusicPrefs();
+      updateMusicUI();
+      renderSettingsPage();
+    }
+    function updateMusicProgressUI(){
+      const slider=document.getElementById('music-progress');
+      const nowEl=document.getElementById('music-time-now');
+      const leftEl=document.getElementById('music-time-left');
+      const labelEl=document.getElementById('music-time-label');
+      if(!slider||!nowEl||!leftEl||!labelEl)return;
+      if(musicSource!=='audius'||!musicCurrentTrack){
+        slider.disabled=true;
+        slider.value='0';
+        nowEl.textContent='0:00';
+        leftEl.textContent='-0:00';
+        labelEl.textContent='LIVE';
+        labelEl.classList.add('music-progress-live');
+        return;
+      }
+      const duration=getActiveMusicDuration();
+      const previewRatio=musicSeekPreviewValue!==null?Math.max(0,Math.min(1000,Number(musicSeekPreviewValue)||0))/1000:null;
+      const current=previewRatio!==null&&duration>0?duration*previewRatio:Math.max(0,musicAudio.currentTime||0);
+      const ratio=duration>0?Math.max(0,Math.min(1,current/duration)):0;
+      slider.disabled=duration<=0;
+      slider.value=String(Math.round(ratio*1000));
+      nowEl.textContent=formatMusicClock(current);
+      leftEl.textContent='-'+formatMusicClock(Math.max(0,duration-current));
+      labelEl.textContent=duration>0?formatMusicClock(duration):'BUFFER';
+      labelEl.classList.toggle('music-progress-live',duration<=0);
+    }
+    function previewMusicSeek(value){
+      musicSeekPreviewValue=value;
+      updateMusicProgressUI();
+    }
+    function seekMusicTrack(value){
+      if(musicSource!=='audius'||!musicCurrentTrack)return;
+      const duration=getActiveMusicDuration();
+      if(!(duration>0))return;
+      const ratio=Math.max(0,Math.min(1000,Number(value)||0))/1000;
+      musicAudio.currentTime=duration*ratio;
+      musicSeekPreviewValue=null;
+      updateMusicProgressUI();
     }
     function renderMusicSearchResults(){
       const wrap=document.getElementById('music-search-results');
@@ -2318,23 +2520,30 @@
       }).join('');
     }
     function updateMusicUI(){
-      const panel=document.getElementById('music-panel'),fab=document.getElementById('music-fab-btn'),toggle=document.getElementById('music-toggle-btn'),status=document.getElementById('music-status'),slider=document.getElementById('music-volume'),searchInput=document.getElementById('music-search-input');
+      const panel=document.getElementById('music-panel'),fab=document.getElementById('music-fab-btn'),toggle=document.getElementById('music-toggle-btn'),nextBtn=document.getElementById('music-next-btn'),autoBtn=document.getElementById('music-auto-btn'),status=document.getElementById('music-status'),slider=document.getElementById('music-volume'),searchInput=document.getElementById('music-search-input');
       if(!panel||!fab||!toggle||!status||!slider)return;
       panel.classList.toggle('show',musicMenuOpen);
       fab.classList.toggle('playing',musicPlaying);
       fab.textContent=musicPlaying?'♫':'♪';
       toggle.textContent=musicPlaying?'❚❚':'▶';
+      if(nextBtn)nextBtn.disabled=!musicSearchResults.length;
+      if(autoBtn){
+        autoBtn.classList.toggle('active',musicAutoNext);
+        autoBtn.textContent=musicAutoNext?'AUTO':'MAN';
+      }
       slider.value=Math.round(musicVolume*100);
       if(searchInput&&document.activeElement!==searchInput)searchInput.value=musicSearchQuery;
       Object.keys(MUSIC_PRESETS).forEach(key=>{const btn=document.getElementById('music-mode-'+key);if(btn)btn.classList.toggle('active',musicSource==='preset'&&musicMode===key);});
       renderMusicSearchResults();
       if(musicSource==='audius'&&musicCurrentTrack){
         const artist=(musicCurrentTrack.user&&musicCurrentTrack.user.name)||'Audius Artist';
-        status.textContent=(musicPlaying?'Сейчас играет: ':'Выбран трек: ')+musicCurrentTrack.title+' — '+artist+'. Громкость '+Math.round(musicVolume*100)+'%.';
+        const duration=getActiveMusicDuration();
+        status.textContent=(musicPlaying?'Сейчас играет: ':'Выбран трек: ')+musicCurrentTrack.title+' — '+artist+'. '+(duration>0?'Длительность '+formatMusicClock(duration)+'. ':'')+'Громкость '+Math.round(musicVolume*100)+'%. Автопереход '+(musicAutoNext?'включён':'выключен')+'.';
       }else{
         const preset=MUSIC_PRESETS[musicMode]||MUSIC_PRESETS.chill;
-        status.textContent=musicPlaying?'Сейчас играет: '+preset.label+' — '+preset.subtitle+'. Громкость '+Math.round(musicVolume*100)+'%.':'Выбран режим '+preset.label+'. Можно запустить его или найти реальный трек через поиск выше.';
+        status.textContent=musicPlaying?'Сейчас играет: '+preset.label+' — '+preset.subtitle+'. Громкость '+Math.round(musicVolume*100)+'%.':'Выбран режим '+preset.label+'. Для живых треков используйте поиск по Audius: там заметно больше бесплатной музыки, чем у встроенного фона.';
       }
+      updateMusicProgressUI();
     }
     function toggleMusicMenu(force){musicMenuOpen=typeof force==='boolean'?force:!musicMenuOpen;updateMusicUI();}
     async function setMusicMode(mode){if(!MUSIC_PRESETS[mode])return;musicSearchError='';await startPresetMusic(mode);toast('Музыка: '+MUSIC_PRESETS[mode].label,'info');}
@@ -2356,15 +2565,23 @@
     musicAudio.volume=musicVolume;
     musicAudio.addEventListener('play',()=>{musicSource='audius';musicPlaying=true;updateMusicUI();});
     musicAudio.addEventListener('pause',()=>{if(musicSource==='audius'){musicPlaying=false;updateMusicUI();}});
-    musicAudio.addEventListener('ended',()=>{if(musicSource==='audius'){musicPlaying=false;updateMusicUI();}});
-    musicAudio.addEventListener('error',()=>{if(musicSource==='audius'){musicPlaying=false;musicSearchError='Не удалось воспроизвести этот трек.';updateMusicUI();}});
+    musicAudio.addEventListener('timeupdate',()=>{if(musicSeekPreviewValue===null)updateMusicProgressUI();});
+    musicAudio.addEventListener('loadedmetadata',()=>{musicSeekPreviewValue=null;updateMusicProgressUI();updateMusicUI();});
+    musicAudio.addEventListener('durationchange',()=>{updateMusicProgressUI();updateMusicUI();});
+    musicAudio.addEventListener('ended',()=>{if(musicSource==='audius'){musicSeekPreviewValue=null;if(musicAutoNext&&musicSearchResults.length>1){void playNextMusicTrack({silent:true,auto:true});return;}musicPlaying=false;updateMusicUI();}});
+    musicAudio.addEventListener('error',()=>{if(musicSource==='audius'){musicPlaying=false;musicSeekPreviewValue=null;musicSearchError='Не удалось воспроизвести этот трек.';updateMusicUI();}});
     window.toggleMusicMenu=toggleMusicMenu;
     window.setMusicMode=setMusicMode;
     window.toggleMusicPlayback=toggleMusicPlayback;
     window.setMusicVolume=setMusicVolume;
+    window.playNextMusicTrack=playNextMusicTrack;
+    window.toggleMusicAutoNext=toggleMusicAutoNext;
+    window.setMusicAutoNextSetting=setMusicAutoNextSetting;
     window.scheduleMusicSearch=scheduleMusicSearch;
     window.runMusicSearch=runMusicSearch;
     window.playAudiusTrackAt=playAudiusTrackAt;
+    window.previewMusicSeek=previewMusicSeek;
+    window.seekMusicTrack=seekMusicTrack;
     updateMusicUI();
 
     // ── PARTICLES ──
@@ -2521,7 +2738,7 @@
       document.getElementById('badge-loved').textContent=loved.length;
       const unread=notifs.filter(n=>!n.read).length,reqs=(window.pendingReqs||[]).length,tot=unread+reqs;
       const sb=document.getElementById('badge-notif-sb');
-      if(tot>0){sb.style.display='inline-block';sb.textContent=tot>9?'9+':tot;}else sb.style.display='none';
+      if(sb){if(tot>0){sb.style.display='inline-block';sb.textContent=tot>9?'9+':tot;}else sb.style.display='none';}
     }
     window.updateBadges=updateBadges;
 
@@ -2774,7 +2991,7 @@
         +'<div class="hero-label">'+(homeMode==='recommended'?'🧠 Под ваш вкус':'✨ Рекомендация дня')+'</div>'
         +'<div class="hero-title">'+esc(m.title)+'</div>'
         +'<div class="hero-desc">'+esc((m.genres||[]).join(' • ')+' • '+(m.year||'')+' • '+(m.status||''))+'</div>'
-        +'<button class="btn" style="width:auto;padding:9px 20px;font-size:.78rem" onclick="event.stopPropagation();openTitle(\''+esc(m.id)+'\')">Читать сейчас →</button>'
+        +'<button class="btn" type="button" style="width:auto;padding:9px 20px;font-size:.78rem" onclick="event.stopPropagation();openTitle(\''+esc(m.id)+'\')">Читать сейчас →</button>'
         +'</div></div></div>';
     }
 
@@ -2894,8 +3111,8 @@
         +'</div>'
         +'<div class="focus-tags">'+(genres.length?genres.map(genre=>'<span class="focus-tag">'+esc(genre)+'</span>').join(''):'<span class="focus-tag">Откройте пару тайтлов, и появятся любимые жанры</span>')+'</div>'
         +'<div class="title-next-actions">'
-        +(nextPick?'<button class="btn btn-sm" style="width:auto" onclick="openTitle(\''+esc(nextPick.id)+'\')">Открыть рекомендацию</button>':'<button class="btn btn-sm" style="width:auto" onclick="goPage(\'catalog\')">Открыть каталог</button>')
-        +'<button class="btn btn-sec btn-sm" style="width:auto" onclick="goPage(\'hist\')">История чтения</button>'
+        +(nextPick?'<button class="btn btn-sm" type="button" style="width:auto" onclick="openTitle(\''+esc(nextPick.id)+'\')">Открыть рекомендацию</button>':'<button class="btn btn-sm" type="button" style="width:auto" onclick="goPage(\'catalog\')">Открыть каталог</button>')
+        +'<button class="btn btn-sec btn-sm" type="button" style="width:auto" onclick="goPage(\'hist\')">История чтения</button>'
         +'</div></div>';
     }
 
@@ -2905,10 +3122,10 @@
       c.innerHTML='<div class="quick-panel">'
         +'<div class="quick-panel-head"><div><div class="quick-panel-label">Быстрые действия</div><div class="quick-panel-note">На десктопе можно открыть поиск через / или Ctrl+K</div></div></div>'
         +'<div class="quick-actions">'
-        +'<button class="quick-action" onclick="goPage(\'catalog\')"><b>📂</b>Каталог<span>Все тайтлы и фильтры</span></button>'
-        +(last?'<button class="quick-action" onclick="openReader(\''+esc(last.id)+'\','+last.ch+')"><b>▶</b>Продолжить<span>Глава '+last.ch+'</span></button>':'<button class="quick-action" onclick="goPage(\'home\')"><b>✨</b>Главная<span>Вернуться к витрине</span></button>')
-        +'<button class="quick-action" onclick="goPage(\'fav\')"><b>🔖</b>Закладки<span>'+favs.length+' сохранено</span></button>'
-        +'<button class="quick-action" onclick="openRandom()"><b>🎲</b>Случайный<span>Найти что-то новое</span></button>'
+        +'<button class="quick-action" type="button" onclick="goPage(\'catalog\')"><b>📂</b>Каталог<span>Все тайтлы и фильтры</span></button>'
+        +(last?'<button class="quick-action" type="button" onclick="openReader(\''+esc(last.id)+'\','+last.ch+')"><b>▶</b>Продолжить<span>Глава '+last.ch+'</span></button>':'<button class="quick-action" type="button" onclick="goPage(\'home\')"><b>✨</b>Главная<span>Вернуться к витрине</span></button>')
+        +'<button class="quick-action" type="button" onclick="goPage(\'fav\')"><b>🔖</b>Закладки<span>'+favs.length+' сохранено</span></button>'
+        +'<button class="quick-action" type="button" onclick="openRandom()"><b>🎲</b>Случайный<span>Найти что-то новое</span></button>'
         +'</div></div>';
     }
 
@@ -2947,7 +3164,7 @@
         {key:'recommended',icon:'🧠',label:'Для вас'},
         {key:'continue',icon:'📖',label:'Продолжить'}
       ];
-      c.innerHTML=modes.map(mode=>'<button class="home-mode'+(homeMode===mode.key?' active':'')+'" onclick="setHomeMode(\''+mode.key+'\')">'+mode.icon+' '+mode.label+'</button>').join('');
+      c.innerHTML=modes.map(mode=>'<button class="home-mode'+(homeMode===mode.key?' active':'')+'" type="button" onclick="setHomeMode(\''+mode.key+'\')">'+mode.icon+' '+mode.label+'</button>').join('');
     }
 
     function renderHomeGridByMode(){
@@ -3027,10 +3244,10 @@
       const tags=['all','Высокий рейтинг','Свежий релиз','Обновляется',...getFavoriteGenres(4)];
       tagsWrap.innerHTML=Array.from(new Set(tags)).map(tag=>{
         const label=tag==='all'?'Все':'#'+tag;
-        return'<button class="trend-tag'+(discoveryTag===tag?' active':'')+'" onclick="setDiscoveryTag(\''+esc(tag)+'\')">'+esc(label)+'</button>';
+        return'<button class="trend-tag'+(discoveryTag===tag?' active':'')+'" type="button" onclick="setDiscoveryTag(\''+esc(tag)+'\')">'+esc(label)+'</button>';
       }).join('');
       const trending=filterDiscoveryList(getPopularList(8));
-      trendList.innerHTML=trending.length?trending.slice(0,5).map((m,index)=>'<div class="trend-item" onclick="openTitle(\''+esc(m.id)+'\')"><div class="trend-rank">'+(index+1)+'</div><div class="trend-body"><div class="trend-name">'+esc(m.title)+'</div><div class="trend-meta">'+esc((m.genres||[]).slice(0,3).join(' • ')||'Без жанров')+'</div></div><div class="trend-side">'+(getPublicRating(m)||getDisplayRating(m)).toFixed(1)+'</div></div>').join(''):'<div class="empty"><div class="empty-icon">🧭</div><div class="empty-txt">По выбранному тегу пока пусто</div><div class="empty-sub">Попробуйте другой тег или вернитесь к общему списку.</div></div>';
+      trendList.innerHTML=trending.length?trending.slice(0,5).map((m,index)=>'<div class="trend-item" role="button" tabindex="0" onclick="openTitle(\''+esc(m.id)+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openTitle(\''+esc(m.id)+'\');}"><div class="trend-rank">'+(index+1)+'</div><div class="trend-body"><div class="trend-name">'+esc(m.title)+'</div><div class="trend-meta">'+esc((m.genres||[]).slice(0,3).join(' • ')||'Без жанров')+'</div></div><div class="trend-side">'+(getPublicRating(m)||getDisplayRating(m)).toFixed(1)+'</div></div>').join(''):'<div class="empty"><div class="empty-icon">🧭</div><div class="empty-txt">По выбранному тегу пока пусто</div><div class="empty-sub">Попробуйте другой тег или вернитесь к общему списку.</div></div>';
       const continueQueue=getContinueQueue(3), fresh=getFreshList(3), recs=filterDiscoveryList((discoveryTag==='Высокий рейтинг'?getTopRatedList(8):getRecommendedList(8)));
       const miniCards=[
         {title:'Продолжить без потери ритма',text:continueQueue[0]?continueQueue[0].title:'Появится после первых прочитанных глав',action:continueQueue[0]?'openTitle(\''+esc(continueQueue[0].id)+'\')':'goPage(\'home\')',badges:continueQueue[0]?['Глава '+(readHist.filter(h=>h.id===continueQueue[0].id).slice(-1)[0]||{ch:1}).ch,'Продолжить']:['Стартуйте чтение']},
@@ -3038,7 +3255,7 @@
         {title:'Скрытая рекомендация',text:recs[1]?recs[1].title:(recs[0]?recs[0].title:'Откройте пару тайтлов для персонализации'),action:(recs[1]||recs[0])?'openTitle(\''+esc((recs[1]||recs[0]).id)+'\')':'openRandom()',badges:(recs[1]||recs[0])?getMangaTags(recs[1]||recs[0]).slice(0,2):['Для вас']},
         {title:'Реально случайный выбор',text:'Алгоритм исключает недавние повторы и ищет новый тайтл.',action:'openRandom()',badges:['Без повторов','Сюрприз']}
       ];
-      miniGrid.innerHTML=miniCards.map(card=>'<div class="discover-mini-card" onclick="'+card.action+'"><h4>'+esc(card.title)+'</h4><p>'+esc(card.text)+'</p><div class="discover-mini-badges">'+card.badges.map(b=>'<span class="spot-badge">'+esc(String(b))+'</span>').join('')+'</div></div>').join('');
+      miniGrid.innerHTML=miniCards.map(card=>'<div class="discover-mini-card" role="button" tabindex="0" onclick="'+card.action+'" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();'+card.action+';}"><h4>'+esc(card.title)+'</h4><p>'+esc(card.text)+'</p><div class="discover-mini-badges">'+card.badges.map(b=>'<span class="spot-badge">'+esc(String(b))+'</span>').join('')+'</div></div>').join('');
       renderGrid((recs.length?recs:getTopRatedList(8)).slice(0,8),'discover-grid');
     }
     window.setDiscoveryTag=setDiscoveryTag;
@@ -3051,8 +3268,8 @@
     function renderGenreChips(){
       const all=new Set();Object.values(window.mangaDB).forEach(m=>{if(m.genres)m.genres.forEach(g=>all.add(g));});
       const c=document.getElementById('genre-chips');if(!c||!all.size)return;
-      c.innerHTML='<span class="genre-chip'+(!activeGenreFilter?' active':'')+'" onclick="filterGenre(null,this)">Все</span>'
-        +Array.from(all).slice(0,10).map(g=>'<span class="genre-chip'+(activeGenreFilter===g?' active':'')+'" onclick="filterGenre(\''+esc(g)+'\',this)">'+esc(g)+'</span>').join('');
+      c.innerHTML='<button class="genre-chip'+(!activeGenreFilter?' active':'')+'" type="button" onclick="filterGenre(null,this)">Все</button>'
+        +Array.from(all).slice(0,10).map(g=>'<button class="genre-chip'+(activeGenreFilter===g?' active':'')+'" type="button" onclick="filterGenre(\''+esc(g)+'\',this)">'+esc(g)+'</button>').join('');
     }
     function filterGenre(genre,el){
       activeGenreFilter=genre;
