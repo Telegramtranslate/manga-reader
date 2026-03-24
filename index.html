@@ -304,17 +304,28 @@
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
     /* FILTERS */
-    .filters{width:290px;background:var(--card);border-radius:var(--br-lg);padding:20px;height:fit-content;position:sticky;top:calc(var(--header-h) + 14px);border:1px solid var(--border);flex-shrink:0;}
-    .flt-group{margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;}
+    .filters{width:300px;background:linear-gradient(180deg,rgba(24,24,48,.96),rgba(17,17,34,.96));border-radius:calc(var(--br-lg) + 2px);padding:18px;height:fit-content;position:sticky;top:calc(var(--header-h) + 14px);border:1px solid var(--border2);flex-shrink:0;box-shadow:0 20px 44px rgba(0,0,0,.24),0 0 0 1px rgba(255,255,255,.02) inset;}
+    .filters-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(109,40,217,.16),rgba(10,14,30,.92));border:1px solid rgba(139,92,246,.22);}
+    .filters-head-title{font-family:var(--ff-display);font-size:.95rem;font-weight:800;line-height:1.2;}
+    .filters-head-sub{font-size:.72rem;color:var(--text2);margin-top:4px;line-height:1.5;}
+    .flt-group{margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:14px;}
     .flt-group:last-of-type{border:none;margin:0;padding:0;}
     .flt-title{font-size:.62rem;color:var(--a3);text-transform:uppercase;margin-bottom:10px;letter-spacing:2px;font-weight:800;font-family:var(--ff-display);}
+    .filter-select-card{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:center;padding:12px;border-radius:15px;background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(12,12,26,.98));border:1px solid rgba(139,92,246,.16);}
+    .filter-select-icon{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--a1),var(--a4));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;box-shadow:0 8px 22px var(--glow);}
+    .filter-select-copy{grid-column:2;}
+    .filter-select-name{font-size:.8rem;font-weight:700;}
+    .filter-select-note{font-size:.7rem;color:var(--text2);margin-top:2px;line-height:1.45;}
+    .filter-select-card select{grid-column:1/-1;margin-top:4px;background:rgba(255,255,255,.04);border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:12px 14px;font-weight:700;}
     select,input[type="text"],input[type="number"],textarea{width:100%;background:rgba(139,92,246,.06);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:var(--br-sm);outline:none;transition:var(--tr);font-size:.87rem;font-family:var(--ff-body);-webkit-appearance:none;}
     select:focus,input:focus,textarea:focus{border-color:var(--a2);box-shadow:0 0 0 3px var(--glow2);}
     select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 11 11'%3E%3Cpath fill='%238b5cf6' d='M5.5 7L1 2.5h9z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px;}
-    .chk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;max-height:175px;overflow-y:auto;padding-right:3px;}
-    .chk-grid label{font-size:.8rem;display:flex;align-items:center;gap:7px;color:var(--text3);cursor:pointer;transition:var(--tr-fast);padding:3px 0;}
-    .chk-grid label:hover{color:var(--a3);}
-    .chk-grid input[type="checkbox"]{width:15px;height:15px;accent-color:var(--a2);cursor:pointer;flex-shrink:0;}
+    .chk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:220px;overflow-y:auto;padding-right:3px;}
+    .chk-grid label{font-size:.77rem;display:flex;align-items:center;gap:0;color:var(--text3);cursor:pointer;transition:var(--tr-fast);padding:0;min-width:0;}
+    .chk-grid label:hover span{border-color:var(--a2);background:rgba(139,92,246,.12);color:var(--text);}
+    .chk-grid label span{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;min-height:40px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.12);font-weight:700;line-height:1.35;transition:var(--tr-fast);}
+    .chk-grid input[type="checkbox"]{position:absolute;opacity:0;pointer-events:none;}
+    .chk-grid input[type="checkbox"]:checked + span{background:linear-gradient(135deg,rgba(109,40,217,.9),rgba(139,92,246,.92));border-color:transparent;color:#fff;box-shadow:0 10px 22px rgba(109,40,217,.24);}
 
     /* CARDS */
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:clamp(9px,1.8vw,18px);}
@@ -362,50 +373,50 @@
 
     /* MUSIC FAB */
     .music-fab{position:fixed;left:14px;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);z-index:901;display:flex;flex-direction:column;align-items:flex-start;gap:10px;pointer-events:none;}
-    .music-panel{position:absolute;left:0;bottom:58px;width:min(318px,calc(100vw - 24px));background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border2);border-radius:20px;padding:14px;box-shadow:0 18px 42px rgba(0,0,0,.38),0 0 22px var(--glow2);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px) scale(.97);transition:var(--tr);}
+    .music-panel{position:absolute;left:0;bottom:58px;width:min(296px,calc(100vw - 20px));max-height:min(calc(100dvh - 110px),510px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border2);border-radius:18px;padding:12px;box-shadow:0 18px 42px rgba(0,0,0,.38),0 0 22px var(--glow2);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px) scale(.97);transition:var(--tr);}
     .music-panel.show{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1);}
-    .music-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;}
+    .music-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
     .music-kicker{font-size:.62rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--a3);font-weight:800;font-family:var(--ff-display);}
-    .music-title{font-family:var(--ff-display);font-size:.95rem;font-weight:800;line-height:1.15;margin-top:3px;}
+    .music-title{font-family:var(--ff-display);font-size:.9rem;font-weight:800;line-height:1.15;margin-top:3px;}
     .music-close{background:none;border:none;color:var(--text2);font-size:1rem;line-height:1;padding:4px;border-radius:8px;transition:var(--tr-fast);}
     .music-close:hover{color:var(--a3);background:rgba(139,92,246,.12);}
-    .music-search-wrap{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-    .music-search-input{flex:1;width:auto;background:rgba(139,92,246,.07);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;font-size:.8rem;font-family:var(--ff-body);}
-    .music-search-btn{width:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.82rem;font-weight:800;font-family:var(--ff-body);transition:var(--tr-fast);}
+    .music-search-wrap{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+    .music-search-input{flex:1;width:auto;background:rgba(139,92,246,.07);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:12px;font-size:.78rem;font-family:var(--ff-body);}
+    .music-search-btn{width:auto;padding:9px 11px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.8rem;font-weight:800;font-family:var(--ff-body);transition:var(--tr-fast);}
     .music-search-btn:hover{border-color:var(--a2);color:var(--a3);}
-    .music-search-results{display:grid;gap:8px;max-height:248px;overflow-y:auto;padding-right:2px;margin-bottom:12px;}
-    .music-result{display:flex;align-items:center;gap:10px;padding:9px;border-radius:14px;border:1px solid var(--border);background:rgba(139,92,246,.05);transition:var(--tr-fast);text-align:left;width:100%;color:var(--text);font-family:var(--ff-body);cursor:pointer;}
+    .music-search-results{display:grid;gap:7px;max-height:min(22dvh,172px);overflow-y:auto;padding-right:2px;margin-bottom:10px;}
+    .music-result{display:flex;align-items:center;gap:9px;padding:8px;border-radius:13px;border:1px solid var(--border);background:rgba(139,92,246,.05);transition:var(--tr-fast);text-align:left;width:100%;color:var(--text);font-family:var(--ff-body);cursor:pointer;}
     .music-result:hover{border-color:var(--a2);background:rgba(139,92,246,.12);}
     .music-result.active{border-color:var(--a2);background:linear-gradient(135deg,rgba(109,40,217,.2),rgba(17,17,34,.96));box-shadow:0 8px 20px rgba(109,40,217,.14);}
-    .music-result-art{width:42px;height:42px;border-radius:12px;object-fit:cover;background:var(--card2);border:1px solid var(--border);flex-shrink:0;}
+    .music-result-art{width:38px;height:38px;border-radius:11px;object-fit:cover;background:var(--card2);border:1px solid var(--border);flex-shrink:0;}
     .music-result-info{flex:1;min-width:0;}
-    .music-result-title{display:block;font-size:.78rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .music-result-artist{display:block;font-size:.68rem;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .music-result-title{display:block;font-size:.75rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .music-result-artist{display:block;font-size:.66rem;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .music-result-meta{display:block;font-size:.62rem;color:var(--a3);font-weight:700;margin-top:3px;}
     .music-result.active .music-result-title{color:#fff;}
     .music-result.active .music-result-artist{color:rgba(255,255,255,.8);}
     .music-result.active .music-result-meta{color:#e9d5ff;}
-    .music-result-empty{padding:10px 2px;font-size:.72rem;color:var(--text2);line-height:1.45;}
-    .music-section-label{font-size:.62rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--text2);font-weight:800;font-family:var(--ff-display);margin:2px 0 8px;}
-    .music-track-list{display:grid;gap:8px;}
-    .music-track-btn{width:100%;padding:11px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(139,92,246,.05);color:var(--text);text-align:left;font-family:var(--ff-body);font-size:.8rem;font-weight:700;transition:var(--tr-fast);}
+    .music-result-empty{padding:8px 2px;font-size:.7rem;color:var(--text2);line-height:1.45;}
+    .music-section-label{font-size:.6rem;letter-spacing:1.7px;text-transform:uppercase;color:var(--text2);font-weight:800;font-family:var(--ff-display);margin:1px 0 7px;}
+    .music-track-list{display:grid;gap:7px;}
+    .music-track-btn{width:100%;padding:10px 11px;border-radius:13px;border:1px solid var(--border);background:rgba(139,92,246,.05);color:var(--text);text-align:left;font-family:var(--ff-body);font-size:.78rem;font-weight:700;transition:var(--tr-fast);}
     .music-track-btn:hover{border-color:var(--a2);background:rgba(139,92,246,.12);}
     .music-track-btn.active{border-color:var(--a2);background:linear-gradient(135deg,rgba(109,40,217,.22),rgba(232,121,249,.08));box-shadow:0 10px 24px rgba(109,40,217,.16);}
-    .music-track-meta{display:block;font-size:.68rem;font-weight:600;color:var(--text2);margin-top:2px;}
-    .music-controls{display:grid;grid-template-columns:40px 40px auto minmax(0,1fr);align-items:center;gap:8px;margin-top:12px;}
-    .music-mini-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:var(--tr-fast);}
+    .music-track-meta{display:block;font-size:.66rem;font-weight:600;color:var(--text2);margin-top:2px;}
+    .music-controls{display:grid;grid-template-columns:38px 38px auto minmax(0,1fr);align-items:center;gap:7px;margin-top:10px;}
+    .music-mini-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--card2);color:var(--text);display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:var(--tr-fast);}
     .music-mini-btn:hover{border-color:var(--a2);color:var(--a3);}
     .music-mini-btn:disabled{opacity:.45;cursor:not-allowed;}
     .music-mini-btn.active{border-color:var(--a2);background:rgba(139,92,246,.16);color:var(--a3);}
-    .music-mini-btn.wide{width:auto;min-width:56px;padding:0 10px;font-size:.72rem;font-weight:800;}
+    .music-mini-btn.wide{width:auto;min-width:52px;padding:0 9px;font-size:.7rem;font-weight:800;}
     .music-volume{flex:1;accent-color:var(--a3);}
-    .music-progress-wrap{margin-top:10px;padding:10px 11px;border-radius:14px;background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.14);}
+    .music-progress-wrap{margin-top:9px;padding:9px 10px;border-radius:13px;background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.14);}
     .music-progress{width:100%;accent-color:var(--a3);}
     .music-progress:disabled{opacity:.45;cursor:not-allowed;}
-    .music-progress-times{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;font-family:var(--ff-mono);font-size:.68rem;color:var(--text2);}
+    .music-progress-times{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;font-family:var(--ff-mono);font-size:.65rem;color:var(--text2);}
     .music-progress-times strong{color:var(--text3);font-weight:700;}
     .music-progress-live{color:var(--a3);letter-spacing:.4px;}
-    .music-status{margin-top:10px;font-size:.72rem;color:var(--text2);line-height:1.45;min-height:2.2em;}
+    .music-status{margin-top:9px;font-size:.7rem;color:var(--text2);line-height:1.42;min-height:2em;}
     .music-fab-btn{width:46px;height:46px;border-radius:50%;border:1px solid var(--border2);background:linear-gradient(135deg,#0f172a,var(--a1));color:#fff;font-size:1.15rem;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 18px var(--glow2);transition:var(--tr-spring);pointer-events:auto;}
     .music-fab-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 28px rgba(0,0,0,.34),0 0 24px var(--glow);}
     .music-fab-btn.playing{animation:musicPulse 2.4s ease-in-out infinite;}
@@ -645,6 +656,8 @@
     .comm-del-btn{background:none;border:1px solid rgba(244,63,94,.2);color:var(--red);padding:5px 10px;border-radius:20px;font-size:.72rem;transition:var(--tr-fast);display:inline-flex;align-items:center;gap:3px;opacity:0;}
     .comm-card:hover .comm-del-btn{opacity:1;}
     .comm-del-btn:hover{background:rgba(244,63,94,.1);}
+    .comm-role-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.32);color:#ff8d9e;font-size:.62rem;font-weight:900;letter-spacing:.7px;text-transform:uppercase;}
+    .comm-role-badge::before{content:'●';font-size:.5rem;}
 
     /* SCROLL TOP */
     #btn-top{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);right:14px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;width:44px;height:44px;border-radius:50%;border:none;font-size:1.1rem;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3),0 0 15px var(--glow);opacity:0;visibility:hidden;transform:translateY(14px);transition:var(--tr);z-index:900;display:flex;align-items:center;justify-content:center;}
@@ -659,6 +672,63 @@
 
     /* PAGE HEADER */
     .page-hd{font-family:var(--ff-display);font-size:clamp(1.1rem,3.5vw,1.5rem);font-weight:800;padding:16px 0 0;background:linear-gradient(135deg,var(--text),var(--text3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .announcement-bar{position:sticky;top:calc(var(--header-h) + 6px);z-index:990;max-width:1380px;margin:0 auto;padding:0 18px;display:none;}
+    .announcement-bar.show{display:block;animation:fadeUp .28s ease both;}
+    .announcement-bar-inner{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,rgba(244,63,94,.14),rgba(109,40,217,.12));border:1px solid rgba(244,63,94,.18);box-shadow:0 14px 34px rgba(0,0,0,.18);}
+    .announcement-icon{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ef4444,#f97316);color:#fff;font-weight:900;flex-shrink:0;}
+    .announcement-copy{min-width:0;flex:1;}
+    .announcement-title{font-size:.82rem;font-weight:800;}
+    .announcement-text{font-size:.76rem;color:var(--text3);margin-top:2px;line-height:1.5;word-break:break-word;}
+    .profile-topline{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
+    .profile-role-wrap{display:flex;align-items:center;justify-content:center;gap:8px;min-height:26px;}
+    .role-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(109,40,217,.12);border:1px solid rgba(139,92,246,.22);font-size:.66rem;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--a3);}
+    .role-badge.admin{background:rgba(244,63,94,.12);border-color:rgba(244,63,94,.34);color:#ff8d9e;}
+    .profile-status-strip{display:grid;gap:8px;margin:-8px 0 18px;}
+    .profile-status-pill{padding:9px 12px;border-radius:12px;font-size:.76rem;font-weight:700;border:1px solid var(--border);background:var(--card2);}
+    .profile-status-pill.warn{border-color:rgba(245,158,11,.26);background:rgba(245,158,11,.08);color:#fbbf24;}
+    .profile-status-pill.danger{border-color:rgba(244,63,94,.26);background:rgba(244,63,94,.08);color:#fb7185;}
+    .prizm-card{margin-bottom:18px;padding:16px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(246,245,255,.85));color:#171725;border:1px solid rgba(255,255,255,.7);box-shadow:0 18px 40px rgba(109,40,217,.14);text-align:left;}
+    .prizm-card.empty{display:none;}
+    .prizm-head{display:flex;align-items:center;gap:12px;}
+    .prizm-copy{flex:1;min-width:0;}
+    .prizm-label{font-size:.62rem;text-transform:uppercase;letter-spacing:1.8px;font-weight:900;color:#7c3aed;}
+    .prizm-name{font-family:var(--ff-display);font-size:1.08rem;font-weight:800;line-height:1.15;margin-top:3px;}
+    .prizm-note{font-size:.76rem;color:#5b5875;margin-top:4px;line-height:1.5;}
+    .prizm-balance{font-family:var(--ff-display);font-size:1.3rem;font-weight:900;color:#111827;white-space:nowrap;}
+    .prizm-balance small{display:block;font-family:var(--ff-body);font-size:.62rem;letter-spacing:1px;color:#6b7280;text-transform:uppercase;}
+    .prizm-gem{width:42px;height:42px;border-radius:14px;transform:rotate(45deg);background:conic-gradient(from 180deg,#7c3aed,#f43f5e,#f59e0b,#10b981,#3b82f6,#7c3aed);box-shadow:0 14px 28px rgba(124,58,237,.24),0 0 0 5px rgba(255,255,255,.65);position:relative;flex-shrink:0;}
+    .prizm-gem::before{content:'△';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.92);font-size:1.15rem;font-weight:900;transform:rotate(-45deg);}
+    .prizm-track{width:100%;height:8px;border-radius:999px;background:rgba(124,58,237,.12);overflow:hidden;margin:14px 0 10px;}
+    .prizm-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#7c3aed,#ec4899,#f59e0b);box-shadow:0 0 16px rgba(236,72,153,.3);width:0;transition:width .35s ease;}
+    .prizm-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.72rem;color:#5b5875;}
+    .prizm-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+    .prizm-btn{width:auto;padding:11px 14px;}
+    .prizm-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(124,58,237,.08);color:#6d28d9;font-size:.68rem;font-weight:800;}
+    .settings-prizm-box{padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(246,245,255,.86));border:1px solid rgba(255,255,255,.7);color:#171725;box-shadow:0 14px 30px rgba(109,40,217,.1);}
+    .settings-prizm-head{display:flex;align-items:center;gap:12px;}
+    .settings-prizm-balance{margin-left:auto;font-family:var(--ff-display);font-size:1.2rem;font-weight:900;white-space:nowrap;}
+    .settings-prizm-track{height:8px;border-radius:999px;background:rgba(124,58,237,.12);overflow:hidden;margin:14px 0 10px;}
+    .settings-prizm-fill{height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#ec4899,#f59e0b);transition:width .35s ease;}
+    .settings-prizm-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.72rem;color:#5b5875;}
+    .admin-tools-shell{display:grid;gap:14px;}
+    .admin-announce-box,.admin-users-box{padding:14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--border);}
+    .admin-textarea{min-height:96px;resize:vertical;background:rgba(255,255,255,.04);}
+    .admin-search-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+    .admin-search-input{flex:1;min-width:220px;}
+    .admin-users-list{display:grid;gap:10px;margin-top:14px;}
+    .admin-user-card{display:grid;gap:10px;padding:12px;border-radius:14px;background:rgba(17,17,34,.68);border:1px solid var(--border);}
+    .admin-user-top{display:flex;align-items:center;gap:10px;min-width:0;}
+    .admin-user-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid rgba(139,92,246,.26);flex-shrink:0;}
+    .admin-user-copy{min-width:0;flex:1;}
+    .admin-user-name{font-size:.84rem;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .admin-user-mail{font-size:.72rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .admin-user-meta{display:flex;gap:8px;flex-wrap:wrap;}
+    .admin-user-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.16);font-size:.65rem;font-weight:800;color:var(--a3);}
+    .admin-user-chip.warn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.18);color:#fbbf24;}
+    .admin-user-chip.danger{background:rgba(244,63,94,.08);border-color:rgba(244,63,94,.18);color:#fb7185;}
+    .admin-user-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .admin-user-actions .btn{width:auto;min-width:unset;}
+    .admin-empty{padding:14px;border-radius:14px;border:1px dashed var(--border);text-align:center;color:var(--text2);font-size:.78rem;}
 
     /* STATS BAR */
     .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:24px;}
@@ -800,9 +870,9 @@
 
     /* RESPONSIVE */
     @media(max-width:950px){main{flex-direction:column;padding:11px;}.filters{width:100%;position:static;order:-1;margin-bottom:16px;}.grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}.title-hero{justify-content:center;text-align:center;}.title-info{text-align:center;}.title-genres{justify-content:center;}.chat-layout{flex-direction:column;height:auto;}.chat-sb{width:100%;max-height:190px;}.chat-box{height:410px;}.hdr-search{display:none;}.qstats{grid-template-columns:repeat(2,1fr);}.online-pill{display:none;}.tg-float-btn{bottom:calc(var(--nav-h) + var(--safe-b) + 14px);right:8px;}.hero-dashboard,.discover-grid,.analytics-grid,.settings-grid{grid-template-columns:1fr;}.spotlight-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.reader-bar{justify-content:center;}.reader-topline,.reader-meta{width:100%;justify-content:center;}.reader-topline{order:1;min-width:0;}.reader-meta{order:2;}.stats-bar{grid-template-columns:repeat(2,1fr);}.title-next-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}.title-next-actions .btn{width:100%;min-width:0;}}
-    @media(max-width:820px){header{gap:8px;}.hero-content{padding:16px;align-items:flex-start;}.hero-desc{font-size:.74rem;-webkit-line-clamp:3;margin-bottom:10px;}.sec-hd{align-items:flex-start;}.sec-actions{width:100%;justify-content:space-between;}.discover-actions{display:grid;grid-template-columns:1fr;gap:8px;width:100%;}.discover-actions .btn{width:100%;}.avatar-presets{grid-template-columns:repeat(4,1fr);}.alert-actions,.avatar-actions{flex-direction:column;}.toast{min-width:0;width:100%;}.filters{padding:16px;}.chk-grid{grid-template-columns:1fr;}}
-    @media(max-width:600px){:root{--header-h:54px;--nav-h:60px;}header{padding:0 9px;}.logo{font-size:1rem;}.hdr-btn{width:37px;height:37px;}.hdr-avatar{width:37px;height:37px;}.menu-btn{width:37px;height:37px;}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.card-info{padding:8px 7px;}.card-info h3{font-size:.76rem;}.badge{padding:3px 7px;font-size:.56rem;}.title-cover{width:100%;max-width:190px;margin:0 auto;}.title-info{min-width:100%;}#notif-panel,#user-dd{right:7px;left:7px;width:auto;}.chat-box{height:min(68vh,420px);}.msg{max-width:88%;}.qstats{grid-template-columns:repeat(2,1fr);gap:7px;}.hero-cover{width:76px !important;}.auth-body{padding:22px 16px;}.auth-box,.avatar-modal-box,.alert-box{max-height:calc(100dvh - 24px);}.avatar-modal-body,.auth-body{overflow-y:auto;}.reader-nav{padding:18px 10px calc(34px + var(--safe-b));}.reader-nav .btn{max-width:none;}.tg-float-btn{pointer-events:none;}.tg-btn,.mail-btn{pointer-events:auto;padding:11px;border-radius:50%;width:46px;height:46px;justify-content:center;}.tg-btn span,.mail-btn span{display:none;}.music-fab{left:8px;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);}.music-panel{left:0;bottom:52px;width:min(292px,calc(100vw - 16px));}.music-controls{grid-template-columns:38px 38px auto minmax(0,1fr);}.music-mini-btn{width:38px;height:38px;}.music-progress-wrap{padding:9px 10px;}.focus-stats,.quick-actions,.discover-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.spotlight-grid{grid-template-columns:1fr;}.spot-card{padding:10px;}.spot-card-cover{width:64px;height:92px;}.reader-topline{min-width:0;}.reader-meta{width:100%;justify-content:center;gap:6px;}.reader-select{max-width:100%;min-width:0;}.reader-pages{font-size:.66rem;padding:6px 9px;}.offline-banner{left:9px;right:9px;max-width:none;width:auto;transform:translateY(-16px);}.offline-banner.show{transform:translateY(0);}#community-banner{grid-template-columns:1fr !important;}#community-banner a{padding:14px !important;align-items:flex-start !important;}.title-next-actions .btn{width:100%;}.chart-bars{height:140px;gap:6px;}.search-history{gap:6px;}.bot-nav{overflow-x:auto;justify-content:flex-start;gap:6px;padding:6px 8px calc(6px + var(--safe-b));scroll-snap-type:x proximity;}.nav-item{flex:0 0 72px;min-width:72px;padding:6px 4px;scroll-snap-align:start;}.settings-row{flex-direction:column;align-items:flex-start;}.settings-select,.settings-range{max-width:none;width:100%;}.settings-stats{grid-template-columns:1fr;}.settings-inline-actions{width:100%;}.settings-inline-actions .btn{width:100%;}.trend-item{padding:10px;align-items:flex-start;}.trend-name{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}.discover-sub{font-size:.78rem;}.filters .btn{width:100%;}.rt-widget{padding:12px 14px;align-items:flex-start;}}
-    @media(max-width:480px){:root{--header-h:52px;--nav-h:58px;}main{padding:9px;}.qstats,.stats-bar,.focus-stats,.quick-actions,.discover-mini-grid{grid-template-columns:1fr;}.spotlight-grid,.settings-grid,.analytics-grid{grid-template-columns:1fr;}.hero-dashboard{gap:10px;}.hero-content{padding:14px;gap:12px;}.hero-title{font-size:1rem;}.hero-desc{display:none;}.focus-title,.focus-sub{max-width:none;}.sec-actions{gap:8px;}.sec-actions .rand-btn,.sec-actions .see-all{width:100%;text-align:center;justify-content:center;}.toast{padding:12px 14px;font-size:.8rem;}.toast-icon{font-size:1rem;}.avatar-presets{grid-template-columns:repeat(3,1fr);}.avatar-modal-body{padding:16px;}.music-panel{width:min(274px,calc(100vw - 14px));padding:12px;}.music-controls{grid-template-columns:36px 36px auto minmax(0,1fr);gap:6px;}.music-mini-btn{width:36px;height:36px;border-radius:10px;}.music-mini-btn.wide{min-width:52px;padding:0 8px;}.music-progress-times{font-size:.64rem;gap:6px;}.reader-bar{padding-left:10px;padding-right:10px;}.reader-pages,.reader-font-ctrl,.reader-top-btn{width:100%;justify-content:center;}.reader-nav{gap:8px;}.reader-nav .btn,.reader-top-btn{width:100%;min-width:0;}.title-next-actions{grid-template-columns:1fr;}.ch-item{padding:12px;gap:8px;align-items:flex-start;}.ch-act{font-size:.68rem;}.auth-top{padding:28px 18px 20px;}.auth-logo{font-size:1.35rem;}.offline-banner{padding:10px 12px;border-radius:14px;}.offline-banner-text{font-size:.74rem;}.chart-bars{overflow-x:auto;grid-template-columns:repeat(7,minmax(28px,1fr));padding-bottom:4px;}.chart-col{min-width:28px;}.install-app-btn{padding:10px 12px;}}
+    @media(max-width:820px){header{gap:8px;}.hero-content{padding:16px;align-items:flex-start;}.hero-desc{font-size:.74rem;-webkit-line-clamp:3;margin-bottom:10px;}.sec-hd{align-items:flex-start;}.sec-actions{width:100%;justify-content:space-between;}.discover-actions{display:grid;grid-template-columns:1fr;gap:8px;width:100%;}.discover-actions .btn{width:100%;}.avatar-presets{grid-template-columns:repeat(4,1fr);}.alert-actions,.avatar-actions{flex-direction:column;}.toast{min-width:0;width:100%;}.filters{padding:16px;}.chk-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.admin-user-actions .btn{flex:1 1 calc(50% - 8px);}}
+    @media(max-width:600px){:root{--header-h:54px;--nav-h:60px;}header{padding:0 9px;}.logo{font-size:1rem;}.hdr-btn{width:37px;height:37px;}.hdr-avatar{width:37px;height:37px;}.menu-btn{width:37px;height:37px;}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.card-info{padding:8px 7px;}.card-info h3{font-size:.76rem;}.badge{padding:3px 7px;font-size:.56rem;}.title-cover{width:100%;max-width:190px;margin:0 auto;}.title-info{min-width:100%;}#notif-panel,#user-dd{right:7px;left:7px;width:auto;}.chat-box{height:min(68vh,420px);}.msg{max-width:88%;}.qstats{grid-template-columns:repeat(2,1fr);gap:7px;}.hero-cover{width:76px !important;}.auth-body{padding:22px 16px;}.auth-box,.avatar-modal-box,.alert-box{max-height:calc(100dvh - 24px);}.avatar-modal-body,.auth-body{overflow-y:auto;}.reader-nav{padding:18px 10px calc(34px + var(--safe-b));}.reader-nav .btn{max-width:none;}.tg-float-btn{pointer-events:none;}.tg-btn,.mail-btn{pointer-events:auto;padding:11px;border-radius:50%;width:46px;height:46px;justify-content:center;}.tg-btn span,.mail-btn span{display:none;}.music-fab{left:8px;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);}.music-panel{left:0;bottom:52px;width:min(280px,calc(100vw - 16px));max-height:min(calc(100dvh - 96px),460px);padding:11px;}.music-search-results{max-height:min(20dvh,150px);}.music-controls{grid-template-columns:38px 38px auto minmax(0,1fr);}.music-mini-btn{width:38px;height:38px;}.music-progress-wrap{padding:9px 10px;}.focus-stats,.quick-actions,.discover-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.spotlight-grid{grid-template-columns:1fr;}.spot-card{padding:10px;}.spot-card-cover{width:64px;height:92px;}.reader-topline{min-width:0;}.reader-meta{width:100%;justify-content:center;gap:6px;}.reader-select{max-width:100%;min-width:0;}.reader-pages{font-size:.66rem;padding:6px 9px;}.offline-banner{left:9px;right:9px;max-width:none;width:auto;transform:translateY(-16px);}.offline-banner.show{transform:translateY(0);}#community-banner{grid-template-columns:1fr !important;}#community-banner a{padding:14px !important;align-items:flex-start !important;}.title-next-actions .btn{width:100%;}.chart-bars{height:140px;gap:6px;}.search-history{gap:6px;}.bot-nav{overflow-x:auto;justify-content:flex-start;gap:6px;padding:6px 8px calc(6px + var(--safe-b));scroll-snap-type:x proximity;}.nav-item{flex:0 0 72px;min-width:72px;padding:6px 4px;scroll-snap-align:start;}.settings-row{flex-direction:column;align-items:flex-start;}.settings-select,.settings-range{max-width:none;width:100%;}.settings-stats{grid-template-columns:1fr;}.settings-inline-actions{width:100%;}.settings-inline-actions .btn{width:100%;}.trend-item{padding:10px;align-items:flex-start;}.trend-name{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}.discover-sub{font-size:.78rem;}.filters .btn{width:100%;}.rt-widget{padding:12px 14px;align-items:flex-start;}.filters-head{flex-direction:column;}.filter-select-card{grid-template-columns:32px minmax(0,1fr);}.filter-select-icon{width:32px;height:32px;border-radius:10px;}.chk-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.announcement-bar{padding:0 10px;}.announcement-bar-inner{padding:10px 12px;}.settings-prizm-head,.prizm-head{align-items:flex-start;}.settings-prizm-balance,.prizm-balance{margin-left:0;}.admin-search-row{flex-direction:column;align-items:stretch;}.admin-search-input{min-width:0;}.admin-user-top{align-items:flex-start;}.admin-user-actions{display:grid;grid-template-columns:1fr 1fr;}.profile-topline{flex-direction:column;}}
+    @media(max-width:480px){:root{--header-h:52px;--nav-h:58px;}main{padding:9px;}.qstats,.stats-bar,.focus-stats,.quick-actions,.discover-mini-grid{grid-template-columns:1fr;}.spotlight-grid,.settings-grid,.analytics-grid{grid-template-columns:1fr;}.hero-dashboard{gap:10px;}.hero-content{padding:14px;gap:12px;}.hero-title{font-size:1rem;}.hero-desc{display:none;}.focus-title,.focus-sub{max-width:none;}.sec-actions{gap:8px;}.sec-actions .rand-btn,.sec-actions .see-all{width:100%;text-align:center;justify-content:center;}.toast{padding:12px 14px;font-size:.8rem;}.toast-icon{font-size:1rem;}.avatar-presets{grid-template-columns:repeat(3,1fr);}.avatar-modal-body{padding:16px;}.music-panel{width:min(262px,calc(100vw - 14px));max-height:min(calc(100dvh - 90px),420px);padding:10px;}.music-search-results{max-height:min(18dvh,132px);}.music-controls{grid-template-columns:36px 36px auto minmax(0,1fr);gap:6px;}.music-mini-btn{width:36px;height:36px;border-radius:10px;}.music-mini-btn.wide{min-width:50px;padding:0 8px;}.music-progress-times{font-size:.62rem;gap:6px;}.reader-bar{padding-left:10px;padding-right:10px;}.reader-pages,.reader-font-ctrl,.reader-top-btn{width:100%;justify-content:center;}.reader-nav{gap:8px;}.reader-nav .btn,.reader-top-btn{width:100%;min-width:0;}.title-next-actions{grid-template-columns:1fr;}.ch-item{padding:12px;gap:8px;align-items:flex-start;}.ch-act{font-size:.68rem;}.auth-top{padding:28px 18px 20px;}.auth-logo{font-size:1.35rem;}.offline-banner{padding:10px 12px;border-radius:14px;}.offline-banner-text{font-size:.74rem;}.chart-bars{overflow-x:auto;grid-template-columns:repeat(7,minmax(28px,1fr));padding-bottom:4px;}.chart-col{min-width:28px;}.install-app-btn{padding:10px 12px;}.chk-grid{grid-template-columns:1fr;}.admin-user-actions{grid-template-columns:1fr;}.prizm-actions{flex-direction:column;align-items:stretch;}.prizm-btn{width:100%;}}
     @media(max-width:380px){.grid{gap:6px;}.nav-item span{display:none;}.nav-item i{margin-bottom:0;}}
     @media(max-height:500px) and (orientation:landscape){:root{--header-h:46px;--nav-h:50px;}.chat-layout{flex-direction:row;height:80vh;}.chat-sb{width:230px;max-height:none;}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}}
@@ -970,6 +1040,8 @@
     </div>
   </header>
 
+  <div class="announcement-bar" id="announcement-bar" aria-live="polite"></div>
+
   <!-- USER DROPDOWN -->
   <div id="user-dd" role="dialog" aria-label="Меню пользователя">
     <div class="dd-head">
@@ -1099,7 +1171,7 @@
           <strong id="music-time-left">-0:00</strong>
         </div>
       </div>
-      <div class="music-status" id="music-status">Поиск работает по большой бесплатной базе Audius. Можно искать треки вручную, переключать следующий и держать авто-переход включённым.</div>
+      <div class="music-status" id="music-status">Поиск сначала идёт по Internet Archive с полными треками, а если там пусто, панель автоматически добирает результаты из Audius.</div>
     </div>
     <button class="music-fab-btn" id="music-fab-btn" type="button" onclick="toggleMusicMenu()" aria-label="Открыть музыку">♪</button>
   </div>
@@ -1232,14 +1304,28 @@
         <div class="grid" id="cat-grid" style="margin-top:13px"></div>
       </div>
       <aside class="filters">
+        <div class="filters-head">
+          <div class="filters-head-copy">
+            <div class="filters-head-title">Каталог-помощник</div>
+            <div class="filters-head-sub">Быстрая сортировка и удобный подбор по жанрам, статусу и году.</div>
+          </div>
+          <button class="btn btn-sec btn-sm" type="button" onclick="resetFilters()">Сброс</button>
+        </div>
         <div class="flt-group">
           <div class="flt-title">Сортировка</div>
-          <select id="sort-sel" onchange="applyFilters()">
-            <option value="popular">Популярные</option>
-            <option value="updated">Обновлённые</option>
-            <option value="rating">По рейтингу</option>
-            <option value="new">По новинкам</option>
-          </select>
+          <div class="filter-select-card">
+            <div class="filter-select-icon">↕</div>
+            <div class="filter-select-copy">
+              <div class="filter-select-name">Основной режим выдачи</div>
+              <div class="filter-select-note">Можно быстро переключаться между рейтингом, обновлениями и новинками.</div>
+            </div>
+            <select id="sort-sel" onchange="applyFilters()">
+              <option value="popular">Популярные</option>
+              <option value="updated">Обновлённые</option>
+              <option value="rating">По рейтингу</option>
+              <option value="new">По новинкам</option>
+            </select>
+          </div>
         </div>
         <div class="flt-group">
           <div class="flt-title">Жанры</div>
@@ -1256,7 +1342,6 @@
           <div class="flt-title">Год</div>
           <div class="chk-grid" id="flt-year"></div>
         </div>
-        <button class="btn btn-sec btn-sm" onclick="resetFilters()" style="margin-top:4px">🗑 Сбросить</button>
       </aside>
     </main>
   </div>
@@ -1341,12 +1426,17 @@
             <button class="p-av-btn" onclick="openAvatarModal()" title="Изменить аватар" aria-label="Изменить аватар">🖼️</button>
           </div>
         </div>
-        <h2 id="p-name" style="font-family:var(--ff-display);font-size:clamp(.95rem,3.5vw,1.3rem);margin-bottom:3px"></h2>
+        <div class="profile-topline">
+          <h2 id="p-name" style="font-family:var(--ff-display);font-size:clamp(.95rem,3.5vw,1.3rem);margin-bottom:3px"></h2>
+          <div id="p-role-wrap" class="profile-role-wrap"></div>
+        </div>
         <p id="p-email" style="color:var(--text2);margin-bottom:20px;font-size:.8rem"></p>
+        <div id="profile-status-strip"></div>
         <div id="p-auth-sec" style="margin-bottom:24px">
           <p style="font-size:.82rem;color:var(--a3);margin-bottom:11px">Войди для доступа к друзьям, чатам и облачной синхронизации!</p>
           <button class="btn" onclick="openAuth()" style="max-width:270px;margin:0 auto">🔐 Войти / Регистрация</button>
         </div>
+        <div id="prizm-card" class="prizm-card"></div>
         <div class="stats-bar" style="margin-bottom:18px">
           <div class="stat-card"><div class="stat-val" id="s-read">0</div><div class="stat-lbl">Глав прочитано</div></div>
           <div class="stat-card"><div class="stat-val" id="s-fav">0</div><div class="stat-lbl">В закладках</div></div>
@@ -1485,12 +1575,60 @@
             </div>
           </section>
           <section class="settings-card">
+            <h3>PRIZM</h3>
+            <p>Облачная награда за чтение. 50 PRIZM можно забрать один раз в день после 1 часа чтения манги.</p>
+            <div class="settings-prizm-box" id="settings-prizm-box">
+              <div class="settings-prizm-head">
+                <div class="prizm-gem" aria-hidden="true"></div>
+                <div>
+                  <div class="settings-name">Ваш баланс</div>
+                  <div class="settings-note" id="settings-prizm-note">Войдите в аккаунт, чтобы включить облачный баланс PRIZM.</div>
+                </div>
+                <div class="settings-prizm-balance" id="settings-prizm-balance">0</div>
+              </div>
+              <div class="settings-prizm-track">
+                <div class="settings-prizm-fill" id="settings-prizm-fill"></div>
+              </div>
+              <div class="settings-prizm-meta">
+                <span id="settings-prizm-progress">0 / 60 мин</span>
+                <span id="settings-prizm-claim-state">Награда недоступна</span>
+              </div>
+              <div class="settings-inline-actions">
+                <button class="btn btn-sm" id="settings-prizm-claim-btn" type="button" onclick="claimPrizmReward()">Забрать 50 PRIZM</button>
+              </div>
+            </div>
+          </section>
+          <section class="settings-card">
             <h3>Локальные данные</h3>
             <p>Быстрые действия для истории и базовых параметров сайта.</p>
             <div class="settings-actions">
               <button class="btn btn-sec btn-sm" style="width:auto" onclick="refreshCatalogFromCloud()">Обновить каталог</button>
               <button class="btn btn-sec btn-sm" style="width:auto" onclick="clearHistory()">Очистить историю чтения</button>
               <button class="btn btn-sec btn-sm" style="width:auto" onclick="resetBasicSettings()">Сбросить базовые настройки</button>
+            </div>
+          </section>
+          <section class="settings-card" id="admin-settings-card" style="display:none">
+            <h3>Админ-панель</h3>
+            <p>Управление пользователями, публикация объявления и базовая модерация сайта.</p>
+            <div class="admin-tools-shell">
+              <div class="admin-announce-box">
+                <div class="settings-name">Глобальное объявление</div>
+                <div class="settings-note">Показывается всем пользователям в верхней части сайта.</div>
+                <textarea id="admin-announcement-input" class="admin-textarea" placeholder="Например: Сегодня вечером выйдут новые главы и обновится каталог."></textarea>
+                <div class="settings-inline-actions">
+                  <button class="btn btn-sm" type="button" onclick="saveAdminAnnouncement()">Сохранить объявление</button>
+                  <button class="btn btn-sec btn-sm" type="button" onclick="clearAdminAnnouncement()">Очистить</button>
+                </div>
+              </div>
+              <div class="admin-users-box">
+                <div class="settings-name">Пользователи</div>
+                <div class="settings-note">Можно отключать комментарии, чат и выдавать PRIZM вручную.</div>
+                <div class="admin-search-row">
+                  <input type="text" id="admin-user-query" class="admin-search-input" placeholder="Поиск по нику или email..." onkeypress="if(event.key==='Enter'){event.preventDefault();loadAdminUsers();}"/>
+                  <button class="btn btn-sec btn-sm" type="button" onclick="loadAdminUsers()">Найти</button>
+                </div>
+                <div class="admin-users-list" id="admin-users-list"></div>
+              </div>
             </div>
           </section>
         </div>
@@ -1564,6 +1702,7 @@
       </div>
       <div class="reader-prog-wrap"><div class="reader-prog-fill" id="r-prog"></div></div>
     </div>
+    
     <div id="reader-imgs"></div>
     <div class="reader-nav">
       <button class="btn btn-sec btn-sm" id="btn-prev" style="background:#12121e;color:#fff;border-color:#1e1e3e" onclick="moveChapter(-1)">❮ Пред.</button>
@@ -1577,14 +1716,15 @@
   <!-- FIREBASE -->
   <script type="module">
     import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import{getFirestore,doc,setDoc,arrayUnion,collection,getDocs,getDoc,onSnapshot,updateDoc}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import{getFirestore,doc,setDoc,arrayUnion,collection,getDocs,getDoc,onSnapshot,updateDoc,increment}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import{getDatabase,ref,set,onValue,onDisconnect,serverTimestamp,remove}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
     import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut,onAuthStateChanged,sendPasswordResetEmail,GoogleAuthProvider,signInWithPopup}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     const CONFIG={apiKey:"AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0",projectId:"oauth-489621",authDomain:"oauth-489621.firebaseapp.com",databaseURL:"https://oauth-489621-default-rtdb.firebaseio.com"};
     let app,db,rtdb,auth;
+    const ADMIN_EMAIL_DB='zarobotokjoker@gmail.com';
     const CATALOG_CACHE_KEY="mc_catalog_cache_v1";
     const PUBLIC_RATINGS_CACHE_KEY="mc_public_ratings_v1";
-    window.mangaDB={};window.publicRatings={};window.firebaseReady=false;
+    window.mangaDB={};window.publicRatings={};window.firebaseReady=false;window.currentUserCloud={};window.siteMeta={};
     function setProgress(pct,msg){const b=document.getElementById('l-fill'),m=document.getElementById('l-msg');if(b)b.style.width=pct+'%';if(m)m.textContent=msg;}
     function _store(k,fb){try{return JSON.parse(localStorage.getItem(k))||fb;}catch{return fb;}}
     function readCatalogCache(){return _store(CATALOG_CACHE_KEY,{});}
@@ -1635,9 +1775,9 @@
       }
     }
     function initPresence(){if(!rtdb)return;try{let sid=sessionStorage.getItem('mc_sid');if(!sid){sid='sid_'+Math.random().toString(36).substr(2,12)+'_'+Date.now();sessionStorage.setItem('mc_sid',sid);}const pRef=ref(rtdb,'/presence/'+sid),cRef=ref(rtdb,'.info/connected');onValue(cRef,snap=>{if(snap.val()){set(pRef,{online:true,ts:serverTimestamp()});onDisconnect(pRef).remove();}});onValue(ref(rtdb,'/presence'),snap=>{const d=snap.val(),el=document.getElementById('online-cnt');if(el)el.textContent=d?Object.keys(d).length:1;});window.addEventListener('beforeunload',()=>{try{remove(pRef);}catch(e){}});}catch(e){console.warn(e);}}
-    async function initFirebase(){try{setProgress(20,'Инициализация Firebase...');restoreCatalogFromCache();restorePublicRatingsFromCache();app=initializeApp(CONFIG);db=getFirestore(app);rtdb=getDatabase(app);auth=getAuth(app);window.db=db;window.rtdb=rtdb;window.auth=auth;window.firebaseReady=true;
-    onAuthStateChanged(auth,async user=>{if(user){const payload={sub:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,picture:user.photoURL||''};localStorage.setItem('mc_user',JSON.stringify(payload));if(window.loadCloud){const cd=await window.loadCloud(user.uid);if(cd){let cn=_store('mc_nicks',{});if(cd.customNickname){cn[user.uid]=cd.customNickname;localStorage.setItem('mc_nicks',JSON.stringify(cn));}if(cd.customAvatar){localStorage.setItem('mc_avatar_'+user.uid,cd.customAvatar);}if(cd.friendsList){window.myFriends=cd.friendsList;localStorage.setItem('mc_friends',JSON.stringify(window.myFriends));}}}if(window.saveUserDB){let cn=_store('mc_nicks',{});await window.saveUserDB(payload,cn[user.uid]||payload.name);}if(window.listenMyData&&!window.listeningMyData){window.listenMyData(user.uid);window.listeningMyData=true;}window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();}else{window.updateHdrAuth&&window.updateHdrAuth();}});
-    initPresence();setProgress(50,hasCatalogData(window.mangaDB)?'Обновляем каталог манги...':'Загрузка каталога манги...');await loadCatalog();}catch(e){console.error(e);const restored=restoreCatalogFromCache();setProgress(100,restored?'Открыт локальный каталог':'Работаем в оффлайн режиме');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1500);}}
+    async function initFirebase(){try{setProgress(20,'????????????? Firebase...');restoreCatalogFromCache();restorePublicRatingsFromCache();app=initializeApp(CONFIG);db=getFirestore(app);rtdb=getDatabase(app);auth=getAuth(app);window.db=db;window.rtdb=rtdb;window.auth=auth;window.firebaseReady=true;
+    onAuthStateChanged(auth,async user=>{if(user){const payload={sub:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,picture:user.photoURL||''};localStorage.setItem('mc_user',JSON.stringify(payload));if(window.loadCloud){const cd=await window.loadCloud(user.uid);window.currentUserCloud=cd||{};if(cd){let cn=_store('mc_nicks',{});if(cd.customNickname){cn[user.uid]=cd.customNickname;localStorage.setItem('mc_nicks',JSON.stringify(cn));}if(cd.customAvatar){localStorage.setItem('mc_avatar_'+user.uid,cd.customAvatar);}if(cd.friendsList){window.myFriends=cd.friendsList;localStorage.setItem('mc_friends',JSON.stringify(window.myFriends));}}}if(window.saveUserDB){let cn=_store('mc_nicks',{});await window.saveUserDB(payload,cn[user.uid]||payload.name);}if(window.listenMyData&&!window.listeningMyData){window.listenMyData(user.uid);window.listeningMyData=true;}window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();}else{window.currentUserCloud={};window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();}});
+    initPresence();setProgress(50,hasCatalogData(window.mangaDB)?'????????? ??????? ?????...':'???????? ???????? ?????...');await loadCatalog();}catch(e){console.error(e);const restored=restoreCatalogFromCache();setProgress(100,restored?'?????? ????????? ???????':'???????? ? ??????? ??????');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1500);}}
     async function loadCatalog(opts={}){const background=!!opts.background;try{const snap=await getDocs(collection(db,"manga"));let lastSeen=_store('mc_seen',{}),isFirst=Object.keys(lastSeen).length===0,save=false;const nextCatalog={};snap.forEach(d=>{const data=d.data();data.id=d.id;nextCatalog[d.id]=data;if(data.updatedAt){if(!isFirst&&(!lastSeen[d.id]||data.updatedAt>lastSeen[d.id])){window.pushNotif&&window.pushNotif('Вышло обновление: '+data.title+'!',d.id);}lastSeen[d.id]=data.updatedAt;save=true;}});if(hasCatalogData(nextCatalog)){window.mangaDB=nextCatalog;window.invalidateComputedCaches&&window.invalidateComputedCaches();saveCatalogCache(nextCatalog);}else restoreCatalogFromCache();await loadPublicRatings();if(save)localStorage.setItem('mc_seen',JSON.stringify(lastSeen));if(background){window.startUI&&window.startUI();window.toast&&window.toast('Каталог обновлён','success');return;}setProgress(100,'Готово! Тайтлов: '+Object.keys(window.mangaDB).length);setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},350);}catch(e){console.error(e);const restored=restoreCatalogFromCache();restorePublicRatingsFromCache();if(background){window.startUI&&window.startUI();window.toast&&window.toast(restored?'Каталог восстановлен из кэша':'Не удалось обновить каталог','warning');return;}setProgress(100,restored?'Загружен локальный каталог':'Ошибка загрузки каталога');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1200);}}
     function hideLoader(){const l=document.getElementById('loader');l.classList.add('out');setTimeout(()=>{l.style.display='none';},550);}
     window.reloadCatalog=loadCatalog;
@@ -1646,14 +1786,22 @@
     window.fbGoogle=()=>{const pr=new GoogleAuthProvider();pr.addScope('email');pr.addScope('profile');return signInWithPopup(auth,pr);};
     window.fbLogout=()=>signOut(auth).catch(e=>console.error(e));
     window.fbResetPwd=e=>sendPasswordResetEmail(auth,e);
-    window.saveUserDB=async(payload,nick)=>{if(!db)return;try{await setDoc(doc(db,"users_data",payload.sub),{uid:payload.sub,name:payload.name,email:payload.email,picture:payload.picture||'',customNickname:nick||payload.name,searchName:(nick||payload.name).toLowerCase()},{merge:true});}catch(e){console.error(e);}};
+    window.saveUserDB=async(payload,nick)=>{if(!db)return;try{const refDoc=doc(db,"users_data",payload.sub),existing=await getDoc(refDoc),nextNick=nick||payload.name,baseData={uid:payload.sub,name:payload.name,email:payload.email,picture:payload.picture||'',customNickname:nextNick,searchName:nextNick.toLowerCase()};if(existing.exists()){await setDoc(refDoc,{...baseData,role:(existing.data().role)||((payload.email||'').toLowerCase()===ADMIN_EMAIL_DB?'admin':'user')},{merge:true});}else{await setDoc(refDoc,{...baseData,role:(payload.email||'').toLowerCase()===ADMIN_EMAIL_DB?'admin':'user',commentBlocked:false,chatBlocked:false,prizmBalance:0,prizmDailyReadSeconds:0,prizmReadDay:'',prizmLastClaimDay:'',readingTimeTotal:0,moderationNote:'',createdAt:Date.now()},{merge:true});}}catch(e){console.error(e);}};
     window.saveNickCloud=async nick=>{const u=_store('mc_user',null);if(!u||!db)return;try{await setDoc(doc(db,"users_data",u.sub),{customNickname:nick,searchName:nick.toLowerCase()},{merge:true});}catch(e){console.error(e);}};
     window.saveAvatarCloud=async url=>{const u=_store('mc_user',null);if(!u||!db)return;try{await setDoc(doc(db,"users_data",u.sub),{customAvatar:url},{merge:true});}catch(e){console.error(e);}};
     window.loadCloud=async uid=>{if(!db)return null;try{const s=await getDoc(doc(db,"users_data",uid));if(s.exists())return s.data();}catch(e){console.error(e);}return null;};
     window.saveFavCloud=async id=>{const u=_store('mc_user',null);if(!u||!db)return;try{await setDoc(doc(db,"users_data",u.sub),{favorites:arrayUnion(id)},{merge:true});}catch(e){console.error(e);}};
+    window.mergeUserCloudData=async(uid,data)=>{if(!db||!uid)return null;try{await setDoc(doc(db,"users_data",uid),data,{merge:true});const merged={...(window.currentUserCloud||{}),...data};if(uid===(_store('mc_user',null)||{}).sub)window.currentUserCloud=merged;return merged;}catch(e){console.error(e);return null;}};
+    window.recordReadingSessionCloud=async seconds=>{const u=_store('mc_user',null);if(!u||!db||!Number.isFinite(seconds)||seconds<=0)return null;const today=(window.getDayKey?window.getDayKey():new Date().toISOString().slice(0,10));const cloud=window.currentUserCloud||{};try{const dailyBase=cloud.prizmReadDay===today?Number(cloud.prizmDailyReadSeconds)||0:0;const payload=cloud.prizmReadDay&&cloud.prizmReadDay!==today?{prizmReadDay:today,prizmDailyReadSeconds:seconds,readingTimeTotal:increment(seconds)}:cloud.prizmReadDay?{prizmDailyReadSeconds:increment(seconds),readingTimeTotal:increment(seconds)}:{prizmReadDay:today,prizmDailyReadSeconds:seconds,readingTimeTotal:increment(seconds)};await setDoc(doc(db,"users_data",u.sub),payload,{merge:true});const nextCloud={...cloud,prizmReadDay:today,prizmDailyReadSeconds:dailyBase+seconds,readingTimeTotal:(Number(cloud.readingTimeTotal)||0)+seconds};window.currentUserCloud=nextCloud;return nextCloud;}catch(e){console.error(e);return null;}};
+    window.claimDailyPrizm=async(amount,dayKey)=>{const u=_store('mc_user',null);if(!u||!db)return null;const cloud=window.currentUserCloud||{};try{await setDoc(doc(db,"users_data",u.sub),{prizmBalance:increment(amount),prizmLastClaimDay:dayKey,lastPrizmClaimAt:Date.now()},{merge:true});const nextCloud={...cloud,prizmBalance:(Number(cloud.prizmBalance)||0)+amount,prizmLastClaimDay:dayKey,lastPrizmClaimAt:Date.now()};window.currentUserCloud=nextCloud;return nextCloud;}catch(e){console.error(e);return null;}};
     let userUnsub=null;
-    window.listenMyData=uid=>{if(userUnsub)userUnsub();if(!db)return;userUnsub=onSnapshot(doc(db,"users_data",uid),snap=>{if(snap.exists()){const d=snap.data();window.pendingReqs=d.friendRequests||[];window.renderNotifs&&window.renderNotifs();if(d.friendsList){window.myFriends=d.friendsList;localStorage.setItem('mc_friends',JSON.stringify(window.myFriends));if(document.getElementById('friends-page').style.display==='block')window.renderFriendsList&&window.renderFriendsList();if(document.getElementById('messages-page').style.display==='block')window.renderDialogs&&window.renderDialogs();}}});};
-    window.searchUsers=async q=>{if(!db)return[];try{const snap=await getDocs(collection(db,"users_data"));const res=[],l=q.toLowerCase();snap.forEach(d=>{const data=d.data();if(data.searchName&&data.searchName.includes(l))res.push(data);});return res;}catch(e){return[];}};
+    window.listenMyData=uid=>{if(userUnsub)userUnsub();if(!db)return;userUnsub=onSnapshot(doc(db,"users_data",uid),snap=>{if(snap.exists()){const d=snap.data();window.currentUserCloud=d;window.pendingReqs=d.friendRequests||[];window.myFriends=d.friendsList||[];localStorage.setItem('mc_friends',JSON.stringify(window.myFriends));window.renderNotifs&&window.renderNotifs();if(document.getElementById('friends-page').style.display==='block')window.renderFriendsList&&window.renderFriendsList();if(document.getElementById('messages-page').style.display==='block')window.renderDialogs&&window.renderDialogs();window.updateProfileUI&&window.updateProfileUI();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();}});};
+    window.searchUsers=async q=>{if(!db)return[];try{const snap=await getDocs(collection(db,"users_data"));const res=[],l=q.toLowerCase();snap.forEach(d=>{const data=d.data(),hay=[data.searchName,data.customNickname,data.name,data.email].filter(Boolean).join(' ').toLowerCase();if(hay.includes(l))res.push({...data,uid:data.uid||d.id});});return res;}catch(e){return[];}};
+    window.loadAllUsersAdmin=async()=>{if(!db)return[];try{const snap=await getDocs(collection(db,"users_data"));const res=[];snap.forEach(d=>res.push({...d.data(),uid:d.id}));return res;}catch(e){console.error(e);return[];}};
+    window.updateAdminTarget=async(uid,data)=>{if(!db||!uid)return false;try{await setDoc(doc(db,"users_data",uid),data,{merge:true});return true;}catch(e){console.error(e);return false;}};
+    let siteMetaUnsub=null;
+    window.listenSiteMeta=cb=>{if(siteMetaUnsub)siteMetaUnsub();if(!db)return()=>{};siteMetaUnsub=onSnapshot(doc(db,"site_meta","global"),snap=>{const data=snap.exists()?snap.data():{};window.siteMeta=data||{};if(cb)cb(window.siteMeta);});return siteMetaUnsub;};
+    window.saveSiteMeta=async data=>{if(!db)return false;try{await setDoc(doc(db,"site_meta","global"),data,{merge:true});window.siteMeta={...(window.siteMeta||{}),...data};return true;}catch(e){console.error(e);return false;}};
     window.sendFriendReq=async(tUid,tName,tPic)=>{const u=_store('mc_user',null);if(!u||!db)return;let cn=_store('mc_nicks',{});const myName=cn[u.sub]||u.name;const myPic=window.getAvatarUrl?window.getAvatarUrl(u):(u.picture||'');try{await setDoc(doc(db,"users_data",tUid),{friendRequests:arrayUnion({uid:u.sub,name:myName,picture:myPic})},{merge:true});window.toast('Заявка отправлена '+esc(tName)+'!');}catch(e){window.toast('Ошибка при отправке заявки','error');}};
     window.acceptFriendReq=async(fUid,fName,fPic)=>{const u=_store('mc_user',null);if(!u||!db)return;let cn=_store('mc_nicks',{});const myName=cn[u.sub]||u.name;const myPic=window.getAvatarUrl?window.getAvatarUrl(u):(u.picture||'');const myRef=doc(db,"users_data",u.sub),frRef=doc(db,"users_data",fUid);try{await setDoc(myRef,{friendsList:arrayUnion({uid:fUid,name:fName,picture:fPic})},{merge:true});await setDoc(frRef,{friendsList:arrayUnion({uid:u.sub,name:myName,picture:myPic})},{merge:true});const s=await getDoc(myRef);if(s.exists()){const upd=(s.data().friendRequests||[]).filter(r=>r.uid!==fUid);await setDoc(myRef,{friendRequests:upd},{merge:true});}window.toast(esc(fName)+' добавлен в друзья!');}catch(e){console.error(e);}};
     window.declineFriendReq=async fUid=>{const u=_store('mc_user',null);if(!u||!db)return;const myRef=doc(db,"users_data",u.sub);try{const s=await getDoc(myRef);if(s.exists()){const upd=(s.data().friendRequests||[]).filter(r=>r.uid!==fUid);await setDoc(myRef,{friendRequests:upd},{merge:true});}window.toast('Заявка отклонена');}catch(e){console.error(e);}};
@@ -1682,6 +1830,9 @@
     function _store(k,fb){try{return JSON.parse(localStorage.getItem(k))||fb;}catch{return fb;}}
     function _save(k,v){localStorage.setItem(k,JSON.stringify(v));}
     const DEFAULT_SETTINGS={particles:true,searchHistory:true,safeRandom:true,readerWidth:'standard',readerFont:100};
+    const ADMIN_EMAIL='zarobotokjoker@gmail.com';
+    const PRIZM_DAILY_SECONDS=3600;
+    const PRIZM_DAILY_REWARD=50;
     let uiSettings={...DEFAULT_SETTINGS,..._store('mc_settings',{})};
     if(!['standard','wide','narrow'].includes(uiSettings.readerWidth))uiSettings.readerWidth=DEFAULT_SETTINGS.readerWidth;
     uiSettings.readerFont=Math.max(70,Math.min(150,parseInt(uiSettings.readerFont,10)||DEFAULT_SETTINGS.readerFont));
@@ -1712,6 +1863,8 @@
     let pwaInstalled=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;
     let readerLastTap=0;
     let cachedHighRatingThreshold=null;
+    let adminUsersCache=[];
+    let siteMetaListening=false;
     const DEFAULT_SEO_TITLE='MangaCloud — Читать мангу онлайн бесплатно';
     const DEFAULT_SEO_DESCRIPTION='Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud.';
     const HOME_MODE_KEYS=['popular','new','top','recommended','continue'];
@@ -1790,7 +1943,29 @@
     function getAnonId(){let anonId=localStorage.getItem('mc_anon');if(!anonId){anonId='anon_'+Math.random().toString(36).substr(2,9);localStorage.setItem('mc_anon',anonId);}return anonId;}
     function getCurrentUserId(){const u=_store('mc_user',null);return u?u.sub:getAnonId();}
     function getCurrentUserName(){const u=_store('mc_user',null);return u?(customNicks[u.sub]||u.name||'Аноним'):customNicks['anon']||'Аноним';}
+    function getCurrentUserEmail(){const u=_store('mc_user',null);return u?(u.email||''):'';}
+    function getCloudUserData(){return window.currentUserCloud||{};}
+    function isAdminUser(){const role=String(getCloudUserData().role||'').toLowerCase();return !!getCurrentUserEmail()&&(role==='admin'||getCurrentUserEmail().toLowerCase()===ADMIN_EMAIL);}
     function getDayKey(ts){const d=new Date(ts||Date.now());return[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
+    function getPrizmBalance(){return Math.max(0,Number(getCloudUserData().prizmBalance)||0);}
+    function getPrizmReadSecondsToday(){const cloud=getCloudUserData(),today=getDayKey();return cloud.prizmReadDay===today?Math.max(0,Number(cloud.prizmDailyReadSeconds)||0):0;}
+    function getPrizmReadProgress(){return Math.min(100,Math.round(getPrizmReadSecondsToday()/PRIZM_DAILY_SECONDS*100));}
+    function canClaimPrizmToday(){const cloud=getCloudUserData(),today=getDayKey();return !!getCurrentUserEmail()&&getPrizmReadSecondsToday()>=PRIZM_DAILY_SECONDS&&cloud.prizmLastClaimDay!==today;}
+    function getPrizmMissingSeconds(){return Math.max(0,PRIZM_DAILY_SECONDS-getPrizmReadSecondsToday());}
+    function formatPrizmNeed(){const minutes=Math.ceil(getPrizmMissingSeconds()/60);return minutes>0?minutes+' мин':'готово';}
+    function renderAnnouncementBar(){
+      const banner=document.getElementById('announcement-bar');
+      if(!banner)return;
+      const message=String((window.siteMeta||{}).announcement||'').trim();
+      if(!message){banner.classList.remove('show');banner.innerHTML='';return;}
+      banner.classList.add('show');
+      banner.innerHTML='<div class="announcement-bar-inner"><div class="announcement-icon">!</div><div class="announcement-copy"><div class="announcement-title">Объявление администрации</div><div class="announcement-text">'+esc(message)+'</div></div></div>';
+    }
+    function ensureSiteMetaListener(){
+      if(siteMetaListening||!window.listenSiteMeta||!window.firebaseReady)return;
+      siteMetaListening=true;
+      window.listenSiteMeta(()=>{renderAnnouncementBar();if(currentPage==='settings')renderSettingsPage();});
+    }
     function getTitleReadStats(id){const m=window.mangaDB[id];const total=m&&m.chapters?Object.keys(m.chapters).length:0;const read=new Set(readHist.filter(h=>h.id===id).map(h=>h.ch)).size;const pct=total?Math.round(read/total*100):0;return{read,total,pct};}
     function parseRatingValue(value){
       if(value===null||value===undefined||value==='')return 0;
@@ -2106,6 +2281,83 @@
       toast('Обновляем каталог...','info');
       try{await window.reloadCatalog({background:true});}catch(e){console.error(e);toast('Не удалось обновить каталог','error');}
     }
+    function renderPrizmCard(){
+      const card=document.getElementById('prizm-card');
+      if(!card)return;
+      const loggedIn=!!getCurrentUserEmail();
+      if(!loggedIn){
+        card.className='prizm-card empty';
+        card.innerHTML='';
+        return;
+      }
+      const balance=getPrizmBalance();
+      const readSeconds=getPrizmReadSecondsToday();
+      const progress=getPrizmReadProgress();
+      const claimReady=canClaimPrizmToday();
+      const claimedToday=(getCloudUserData().prizmLastClaimDay||'')===getDayKey();
+      const stateText=claimReady?'Награда готова к получению':claimedToday?'Награда за сегодня уже получена':'До награды осталось '+formatPrizmNeed();
+      card.className='prizm-card';
+      card.innerHTML='<div class="prizm-head"><div class="prizm-gem" aria-hidden="true"></div><div class="prizm-copy"><div class="prizm-label">Cloud currency</div><div class="prizm-name">PRIZM</div><div class="prizm-note">50 PRIZM выдаются один раз в день после 1 часа чтения.</div></div><div class="prizm-balance">'+balance+'<small>PRIZM</small></div></div><div class="prizm-track"><div class="prizm-fill" style="width:'+progress+'%"></div></div><div class="prizm-meta"><span>Сегодня: '+Math.floor(readSeconds/60)+' / 60 мин</span><span>'+esc(stateText)+'</span></div><div class="prizm-actions"><button class="btn prizm-btn" type="button" onclick="claimPrizmReward()"'+(claimReady?'':' disabled')+'>Забрать 50 PRIZM</button><span class="prizm-chip">Баланс синхронизируется через облако</span></div>';
+    }
+    function renderAdminUsersMarkup(list){
+      const holder=document.getElementById('admin-users-list');
+      if(!holder)return;
+      if(!list.length){holder.innerHTML='<div class="admin-empty">Пользователи не найдены или ещё не вошли в систему.</div>';return;}
+      holder.innerHTML=list.map(user=>{
+        const avatar=user.customAvatar||user.picture||'https://via.placeholder.com/42/6d28d9/fff?text=U';
+        const isAdmin=String(user.role||'').toLowerCase()==='admin'||String(user.email||'').toLowerCase()===ADMIN_EMAIL;
+        const name=esc(user.customNickname||user.name||'Без имени');
+        const mail=esc(user.email||'—');
+        const commentLabel=user.commentBlocked?'Разрешить комментарии':'Запретить комментарии';
+        const chatLabel=user.chatBlocked?'Разрешить чат':'Запретить чат';
+        return '<div class="admin-user-card"><div class="admin-user-top"><img class="admin-user-avatar" src="'+esc(avatar)+'" alt="'+name+'" onerror="this.src=\'https://via.placeholder.com/42/6d28d9/fff?text=U\'"><div class="admin-user-copy"><div class="admin-user-name">'+name+(isAdmin?'<span class="role-badge admin">АДМИН</span>':'')+'</div><div class="admin-user-mail">'+mail+'</div></div><div class="admin-user-chip">PRIZM: '+(Number(user.prizmBalance)||0)+'</div></div><div class="admin-user-meta">'+(user.commentBlocked?'<span class="admin-user-chip danger">Комменты OFF</span>':'<span class="admin-user-chip">Комменты ON</span>')+(user.chatBlocked?'<span class="admin-user-chip warn">Чат OFF</span>':'<span class="admin-user-chip">Чат ON</span>')+'</div><div class="admin-user-actions"><button class="btn btn-sec btn-sm" type="button" onclick="toggleAdminUserFlag(\''+esc(user.uid)+'\',\'commentBlocked\','+(user.commentBlocked?'false':'true')+')">'+commentLabel+'</button><button class="btn btn-sec btn-sm" type="button" onclick="toggleAdminUserFlag(\''+esc(user.uid)+'\',\'chatBlocked\','+(user.chatBlocked?'false':'true')+')">'+chatLabel+'</button><button class="btn btn-sm" type="button" onclick="adjustAdminUserPrizm(\''+esc(user.uid)+'\',50)">+50 PRIZM</button><button class="btn btn-sec btn-sm" type="button" onclick="adjustAdminUserPrizm(\''+esc(user.uid)+'\',-50)">-50 PRIZM</button></div></div>';
+      }).join('');
+    }
+    async function loadAdminUsers(){
+      if(!isAdminUser()){toast('Эта секция доступна только администратору','error');return;}
+      const query=(document.getElementById('admin-user-query')||{}).value?.trim().toLowerCase()||'';
+      const users=window.loadAllUsersAdmin?await window.loadAllUsersAdmin():[];
+      adminUsersCache=users.filter(user=>{
+        if(!query)return true;
+        const hay=[user.customNickname,user.name,user.email].filter(Boolean).join(' ').toLowerCase();
+        return hay.includes(query);
+      }).sort((a,b)=>(String(b.role||'').toLowerCase()==='admin'?1:0)-(String(a.role||'').toLowerCase()==='admin'?1:0)||String(a.customNickname||a.name||'').localeCompare(String(b.customNickname||b.name||''),'ru'));
+      renderAdminUsersMarkup(adminUsersCache);
+    }
+    async function toggleAdminUserFlag(uid,key,nextValue){
+      if(!isAdminUser())return;
+      const target=adminUsersCache.find(user=>user.uid===uid)||{};
+      const name=target.customNickname||target.name||'пользователя';
+      const ok=window.updateAdminTarget?await window.updateAdminTarget(uid,{[key]:nextValue===true||nextValue==='true',moderatedAt:Date.now(),moderatedBy:getCurrentUserEmail()||'admin'}):false;
+      if(ok){toast('Параметр для '+name+' обновлён','success');loadAdminUsers();}else toast('Не удалось обновить пользователя','error');
+    }
+    async function adjustAdminUserPrizm(uid,delta){
+      if(!isAdminUser())return;
+      const target=adminUsersCache.find(user=>user.uid===uid)||{};
+      const name=target.customNickname||target.name||'пользователя';
+      const next=Math.max(0,(Number(target.prizmBalance)||0)+delta);
+      const ok=window.updateAdminTarget?await window.updateAdminTarget(uid,{prizmBalance:next,prizmAdjustedAt:Date.now(),prizmAdjustedBy:getCurrentUserEmail()||'admin'}):false;
+      if(ok){toast('Баланс PRIZM для '+name+' обновлён','success');loadAdminUsers();}else toast('Не удалось изменить баланс PRIZM','error');
+    }
+    async function saveAdminAnnouncement(){
+      if(!isAdminUser()){toast('Только администратор может публиковать объявления','error');return;}
+      const input=document.getElementById('admin-announcement-input');
+      const message=(input&&input.value||'').trim();
+      const ok=window.saveSiteMeta?await window.saveSiteMeta({announcement:message,announcementUpdatedAt:Date.now(),announcementAuthor:getCurrentUserEmail()||'admin'}):false;
+      if(ok){renderAnnouncementBar();toast(message?'Объявление опубликовано':'Объявление очищено','success');}else toast('Не удалось сохранить объявление','error');
+    }
+    async function clearAdminAnnouncement(){
+      const input=document.getElementById('admin-announcement-input');
+      if(input)input.value='';
+      await saveAdminAnnouncement();
+    }
+    async function claimPrizmReward(){
+      if(!getCurrentUserEmail()){toast('Войдите в аккаунт, чтобы получать PRIZM','error');openAuth();return;}
+      if(!canClaimPrizmToday()){toast(getPrizmReadSecondsToday()>=PRIZM_DAILY_SECONDS?'Награда за сегодня уже получена':'Нужно читать ещё '+formatPrizmNeed(),'warning');return;}
+      const nextCloud=window.claimDailyPrizm?await window.claimDailyPrizm(PRIZM_DAILY_REWARD,getDayKey()):null;
+      if(nextCloud){window.currentUserCloud=nextCloud;renderPrizmCard();renderSettingsPage();toast('Вы получили 50 PRIZM','success');}
+      else toast('Не удалось выдать PRIZM','error');
+    }
     function renderSettingsPage(){
       const stats=document.getElementById('settings-stats');if(!stats)return;
       document.getElementById('settings-theme-label').textContent=isLight?'Светлая':'Тёмная';
@@ -2116,10 +2368,32 @@
       document.getElementById('set-reader-width').value=readerWidthMode;
       document.getElementById('set-reader-font').value=readerFontSize;
       document.getElementById('set-reader-font-val').textContent=readerFontSize+'%';
+      const prizmBalance=getPrizmBalance();
+      const prizmProgress=getPrizmReadProgress();
+      const claimReady=canClaimPrizmToday();
+      const claimBtn=document.getElementById('settings-prizm-claim-btn');
+      const adminCard=document.getElementById('admin-settings-card');
+      const announcementInput=document.getElementById('admin-announcement-input');
       syncInstallButtons();
       stats.innerHTML='<div class="settings-stat"><strong>'+readHist.length+'</strong><span>Глав прочитано</span></div>'
         +'<div class="settings-stat"><strong>'+searchHistory.length+'</strong><span>Запросов в истории</span></div>'
-        +'<div class="settings-stat"><strong>'+randomHistory.length+'</strong><span>Последних рандомов</span></div>';
+        +'<div class="settings-stat"><strong>'+randomHistory.length+'</strong><span>Последних рандомов</span></div>'
+        +'<div class="settings-stat"><strong>'+prizmBalance+'</strong><span>Баланс PRIZM</span></div>';
+      document.getElementById('settings-prizm-balance').textContent=prizmBalance;
+      document.getElementById('settings-prizm-fill').style.width=prizmProgress+'%';
+      document.getElementById('settings-prizm-progress').textContent=Math.floor(getPrizmReadSecondsToday()/60)+' / 60 мин';
+      document.getElementById('settings-prizm-claim-state').textContent=claimReady?'Можно забирать награду':(getCloudUserData().prizmLastClaimDay===getDayKey()?'Награда за сегодня уже получена':'До награды осталось '+formatPrizmNeed());
+      document.getElementById('settings-prizm-note').textContent=getCurrentUserEmail()?'PRIZM хранится в облаке и доступен на всех устройствах этого аккаунта.':'Войдите в аккаунт, чтобы включить облачный баланс PRIZM.';
+      if(claimBtn)claimBtn.disabled=!claimReady;
+      if(adminCard){
+        adminCard.style.display=isAdminUser()?'block':'none';
+        if(isAdminUser()){
+          if(announcementInput&&document.activeElement!==announcementInput)announcementInput.value=String((window.siteMeta||{}).announcement||'');
+          if(!adminUsersCache.length&&currentPage==='settings')setTimeout(()=>loadAdminUsers(),0);
+          else renderAdminUsersMarkup(adminUsersCache);
+        }
+      }
+      renderPrizmCard();
     }
     window.setBasicSetting=setBasicSetting;
     window.resetReaderPrefs=resetReaderPrefs;
@@ -2127,6 +2401,13 @@
     window.renderSettingsPage=renderSettingsPage;
     window.refreshCatalogFromCloud=refreshCatalogFromCloud;
     window.syncInstallButtons=syncInstallButtons;
+    window.loadAdminUsers=loadAdminUsers;
+    window.toggleAdminUserFlag=toggleAdminUserFlag;
+    window.adjustAdminUserPrizm=adjustAdminUserPrizm;
+    window.saveAdminAnnouncement=saveAdminAnnouncement;
+    window.clearAdminAnnouncement=clearAdminAnnouncement;
+    window.claimPrizmReward=claimPrizmReward;
+    window.renderAnnouncementBar=renderAnnouncementBar;
     applyBasicSettings();
 
     // ── LOADER TIPS ──
@@ -2236,6 +2517,7 @@
     };
     const MUSIC_APP_NAME='MangaCloud';
     const MUSIC_DISCOVERY_ENDPOINT='https://api.audius.co';
+    const MUSIC_ARCHIVE_ENDPOINT='https://archive.org';
     let musicCtx=null,musicMasterGain=null,musicLoopTimer=null,musicStep=0,musicMenuOpen=false;
     let musicMode=localStorage.getItem('mc_music_mode')||'chill';
     let musicVolume=Math.max(0,Math.min(1,parseFloat(localStorage.getItem('mc_music_volume')||'0.45')));
@@ -2261,7 +2543,9 @@
       const audioDuration=Number.isFinite(musicAudio.duration)?musicAudio.duration:0;
       return audioDuration>0?audioDuration:Math.max(metaDuration,0);
     }
-    function getTrackArtwork(track){const art=track&&track.artwork?track.artwork:{};const userPic=track&&track.user&&track.user.profile_picture?track.user.profile_picture:{};return art['150x150']||art['480x480']||art['1000x1000']||userPic['150x150']||userPic['480x480']||userPic['1000x1000']||'https://placehold.co/64x64/111122/8b5cf6?text=%E2%99%AA';}
+    function getTrackArtwork(track){if(track&&typeof track.artwork==='string'&&track.artwork)return track.artwork;const art=track&&track.artwork?track.artwork:{};const userPic=track&&track.user&&track.user.profile_picture?track.user.profile_picture:{};return art['150x150']||art['480x480']||art['1000x1000']||userPic['150x150']||userPic['480x480']||userPic['1000x1000']||'https://placehold.co/64x64/111122/22c55e?text=%E2%99%AA';}
+    function getTrackArtist(track){return track&&((track.artist&&String(track.artist).trim())||(track.creator&&String(track.creator).trim())||(track.user&&track.user.name&&String(track.user.name).trim()))||'Unknown Artist';}
+    function getTrackSourceLabel(track){return track&&track.sourceLabel?track.sourceLabel:(track&&track.source==='archive'?'Internet Archive':'Audius');}
     function normalizeAudiusHost(host){return String(host||'').replace(/\/+$/,'');}
     async function resolveAudiusHost(force=false){
       if(!force&&musicAudiusHost)return musicAudiusHost;
@@ -2291,6 +2575,97 @@
         }
         throw error;
       }
+    }
+    async function fetchArchiveJson(url){
+      const response=await fetch(url,{headers:{Accept:'application/json'}});
+      if(!response.ok)throw new Error('Archive response '+response.status);
+      return await response.json();
+    }
+    function encodeArchiveFilePath(name){return String(name||'').split('/').map(part=>encodeURIComponent(part)).join('/');}
+    function parseArchiveLength(value){
+      if(value===null||value===undefined||value==='')return 0;
+      const raw=String(value).trim();
+      if(/^\d+(\.\d+)?$/.test(raw))return Math.max(0,Math.round(parseFloat(raw)));
+      const parts=raw.split(':').map(part=>parseFloat(part));
+      if(parts.some(num=>!Number.isFinite(num)))return 0;
+      if(parts.length===3)return Math.round(parts[0]*3600+parts[1]*60+parts[2]);
+      if(parts.length===2)return Math.round(parts[0]*60+parts[1]);
+      return 0;
+    }
+    function scoreArchiveFile(file,query){
+      const name=String(file&&file.name||'').toLowerCase();
+      const title=String(file&&file.title||'').toLowerCase();
+      const format=String(file&&file.format||'').toLowerCase();
+      const source=String(file&&file.source||'').toLowerCase();
+      const hay=[name,title,format].join(' ');
+      if(!name||/preview|sample|snippet|30sec|thumb|torrent|xml|sqlite|zip|jpg|png|gif|spectrogram|text/i.test(hay))return -1;
+      if(!(/\.(mp3|ogg|m4a|flac|wav)$/i.test(name)||/mp3|ogg|vorbis|flac|wav|mpeg/i.test(format)))return -1;
+      let score=0;
+      if(source==='original')score+=4;
+      if(/vbr mp3|mpeg/i.test(format))score+=4;
+      if(/ogg vorbis/i.test(format))score+=3;
+      if(/\.mp3$/i.test(name))score+=3;
+      if(/listen|track|song|mix|radio|full/i.test(hay))score+=2;
+      const duration=parseArchiveLength(file&&file.length);
+      if(duration>90)score+=2;
+      const words=String(query||'').toLowerCase().split(/\s+/).filter(Boolean);
+      if(words.some(word=>hay.includes(word)))score+=3;
+      return score;
+    }
+    async function searchArchiveTracks(query){
+      const clean=String(query||'').trim().replace(/[+\-&|!(){}[\]^"~*?:\\/]/g,' ');
+      if(clean.length<2)return[];
+      const searchQuery='(title:('+clean+') OR creator:('+clean+') OR subject:('+clean+')) AND mediatype:audio AND collection:netlabels AND (format:"VBR MP3" OR format:"MP3" OR format:"Ogg Vorbis")';
+      const searchUrl=MUSIC_ARCHIVE_ENDPOINT+'/advancedsearch.php?q='+encodeURIComponent(searchQuery)+'&fl[]=identifier&fl[]=title&fl[]=creator&rows=10&page=1&output=json';
+      const searchBody=await fetchArchiveJson(searchUrl);
+      const docs=Array.isArray(searchBody&&searchBody.response&&searchBody.response.docs)?searchBody.response.docs:[];
+      if(!docs.length)return[];
+      const results=(await Promise.all(docs.slice(0,8).map(async doc=>{
+        if(!doc||!doc.identifier)return null;
+        try{
+          const metadata=await fetchArchiveJson(MUSIC_ARCHIVE_ENDPOINT+'/metadata/'+encodeURIComponent(doc.identifier));
+          const files=Array.isArray(metadata&&metadata.files)?metadata.files:[];
+          const best=files.map(file=>({file,score:scoreArchiveFile(file,clean)})).filter(item=>item.score>0).sort((a,b)=>b.score-a.score)[0];
+          if(!best)return null;
+          const file=best.file;
+          const artist=getTrackArtist({artist:file.artist,creator:file.creator})||String(doc.creator||'').trim()||'Internet Archive';
+          const duration=parseArchiveLength(file.length||(metadata&&metadata.metadata&&metadata.metadata.length)||0);
+          return{
+            id:'archive:'+doc.identifier+':'+file.name,
+            source:'archive',
+            sourceLabel:'Internet Archive',
+            title:file.title||doc.title||file.name,
+            artist,
+            duration,
+            genre:'',
+            artwork:'https://placehold.co/64x64/111122/22c55e?text=IA',
+            streamUrl:MUSIC_ARCHIVE_ENDPOINT+'/download/'+encodeURIComponent(doc.identifier)+'/'+encodeArchiveFilePath(file.name)
+          };
+        }catch{return null;}
+      }))).filter(Boolean);
+      return results.slice(0,12);
+    }
+    async function searchAudiusTracks(query){
+      const body=await fetchAudiusJson('/v1/tracks/search?query='+encodeURIComponent(query)+'&app_name='+encodeURIComponent(MUSIC_APP_NAME)+'&limit=12');
+      let nextResults=Array.isArray(body&&body.data)?body.data.filter(track=>track&&track.id&&track.title):[];
+      if(!nextResults.length){
+        const fallback=await fetchAudiusJson('/v1/search/autocomplete?query='+encodeURIComponent(query)+'&kind=tracks&app_name='+encodeURIComponent(MUSIC_APP_NAME)+'&limit=12');
+        const fallbackData=fallback&&fallback.data;
+        nextResults=Array.isArray(fallbackData&&fallbackData.tracks)?fallbackData.tracks.filter(track=>track&&track.id&&track.title):Array.isArray(fallbackData)?fallbackData.filter(track=>track&&track.id&&track.title):[];
+      }
+      await resolveAudiusHost();
+      return nextResults.slice(0,12).map(track=>({
+        id:'audius:'+track.id,
+        source:'audius',
+        sourceLabel:'Audius',
+        trackId:track.id,
+        title:track.title,
+        artist:getTrackArtist(track),
+        duration:Number(track.duration)||0,
+        genre:track.genre||'',
+        artwork:getTrackArtwork(track),
+        streamUrl:musicAudiusHost+'/v1/tracks/'+encodeURIComponent(track.id)+'/stream?app_name='+encodeURIComponent(MUSIC_APP_NAME)
+      }));
     }
     function ensureMusicEngine(){
       if(musicCtx)return musicCtx;
@@ -2381,21 +2756,17 @@
       musicSearchLoading=true;
       updateMusicUI();
       try{
-        const body=await fetchAudiusJson('/v1/tracks/search?query='+encodeURIComponent(value)+'&app_name='+encodeURIComponent(MUSIC_APP_NAME)+'&limit=12');
         if(requestId!==musicSearchRequestId)return;
-        let nextResults=Array.isArray(body&&body.data)?body.data.filter(track=>track&&track.id&&track.title):[];
-        if(!nextResults.length){
-          const fallback=await fetchAudiusJson('/v1/search/autocomplete?query='+encodeURIComponent(value)+'&kind=tracks&app_name='+encodeURIComponent(MUSIC_APP_NAME)+'&limit=12');
-          if(requestId!==musicSearchRequestId)return;
-          const fallbackData=fallback&&fallback.data;
-          nextResults=Array.isArray(fallbackData&&fallbackData.tracks)?fallbackData.tracks.filter(track=>track&&track.id&&track.title):Array.isArray(fallbackData)?fallbackData.filter(track=>track&&track.id&&track.title):[];
-        }
+        let nextResults=await searchArchiveTracks(value);
+        if(requestId!==musicSearchRequestId)return;
+        if(!nextResults.length)nextResults=await searchAudiusTracks(value);
+        if(requestId!==musicSearchRequestId)return;
         musicSearchResults=nextResults.slice(0,12);
-        if(!musicSearchResults.length)musicSearchError='По этому запросу треков пока не нашлось.';
+        if(!musicSearchResults.length)musicSearchError='По этому запросу пока не нашлось полных треков.';
       }catch(e){
         if(requestId!==musicSearchRequestId)return;
         musicSearchResults=[];
-        musicSearchError='Поиск временно недоступен. Можно попробовать ещё раз или включить встроенный фон.';
+        musicSearchError='Поиск музыки временно недоступен. Можно попробовать ещё раз или включить встроенный фон.';
       }finally{
         if(requestId===musicSearchRequestId){
           musicSearchLoading=false;
@@ -2417,13 +2788,16 @@
     }
     async function playAudiusTrack(track){
       if(!track||!track.id)return;
-      await resolveAudiusHost();
       stopMusicLoop();
-      musicSource='audius';
+      if(!track.streamUrl&&track.source==='audius'){
+        await resolveAudiusHost();
+        track.streamUrl=musicAudiusHost+'/v1/tracks/'+encodeURIComponent(track.trackId||String(track.id).replace(/^audius:/,''))+'/stream?app_name='+encodeURIComponent(MUSIC_APP_NAME);
+      }
+      musicSource='stream';
       musicCurrentTrack=track;
       musicSeekPreviewValue=null;
       musicPlaying=false;
-      const streamUrl=musicAudiusHost+'/v1/tracks/'+encodeURIComponent(track.id)+'/stream?app_name='+encodeURIComponent(MUSIC_APP_NAME);
+      const streamUrl=track.streamUrl;
       if(musicAudio.src!==streamUrl)musicAudio.src=streamUrl;
       try{
         await musicAudio.play();
@@ -2469,7 +2843,7 @@
       const leftEl=document.getElementById('music-time-left');
       const labelEl=document.getElementById('music-time-label');
       if(!slider||!nowEl||!leftEl||!labelEl)return;
-      if(musicSource!=='audius'||!musicCurrentTrack){
+      if(musicSource!=='stream'||!musicCurrentTrack){
         slider.disabled=true;
         slider.value='0';
         nowEl.textContent='0:00';
@@ -2494,7 +2868,7 @@
       updateMusicProgressUI();
     }
     function seekMusicTrack(value){
-      if(musicSource!=='audius'||!musicCurrentTrack)return;
+      if(musicSource!=='stream'||!musicCurrentTrack)return;
       const duration=getActiveMusicDuration();
       if(!(duration>0))return;
       const ratio=Math.max(0,Math.min(1000,Number(value)||0))/1000;
@@ -2510,9 +2884,9 @@
       if(!musicSearchQuery.trim()){wrap.innerHTML='<div class="music-result-empty">Введите название трека или имя артиста, и панель покажет результаты.</div>';return;}
       if(!musicSearchResults.length){wrap.innerHTML='<div class="music-result-empty">Поиск завершён, но результатов пока нет.</div>';return;}
       wrap.innerHTML=musicSearchResults.map((track,index)=>{
-        const active=musicSource==='audius'&&musicCurrentTrack&&String(musicCurrentTrack.id)===String(track.id);
-        const artist=(track.user&&track.user.name)||'Audius Artist';
-        const meta=[track.genre||'',track.duration?formatMusicDuration(track.duration):''].filter(Boolean).join(' • ');
+        const active=musicSource==='stream'&&musicCurrentTrack&&String(musicCurrentTrack.id)===String(track.id);
+        const artist=getTrackArtist(track);
+        const meta=[getTrackSourceLabel(track),track.genre||'',track.duration?formatMusicDuration(track.duration):''].filter(Boolean).join(' • ');
         return '<button class="music-result'+(active?' active':'')+'" type="button" onclick="playAudiusTrackAt('+index+')">'
           +'<img class="music-result-art" src="'+esc(getTrackArtwork(track))+'" alt="'+esc(track.title)+'" onerror="this.src=\'https://placehold.co/64x64/111122/8b5cf6?text=%E2%99%AA\'">'
           +'<span class="music-result-info"><span class="music-result-title">'+esc(track.title)+'</span><span class="music-result-artist">'+esc(artist)+'</span>'+(meta?'<span class="music-result-meta">'+esc(meta)+'</span>':'')+'</span>'
@@ -2535,20 +2909,20 @@
       if(searchInput&&document.activeElement!==searchInput)searchInput.value=musicSearchQuery;
       Object.keys(MUSIC_PRESETS).forEach(key=>{const btn=document.getElementById('music-mode-'+key);if(btn)btn.classList.toggle('active',musicSource==='preset'&&musicMode===key);});
       renderMusicSearchResults();
-      if(musicSource==='audius'&&musicCurrentTrack){
-        const artist=(musicCurrentTrack.user&&musicCurrentTrack.user.name)||'Audius Artist';
+      if(musicSource==='stream'&&musicCurrentTrack){
+        const artist=getTrackArtist(musicCurrentTrack);
         const duration=getActiveMusicDuration();
-        status.textContent=(musicPlaying?'Сейчас играет: ':'Выбран трек: ')+musicCurrentTrack.title+' — '+artist+'. '+(duration>0?'Длительность '+formatMusicClock(duration)+'. ':'')+'Громкость '+Math.round(musicVolume*100)+'%. Автопереход '+(musicAutoNext?'включён':'выключен')+'.';
+        status.textContent=(musicPlaying?'Сейчас играет: ':'Выбран трек: ')+musicCurrentTrack.title+' — '+artist+'. Источник: '+getTrackSourceLabel(musicCurrentTrack)+'. '+(duration>0?'Длительность '+formatMusicClock(duration)+'. ':'')+'Громкость '+Math.round(musicVolume*100)+'%. Автопереход '+(musicAutoNext?'включён':'выключен')+'.';
       }else{
         const preset=MUSIC_PRESETS[musicMode]||MUSIC_PRESETS.chill;
-        status.textContent=musicPlaying?'Сейчас играет: '+preset.label+' — '+preset.subtitle+'. Громкость '+Math.round(musicVolume*100)+'%.':'Выбран режим '+preset.label+'. Для живых треков используйте поиск по Audius: там заметно больше бесплатной музыки, чем у встроенного фона.';
+        status.textContent=musicPlaying?'Сейчас играет: '+preset.label+' — '+preset.subtitle+'. Громкость '+Math.round(musicVolume*100)+'%.':'Выбран режим '+preset.label+'. Для живых треков поиск сначала идёт по Internet Archive с полными MP3/Ogg, а потом добирает Audius как fallback.';
       }
       updateMusicProgressUI();
     }
     function toggleMusicMenu(force){musicMenuOpen=typeof force==='boolean'?force:!musicMenuOpen;updateMusicUI();}
     async function setMusicMode(mode){if(!MUSIC_PRESETS[mode])return;musicSearchError='';await startPresetMusic(mode);toast('Музыка: '+MUSIC_PRESETS[mode].label,'info');}
     async function toggleMusicPlayback(){
-      if(musicSource==='audius'&&musicCurrentTrack){
+      if(musicSource==='stream'&&musicCurrentTrack){
         if(musicAudio.paused){try{await musicAudio.play();}catch(e){toast('Не удалось запустить трек','error');}}else musicAudio.pause();
         return;
       }
@@ -2563,13 +2937,13 @@
       updateMusicUI();
     }
     musicAudio.volume=musicVolume;
-    musicAudio.addEventListener('play',()=>{musicSource='audius';musicPlaying=true;updateMusicUI();});
-    musicAudio.addEventListener('pause',()=>{if(musicSource==='audius'){musicPlaying=false;updateMusicUI();}});
+    musicAudio.addEventListener('play',()=>{musicSource='stream';musicPlaying=true;updateMusicUI();});
+    musicAudio.addEventListener('pause',()=>{if(musicSource==='stream'){musicPlaying=false;updateMusicUI();}});
     musicAudio.addEventListener('timeupdate',()=>{if(musicSeekPreviewValue===null)updateMusicProgressUI();});
     musicAudio.addEventListener('loadedmetadata',()=>{musicSeekPreviewValue=null;updateMusicProgressUI();updateMusicUI();});
     musicAudio.addEventListener('durationchange',()=>{updateMusicProgressUI();updateMusicUI();});
-    musicAudio.addEventListener('ended',()=>{if(musicSource==='audius'){musicSeekPreviewValue=null;if(musicAutoNext&&musicSearchResults.length>1){void playNextMusicTrack({silent:true,auto:true});return;}musicPlaying=false;updateMusicUI();}});
-    musicAudio.addEventListener('error',()=>{if(musicSource==='audius'){musicPlaying=false;musicSeekPreviewValue=null;musicSearchError='Не удалось воспроизвести этот трек.';updateMusicUI();}});
+    musicAudio.addEventListener('ended',()=>{if(musicSource==='stream'){musicSeekPreviewValue=null;if(musicAutoNext&&musicSearchResults.length>1){void playNextMusicTrack({silent:true,auto:true});return;}musicPlaying=false;updateMusicUI();}});
+    musicAudio.addEventListener('error',()=>{if(musicSource==='stream'){musicPlaying=false;musicSeekPreviewValue=null;musicSearchError='Не удалось воспроизвести этот трек.';updateMusicUI();}});
     window.toggleMusicMenu=toggleMusicMenu;
     window.setMusicMode=setMusicMode;
     window.toggleMusicPlayback=toggleMusicPlayback;
@@ -2715,7 +3089,8 @@
         document.getElementById('dd-av').src=pic;
         document.getElementById('dd-name').textContent=name;
         document.getElementById('dd-email').textContent=u.email||'';
-        document.getElementById('dd-rank').textContent=getRank(readHist.length)+' ✦';
+        document.getElementById('dd-rank').textContent=(isAdminUser()?'АДМИН • ':'')+getRank(readHist.length)+' ✦';
+        document.getElementById('sb-rank').textContent=(isAdminUser()?'АДМИН • ':'')+getRank(readHist.length)+' ✦';
         document.getElementById('sb-hint').style.display='none';
       }else{
         area.innerHTML='<button class="hdr-btn" onclick="openAuth()" style="font-size:.72rem;font-weight:800;width:auto;padding:0 13px;border-radius:20px">Войти</button>';
@@ -2825,6 +3200,8 @@
     // ── PROFILE UI ──
     function updateProfileUI(){
       const u=_store('mc_user',null);
+      const cloud=getCloudUserData();
+      const isAdmin=isAdminUser();
       if(u&&!window.listeningMyData&&window.listenMyData){window.listenMyData(u.sub);window.listeningMyData=true;}
       document.getElementById('s-read').textContent=readHist.length;
       document.getElementById('s-fav').textContent=favs.length;
@@ -2836,6 +3213,12 @@
       document.getElementById('p-rank').textContent=rank+' ✦';
       document.getElementById('p-progress').style.width=prog+'%';
       document.getElementById('sb-rank').textContent=rank+' ✦';
+      document.getElementById('p-role-wrap').innerHTML=isAdmin?'<span class="role-badge admin">АДМИН</span>':'<span class="role-badge">Роль: читатель</span>';
+      const flags=[];
+      if(cloud.commentBlocked)flags.push('<div class="profile-status-pill danger">Комментарии отключены администратором.</div>');
+      if(cloud.chatBlocked)flags.push('<div class="profile-status-pill warn">Личные сообщения временно недоступны.</div>');
+      if(isAdmin)flags.unshift('<div class="profile-status-pill">Расширенные права: модерация комментариев, чата, PRIZM и объявлений.</div>');
+      document.getElementById('profile-status-strip').innerHTML=flags.join('');
       if(u){
         document.getElementById('p-auth-sec').style.display='none';
         document.getElementById('btn-logout').style.display='block';
@@ -2843,7 +3226,7 @@
         const pic=getAvatarUrl(u);
         document.getElementById('p-av').src=pic;
         document.getElementById('p-name').textContent=name;
-        document.getElementById('p-email').textContent=u.email;
+        document.getElementById('p-email').textContent=u.email+(isAdmin?' • администратор MangaCloud':'');
         document.getElementById('sb-av').src=pic;
         document.getElementById('sb-name').textContent=name;
         document.getElementById('sb-hint').style.display='none';
@@ -2858,7 +3241,7 @@
         document.getElementById('sb-name').textContent=customNicks['anon']||'Гость';
         document.getElementById('sb-hint').style.display='block';
       }
-      renderAchs();renderAchievementProgress();
+      renderAchs();renderAchievementProgress();renderPrizmCard();refreshChatAccessState();
     }
     window.updateProfileUI=updateProfileUI;
 
@@ -2923,8 +3306,9 @@
       document.getElementById('chat-name').textContent=fName;
       document.getElementById('chat-av').src=fPic||'https://via.placeholder.com/40/6d28d9/fff?text=💬';
       document.getElementById('chat-hd-actions').innerHTML='<button class="list-act" style="padding:5px 10px" onclick="goPage(\'friends\')">Список друзей</button><button class="list-act" style="padding:5px 10px;background:rgba(244,63,94,.08);border-color:var(--red);color:var(--red)" onclick="removeFriend(\''+esc(fUid)+'\',\''+esc(fName)+'\')">Удалить</button>';
-      document.getElementById('chat-input').placeholder='Написать '+fName+'...';
-      document.getElementById('chat-input').disabled=false;
+      document.getElementById('chat-input').placeholder=getCloudUserData().chatBlocked?'Чат отключён администратором':'Написать '+fName+'...';
+      document.getElementById('chat-input').disabled=!!getCloudUserData().chatBlocked;
+      refreshChatAccessState();
       const chatId=[u.sub,fUid].sort().join('_');
       if(chatUnsub)chatUnsub();
       const mc=document.getElementById('chat-msgs');
@@ -2958,15 +3342,28 @@
     }
     window.deleteMsgInChat=deleteMsgInChat;
 
-    window.clearChatIf=function(uid){if(activeChat&&activeChat.uid===uid){activeChat=null;document.getElementById('chat-name').textContent='Выберите диалог';document.getElementById('chat-av').src='https://via.placeholder.com/40/6d28d9/fff?text=💬';document.getElementById('chat-hd-actions').innerHTML='';document.getElementById('chat-input').placeholder='Выберите диалог слева...';document.getElementById('chat-input').disabled=true;document.getElementById('chat-msgs').innerHTML='<div style="text-align:center;color:var(--text2);margin-top:50px">Здесь будут ваши сообщения</div>';if(chatUnsub){chatUnsub();chatUnsub=null;}}};
+    window.clearChatIf=function(uid){if(activeChat&&activeChat.uid===uid){activeChat=null;document.getElementById('chat-name').textContent='Выберите диалог';document.getElementById('chat-av').src='https://via.placeholder.com/40/6d28d9/fff?text=💬';document.getElementById('chat-hd-actions').innerHTML='';document.getElementById('chat-input').placeholder='Выберите диалог слева...';document.getElementById('chat-input').disabled=true;document.getElementById('chat-msgs').innerHTML='<div style="text-align:center;color:var(--text2);margin-top:50px">Здесь будут ваши сообщения</div>';if(chatUnsub){chatUnsub();chatUnsub=null;}refreshChatAccessState();}};
 
     function checkChat(){if(!activeChat)toast('Выберите друга из списка!','error');}
     window.checkChat=checkChat;
+    function refreshChatAccessState(){
+      const input=document.getElementById('chat-input');
+      if(!input)return;
+      if(!activeChat){
+        input.disabled=true;
+        input.placeholder='Выберите диалог слева...';
+        return;
+      }
+      const blocked=!!getCloudUserData().chatBlocked;
+      input.disabled=blocked;
+      input.placeholder=blocked?'Чат отключён администратором':'Написать '+activeChat.name+'...';
+    }
 
     async function sendMsg(){
       const u=_store('mc_user',null);
       if(!u){toast('Авторизуйтесь!','error');return;}
       if(!activeChat){toast('Выберите диалог!','error');return;}
+      if(getCloudUserData().chatBlocked){toast('Чат для этого аккаунта отключён администратором','error');return;}
       const inp=document.getElementById('chat-input'),text=inp.value.trim();
       if(!text)return;
       if(text.length>1000){toast('Слишком длинное сообщение!','error');return;}
@@ -3211,6 +3608,7 @@
     window.setHomeMode=setHomeMode;
 
     function refreshHomeUI(){
+      ensureSiteMetaListener();
       renderHero();
       renderFocusPanel();
       renderQuickPanel();
@@ -3389,7 +3787,7 @@
     }
     function renderCatalogTags(){
       const c=document.getElementById('catalog-tags');if(!c)return;
-      c.innerHTML=getCatalogTagPresets().map(tag=>'<button class="tag-chip'+(activeCatalogTags.includes(tag.key)?' active':'')+'" onclick="toggleCatalogTag(\''+esc(tag.key)+'\')">'+esc(tag.label)+'</button>').join('');
+      c.innerHTML=getCatalogTagPresets().map(tag=>'<button class="tag-chip'+(activeCatalogTags.includes(tag.key)?' active':'')+'" type="button" onclick="toggleCatalogTag(\''+esc(tag.key)+'\')">'+esc(tag.label)+'</button>').join('');
     }
     function toggleCatalogTag(tag){
       if(activeCatalogTags.includes(tag))activeCatalogTags=activeCatalogTags.filter(item=>item!==tag);
@@ -3449,7 +3847,7 @@
       if(page==='messages')renderDialogs();
       if(page==='catalog')applyFilters();
       if(page==='profile')updateProfileUI();
-      if(page==='settings')renderSettingsPage();
+      if(page==='settings'){renderSettingsPage();if(isAdminUser())setTimeout(()=>loadAdminUsers(),0);}
       if(!opts.skipSeo&&page!=='title')updateSeoMeta(page,{q:page==='home'?qOrEmpty():''});
       if(!opts.skipRoute&&page!=='title')syncRoute(page,{q:page==='home'?qOrEmpty():'',mode:homeMode,tag:discoveryTag},{replace:!!opts.replaceRoute});
     }
@@ -3607,7 +4005,7 @@
     // ── COMMENTS ──
     function normalizeComment(comment,idx){
       const base=comment||{};
-      return{...base,id:base.id||[(base.uid||'legacy'),(base.createdAt||base.date||Date.now()),idx].join('_'),uid:base.uid||'',likes:Number(base.likes)||0};
+      return{...base,id:base.id||[(base.uid||'legacy'),(base.createdAt||base.date||Date.now()),idx].join('_'),uid:base.uid||'',likes:Number(base.likes)||0,role:base.role||'user'};
     }
     function getCommentLikeKey(comment){return curId+'_'+comment.id;}
     async function loadAndShowComments(mangaId){
@@ -3625,9 +4023,11 @@
       if(!commsList.length){c.innerHTML='<p style="color:var(--text2);text-align:center;padding:18px">Комментариев пока нет. Будьте первым!</p>';return;}
       c.innerHTML=commsList.slice().reverse().map(comment=>{
         const isMyComment=comment.uid?comment.uid===myId:comment.name===myName;
-        const delBtn=isMyComment?'<button class="comm-del-btn" onclick="deleteComment(\''+comment.id+'\')">🗑 Удалить</button>':'';
+        const canDelete=isMyComment||isAdminUser();
+        const roleBadge=comment.role==='admin'?'<span class="comm-role-badge">АДМИН</span>':'';
+        const delBtn=canDelete?'<button class="comm-del-btn" onclick="deleteComment(\''+comment.id+'\')">🗑 Удалить</button>':'';
         return'<div class="comm-card">'
-          +'<div class="comm-hd"><span class="comm-user">👤 '+esc(comment.name||'Аноним')+'</span><span class="comm-date">'+esc(comment.date||'')+'</span></div>'
+          +'<div class="comm-hd"><span class="comm-user">👤 '+esc(comment.name||'Аноним')+' '+roleBadge+'</span><span class="comm-date">'+esc(comment.date||'')+'</span></div>'
           +'<div class="comm-text">'+esc(comment.text)+'</div>'
           +'<div class="comm-actions">'
           +'<button class="comm-like'+(isCommLiked(comment)?' liked':'')+'" onclick="toggleCommLike(\''+comment.id+'\')">❤️ '+(comment.likes||0)+'</button>'
@@ -3641,7 +4041,7 @@
       if(idx<0)return;
       const comment=commsList[idx];
       const isMine=comment.uid?comment.uid===getCurrentUserId():comment.name===getCurrentUserName();
-      if(!isMine){toast('Можно удалить только свой комментарий','error');return;}
+      if(!isMine&&!isAdminUser()){toast('Можно удалить только свой комментарий или нужен статус администратора','error');return;}
       showAlert({icon:'🗑️',title:'Удалить комментарий?',msg:'Ваш комментарий будет удалён без возможности восстановления.',type:'danger',confirmText:'Удалить',cancelText:'Отмена',onConfirm:async()=>{
         commsList.splice(idx,1);
         if(window.updateComments)await window.updateComments(curId,commsList);
@@ -3668,10 +4068,11 @@
       const ta=document.getElementById('comm-text'),text=ta.value.trim();
       if(!text){toast('Напишите комментарий!','error');return;}
       if(text.length>500){toast('Максимум 500 символов!','error');return;}
+      if(getCloudUserData().commentBlocked){toast('Комментарии для этого аккаунта отключены администратором','error');return;}
       const u=_store('mc_user',null);
       let name=getCurrentUserName();
       const now=new Date(),dateStr=now.toLocaleDateString('ru-RU')+' '+now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-      const data=normalizeComment({id:'comm_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),uid:getCurrentUserId(),avatar:getAvatarUrl(u),name,text,date:dateStr,createdAt:Date.now(),likes:0},commsList.length);
+      const data=normalizeComment({id:'comm_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),uid:getCurrentUserId(),avatar:getAvatarUrl(u),name,text,date:dateStr,createdAt:Date.now(),likes:0,role:isAdminUser()?'admin':'user'},commsList.length);
       if(window.sendComment){const ok=await window.sendComment(curId,data);if(ok){commsList.push(data);renderComments();ta.value='';updateCommCount();toast('Комментарий добавлен! 💬','success');}else toast('Ошибка при отправке','error');}
       else{commsList.push(data);renderComments();ta.value='';updateCommCount();toast('Комментарий сохранён','success');}
     }
@@ -3726,11 +4127,23 @@
       if(saved)setTimeout(()=>{readerEl.scrollTop=parseInt(saved);updateReaderProgress();},280);
       readStart=Date.now();
     }
-    function closeReader(){readerEl.style.display='none';document.body.style.overflow='';if(readStart){const el=Math.round((Date.now()-readStart)/1000);if(el>5&&el<7200){totalReadTime+=el;localStorage.setItem('mc_rt',totalReadTime);}readStart=null;}renderRT();renderQStats();renderFocusPanel();}
+    async function flushReadingSession(seconds){
+      if(!(seconds>5&&seconds<7200))return;
+      totalReadTime+=seconds;
+      localStorage.setItem('mc_rt',totalReadTime);
+      if(window.recordReadingSessionCloud){
+        try{
+          const nextCloud=await window.recordReadingSessionCloud(seconds);
+          if(nextCloud)window.currentUserCloud=nextCloud;
+        }catch(e){console.error(e);}
+      }
+      renderRT();renderQStats();renderFocusPanel();renderSettingsPage();renderPrizmCard();
+    }
+    async function closeReader(){readerEl.style.display='none';document.body.style.overflow='';if(readStart){const el=Math.round((Date.now()-readStart)/1000);await flushReadingSession(el);readStart=null;}renderRT();renderQStats();renderFocusPanel();}
     function moveChapter(dir){
       const m=window.mangaDB[curId];if(!m||!m.chapters)return;
       const chs=Object.keys(m.chapters).map(Number).sort((a,b)=>a-b),ci=chs.indexOf(curCh),ni=ci+dir;
-      if(ni>=0&&ni<chs.length){if(readStart){const el=Math.round((Date.now()-readStart)/1000);if(el>5&&el<7200){totalReadTime+=el;localStorage.setItem('mc_rt',totalReadTime);}}openReader(curId,chs[ni]);}
+      if(ni>=0&&ni<chs.length){if(readStart){const el=Math.round((Date.now()-readStart)/1000);flushReadingSession(el);}openReader(curId,chs[ni]);}
       else toast(dir>0?'Это последняя глава!':'Это первая глава!','warning');
     }
     function toggleReaderZoom(){
@@ -3752,7 +4165,7 @@
     // ── START UI ──
     function startUI(){
       refreshHomeUI();updateMusicUI();
-      buildFilters();updateProfileUI();updateHdrAuth();renderNotifs();updateBadges();updateOfflineBanner();renderDiscoveriesPage();renderSettingsPage();registerServiceWorker();applyUrlState();updateSeoMeta(currentPage,{manga:curId&&window.mangaDB[curId]});
+      buildFilters();updateProfileUI();updateHdrAuth();renderNotifs();updateBadges();updateOfflineBanner();renderAnnouncementBar();renderDiscoveriesPage();renderSettingsPage();registerServiceWorker();applyUrlState();updateSeoMeta(currentPage,{manga:curId&&window.mangaDB[curId]});
     }
     window.startUI=startUI;
 
