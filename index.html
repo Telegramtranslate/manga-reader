@@ -978,6 +978,7 @@
     .settings-select{max-width:180px;}
     .settings-range{width:min(220px,100%);}
     .settings-value{font-family:var(--ff-mono);font-size:.8rem;color:var(--a3);font-weight:700;white-space:nowrap;}
+    .settings-value.soft{color:var(--text2);font-size:.74rem;font-weight:600;}
     .settings-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
     .settings-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
     .settings-stat{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px 12px;text-align:center;}
@@ -1010,6 +1011,87 @@
     /* BACK TO TOP READER */
     .reader-top-btn{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:#c084fc;padding:7px 14px;border-radius:20px;font-size:.76rem;font-weight:700;transition:var(--tr-fast);}
     .reader-top-btn:hover{background:rgba(139,92,246,.35);}
+
+    /* PERFORMANCE MODE */
+    [data-performance="lite"]{
+      --tr: .16s linear;
+      --tr-fast: .08s linear;
+      --tr-spring: .16s linear;
+    }
+    [data-performance="lite"] #canvas{display:none !important;opacity:0 !important;}
+    [data-performance="lite"] header,
+    [data-performance="lite"] .bot-nav,
+    [data-performance="lite"] .music-panel,
+    [data-performance="lite"] .toast,
+    [data-performance="lite"] #alert-overlay,
+    [data-performance="lite"] #auth-overlay,
+    [data-performance="lite"] #avatar-modal,
+    [data-performance="lite"] #sb-overlay,
+    [data-performance="lite"] .public-profile-overlay,
+    [data-performance="lite"] .reader-bar,
+    [data-performance="lite"] .badge{
+      backdrop-filter:none !important;
+      -webkit-backdrop-filter:none !important;
+    }
+    [data-performance="lite"] .card,
+    [data-performance="lite"] .hero-banner,
+    [data-performance="lite"] .continue-widget,
+    [data-performance="lite"] .qstat,
+    [data-performance="lite"] .profile-card,
+    [data-performance="lite"] .settings-card,
+    [data-performance="lite"] .analytics-card,
+    [data-performance="lite"] .spot-card,
+    [data-performance="lite"] .discover-card,
+    [data-performance="lite"] .discover-mini-card,
+    [data-performance="lite"] .list-item,
+    [data-performance="lite"] .comm-card,
+    [data-performance="lite"] .shop-card,
+    [data-performance="lite"] .public-profile-card,
+    [data-performance="lite"] .music-panel{
+      box-shadow:none !important;
+    }
+    [data-performance="lite"] .card,
+    [data-performance="lite"] .settings-card,
+    [data-performance="lite"] .analytics-card,
+    [data-performance="lite"] .list-item,
+    [data-performance="lite"] .comm-card,
+    [data-performance="lite"] .shop-card,
+    [data-performance="lite"] .trend-item,
+    [data-performance="lite"] .discover-mini-card,
+    [data-performance="lite"] .spot-card{
+      content-visibility:auto;
+      contain:layout paint style;
+    }
+    [data-performance="lite"] .card:hover,
+    [data-performance="lite"] .hero-banner:hover,
+    [data-performance="lite"] .continue-widget:hover,
+    [data-performance="lite"] .discover-mini-card:hover,
+    [data-performance="lite"] .spot-card:hover,
+    [data-performance="lite"] .nav-item:hover i,
+    [data-performance="lite"] .hdr-btn:hover,
+    [data-performance="lite"] .menu-btn:hover,
+    [data-performance="lite"] .hdr-avatar:hover{
+      transform:none !important;
+      box-shadow:none !important;
+    }
+    [data-performance="lite"] .loader-logo,
+    [data-performance="lite"] .online-dot,
+    [data-performance="lite"] .n-badge,
+    [data-performance="lite"] .badge,
+    [data-performance="lite"] .hero-banner,
+    [data-performance="lite"] .continue-widget,
+    [data-performance="lite"] .discover-mini-card,
+    [data-performance="lite"] .avatar-motion-eclipse,
+    [data-performance="lite"] .avatar-motion-neon-hunter,
+    [data-performance="lite"] .avatar-motion-void-reader,
+    [data-performance="lite"] .avatar-motion-astral-kitsune,
+    [data-performance="lite"] .avatar-motion-prizm-singularity{
+      animation:none !important;
+    }
+    [data-performance="lite"] .hero-bg{filter:blur(10px) brightness(.42);}
+    [data-performance="lite"] .card-img img,
+    [data-performance="lite"] .hero-cover,
+    [data-performance="lite"] .cont-cover{will-change:auto;}
 
     /* RESPONSIVE */
     @media(max-width:950px){main{flex-direction:column;padding:11px;}.filters{width:100%;position:static;order:-1;margin-bottom:16px;}.grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}.title-hero{justify-content:center;text-align:center;}.title-info{text-align:center;}.title-genres{justify-content:center;}.chat-layout{flex-direction:column;height:auto;}.chat-sb{width:100%;max-height:190px;}.chat-box{height:410px;}.hdr-search{display:none;}.qstats{grid-template-columns:repeat(2,1fr);}.online-pill{display:none;}.tg-float-btn{bottom:calc(var(--nav-h) + var(--safe-b) + 14px);right:8px;}.hero-dashboard,.discover-grid,.analytics-grid,.settings-grid{grid-template-columns:1fr;}.spotlight-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.reader-bar{justify-content:center;}.reader-topline,.reader-meta{width:100%;justify-content:center;}.reader-topline{order:1;min-width:0;}.reader-meta{order:2;}.stats-bar{grid-template-columns:repeat(2,1fr);}.title-next-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}.title-next-actions .btn{width:100%;min-width:0;}}
@@ -1677,6 +1759,20 @@
             </div>
             <div class="settings-row">
               <div class="settings-copy">
+                <div class="settings-name">Режим производительности</div>
+                <div class="settings-note">Авто сам включает облегчённый интерфейс на слабых телефонах и ноутбуках. Лёгкий режим режет blur, тени и часть анимаций.</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <select id="set-performance-mode" class="settings-select" onchange="setBasicSetting('performanceMode', this.value)">
+                  <option value="auto">Авто</option>
+                  <option value="full">Полный</option>
+                  <option value="lite">Лёгкий</option>
+                </select>
+                <span class="settings-value soft" id="set-performance-state">Авто · полный</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-copy">
                 <div class="settings-name">Фоновые частицы</div>
                 <div class="settings-note">Если устройство слабее, можно выключить декоративный фон.</div>
               </div>
@@ -2085,11 +2181,12 @@
     window.listeningMyData=false;
     function _store(k,fb){try{return JSON.parse(localStorage.getItem(k))||fb;}catch{return fb;}}
     function _save(k,v){localStorage.setItem(k,JSON.stringify(v));}
-    const DEFAULT_SETTINGS={particles:true,searchHistory:true,safeRandom:true,readerWidth:'standard',readerFont:100};
+    const DEFAULT_SETTINGS={particles:true,searchHistory:true,safeRandom:true,performanceMode:'auto',readerWidth:'standard',readerFont:100};
     const ADMIN_EMAIL='zarobotokjoker@gmail.com';
     const PRIZM_DAILY_SECONDS=3600;
     const PRIZM_DAILY_REWARD=50;
     let uiSettings={...DEFAULT_SETTINGS,..._store('mc_settings',{})};
+    if(!['auto','full','lite'].includes(uiSettings.performanceMode))uiSettings.performanceMode=DEFAULT_SETTINGS.performanceMode;
     if(!['standard','wide','narrow'].includes(uiSettings.readerWidth))uiSettings.readerWidth=DEFAULT_SETTINGS.readerWidth;
     uiSettings.readerFont=Math.max(70,Math.min(150,parseInt(uiSettings.readerFont,10)||DEFAULT_SETTINGS.readerFont));
     let readStart=null,totalReadTime=parseInt(localStorage.getItem('mc_rt')||'0');
@@ -2124,6 +2221,26 @@
     const DEFAULT_SEO_TITLE='MangaCloud — Читать мангу онлайн бесплатно';
     const DEFAULT_SEO_DESCRIPTION='Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud.';
     const HOME_MODE_KEYS=['popular','new','top','recommended','continue'];
+
+    function detectLowPerformanceDevice(){
+      const reducedMotion=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const smallScreen=!!(window.matchMedia&&window.matchMedia('(max-width: 900px)').matches);
+      const cores=Number(navigator.hardwareConcurrency||0);
+      const memory=Number(navigator.deviceMemory||0);
+      const saveData=!!(navigator.connection&&navigator.connection.saveData);
+      return reducedMotion||saveData||(cores&&cores<=4)||(memory&&memory<=4)||(smallScreen&&cores&&cores<=6);
+    }
+    function getPerformanceModeLabel(mode){
+      if(mode==='full')return'Полный';
+      if(mode==='lite')return'Лёгкий';
+      return'Авто';
+    }
+    function getEffectivePerformanceMode(){
+      if(uiSettings.performanceMode==='lite')return'lite';
+      if(uiSettings.performanceMode==='full')return'full';
+      return detectLowPerformanceDevice()?'lite':'full';
+    }
+    function isLitePerformanceMode(){return getEffectivePerformanceMode()==='lite';}
 
     function esc(str){if(typeof str!=='string')return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
     window.esc=esc;
@@ -2574,7 +2691,8 @@
     window.applySearchHistory=applySearchHistory;
     window.applySearchHistoryEncoded=applySearchHistoryEncoded;
     window.clearSearchHistory=clearSearchHistory;
-    window.areParticlesEnabled=()=>uiSettings.particles!==false;
+    window.areParticlesEnabled=()=>uiSettings.particles!==false&&!isLitePerformanceMode();
+    window.isLitePerformanceMode=isLitePerformanceMode;
     window.invalidateComputedCaches=invalidateComputedCaches;
 
     function toAbsoluteUrl(value){
@@ -2737,7 +2855,10 @@
     function persistBasicSettings(){_save('mc_settings',uiSettings);}
     function applyBasicSettings(){
       const canvas=document.getElementById('canvas');
-      if(canvas)canvas.style.opacity=uiSettings.particles===false?'0':'.35';
+      const effectiveMode=getEffectivePerformanceMode();
+      document.documentElement.setAttribute('data-performance',effectiveMode);
+      if(canvas)canvas.style.opacity=(uiSettings.particles===false||effectiveMode==='lite')?'0':'.35';
+      if(document.getElementById('reader')?.style.display==='block')scheduleReaderMetricRebuild();
       if(!uiSettings.searchHistory&&searchHistory.length){
         searchHistory=[];
         _save('mc_search_history',searchHistory);
@@ -2745,6 +2866,7 @@
     }
     function setBasicSetting(key,value){
       if(key==='particles'||key==='searchHistory'||key==='safeRandom')uiSettings[key]=Boolean(value);
+      else if(key==='performanceMode')uiSettings.performanceMode=['auto','full','lite'].includes(value)?value:DEFAULT_SETTINGS.performanceMode;
       else if(key==='readerWidth'){
         uiSettings.readerWidth=['standard','wide','narrow'].includes(value)?value:'standard';
         readerWidthMode=uiSettings.readerWidth;
@@ -2875,7 +2997,12 @@
     }
     function renderSettingsPage(){
       const stats=document.getElementById('settings-stats');if(!stats)return;
+      const settingsPage=document.getElementById('settings-page');
+      if(settingsPage&&settingsPage.style.display!=='block'&&currentPage!=='settings')return;
+      const effectivePerformance=getEffectivePerformanceMode();
       document.getElementById('settings-theme-label').textContent=isLight?'Светлая':'Тёмная';
+      document.getElementById('set-performance-mode').value=uiSettings.performanceMode;
+      document.getElementById('set-performance-state').textContent=getPerformanceModeLabel(uiSettings.performanceMode)+' · '+(effectivePerformance==='lite'?'сейчас облегчённый':'сейчас полный');
       document.getElementById('set-particles').checked=uiSettings.particles!==false;
       document.getElementById('set-search-history').checked=uiSettings.searchHistory!==false;
       document.getElementById('set-safe-random').checked=uiSettings.safeRandom!==false;
@@ -2896,6 +3023,7 @@
         +'<div class="settings-stat"><strong>'+searchHistory.length+'</strong><span>Запросов в истории</span></div>'
         +'<div class="settings-stat"><strong>'+randomHistory.length+'</strong><span>Последних рандомов</span></div>'
         +'<div class="settings-stat"><strong>'+prizmBalance+'</strong><span>Баланс PRIZM</span></div>';
+      stats.innerHTML+='<div class="settings-stat"><strong>'+(effectivePerformance==='lite'?'Lite':'Full')+'</strong><span>Текущий режим</span></div>';
       document.getElementById('settings-prizm-balance').textContent=prizmBalance;
       document.getElementById('settings-prizm-fill').style.width=prizmProgress+'%';
       document.getElementById('settings-prizm-progress').textContent=Math.floor(getPrizmReadSecondsToday()/60)+' / 60 мин';
@@ -2965,6 +3093,8 @@
       const tabs=document.getElementById('shop-tabs');
       const grid=document.getElementById('shop-grid');
       if(!tabs||!grid)return;
+      const shopPage=document.getElementById('shop-page');
+      if(shopPage&&shopPage.style.display!=='block'&&currentPage!=='shop')return;
       const loggedIn=!!getCurrentUserEmail();
       const cloud=getCloudUserData();
       const balance=getPrizmBalance();
@@ -3669,46 +3799,96 @@
     // ── PARTICLES ──
     (function(){
       const cv=document.getElementById('canvas');if(!cv)return;
-      const cx=cv.getContext('2d');let pts=[],W,H;
+      const cx=cv.getContext('2d',{alpha:true});let pts=[],W,H,frameSkip=0;
       function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
-      resize();window.addEventListener('resize',resize);
-      const particleCount=matchMedia('(max-width:720px)').matches?16:28;
-      for(let i=0;i<particleCount;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:Math.random()*2+.4,a:Math.random()*.35+.08});
-      function draw(){const loader=document.getElementById('loader'),reader=document.getElementById('reader');if(!loader.classList.contains('out')||reader.style.display==='block'){requestAnimationFrame(draw);return;}if(window.areParticlesEnabled&&!window.areParticlesEnabled()){cx.clearRect(0,0,W,H);requestAnimationFrame(draw);return;}cx.clearRect(0,0,W,H);const isDark=!document.documentElement.getAttribute('data-theme');pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=isDark?`rgba(139,92,246,${p.a})`:`rgba(109,40,217,${p.a*.5})`;cx.fill();});for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<115){cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle=isDark?`rgba(139,92,246,${.055*(1-d/115)})`:`rgba(109,40,217,${.025*(1-d/115)})`;cx.stroke();}}requestAnimationFrame(draw);}
+      function buildParticles(){
+        const particleCount=W<=720?12:22;
+        pts=Array.from({length:particleCount},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:Math.random()*2+.4,a:Math.random()*.35+.08}));
+      }
+      resize();buildParticles();
+      window.addEventListener('resize',()=>{resize();buildParticles();},{passive:true});
+      function draw(){
+        requestAnimationFrame(draw);
+        const loader=document.getElementById('loader'),reader=document.getElementById('reader');
+        if(document.hidden)return;
+        if(!loader.classList.contains('out')||reader.style.display==='block')return;
+        if(window.areParticlesEnabled&&!window.areParticlesEnabled()){cx.clearRect(0,0,W,H);return;}
+        if(W<=720&&(frameSkip++%2))return;
+        cx.clearRect(0,0,W,H);
+        const isDark=!document.documentElement.getAttribute('data-theme');
+        pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=isDark?`rgba(139,92,246,${p.a})`:`rgba(109,40,217,${p.a*.5})`;cx.fill();});
+        for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<115){cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle=isDark?`rgba(139,92,246,${.055*(1-d/115)})`:`rgba(109,40,217,${.025*(1-d/115)})`;cx.stroke();}}
+      }
       draw();
     })();
 
     // ── HEADER HIDE ON SCROLL ──
-    let lastY=0,hdrHidden=false;
-    window.addEventListener('scroll',()=>{
-      document.getElementById('btn-top').classList.toggle('show',scrollY>380);
+    let lastY=0,hdrHidden=false,pageScrollQueued=false;
+    function handlePageScroll(){
+      pageScrollQueued=false;
+      const currentY=window.scrollY||window.pageYOffset||0;
+      document.getElementById('btn-top').classList.toggle('show',currentY>380);
       const hdr=document.getElementById('hdr'),tgFloat=document.getElementById('tg-float');
-      if(document.getElementById('reader').style.display==='block')return;
-      if(scrollY>lastY&&scrollY>180&&!hdrHidden){hdr.classList.add('hide');hdrHidden=true;if(tgFloat)tgFloat.style.opacity='.6';}
-      else if(scrollY<lastY&&hdrHidden){hdr.classList.remove('hide');hdrHidden=false;if(tgFloat)tgFloat.style.opacity='1';}
-      lastY=scrollY;
+      if(document.getElementById('reader').style.display==='block'){lastY=currentY;return;}
+      if(currentY>lastY&&currentY>180&&!hdrHidden){hdr.classList.add('hide');hdrHidden=true;if(tgFloat)tgFloat.style.opacity='.6';}
+      else if(currentY<lastY&&hdrHidden){hdr.classList.remove('hide');hdrHidden=false;if(tgFloat)tgFloat.style.opacity='1';}
+      lastY=currentY;
+    }
+    window.addEventListener('scroll',()=>{
+      if(pageScrollQueued)return;
+      pageScrollQueued=true;
+      requestAnimationFrame(handlePageScroll);
     },{passive:true});
 
     // ── READER SCROLL ──
     const readerEl=document.getElementById('reader');
+    let readerImageMetrics=[],readerMetricsQueued=false,readerScrollQueued=false,readerScrollSaveTimer=null,performanceResizeTimer=null;
+    function persistReaderScroll(){
+      if(!(curId&&curCh))return;
+      const top=readerEl.scrollTop;
+      clearTimeout(readerScrollSaveTimer);
+      readerScrollSaveTimer=setTimeout(()=>localStorage.setItem('rscroll_'+curId+'_'+curCh,top),90);
+    }
+    function cacheReaderImageMetrics(){
+      readerMetricsQueued=false;
+      readerImageMetrics=[...document.querySelectorAll('#reader-imgs img')].map((img,index)=>{const top=img.offsetTop;const height=img.offsetHeight||img.clientHeight||0;return{page:index+1,top,bottom:top+height};}).filter(metric=>metric.bottom>metric.top);
+      updateReaderProgress();
+    }
+    function scheduleReaderMetricRebuild(){
+      if(readerMetricsQueued)return;
+      readerMetricsQueued=true;
+      requestAnimationFrame(cacheReaderImageMetrics);
+    }
     function updateReaderProgress(){
       const tot=readerEl.scrollHeight-readerEl.clientHeight;
       const pct=tot>0?Math.round(readerEl.scrollTop/tot*100):0;
       document.getElementById('r-prog').style.width=pct+'%';
       document.getElementById('r-pct').textContent=pct+'%';
-      const imgs=[...document.querySelectorAll('#reader-imgs img')];
-      if(imgs.length){
+      if(readerImageMetrics.length){
         const middle=readerEl.scrollTop+readerEl.clientHeight/2;
-        let current=1;
-        imgs.forEach((img,index)=>{
-          const top=img.offsetTop,bottom=top+img.offsetHeight;
-          if(middle>=top&&middle<=bottom)current=index+1;
-        });
-        document.getElementById('r-pages').textContent=current+' / '+imgs.length+' стр.';
+        let current=readerImageMetrics[readerImageMetrics.length-1].page;
+        for(let i=0;i<readerImageMetrics.length;i++){if(middle<=readerImageMetrics[i].bottom){current=readerImageMetrics[i].page;break;}}
+        document.getElementById('r-pages').textContent=current+' / '+readerImageMetrics.length+' стр.';
       }
-      if(curId&&curCh)localStorage.setItem('rscroll_'+curId+'_'+curCh,readerEl.scrollTop);
+      persistReaderScroll();
     }
-    readerEl.addEventListener('scroll',updateReaderProgress,{passive:true});
+    function scheduleReaderProgress(){
+      if(readerScrollQueued)return;
+      readerScrollQueued=true;
+      requestAnimationFrame(()=>{readerScrollQueued=false;updateReaderProgress();});
+    }
+    readerEl.addEventListener('scroll',scheduleReaderProgress,{passive:true});
+    window.addEventListener('resize',()=>{
+      clearTimeout(performanceResizeTimer);
+      performanceResizeTimer=setTimeout(()=>{
+        const prev=document.documentElement.getAttribute('data-performance');
+        if(uiSettings.performanceMode==='auto'){
+          applyBasicSettings();
+          if(prev!==document.documentElement.getAttribute('data-performance')&&currentPage==='settings')renderSettingsPage();
+        }
+        if(readerEl.style.display==='block')scheduleReaderMetricRebuild();
+      },140);
+    },{passive:true});
 
     // ── SWIPE ──
     let tStartX=0;
@@ -4831,6 +5011,7 @@
       persistBasicSettings();
       localStorage.setItem('mc_reader_width',readerWidthMode);
       localStorage.setItem('mc_reader_font',String(readerFontSize));
+      if(readerEl&&readerEl.style.display==='block')scheduleReaderMetricRebuild();
       renderSettingsPage();
     }
     function renderReaderMeta(id,ch){
@@ -4849,6 +5030,8 @@
       document.getElementById('r-info').textContent=m.title+' — Гл. '+ch;
       const imgs=m.chapters[ch];
       document.getElementById('reader-imgs').innerHTML=(Array.isArray(imgs)?imgs:[imgs]).map((url,i)=>'<img src="'+esc(url)+'" alt="Стр. '+(i+1)+'" loading="'+(i<3?'eager':'lazy')+'" onerror="this.src=\'https://placehold.co/800x1200/0d0d18/8b5cf6?text=Ошибка+загрузки\'">').join('');
+      readerImageMetrics=[];
+      [...document.querySelectorAll('#reader-imgs img')].forEach(img=>img.addEventListener('load',scheduleReaderMetricRebuild,{once:true}));
       document.getElementById('r-prog').style.width='0%';
       document.getElementById('r-pct').textContent='0%';
       renderReaderMeta(id,ch);
@@ -4863,7 +5046,8 @@
       const saved=localStorage.getItem('rscroll_'+id+'_'+ch);
       readerEl.scrollTop=0;
       updateReaderProgress();
-      if(saved)setTimeout(()=>{readerEl.scrollTop=parseInt(saved);updateReaderProgress();},280);
+      scheduleReaderMetricRebuild();
+      if(saved)setTimeout(()=>{readerEl.scrollTop=parseInt(saved);scheduleReaderMetricRebuild();scheduleReaderProgress();},280);
       readStart=Date.now();
     }
     async function flushReadingSession(seconds){
