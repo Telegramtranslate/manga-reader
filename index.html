@@ -532,10 +532,10 @@
     .p-av-btn{width:30px;height:30px;background:var(--green);border:none;border-radius:50%;color:#fff;font-size:.75rem;display:flex;align-items:center;justify-content:center;transition:var(--tr-fast);}
     .p-av-btn:hover{background:#059669;transform:scale(1.1);}
     .avatar-shell{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;padding:4px;background:rgba(139,92,246,.12);box-shadow:0 12px 28px rgba(15,23,42,.18);isolation:isolate;overflow:visible;}
-    .avatar-shell::before,.avatar-shell::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;}
+    .avatar-shell::before,.avatar-shell::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;transform-origin:center center;backface-visibility:hidden;transform:translateZ(0);}
     .avatar-shell::before{z-index:0;}
     .avatar-shell::after{z-index:1;}
-    .avatar-shell > img,.avatar-shell .avatar-core{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;position:relative;z-index:2;background:var(--card2);}
+    .avatar-shell > img,.avatar-shell .avatar-core{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;position:relative;z-index:2;background:var(--card2);transform:translateZ(0);backface-visibility:hidden;}
     .avatar-shell.avatar-size-xl{width:clamp(88px,16vw,115px);height:clamp(88px,16vw,115px);}
     .avatar-shell.avatar-size-lg{width:72px;height:72px;}
     .avatar-shell.avatar-size-md{width:52px;height:52px;}
