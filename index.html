@@ -21,17 +21,17 @@
   <meta property="og:title" content="MangaCloud — Читать мангу онлайн бесплатно"/>
   <meta property="og:description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud."/>
   <meta property="og:url" content="./"/>
-  <meta property="og:image" content="icon-512.svg"/>
+  <meta property="og:image" content="mc-icon-512.svg"/>
   <meta property="og:image:alt" content="MangaCloud"/>
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="MangaCloud — Читать мангу онлайн бесплатно"/>
   <meta name="twitter:description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud."/>
-  <meta name="twitter:image" content="icon-512.svg"/>
+  <meta name="twitter:image" content="mc-icon-512.svg"/>
   <link rel="canonical" href="./"/>
-  <link rel="icon" type="image/svg+xml" sizes="any" href="icon-192.svg"/>
-  <link rel="shortcut icon" href="icon-192.svg"/>
+  <link rel="icon" type="image/svg+xml" sizes="any" href="mc-icon-192.svg?v=2"/>
+  <link rel="shortcut icon" href="mc-icon-192.svg?v=2"/>
   <link rel="manifest" href="manifest.webmanifest"/>
-  <link rel="apple-touch-icon" href="icon-192.svg"/>
+  <link rel="apple-touch-icon" href="mc-icon-192.svg?v=2"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
@@ -1080,12 +1080,7 @@
     [data-performance="lite"] .badge,
     [data-performance="lite"] .hero-banner,
     [data-performance="lite"] .continue-widget,
-    [data-performance="lite"] .discover-mini-card,
-    [data-performance="lite"] .avatar-motion-eclipse,
-    [data-performance="lite"] .avatar-motion-neon-hunter,
-    [data-performance="lite"] .avatar-motion-void-reader,
-    [data-performance="lite"] .avatar-motion-astral-kitsune,
-    [data-performance="lite"] .avatar-motion-prizm-singularity{
+    [data-performance="lite"] .discover-mini-card{
       animation:none !important;
     }
     [data-performance="lite"] .hero-bg{filter:blur(10px) brightness(.42);}
@@ -2447,9 +2442,9 @@
       {id:'prizm-archon',type:'avatar',name:'Prizm Archon',price:160,animated:false,rarity:'Редкий',description:'Фирменный неоновый образ MangaCloud: чистый свет, холодный металл и оттенки PRIZM.',asset:createAvatarArt({bg1:'#111827',bg2:'#6d28d9',accent:'#22d3ee',hair:'#dbeafe',hairShadow:'#a5b4fc',eye:'#22d3ee',robe:'#111827',mark:'#c084fc',halo1:'#22d3ee',halo2:'#c084fc',shape:'mage'})},
       {id:'dungeon-monarch',type:'avatar',name:'Dungeon Monarch',price:220,animated:false,rarity:'Эпик',description:'Тяжёлый подземный стиль с золотым отблеском и характером имбового героя после долгого выживания.',asset:createAvatarArt({bg1:'#1c1917',bg2:'#7c2d12',accent:'#f59e0b',hair:'#fde68a',hairShadow:'#fbbf24',eye:'#f59e0b',robe:'#1f2937',mark:'#fcd34d',halo1:'#f59e0b',halo2:'#ef4444',shape:'monarch'})},
       {id:'kitsune-scribe',type:'avatar',name:'Kitsune Scribe',price:140,animated:false,rarity:'Редкий',description:'Лисий маг, который выглядит как хранитель скрытых тайтлов и редких глав в вашей библиотеке.',asset:createAvatarArt({bg1:'#1f1147',bg2:'#be185d',accent:'#f9a8d4',hair:'#f5d0fe',hairShadow:'#c084fc',eye:'#fb7185',robe:'#312e81',mark:'#fda4af',halo1:'#fb7185',halo2:'#c084fc',shape:'mage'})},
-      {id:'eclipse-awakening',type:'avatar',name:'Eclipse Awakening',price:320,animated:true,rarity:'Легендарный',description:'Анимированный портрет пробуждённого читателя: живой глаз, бегущие скан-линии и вращающееся затмение.',asset:createAvatarArt({bg1:'#09090f',bg2:'#4c1d95',accent:'#f43f5e',hair:'#f8fafc',hairShadow:'#cbd5e1',eye:'#fb7185',robe:'#020617',mark:'#f43f5e',halo1:'#8b5cf6',halo2:'#f43f5e',animated:true,shape:'ghoul'})},
-      {id:'neon-hunter',type:'avatar',name:'Neon Hunter',price:360,animated:true,rarity:'Мифический',description:'Глитчевый охотник за обновлениями: переливы циана и фуксии двигаются, как живая неоновая панель.',asset:createAvatarArt({bg1:'#020617',bg2:'#0f766e',accent:'#22d3ee',hair:'#e9d5ff',hairShadow:'#a78bfa',eye:'#22d3ee',robe:'#111827',mark:'#67e8f9',halo1:'#22d3ee',halo2:'#ec4899',animated:true,shape:'mage'})},
-      {id:'void-reader',type:'avatar',name:'Void Reader',price:280,animated:true,rarity:'Легендарный',description:'Пульсирующий аватар для тех, кто живёт в ридере и собирает сильные тайтлы быстрее обновлений.',asset:createAvatarArt({bg1:'#111827',bg2:'#1d4ed8',accent:'#f59e0b',hair:'#dbeafe',hairShadow:'#93c5fd',eye:'#f59e0b',robe:'#030712',mark:'#fde68a',halo1:'#f59e0b',halo2:'#3b82f6',animated:true,shape:'monarch'})},
+      {id:'eclipse-awakening',type:'avatar',name:'Eclipse Awakening',price:320,animated:true,motionClass:'avatar-motion-eclipse',rarity:'Легендарный',description:'Анимированный портрет пробуждённого читателя: живой глаз, бегущие скан-линии и вращающееся затмение.',asset:createAvatarArt({bg1:'#09090f',bg2:'#4c1d95',accent:'#f43f5e',hair:'#f8fafc',hairShadow:'#cbd5e1',eye:'#fb7185',robe:'#020617',mark:'#f43f5e',halo1:'#8b5cf6',halo2:'#f43f5e',animated:true,shape:'ghoul'})},
+      {id:'neon-hunter',type:'avatar',name:'Neon Hunter',price:360,animated:true,motionClass:'avatar-motion-neon-hunter',rarity:'Мифический',description:'Глитчевый охотник за обновлениями: переливы циана и фуксии двигаются, как живая неоновая панель.',asset:createAvatarArt({bg1:'#020617',bg2:'#0f766e',accent:'#22d3ee',hair:'#e9d5ff',hairShadow:'#a78bfa',eye:'#22d3ee',robe:'#111827',mark:'#67e8f9',halo1:'#22d3ee',halo2:'#ec4899',animated:true,shape:'mage'})},
+      {id:'void-reader',type:'avatar',name:'Void Reader',price:280,animated:true,motionClass:'avatar-motion-void-reader',rarity:'Легендарный',description:'Пульсирующий аватар для тех, кто живёт в ридере и собирает сильные тайтлы быстрее обновлений.',asset:createAvatarArt({bg1:'#111827',bg2:'#1d4ed8',accent:'#f59e0b',hair:'#dbeafe',hairShadow:'#93c5fd',eye:'#f59e0b',robe:'#030712',mark:'#fde68a',halo1:'#f59e0b',halo2:'#3b82f6',animated:true,shape:'monarch'})},
       {id:'moon-priestess',type:'avatar',name:'Moon Priestess',price:170,animated:false,rarity:'Редкий',description:'Светлый мистический портрет с лунным ореолом и мягкой магической палитрой.',asset:createAvatarArt({bg1:'#0f172a',bg2:'#6d28d9',accent:'#c084fc',hair:'#f8fafc',hairShadow:'#ddd6fe',eye:'#8b5cf6',robe:'#312e81',mark:'#e9d5ff',halo1:'#c084fc',halo2:'#22d3ee',shape:'mage'})},
       {id:'oni-protocol',type:'avatar',name:'Oni Protocol',price:210,animated:false,rarity:'Эпик',description:'Огненная маска-демон в техно-стилистике для тех, кто любит жёсткие тайтлы и битвы.',asset:createMaskAvatar({bg1:'#17090a',bg2:'#7c2d12',mask:'#fff7ed',accent:'#ef4444',glow:'#f97316',style:'oni'})},
       {id:'kitsune-sentinel',type:'avatar',name:'Kitsune Sentinel',price:150,animated:false,rarity:'Редкий',description:'Лисий дух-хранитель библиотеки с мягким свечением и энергией редких находок.',asset:createSpiritAvatar({bg1:'#111827',bg2:'#7c3aed',fur:'#f8fafc',furShadow:'#c4b5fd',accent:'#fb7185',eye:'#22d3ee',species:'fox'})},
@@ -2741,7 +2736,7 @@
       const url=buildRouteUrl(page,{id:titleManga&&titleManga.id?titleManga.id:curId,q:query,mode:homeMode,tag:discoveryTag});
       let title=DEFAULT_SEO_TITLE;
       let description=DEFAULT_SEO_DESCRIPTION;
-      let image=toAbsoluteUrl('./icon-512.svg');
+      let image=toAbsoluteUrl('./mc-icon-512.svg');
       let type='website';
       let jsonLd=compactObject({
         '@context':'https://schema.org',
@@ -2761,7 +2756,7 @@
         const metaBits=[titleManga.author||'Неизвестный автор',(titleManga.genres||[]).slice(0,3).join(', '),titleManga.status||'',titleManga.year||'',rating?('Рейтинг '+rating.toFixed(1)):''].filter(Boolean);
         title=titleManga.title+' — MangaCloud';
         description=metaBits.join(' • ')||DEFAULT_SEO_DESCRIPTION;
-        image=toAbsoluteUrl(titleManga.cover||'./icon-512.svg');
+        image=toAbsoluteUrl(titleManga.cover||'./mc-icon-512.svg');
         type='article';
         jsonLd=compactObject({
           '@context':'https://schema.org',
