@@ -531,8 +531,8 @@
     .p-edit:hover{background:var(--a3);transform:scale(1.1);}
     .p-av-btn{width:30px;height:30px;background:var(--green);border:none;border-radius:50%;color:#fff;font-size:.75rem;display:flex;align-items:center;justify-content:center;transition:var(--tr-fast);}
     .p-av-btn:hover{background:#059669;transform:scale(1.1);}
-    .avatar-shell{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;padding:4px;background:rgba(139,92,246,.12);box-shadow:0 12px 28px rgba(15,23,42,.18);isolation:isolate;overflow:visible;}
-    .avatar-shell::before,.avatar-shell::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;transform-origin:center center;backface-visibility:hidden;transform:translateZ(0);}
+    .avatar-shell{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;padding:4px;background:rgba(139,92,246,.12);box-shadow:0 12px 28px rgba(15,23,42,.18);isolation:isolate;overflow:visible;transform:translateZ(0);backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+    .avatar-shell::before,.avatar-shell::after{content:'';display:block;position:absolute;inset:0;border-radius:inherit;pointer-events:none;transform-origin:center center;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(0);-webkit-transform:translateZ(0);}
     .avatar-shell::before{z-index:0;}
     .avatar-shell::after{z-index:1;}
     .avatar-shell > img,.avatar-shell .avatar-core{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;position:relative;z-index:2;background:var(--card2);transform:translateZ(0);backface-visibility:hidden;}
@@ -581,8 +581,11 @@
     .avatar-shell.avatar-motion-prizm-singularity > img,.avatar-shell.avatar-motion-prizm-singularity .avatar-core{animation:avatarOrbit 5.8s linear infinite;filter:saturate(1.22) contrast(1.08);}
     .avatar-shell.avatar-motion-void-reader{box-shadow:0 0 16px rgba(59,130,246,.2),0 0 28px rgba(245,158,11,.18);}
     .avatar-shell.avatar-motion-void-reader > img,.avatar-shell.avatar-motion-void-reader .avatar-core{animation:avatarBreath 2.4s ease-in-out infinite;filter:saturate(1.06) brightness(1.05);}
+    .avatar-shell.animated-frame{animation:frameShellPulse 3.2s ease-in-out infinite;will-change:transform,box-shadow;}
+    .avatar-shell.animated-frame::before,.avatar-shell.animated-frame::after{animation-play-state:running !important;will-change:transform,opacity,filter;}
     .avatar-shell.animated-frame::after{animation-duration:2.6s;}
     @keyframes frameHalo{to{transform:rotate(360deg)}}
+    @keyframes frameShellPulse{0%,100%{transform:translateZ(0) scale(1)}50%{transform:translateZ(0) scale(1.04)}}
     @keyframes petalDrift{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.03)}}
     @keyframes frameSweep{0%{transform:translateX(-120%) rotate(12deg)}100%{transform:translateX(140%) rotate(12deg)}}
     @keyframes riftPulse{0%,100%{opacity:.55;transform:scale(.98)}50%{opacity:1;transform:scale(1.04)}}
@@ -1096,6 +1099,31 @@
     @media(max-width:380px){.grid{gap:6px;}.nav-item span{display:none;}.nav-item i{margin-bottom:0;}}
     @media(max-height:500px) and (orientation:landscape){:root{--header-h:46px;--nav-h:50px;}.chat-layout{flex-direction:row;height:80vh;}.chat-sb{width:230px;max-height:none;}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}}
+    @media(prefers-reduced-motion:reduce){
+      .avatar-shell.animated-frame{animation:frameShellPulse 3.2s ease-in-out infinite !important;}
+      .avatar-shell.frame-prizm-surge::after{animation:frameHalo 3.2s linear infinite !important;}
+      .avatar-shell.frame-blood-petals::before{animation:petalDrift 5s ease-in-out infinite !important;}
+      .avatar-shell.frame-golden-shrine::after{animation:frameSweep 2.8s linear infinite !important;}
+      .avatar-shell.frame-obsidian-rift::after{animation:riftPulse 2.4s ease-in-out infinite !important;}
+      .avatar-shell.frame-celestial-orbit::before{animation:frameHalo 6.2s linear infinite !important;}
+      .avatar-shell.frame-lotus-bloom::before{animation:lotusBloom 3s ease-in-out infinite !important;}
+      .avatar-shell.avatar-motion-eclipse{animation:auraPulse 3s ease-in-out infinite !important;}
+      .avatar-shell.avatar-motion-eclipse > img,.avatar-shell.avatar-motion-eclipse .avatar-core{animation:avatarBreath 3.2s ease-in-out infinite !important;}
+      .avatar-shell.avatar-motion-neon-hunter > img,.avatar-shell.avatar-motion-neon-hunter .avatar-core{animation:avatarGlitch 2.8s steps(2,end) infinite !important;}
+      .avatar-shell.avatar-motion-astral-kitsune > img,.avatar-shell.avatar-motion-astral-kitsune .avatar-core{animation:avatarFloat 4.2s ease-in-out infinite !important;}
+      .avatar-shell.avatar-motion-prizm-singularity{animation:auraPulse 2.6s ease-in-out infinite !important;}
+      .avatar-shell.avatar-motion-prizm-singularity > img,.avatar-shell.avatar-motion-prizm-singularity .avatar-core{animation:avatarOrbit 5.8s linear infinite !important;}
+      .avatar-shell.avatar-motion-void-reader > img,.avatar-shell.avatar-motion-void-reader .avatar-core{animation:avatarBreath 2.4s ease-in-out infinite !important;}
+    }
+    @media(pointer:coarse){
+      .avatar-shell.animated-frame{animation:frameShellPulse 2.6s ease-in-out infinite !important;}
+      .avatar-shell.frame-prizm-surge::after{opacity:.92;animation:frameHalo 2.2s linear infinite !important;}
+      .avatar-shell.frame-blood-petals::before{animation:petalDrift 3.4s ease-in-out infinite !important;}
+      .avatar-shell.frame-golden-shrine::after{animation:frameSweep 2s linear infinite !important;}
+      .avatar-shell.frame-obsidian-rift::after{animation:riftPulse 1.8s ease-in-out infinite !important;}
+      .avatar-shell.frame-celestial-orbit::before{animation:frameHalo 4s linear infinite !important;}
+      .avatar-shell.frame-lotus-bloom::before{animation:lotusBloom 2s ease-in-out infinite !important;}
+    }
     @media(hover:none){.card:hover{transform:none;box-shadow:none;}.card:active{transform:scale(.96);border-color:var(--a2);}}
   </style>
 </head>
