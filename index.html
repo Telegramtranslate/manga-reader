@@ -536,6 +536,8 @@
     .avatar-shell::before{z-index:0;}
     .avatar-shell::after{z-index:1;}
     .avatar-shell > img,.avatar-shell .avatar-core{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;position:relative;z-index:2;background:var(--card2);transform:translateZ(0);backface-visibility:hidden;}
+    .avatar-shell.frame-image-overlay{padding:0;background:transparent;box-shadow:none;}
+    .avatar-frame-image{position:absolute;inset:-9px;z-index:3;pointer-events:none;background-position:center;background-size:100% 100%;background-repeat:no-repeat;transform:translateZ(0);backface-visibility:hidden;-webkit-backface-visibility:hidden;}
     .avatar-shell.avatar-size-xl{width:clamp(88px,16vw,115px);height:clamp(88px,16vw,115px);}
     .avatar-shell.avatar-size-lg{width:72px;height:72px;}
     .avatar-shell.avatar-size-md{width:52px;height:52px;}
@@ -2480,6 +2482,8 @@
       {id:'warden-404',type:'avatar',name:'Warden 404',price:205,animated:false,rarity:'Эпик',description:'Закрытый шлем архивного стража с холодным визором и акцентом на кибер-эстетику.',asset:createMaskAvatar({bg1:'#030712',bg2:'#1f2937',mask:'#e2e8f0',accent:'#38bdf8',glow:'#8b5cf6',style:'helm'})},
       {id:'astral-kitsune',type:'avatar',name:'Astral Kitsune',price:340,animated:true,motionClass:'avatar-motion-astral-kitsune',rarity:'Легендарный',description:'Астральный лис с мерцающим взглядом и плавающей аурой вокруг профиля.',asset:createSpiritAvatar({bg1:'#190b2e',bg2:'#1d4ed8',fur:'#fdf4ff',furShadow:'#c4b5fd',accent:'#fb7185',eye:'#fef08a',animated:true,species:'fox'})},
       {id:'prizm-singularity',type:'avatar',name:'Prizm Singularity',price:390,animated:true,motionClass:'avatar-motion-prizm-singularity',rarity:'Мифический',description:'Вращающийся артефакт ядра PRIZM: максимально необычный образ, который сразу выделяет профиль.',asset:createRelicAvatar({bg1:'#0b1022',bg2:'#7c3aed',core:'#ffffff',accent:'#22d3ee',secondary:'#f472b6',animated:true,shape:'prism'})},
+      {id:'crimson-silence',type:'avatar',name:'Crimson Silence',price:410,animated:true,rarity:'Мифический',description:'Анимированный тёмный портрет в чёрно-красной гамме. Используется оригинальный GIF без перерисовки.',asset:'https://files.catbox.moe/wow8ui.gif'},
+      {id:'ashen-outburst',type:'avatar',name:'Ashen Outburst',price:430,animated:true,rarity:'Мифический',description:'Анимированный монохромный боевой портрет. Используется оригинальный GIF без перерисовки.',asset:'https://files.catbox.moe/soog5v.gif'},
     ];
     const STORE_FRAME_ITEMS=[
       {id:'blood-petals',type:'frame',name:'Blood Petals',price:140,animated:true,rarity:'Эпик',description:'Красные лепестки и резкая светлая окантовка для драматичных профилей.',className:'frame-blood-petals'},
@@ -2489,13 +2493,17 @@
       {id:'obsidian-rift',type:'frame',name:'Obsidian Rift',price:145,animated:true,rarity:'Редкий',description:'Чёрно-красная рамка с разломом для тёмных профилей и антигероев.',className:'frame-obsidian-rift'},
       {id:'celestial-orbit',type:'frame',name:'Celestial Orbit',price:175,animated:true,rarity:'Легендарный',description:'Орбитальные искры и холодный космический обод для редких коллекционных профилей.',className:'frame-celestial-orbit'},
       {id:'lotus-bloom',type:'frame',name:'Lotus Bloom',price:160,animated:true,rarity:'Эпик',description:'Мягкая магическая рамка с живым цветением и атмосферой фэнтезийной маны.',className:'frame-lotus-bloom'},
+      {id:'scarlet-requiem',type:'frame',name:'Scarlet Requiem',price:235,animated:true,rarity:'Легендарный',description:'Оригинальная GIF-рамка с насыщенным красным свечением и жёсткой драматикой без перерисовки.',className:'frame-scarlet-requiem',asset:'https://files.catbox.moe/pcqsxd.gif'},
+      {id:'phantom-lattice',type:'frame',name:'Phantom Lattice',price:225,animated:true,rarity:'Легендарный',description:'Анимированная GIF-рамка с мистическим контуром и насыщенным движением поверх аватарки.',className:'frame-phantom-lattice',asset:'https://files.catbox.moe/kb29e3.gif'},
+      {id:'void-crown',type:'frame',name:'Void Crown',price:245,animated:true,rarity:'Мифический',description:'Редкая GIF-рамка с более тяжёлой атмосферой и ярким движением для топовых профилей.',className:'frame-void-crown',asset:'https://files.catbox.moe/8u65qr.gif'},
     ];
-    const STORE_FRAME_CLASS_NAMES=STORE_FRAME_ITEMS.map(item=>item.className);
+    const STORE_FRAME_CLASS_NAMES=STORE_FRAME_ITEMS.map(item=>item.className).filter(Boolean);
     const STORE_AVATAR_MOTION_CLASSES=STORE_AVATAR_ITEMS.map(item=>item.motionClass).filter(Boolean);
     function getStoreItems(type){return type==='frames'||type==='frame'?STORE_FRAME_ITEMS:STORE_AVATAR_ITEMS;}
     function getStoreItemById(type,id){return getStoreItems(type).find(item=>item.id===id)||null;}
     function getOwnedStoreItems(type,data){const source=data||getCloudUserData();const key=(type==='frames'||type==='frame')?'ownedStoreFrames':'ownedStoreAvatars';return Array.isArray(source[key])?source[key]:[];}
     function getEquippedStoreItemId(type,data){const source=data||getCloudUserData();return String((type==='frames'||type==='frame'?source.equippedStoreFrame:source.equippedStoreAvatar)||'');}
+    function getFrameAsset(frameId){const item=getStoreItemById('frame',frameId);return item&&item.asset?item.asset:'';}
     function getStoreAvatarAsset(id){const item=getStoreItemById('avatar',id);return item?item.asset:'';}
     function getFrameClass(frameId){const item=getStoreItemById('frame',frameId);return item&&item.className?item.className:'';}
     function getAvatarMotionClass(avatarId){const item=getStoreItemById('avatar',avatarId);return item&&item.motionClass?item.motionClass:'';}
@@ -2541,19 +2549,34 @@
       const item=getStoreItemById('frame',frameId);
       const frameClass=item&&item.className?' '+item.className:'';
       const animatedClass=item&&item.animated?' animated-frame':'';
+      const frameAsset=item&&item.asset?String(item.asset):'';
+      const frameAssetHtml=frameAsset?'<span class="avatar-frame-image" style="background-image:url(\''+esc(frameAsset)+'\')"></span>':'';
+      const imageOverlayClass=frameAsset?' frame-image-overlay':'';
       className=(getAvatarMotionClass(avatarId)?getAvatarMotionClass(avatarId)+(className?' ':''):'')+className;
-      return'<div class="avatar-shell avatar-size-'+size+frameClass+animatedClass+(className?' '+className:'')+'"><img class="'+imgClass+'" src="'+esc(src||getAvatarUrl(null))+'" alt="'+esc(name)+'" onerror="this.src=\'https://via.placeholder.com/115/6d28d9/fff?text=👤\'"></div>';
+      return'<div class="avatar-shell avatar-size-'+size+frameClass+animatedClass+imageOverlayClass+(className?' '+className:'')+'">'+frameAssetHtml+'<img class="'+imgClass+'" src="'+esc(src||getAvatarUrl(null))+'" alt="'+esc(name)+'" onerror="this.src=\'https://via.placeholder.com/115/6d28d9/fff?text=👤\'"></div>';
     }
     function applyAvatarFrame(el,frameId,avatarId=''){
       if(!el)return;
       el.classList.add('avatar-shell');
       STORE_FRAME_CLASS_NAMES.forEach(className=>el.classList.remove(className));
       STORE_AVATAR_MOTION_CLASSES.forEach(className=>el.classList.remove(className));
-      el.classList.remove('animated-frame');
+      el.classList.remove('animated-frame','frame-image-overlay');
       const item=getStoreItemById('frame',frameId);
       if(item&&item.className)el.classList.add(item.className);
       if(item&&item.animated)el.classList.add('animated-frame');
       if(getAvatarMotionClass(avatarId))el.classList.add(getAvatarMotionClass(avatarId));
+      let assetEl=el.querySelector('.avatar-frame-image');
+      if(item&&item.asset){
+        if(!assetEl){
+          assetEl=document.createElement('span');
+          assetEl.className='avatar-frame-image';
+          el.appendChild(assetEl);
+        }
+        el.classList.add('frame-image-overlay');
+        assetEl.style.backgroundImage='url("'+String(item.asset).replace(/"/g,'\\"')+'")';
+      }else if(assetEl){
+        assetEl.remove();
+      }
     }
     function updateBioCounter(){
       const input=document.getElementById('p-bio-input');
