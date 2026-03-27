@@ -657,7 +657,8 @@
 
     /* READER */
     #reader{position:fixed;inset:0;background:#060610;color:#fff;z-index:5000;overflow-y:auto;overflow-x:hidden;display:none;-webkit-overflow-scrolling:touch;}
-    .reader-bar{position:sticky;top:0;z-index:10;background:rgba(6,6,16,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:9px 13px;padding-top:calc(9px + var(--safe-t));display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(139,92,246,.2);gap:7px;flex-wrap:wrap;}
+    .reader-bar{position:sticky;top:0;z-index:10;background:rgba(6,6,16,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:9px 13px;padding-top:calc(9px + var(--safe-t));display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(139,92,246,.2);gap:7px;flex-wrap:wrap;max-height:140px;overflow:hidden;transition:max-height .22s ease,opacity .18s ease,padding .22s ease,border-color .22s ease;}
+    #reader.reader-ui-hidden .reader-bar{max-height:0;opacity:0;padding-top:0;padding-bottom:0;border-bottom-color:transparent;pointer-events:none;}
     .reader-prog-wrap{position:absolute;bottom:0;left:0;width:100%;height:2px;background:rgba(255,255,255,.07);}
     .reader-prog-fill{height:100%;background:linear-gradient(90deg,var(--a2),var(--a4));width:0;transition:width .1s;box-shadow:0 0 8px var(--glow);}
     #reader-imgs{max-width:860px;margin:0 auto;min-height:100vh;transition:max-width .25s;}
@@ -3961,7 +3962,16 @@
 
     // ── READER SCROLL ──
     const readerEl=document.getElementById('reader');
+    const readerImgsEl=document.getElementById('reader-imgs');
     let readerImageMetrics=[],readerMetricsQueued=false,readerScrollQueued=false,readerScrollSaveTimer=null,performanceResizeTimer=null;
+    let readerChromeHidden=false;
+    function setReaderChromeHidden(hidden){
+      readerChromeHidden=!!hidden;
+      readerEl.classList.toggle('reader-ui-hidden',readerChromeHidden);
+    }
+    function toggleReaderChrome(forceHidden){
+      setReaderChromeHidden(typeof forceHidden==='boolean'?forceHidden:!readerChromeHidden);
+    }
     function persistReaderScroll(){
       if(!(curId&&curCh))return;
       const top=readerEl.scrollTop;
@@ -3997,6 +4007,10 @@
       requestAnimationFrame(()=>{readerScrollQueued=false;updateReaderProgress();});
     }
     readerEl.addEventListener('scroll',scheduleReaderProgress,{passive:true});
+    readerImgsEl.addEventListener('click',e=>{
+      if(!(e.target&&e.target.closest('img')))return;
+      toggleReaderChrome();
+    });
     window.addEventListener('resize',()=>{
       clearTimeout(performanceResizeTimer);
       performanceResizeTimer=setTimeout(()=>{
@@ -5166,6 +5180,7 @@
       const m=window.mangaDB[id];
       if(!m||!m.chapters||!m.chapters[ch]){toast('Глава не найдена!','error');return;}
       readerEl.style.display='block';document.body.style.overflow='hidden';
+      setReaderChromeHidden(false);
       document.getElementById('r-info').textContent=m.title+' — Гл. '+ch;
       const imgs=m.chapters[ch];
     document.getElementById('reader-imgs').innerHTML=(Array.isArray(imgs)?imgs:[imgs]).map((url,i)=>'<img src="'+esc(url)+'" alt="Стр. '+(i+1)+'" loading="'+(i<3?'eager':'lazy')+'" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">').join('');
@@ -5201,7 +5216,7 @@
       }
       renderRT();renderQStats();renderFocusPanel();renderSettingsPage();renderPrizmCard();
     }
-    async function closeReader(){readerEl.style.display='none';document.body.style.overflow='';if(readStart){const el=Math.round((Date.now()-readStart)/1000);await flushReadingSession(el);readStart=null;}renderRT();renderQStats();renderFocusPanel();}
+    async function closeReader(){setReaderChromeHidden(false);readerEl.style.display='none';document.body.style.overflow='';if(readStart){const el=Math.round((Date.now()-readStart)/1000);await flushReadingSession(el);readStart=null;}renderRT();renderQStats();renderFocusPanel();}
     function moveChapter(dir){
       const m=window.mangaDB[curId];if(!m||!m.chapters)return;
       const chs=Object.keys(m.chapters).map(Number).sort((a,b)=>a-b),ci=chs.indexOf(curCh),ni=ci+dir;
