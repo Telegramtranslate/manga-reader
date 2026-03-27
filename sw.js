@@ -1,9 +1,9 @@
-const CACHE_NAME = "mangacloud-shell-v10";
+﻿const CACHE_NAME = "mangacloud-shell-v12";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./catalog-provider.js",
-  "./catalog-provider.js?v=2",
+  "./catalog-provider.js?v=4",
   "./manifest.webmanifest",
   "./manifest.webmanifest?v=4",
   "./robots.txt",
@@ -94,3 +94,5 @@ self.addEventListener("fetch", event => {
     event.respondWith(staleWhileRevalidate(event.request));
   }
 });
+
+

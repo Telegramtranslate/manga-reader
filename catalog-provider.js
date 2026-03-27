@@ -1,4 +1,4 @@
-(function(){
+﻿(function(){
   'use strict';
 
   const API_BASE = '/api/mangadex';
@@ -16,70 +16,70 @@
   let catalogPromise = null;
 
   const STATUS_MAP = {
-    ongoing: 'Продолжается',
-    completed: 'Завершен',
-    hiatus: 'Пауза',
-    cancelled: 'Отменен'
+    ongoing: 'РџСЂРѕРґРѕР»Р¶Р°РµС‚СЃСЏ',
+    completed: 'Р—Р°РІРµСЂС€РµРЅ',
+    hiatus: 'РџР°СѓР·Р°',
+    cancelled: 'РћС‚РјРµРЅРµРЅ'
   };
 
   const TAG_MAP = {
-    Action: 'Экшен',
-    Adventure: 'Приключения',
-    Aliens: 'Пришельцы',
-    Animals: 'Животные',
-    AwardWinning: 'Награды',
-    Crime: 'Криминал',
-    Comedy: 'Комедия',
-    Cooking: 'Кулинария',
-    Delinquents: 'Хулиганы',
-    Demons: 'Демоны',
-    Drama: 'Драма',
-    Doujinshi: 'Додзинси',
-    Fantasy: 'Фэнтези',
-    FullColor: 'Полноцвет',
-    Ghosts: 'Призраки',
-    Gyaru: 'Гяру',
-    Harem: 'Гарем',
-    Historical: 'Историческое',
-    Horror: 'Ужасы',
-    Isekai: 'Исекай',
-    LongStrip: 'Вебтун',
-    Magic: 'Магия',
-    MartialArts: 'Боевые искусства',
-    Mecha: 'Меха',
-    Medical: 'Медицина',
-    Military: 'Военное',
-    MonsterGirls: 'Монстродевушки',
-    Monsters: 'Монстры',
-    Music: 'Музыка',
-    Mystery: 'Детектив',
-    Ninja: 'Ниндзя',
-    OfficeWorkers: 'Офис',
-    Philosophical: 'Философия',
-    Police: 'Полиция',
-    Psychological: 'Психология',
-    Reincarnation: 'Реинкарнация',
-    Romance: 'Романтика',
-    Samurai: 'Самураи',
-    SchoolLife: 'Школа',
-    SciFi: 'Научная фантастика',
-    SelfPublished: 'Самиздат',
-    Shota: 'Сёнен-ай',
-    SliceOfLife: 'Повседневность',
-    Sports: 'Спорт',
-    Superhero: 'Супергерои',
-    Supernatural: 'Сверхъестественное',
-    Survival: 'Выживание',
-    Thriller: 'Триллер',
-    TimeTravel: 'Путешествие во времени',
-    TraditionalGames: 'Традиционные игры',
-    Tragedy: 'Трагедия',
-    UserCreated: 'Авторское',
-    Vampires: 'Вампиры',
-    VideoGames: 'Видеоигры',
-    Villainess: 'Злодейка',
-    VirtualReality: 'Виртуальная реальность',
-    Zombies: 'Зомби'
+    Action: 'Р­РєС€РµРЅ',
+    Adventure: 'РџСЂРёРєР»СЋС‡РµРЅРёСЏ',
+    Aliens: 'РџСЂРёС€РµР»СЊС†С‹',
+    Animals: 'Р–РёРІРѕС‚РЅС‹Рµ',
+    AwardWinning: 'РќР°РіСЂР°РґС‹',
+    Crime: 'РљСЂРёРјРёРЅР°Р»',
+    Comedy: 'РљРѕРјРµРґРёСЏ',
+    Cooking: 'РљСѓР»РёРЅР°СЂРёСЏ',
+    Delinquents: 'РҐСѓР»РёРіР°РЅС‹',
+    Demons: 'Р”РµРјРѕРЅС‹',
+    Drama: 'Р”СЂР°РјР°',
+    Doujinshi: 'Р”РѕРґР·РёРЅСЃРё',
+    Fantasy: 'Р¤СЌРЅС‚РµР·Рё',
+    FullColor: 'РџРѕР»РЅРѕС†РІРµС‚',
+    Ghosts: 'РџСЂРёР·СЂР°РєРё',
+    Gyaru: 'Р“СЏСЂСѓ',
+    Harem: 'Р“Р°СЂРµРј',
+    Historical: 'РСЃС‚РѕСЂРёС‡РµСЃРєРѕРµ',
+    Horror: 'РЈР¶Р°СЃС‹',
+    Isekai: 'РСЃРµРєР°Р№',
+    LongStrip: 'Р’РµР±С‚СѓРЅ',
+    Magic: 'РњР°РіРёСЏ',
+    MartialArts: 'Р‘РѕРµРІС‹Рµ РёСЃРєСѓСЃСЃС‚РІР°',
+    Mecha: 'РњРµС…Р°',
+    Medical: 'РњРµРґРёС†РёРЅР°',
+    Military: 'Р’РѕРµРЅРЅРѕРµ',
+    MonsterGirls: 'РњРѕРЅСЃС‚СЂРѕРґРµРІСѓС€РєРё',
+    Monsters: 'РњРѕРЅСЃС‚СЂС‹',
+    Music: 'РњСѓР·С‹РєР°',
+    Mystery: 'Р”РµС‚РµРєС‚РёРІ',
+    Ninja: 'РќРёРЅРґР·СЏ',
+    OfficeWorkers: 'РћС„РёСЃ',
+    Philosophical: 'Р¤РёР»РѕСЃРѕС„РёСЏ',
+    Police: 'РџРѕР»РёС†РёСЏ',
+    Psychological: 'РџСЃРёС…РѕР»РѕРіРёСЏ',
+    Reincarnation: 'Р РµРёРЅРєР°СЂРЅР°С†РёСЏ',
+    Romance: 'Р РѕРјР°РЅС‚РёРєР°',
+    Samurai: 'РЎР°РјСѓСЂР°Рё',
+    SchoolLife: 'РЁРєРѕР»Р°',
+    SciFi: 'РќР°СѓС‡РЅР°СЏ С„Р°РЅС‚Р°СЃС‚РёРєР°',
+    SelfPublished: 'РЎР°РјРёР·РґР°С‚',
+    Shota: 'РЎС‘РЅРµРЅ-Р°Р№',
+    SliceOfLife: 'РџРѕРІСЃРµРґРЅРµРІРЅРѕСЃС‚СЊ',
+    Sports: 'РЎРїРѕСЂС‚',
+    Superhero: 'РЎСѓРїРµСЂРіРµСЂРѕРё',
+    Supernatural: 'РЎРІРµСЂС…СЉРµСЃС‚РµСЃС‚РІРµРЅРЅРѕРµ',
+    Survival: 'Р’С‹Р¶РёРІР°РЅРёРµ',
+    Thriller: 'РўСЂРёР»Р»РµСЂ',
+    TimeTravel: 'РџСѓС‚РµС€РµСЃС‚РІРёРµ РІРѕ РІСЂРµРјРµРЅРё',
+    TraditionalGames: 'РўСЂР°РґРёС†РёРѕРЅРЅС‹Рµ РёРіСЂС‹',
+    Tragedy: 'РўСЂР°РіРµРґРёСЏ',
+    UserCreated: 'РђРІС‚РѕСЂСЃРєРѕРµ',
+    Vampires: 'Р’Р°РјРїРёСЂС‹',
+    VideoGames: 'Р’РёРґРµРѕРёРіСЂС‹',
+    Villainess: 'Р—Р»РѕРґРµР№РєР°',
+    VirtualReality: 'Р’РёСЂС‚СѓР°Р»СЊРЅР°СЏ СЂРµР°Р»СЊРЅРѕСЃС‚СЊ',
+    Zombies: 'Р—РѕРјР±Рё'
   };
 
   function safeParse(value, fallback) {
@@ -127,10 +127,10 @@
 
   function getFormatInfo(originalLanguage) {
     const lang = String(originalLanguage || '').toLowerCase();
-    if (lang === 'ja' || lang === 'ja-ro') return { type: 'Манга', origin: 'Япония' };
-    if (lang === 'ko') return { type: 'Манхва', origin: 'Корея' };
-    if (lang.indexOf('zh') === 0) return { type: 'Маньхуа', origin: 'Китай' };
-    return { type: 'Комикс', origin: '' };
+    if (lang === 'ja' || lang === 'ja-ro') return { type: 'РњР°РЅРіР°', origin: 'РЇРїРѕРЅРёСЏ' };
+    if (lang === 'ko') return { type: 'РњР°РЅС…РІР°', origin: 'РљРѕСЂРµСЏ' };
+    if (lang.indexOf('zh') === 0) return { type: 'РњР°РЅСЊС…СѓР°', origin: 'РљРёС‚Р°Р№' };
+    return { type: 'РљРѕРјРёРєСЃ', origin: '' };
   }
 
   function translateTag(tag) {
@@ -147,12 +147,35 @@
 
   function getDescription(attributes) {
     const raw = pickLocalized(attributes && attributes.description, '').replace(/\s+/g, ' ').trim();
-    return raw || 'Описание появится после загрузки главы.';
+    return raw || 'РћРїРёСЃР°РЅРёРµ РїРѕСЏРІРёС‚СЃСЏ РїРѕСЃР»Рµ Р·Р°РіСЂСѓР·РєРё РіР»Р°РІС‹.';
   }
 
   function normalizeStatus(status) {
     const key = String(status || '').toLowerCase();
-    return STATUS_MAP[key] || 'Продолжается';
+    return STATUS_MAP[key] || 'РџСЂРѕРґРѕР»Р¶Р°РµС‚СЃСЏ';
+  }
+
+  function buildApiUrl(endpoint, params) {
+    const search = new URLSearchParams();
+    search.set('endpoint', endpoint);
+    if (params && typeof params.forEach === 'function') {
+      params.forEach(function(value, key) {
+        if (value !== undefined && value !== null && value !== '') search.append(key, String(value));
+      });
+      return API_BASE + '?' + search.toString();
+    }
+    Object.entries(params || {}).forEach(function(entry) {
+      const key = entry[0];
+      const value = entry[1];
+      if (Array.isArray(value)) {
+        value.forEach(function(item) {
+          if (item !== undefined && item !== null && item !== '') search.append(key, String(item));
+        });
+        return;
+      }
+      if (value !== undefined && value !== null && value !== '') search.append(key, String(value));
+    });
+    return API_BASE + '?' + search.toString();
   }
 
   function buildCatalogUrl(offset) {
@@ -167,7 +190,7 @@
     params.append('includes[]', 'artist');
     params.append('contentRating[]', 'safe');
     params.append('contentRating[]', 'suggestive');
-    return API_BASE + '/manga?' + params.toString();
+    return buildApiUrl('manga', params);
   }
 
   function normalizeManga(entity) {
@@ -180,7 +203,7 @@
       id: entity.id,
       source: 'mangadex',
       sourceUrl: TITLE_BASE + '/' + entity.id,
-      title: pickLocalized(attributes.title, 'Без названия'),
+      title: pickLocalized(attributes.title, 'Р‘РµР· РЅР°Р·РІР°РЅРёСЏ'),
       desc: getDescription(attributes),
       description: getDescription(attributes),
       author: getAuthorName(entity),
@@ -305,7 +328,7 @@
     params.set('order[chapter]', 'asc');
     params.set('order[volume]', 'asc');
     params.append('translatedLanguage[]', 'ru');
-    return API_BASE + '/manga/' + mangaId + '/feed?' + params.toString();
+    return buildApiUrl('manga/' + mangaId + '/feed', params);
   }
 
   async function ensureTitleChapters(mangaId) {
@@ -387,7 +410,7 @@
     if (chapterPagePromises.has(chapter.id)) return chapterPagePromises.get(chapter.id);
 
     const promise = (async function() {
-      const payload = await fetchJson(API_BASE + '/at-home/server/' + chapter.id);
+      const payload = await fetchJson(buildApiUrl('at-home/server/' + chapter.id));
       const details = payload && payload.chapter || {};
       const hash = String(details.hash || '');
       const useSaver = shouldUseDataSaver() && Array.isArray(details.dataSaver) && details.dataSaver.length;
@@ -418,8 +441,8 @@
   }
 
   function getChapterLabel(chapter, chapterNumber) {
-    const suffix = chapter && chapter.title ? ' • ' + chapter.title : '';
-    return 'Глава ' + chapterNumber + suffix;
+    const suffix = chapter && chapter.title ? ' вЂў ' + chapter.title : '';
+    return 'Р“Р»Р°РІР° ' + chapterNumber + suffix;
   }
 
   window.mangaCatalogProvider = {
@@ -431,3 +454,6 @@
     getChapterLabel: getChapterLabel
   };
 })();
+
+
+
