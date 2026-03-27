@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
   <meta name="theme-color" content="#07070f"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="MangaCloud"/>
@@ -21,17 +22,17 @@
   <meta property="og:title" content="MangaCloud — Читать мангу онлайн бесплатно"/>
   <meta property="og:description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud."/>
   <meta property="og:url" content="./"/>
-  <meta property="og:image" content="mc-icon-512.svg"/>
+  <meta property="og:image" content="mc-icon-512.png"/>
   <meta property="og:image:alt" content="MangaCloud"/>
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="MangaCloud — Читать мангу онлайн бесплатно"/>
   <meta name="twitter:description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud."/>
-  <meta name="twitter:image" content="mc-icon-512.svg"/>
+  <meta name="twitter:image" content="mc-icon-512.png"/>
   <link rel="canonical" href="./"/>
-  <link rel="icon" type="image/svg+xml" sizes="any" href="mc-icon-192.svg?v=2"/>
-  <link rel="shortcut icon" href="mc-icon-192.svg?v=2"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="mc-icon-192.png?v=3"/>
+  <link rel="shortcut icon" href="mc-icon-192.png?v=3"/>
   <link rel="manifest" href="manifest.webmanifest"/>
-  <link rel="apple-touch-icon" href="mc-icon-192.svg?v=2"/>
+  <link rel="apple-touch-icon" href="mc-icon-192.png?v=3"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
@@ -2096,10 +2097,9 @@
   <script type="module">
     import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import{getFirestore,doc,setDoc,arrayUnion,collection,getDocs,getDoc,onSnapshot,updateDoc,increment,runTransaction}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import{getDatabase,ref,set,onValue,onDisconnect,serverTimestamp,remove}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
     import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut,onAuthStateChanged,sendPasswordResetEmail,GoogleAuthProvider,signInWithPopup}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     const CONFIG={apiKey:"AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0",projectId:"oauth-489621",authDomain:"oauth-489621.firebaseapp.com",databaseURL:"https://oauth-489621-default-rtdb.firebaseio.com"};
-    let app,db,rtdb,auth;
+    let app,db,auth;
     const ADMIN_EMAIL_DB='zarobotokjoker@gmail.com';
     const CATALOG_CACHE_KEY="mc_catalog_cache_v1";
     const PUBLIC_RATINGS_CACHE_KEY="mc_public_ratings_v1";
@@ -2153,18 +2153,25 @@
         restorePublicRatingsFromCache();
       }
     }
-    function initPresence(){if(!rtdb)return;try{let sid=sessionStorage.getItem('mc_sid');if(!sid){sid='sid_'+Math.random().toString(36).substr(2,12)+'_'+Date.now();sessionStorage.setItem('mc_sid',sid);}const pRef=ref(rtdb,'/presence/'+sid),cRef=ref(rtdb,'.info/connected');onValue(cRef,snap=>{if(snap.val()){set(pRef,{online:true,ts:serverTimestamp()});onDisconnect(pRef).remove();}});onValue(ref(rtdb,'/presence'),snap=>{const d=snap.val(),el=document.getElementById('online-cnt');if(el)el.textContent=d?Object.keys(d).length:1;});window.addEventListener('beforeunload',()=>{try{remove(pRef);}catch(e){}});}catch(e){console.warn(e);}}
-    async function initFirebase(){try{setProgress(20,'????????????? Firebase...');restoreCatalogFromCache();restorePublicRatingsFromCache();app=initializeApp(CONFIG);db=getFirestore(app);rtdb=getDatabase(app);auth=getAuth(app);window.db=db;window.rtdb=rtdb;window.auth=auth;window.firebaseReady=true;
-    onAuthStateChanged(auth,async user=>{if(user){const payload={sub:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,picture:user.photoURL||''};localStorage.setItem('mc_user',JSON.stringify(payload));if(window.loadCloud){const cd=await window.loadCloud(user.uid);window.currentUserCloud=cd||{};if(cd){let cn=_store('mc_nicks',{});if(cd.customNickname){cn[user.uid]=cd.customNickname;localStorage.setItem('mc_nicks',JSON.stringify(cn));}if(cd.customAvatar){localStorage.setItem('mc_avatar_'+user.uid,cd.customAvatar);}if(cd.friendsList){window.myFriends=cd.friendsList;localStorage.setItem('mc_friends',JSON.stringify(window.myFriends));}}}if(window.saveUserDB){let cn=_store('mc_nicks',{});await window.saveUserDB(payload,cn[user.uid]||payload.name);}if(window.listenMyData&&!window.listeningMyData){window.listenMyData(user.uid);window.listeningMyData=true;}window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();window.renderShopPage&&window.renderShopPage();window.syncPublicHistoryFromLocal&&window.syncPublicHistoryFromLocal(true);}else{window.currentUserCloud={};window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();window.renderShopPage&&window.renderShopPage();}});
+    function initPresence(){const el=document.getElementById('online-cnt');const pill=document.getElementById('online-pill');if(el)el.textContent=navigator.onLine?'—':'0';if(pill)pill.title='Локальный режим: живой счетчик читателей отключен';}
+    function ensureAuth(){if(auth)return auth;auth=getAuth(app);window.auth=auth;return auth;}
+    let authListenerStarted=false;
+    function startAuthListener(){
+      if(authListenerStarted||!app)return;
+      authListenerStarted=true;
+      onAuthStateChanged(ensureAuth(),async user=>{if(user){const payload={sub:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,picture:user.photoURL||''};localStorage.setItem('mc_user',JSON.stringify(payload));if(window.loadCloud){const cd=await window.loadCloud(user.uid);window.currentUserCloud=cd||{};if(cd){let cn=_store('mc_nicks',{});if(cd.customNickname){cn[user.uid]=cd.customNickname;localStorage.setItem('mc_nicks',JSON.stringify(cn));}if(cd.customAvatar){localStorage.setItem('mc_avatar_'+user.uid,cd.customAvatar);}if(cd.friendsList){window.myFriends=cd.friendsList;localStorage.setItem('mc_friends',JSON.stringify(window.myFriends));}}}if(window.saveUserDB){let cn=_store('mc_nicks',{});await window.saveUserDB(payload,cn[user.uid]||payload.name);}if(window.listenMyData&&!window.listeningMyData){window.listenMyData(user.uid);window.listeningMyData=true;}window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();window.renderShopPage&&window.renderShopPage();window.syncPublicHistoryFromLocal&&window.syncPublicHistoryFromLocal(true);}else{window.currentUserCloud={};window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();window.renderShopPage&&window.renderShopPage();}});
+    }
+    async function initFirebase(){try{setProgress(20,'????????????? Firebase...');restoreCatalogFromCache();restorePublicRatingsFromCache();app=initializeApp(CONFIG);db=getFirestore(app);window.db=db;window.firebaseReady=true;
+    if(_store('mc_user',null))startAuthListener();
     initPresence();setProgress(50,hasCatalogData(window.mangaDB)?'????????? ??????? ?????...':'???????? ???????? ?????...');await loadCatalog();}catch(e){console.error(e);const restored=restoreCatalogFromCache();setProgress(100,restored?'?????? ????????? ???????':'???????? ? ??????? ??????');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1500);}}
     async function loadCatalog(opts={}){const background=!!opts.background;try{const snap=await getDocs(collection(db,"manga"));let lastSeen=_store('mc_seen',{}),isFirst=Object.keys(lastSeen).length===0,save=false;const nextCatalog={};snap.forEach(d=>{const data=d.data();data.id=d.id;nextCatalog[d.id]=data;if(data.updatedAt){if(!isFirst&&(!lastSeen[d.id]||data.updatedAt>lastSeen[d.id])){window.pushNotif&&window.pushNotif('Вышло обновление: '+data.title+'!',d.id);}lastSeen[d.id]=data.updatedAt;save=true;}});if(hasCatalogData(nextCatalog)){window.mangaDB=nextCatalog;window.invalidateComputedCaches&&window.invalidateComputedCaches();saveCatalogCache(nextCatalog);}else restoreCatalogFromCache();await loadPublicRatings();if(save)localStorage.setItem('mc_seen',JSON.stringify(lastSeen));if(background){window.startUI&&window.startUI();window.toast&&window.toast('Каталог обновлён','success');return;}setProgress(100,'Готово! Тайтлов: '+Object.keys(window.mangaDB).length);setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},350);}catch(e){console.error(e);const restored=restoreCatalogFromCache();restorePublicRatingsFromCache();if(background){window.startUI&&window.startUI();window.toast&&window.toast(restored?'Каталог восстановлен из кэша':'Не удалось обновить каталог','warning');return;}setProgress(100,restored?'Загружен локальный каталог':'Ошибка загрузки каталога');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1200);}}
     function hideLoader(){const l=document.getElementById('loader');l.classList.add('out');setTimeout(()=>{l.style.display='none';},550);}
     window.reloadCatalog=loadCatalog;
-    window.fbLogin=(e,p)=>signInWithEmailAndPassword(auth,e,p);
-    window.fbRegister=async(e,p,n)=>{const c=await createUserWithEmailAndPassword(auth,e,p);if(n)await updateProfile(c.user,{displayName:n});return c;};
-    window.fbGoogle=()=>{const pr=new GoogleAuthProvider();pr.addScope('email');pr.addScope('profile');return signInWithPopup(auth,pr);};
-    window.fbLogout=()=>signOut(auth).catch(e=>console.error(e));
-    window.fbResetPwd=e=>sendPasswordResetEmail(auth,e);
+    window.fbLogin=(e,p)=>{startAuthListener();return signInWithEmailAndPassword(ensureAuth(),e,p);};
+    window.fbRegister=async(e,p,n)=>{startAuthListener();const c=await createUserWithEmailAndPassword(ensureAuth(),e,p);if(n)await updateProfile(c.user,{displayName:n});return c;};
+    window.fbGoogle=()=>{startAuthListener();const pr=new GoogleAuthProvider();pr.addScope('email');pr.addScope('profile');return signInWithPopup(ensureAuth(),pr);};
+    window.fbLogout=()=>auth?signOut(auth).catch(e=>console.error(e)):Promise.resolve();
+    window.fbResetPwd=e=>{startAuthListener();return sendPasswordResetEmail(ensureAuth(),e);};
     window.saveUserDB=async(payload,nick)=>{if(!db)return;try{const refDoc=doc(db,"users_data",payload.sub),existing=await getDoc(refDoc),nextNick=nick||payload.name,baseData={uid:payload.sub,name:payload.name,email:payload.email,picture:payload.picture||'',customNickname:nextNick,searchName:nextNick.toLowerCase()};if(existing.exists()){await setDoc(refDoc,{...baseData,role:(existing.data().role)||((payload.email||'').toLowerCase()===ADMIN_EMAIL_DB?'admin':'user')},{merge:true});}else{await setDoc(refDoc,{...baseData,role:(payload.email||'').toLowerCase()===ADMIN_EMAIL_DB?'admin':'user',commentBlocked:false,chatBlocked:false,prizmBalance:0,prizmDailyReadSeconds:0,prizmReadDay:'',prizmLastClaimDay:'',readingTimeTotal:0,moderationNote:'',profileBio:'',historyVisible:true,publicReadingHistory:[],ownedStoreAvatars:[],ownedStoreFrames:[],equippedStoreAvatar:'',equippedStoreFrame:'',createdAt:Date.now()},{merge:true});}}catch(e){console.error(e);}};
     window.saveNickCloud=async nick=>{const u=_store('mc_user',null);if(!u||!db)return;try{await setDoc(doc(db,"users_data",u.sub),{customNickname:nick,searchName:nick.toLowerCase()},{merge:true});}catch(e){console.error(e);}};
     window.saveAvatarCloud=async url=>{const u=_store('mc_user',null);if(!u||!db)return;try{await setDoc(doc(db,"users_data",u.sub),{customAvatar:url},{merge:true});}catch(e){console.error(e);}};
@@ -2828,7 +2835,7 @@
       const url=buildRouteUrl(page,{id:titleManga&&titleManga.id?titleManga.id:curId,q:query,mode:homeMode,tag:discoveryTag});
       let title=DEFAULT_SEO_TITLE;
       let description=DEFAULT_SEO_DESCRIPTION;
-      let image=toAbsoluteUrl('./mc-icon-512.svg');
+      let image=toAbsoluteUrl('./mc-icon-512.png');
       let type='website';
       let jsonLd=compactObject({
         '@context':'https://schema.org',
@@ -2848,7 +2855,7 @@
         const metaBits=[titleManga.author||'Неизвестный автор',(titleManga.genres||[]).slice(0,3).join(', '),titleManga.status||'',titleManga.year||'',rating?('Рейтинг '+rating.toFixed(1)):''].filter(Boolean);
         title=titleManga.title+' — MangaCloud';
         description=metaBits.join(' • ')||DEFAULT_SEO_DESCRIPTION;
-        image=toAbsoluteUrl(titleManga.cover||'./mc-icon-512.svg');
+        image=toAbsoluteUrl(titleManga.cover||'./mc-icon-512.png');
         type='article';
         jsonLd=compactObject({
           '@context':'https://schema.org',
@@ -3349,8 +3356,10 @@
     // ── CONNECTIVITY + PWA ──
     function updateOfflineBanner(){
       const banner=document.getElementById('offline-banner');
+      const onlineCount=document.getElementById('online-cnt');
       if(!banner)return;
       banner.classList.toggle('show',!navigator.onLine);
+      if(onlineCount)onlineCount.textContent=navigator.onLine?'—':'0';
     }
     function isStandaloneMode(){
       return !!(pwaInstalled||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true);
