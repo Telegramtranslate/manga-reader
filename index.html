@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
   <meta name="theme-color" content="#07070f"/>
   <meta name="mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="MangaCloud"/>
   <meta name="google-site-verification" content="2wKTVCLvchMuikC0BJdWp0eAHfPakGmMlvAx5hmmZsM"/>
@@ -29,10 +28,10 @@
   <meta name="twitter:description" content="Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud."/>
   <meta name="twitter:image" content="mc-icon-512.png"/>
   <link rel="canonical" href="./"/>
-  <link rel="icon" type="image/png" sizes="192x192" href="mc-icon-192.png?v=3"/>
-  <link rel="shortcut icon" href="mc-icon-192.png?v=3"/>
-  <link rel="manifest" href="manifest.webmanifest"/>
-  <link rel="apple-touch-icon" href="mc-icon-192.png?v=3"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="mc-icon-192.png?v=4"/>
+  <link rel="shortcut icon" href="mc-icon-192.png?v=4"/>
+  <link rel="manifest" href="manifest.webmanifest?v=4"/>
+  <link rel="apple-touch-icon" href="mc-icon-192.png?v=4"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
@@ -2096,9 +2095,10 @@
   <!-- FIREBASE -->
   <script type="module">
     import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import{getFirestore,doc,setDoc,arrayUnion,collection,getDocs,getDoc,onSnapshot,updateDoc,increment,runTransaction}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import{initializeFirestore,getFirestore,doc,setDoc,arrayUnion,collection,getDocs,getDoc,onSnapshot,updateDoc,increment,runTransaction}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut,onAuthStateChanged,sendPasswordResetEmail,GoogleAuthProvider,signInWithPopup}from"https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    const CONFIG={apiKey:"AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0",projectId:"oauth-489621",authDomain:"oauth-489621.firebaseapp.com",databaseURL:"https://oauth-489621-default-rtdb.firebaseio.com"};
+    const CONFIG={apiKey:"AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0",projectId:"oauth-489621",authDomain:"oauth-489621.firebaseapp.com"};
+    const FIRESTORE_SETTINGS={experimentalForceLongPolling:true,experimentalLongPollingOptions:{timeoutSeconds:25}};
     let app,db,auth;
     const ADMIN_EMAIL_DB='zarobotokjoker@gmail.com';
     const CATALOG_CACHE_KEY="mc_catalog_cache_v1";
@@ -2155,13 +2155,14 @@
     }
     function initPresence(){const el=document.getElementById('online-cnt');const pill=document.getElementById('online-pill');if(el)el.textContent=navigator.onLine?'—':'0';if(pill)pill.title='Локальный режим: живой счетчик читателей отключен';}
     function ensureAuth(){if(auth)return auth;auth=getAuth(app);window.auth=auth;return auth;}
+    function createFirestoreClient(appInstance){try{return initializeFirestore(appInstance,FIRESTORE_SETTINGS);}catch(error){console.warn('Firestore long-polling init failed, falling back to default transport',error);return getFirestore(appInstance);}}
     let authListenerStarted=false;
     function startAuthListener(){
       if(authListenerStarted||!app)return;
       authListenerStarted=true;
       onAuthStateChanged(ensureAuth(),async user=>{if(user){const payload={sub:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,picture:user.photoURL||''};localStorage.setItem('mc_user',JSON.stringify(payload));if(window.loadCloud){const cd=await window.loadCloud(user.uid);window.currentUserCloud=cd||{};if(cd){let cn=_store('mc_nicks',{});if(cd.customNickname){cn[user.uid]=cd.customNickname;localStorage.setItem('mc_nicks',JSON.stringify(cn));}if(cd.customAvatar){localStorage.setItem('mc_avatar_'+user.uid,cd.customAvatar);}if(cd.friendsList){window.myFriends=cd.friendsList;localStorage.setItem('mc_friends',JSON.stringify(window.myFriends));}}}if(window.saveUserDB){let cn=_store('mc_nicks',{});await window.saveUserDB(payload,cn[user.uid]||payload.name);}if(window.listenMyData&&!window.listeningMyData){window.listenMyData(user.uid);window.listeningMyData=true;}window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();window.renderShopPage&&window.renderShopPage();window.syncPublicHistoryFromLocal&&window.syncPublicHistoryFromLocal(true);}else{window.currentUserCloud={};window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();window.renderShopPage&&window.renderShopPage();}});
     }
-    async function initFirebase(){try{setProgress(20,'????????????? Firebase...');restoreCatalogFromCache();restorePublicRatingsFromCache();app=initializeApp(CONFIG);db=getFirestore(app);window.db=db;window.firebaseReady=true;
+    async function initFirebase(){try{setProgress(20,'????????????? Firebase...');restoreCatalogFromCache();restorePublicRatingsFromCache();app=initializeApp(CONFIG);db=createFirestoreClient(app);window.db=db;window.firebaseReady=true;
     if(_store('mc_user',null))startAuthListener();
     initPresence();setProgress(50,hasCatalogData(window.mangaDB)?'????????? ??????? ?????...':'???????? ???????? ?????...');await loadCatalog();}catch(e){console.error(e);const restored=restoreCatalogFromCache();setProgress(100,restored?'?????? ????????? ???????':'???????? ? ??????? ??????');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1500);}}
     async function loadCatalog(opts={}){const background=!!opts.background;try{const snap=await getDocs(collection(db,"manga"));let lastSeen=_store('mc_seen',{}),isFirst=Object.keys(lastSeen).length===0,save=false;const nextCatalog={};snap.forEach(d=>{const data=d.data();data.id=d.id;nextCatalog[d.id]=data;if(data.updatedAt){if(!isFirst&&(!lastSeen[d.id]||data.updatedAt>lastSeen[d.id])){window.pushNotif&&window.pushNotif('Вышло обновление: '+data.title+'!',d.id);}lastSeen[d.id]=data.updatedAt;save=true;}});if(hasCatalogData(nextCatalog)){window.mangaDB=nextCatalog;window.invalidateComputedCaches&&window.invalidateComputedCaches();saveCatalogCache(nextCatalog);}else restoreCatalogFromCache();await loadPublicRatings();if(save)localStorage.setItem('mc_seen',JSON.stringify(lastSeen));if(background){window.startUI&&window.startUI();window.toast&&window.toast('Каталог обновлён','success');return;}setProgress(100,'Готово! Тайтлов: '+Object.keys(window.mangaDB).length);setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},350);}catch(e){console.error(e);const restored=restoreCatalogFromCache();restorePublicRatingsFromCache();if(background){window.startUI&&window.startUI();window.toast&&window.toast(restored?'Каталог восстановлен из кэша':'Не удалось обновить каталог','warning');return;}setProgress(100,restored?'Загружен локальный каталог':'Ошибка загрузки каталога');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1200);}}
@@ -3434,7 +3435,7 @@
     }
     async function registerServiceWorker(){
       if(!('serviceWorker' in navigator))return;
-      try{await navigator.serviceWorker.register('./sw.js');}catch(e){console.warn('SW register failed',e);}
+      try{const reg=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});reg.update().catch(()=>{});}catch(e){console.warn('SW register failed',e);}
     }
     window.promptInstallApp=promptInstallApp;
 

@@ -1,11 +1,16 @@
-const CACHE_NAME = "mangacloud-shell-v7";
+const CACHE_NAME = "mangacloud-shell-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./manifest.webmanifest?v=4",
   "./robots.txt",
   "./mc-icon-192.png",
-  "./mc-icon-512.png"
+  "./mc-icon-192.png?v=4",
+  "./mc-icon-512.png",
+  "./mc-icon-512.png?v=4",
+  "./mc-icon-192.svg",
+  "./mc-icon-512.svg"
 ];
 
 async function networkFirst(request, fallbackUrl) {
