@@ -1,0 +1,24 @@
+{
+  "name": "manga-reader",
+  "version": "1.0.0",
+  "description": "MangaCloud - Read manga online",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "echo \"No linting configured\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://x-access-token:ghs_B4NE3BMcoXMIf60nw9bo0w3LSanD1u0V3Yx2@github.com/Telegramtranslate/manga-reader.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Telegramtranslate/manga-reader/issues"
+  },
+  "homepage": "https://github.com/Telegramtranslate/manga-reader#readme",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0"
+  }
+}
