@@ -1,9 +1,10 @@
-﻿(function(){
+(function(){
   'use strict';
 
   const API_BASE = '/api/mangadex';
   const TITLE_BASE = 'https://mangadex.org/title';
   const COVER_BASE = 'https://uploads.mangadex.org/covers';
+  const FALLBACK_CATALOG_URL = './catalog-fallback.json?v=1';
   const CATALOG_PAGE_SIZE = 24;
   const CATALOG_OFFSETS = [0, 24];
   const FEED_PAGE_SIZE = 500;
@@ -16,70 +17,70 @@
   let catalogPromise = null;
 
   const STATUS_MAP = {
-    ongoing: 'РџСЂРѕРґРѕР»Р¶Р°РµС‚СЃСЏ',
-    completed: 'Р—Р°РІРµСЂС€РµРЅ',
-    hiatus: 'РџР°СѓР·Р°',
-    cancelled: 'РћС‚РјРµРЅРµРЅ'
+    ongoing: 'Продолжается',
+    completed: 'Завершен',
+    hiatus: 'Пауза',
+    cancelled: 'Отменен'
   };
 
   const TAG_MAP = {
-    Action: 'Р­РєС€РµРЅ',
-    Adventure: 'РџСЂРёРєР»СЋС‡РµРЅРёСЏ',
-    Aliens: 'РџСЂРёС€РµР»СЊС†С‹',
-    Animals: 'Р–РёРІРѕС‚РЅС‹Рµ',
-    AwardWinning: 'РќР°РіСЂР°РґС‹',
-    Crime: 'РљСЂРёРјРёРЅР°Р»',
-    Comedy: 'РљРѕРјРµРґРёСЏ',
-    Cooking: 'РљСѓР»РёРЅР°СЂРёСЏ',
-    Delinquents: 'РҐСѓР»РёРіР°РЅС‹',
-    Demons: 'Р”РµРјРѕРЅС‹',
-    Drama: 'Р”СЂР°РјР°',
-    Doujinshi: 'Р”РѕРґР·РёРЅСЃРё',
-    Fantasy: 'Р¤СЌРЅС‚РµР·Рё',
-    FullColor: 'РџРѕР»РЅРѕС†РІРµС‚',
-    Ghosts: 'РџСЂРёР·СЂР°РєРё',
-    Gyaru: 'Р“СЏСЂСѓ',
-    Harem: 'Р“Р°СЂРµРј',
-    Historical: 'РСЃС‚РѕСЂРёС‡РµСЃРєРѕРµ',
-    Horror: 'РЈР¶Р°СЃС‹',
-    Isekai: 'РСЃРµРєР°Р№',
-    LongStrip: 'Р’РµР±С‚СѓРЅ',
-    Magic: 'РњР°РіРёСЏ',
-    MartialArts: 'Р‘РѕРµРІС‹Рµ РёСЃРєСѓСЃСЃС‚РІР°',
-    Mecha: 'РњРµС…Р°',
-    Medical: 'РњРµРґРёС†РёРЅР°',
-    Military: 'Р’РѕРµРЅРЅРѕРµ',
-    MonsterGirls: 'РњРѕРЅСЃС‚СЂРѕРґРµРІСѓС€РєРё',
-    Monsters: 'РњРѕРЅСЃС‚СЂС‹',
-    Music: 'РњСѓР·С‹РєР°',
-    Mystery: 'Р”РµС‚РµРєС‚РёРІ',
-    Ninja: 'РќРёРЅРґР·СЏ',
-    OfficeWorkers: 'РћС„РёСЃ',
-    Philosophical: 'Р¤РёР»РѕСЃРѕС„РёСЏ',
-    Police: 'РџРѕР»РёС†РёСЏ',
-    Psychological: 'РџСЃРёС…РѕР»РѕРіРёСЏ',
-    Reincarnation: 'Р РµРёРЅРєР°СЂРЅР°С†РёСЏ',
-    Romance: 'Р РѕРјР°РЅС‚РёРєР°',
-    Samurai: 'РЎР°РјСѓСЂР°Рё',
-    SchoolLife: 'РЁРєРѕР»Р°',
-    SciFi: 'РќР°СѓС‡РЅР°СЏ С„Р°РЅС‚Р°СЃС‚РёРєР°',
-    SelfPublished: 'РЎР°РјРёР·РґР°С‚',
-    Shota: 'РЎС‘РЅРµРЅ-Р°Р№',
-    SliceOfLife: 'РџРѕРІСЃРµРґРЅРµРІРЅРѕСЃС‚СЊ',
-    Sports: 'РЎРїРѕСЂС‚',
-    Superhero: 'РЎСѓРїРµСЂРіРµСЂРѕРё',
-    Supernatural: 'РЎРІРµСЂС…СЉРµСЃС‚РµСЃС‚РІРµРЅРЅРѕРµ',
-    Survival: 'Р’С‹Р¶РёРІР°РЅРёРµ',
-    Thriller: 'РўСЂРёР»Р»РµСЂ',
-    TimeTravel: 'РџСѓС‚РµС€РµСЃС‚РІРёРµ РІРѕ РІСЂРµРјРµРЅРё',
-    TraditionalGames: 'РўСЂР°РґРёС†РёРѕРЅРЅС‹Рµ РёРіСЂС‹',
-    Tragedy: 'РўСЂР°РіРµРґРёСЏ',
-    UserCreated: 'РђРІС‚РѕСЂСЃРєРѕРµ',
-    Vampires: 'Р’Р°РјРїРёСЂС‹',
-    VideoGames: 'Р’РёРґРµРѕРёРіСЂС‹',
-    Villainess: 'Р—Р»РѕРґРµР№РєР°',
-    VirtualReality: 'Р’РёСЂС‚СѓР°Р»СЊРЅР°СЏ СЂРµР°Р»СЊРЅРѕСЃС‚СЊ',
-    Zombies: 'Р—РѕРјР±Рё'
+    Action: 'Экшен',
+    Adventure: 'Приключения',
+    Aliens: 'Пришельцы',
+    Animals: 'Животные',
+    AwardWinning: 'Награды',
+    Crime: 'Криминал',
+    Comedy: 'Комедия',
+    Cooking: 'Кулинария',
+    Delinquents: 'Хулиганы',
+    Demons: 'Демоны',
+    Drama: 'Драма',
+    Doujinshi: 'Додзинси',
+    Fantasy: 'Фэнтези',
+    FullColor: 'Полноцвет',
+    Ghosts: 'Призраки',
+    Gyaru: 'Гяру',
+    Harem: 'Гарем',
+    Historical: 'Историческое',
+    Horror: 'Ужасы',
+    Isekai: 'Исекай',
+    LongStrip: 'Вебтун',
+    Magic: 'Магия',
+    MartialArts: 'Боевые искусства',
+    Mecha: 'Меха',
+    Medical: 'Медицина',
+    Military: 'Военное',
+    MonsterGirls: 'Монстродевушки',
+    Monsters: 'Монстры',
+    Music: 'Музыка',
+    Mystery: 'Детектив',
+    Ninja: 'Ниндзя',
+    OfficeWorkers: 'Офис',
+    Philosophical: 'Философия',
+    Police: 'Полиция',
+    Psychological: 'Психология',
+    Reincarnation: 'Реинкарнация',
+    Romance: 'Романтика',
+    Samurai: 'Самураи',
+    SchoolLife: 'Школа',
+    SciFi: 'Научная фантастика',
+    SelfPublished: 'Самиздат',
+    Shota: 'Сёнен-ай',
+    SliceOfLife: 'Повседневность',
+    Sports: 'Спорт',
+    Superhero: 'Супергерои',
+    Supernatural: 'Сверхъестественное',
+    Survival: 'Выживание',
+    Thriller: 'Триллер',
+    TimeTravel: 'Путешествие во времени',
+    TraditionalGames: 'Традиционные игры',
+    Tragedy: 'Трагедия',
+    UserCreated: 'Авторское',
+    Vampires: 'Вампиры',
+    VideoGames: 'Видеоигры',
+    Villainess: 'Злодейка',
+    VirtualReality: 'Виртуальная реальность',
+    Zombies: 'Зомби'
   };
 
   function safeParse(value, fallback) {
@@ -127,10 +128,10 @@
 
   function getFormatInfo(originalLanguage) {
     const lang = String(originalLanguage || '').toLowerCase();
-    if (lang === 'ja' || lang === 'ja-ro') return { type: 'РњР°РЅРіР°', origin: 'РЇРїРѕРЅРёСЏ' };
-    if (lang === 'ko') return { type: 'РњР°РЅС…РІР°', origin: 'РљРѕСЂРµСЏ' };
-    if (lang.indexOf('zh') === 0) return { type: 'РњР°РЅСЊС…СѓР°', origin: 'РљРёС‚Р°Р№' };
-    return { type: 'РљРѕРјРёРєСЃ', origin: '' };
+    if (lang === 'ja' || lang === 'ja-ro') return { type: 'Манга', origin: 'Япония' };
+    if (lang === 'ko') return { type: 'Манхва', origin: 'Корея' };
+    if (lang.indexOf('zh') === 0) return { type: 'Маньхуа', origin: 'Китай' };
+    return { type: 'Комикс', origin: '' };
   }
 
   function translateTag(tag) {
@@ -147,23 +148,25 @@
 
   function getDescription(attributes) {
     const raw = pickLocalized(attributes && attributes.description, '').replace(/\s+/g, ' ').trim();
-    return raw || 'РћРїРёСЃР°РЅРёРµ РїРѕСЏРІРёС‚СЃСЏ РїРѕСЃР»Рµ Р·Р°РіСЂСѓР·РєРё РіР»Р°РІС‹.';
+    return raw || 'Описание появится после загрузки главы.';
   }
 
   function normalizeStatus(status) {
     const key = String(status || '').toLowerCase();
-    return STATUS_MAP[key] || 'РџСЂРѕРґРѕР»Р¶Р°РµС‚СЃСЏ';
+    return STATUS_MAP[key] || 'Продолжается';
   }
 
   function buildApiUrl(endpoint, params) {
-    const search = new URLSearchParams();
-    search.set('endpoint', endpoint);
-    if (params && typeof params.forEach === 'function') {
-      params.forEach(function(value, key) {
-        if (value !== undefined && value !== null && value !== '') search.append(key, String(value));
-      });
-      return API_BASE + '?' + search.toString();
+    const path = API_BASE + '/' + String(endpoint || '').replace(/^\/+/, '');
+    const search = params && typeof params.forEach === 'function'
+      ? new URLSearchParams(params)
+      : new URLSearchParams();
+
+    if (!params || typeof params.forEach === 'function') {
+      const query = search.toString();
+      return query ? path + '?' + query : path;
     }
+
     Object.entries(params || {}).forEach(function(entry) {
       const key = entry[0];
       const value = entry[1];
@@ -175,7 +178,9 @@
       }
       if (value !== undefined && value !== null && value !== '') search.append(key, String(value));
     });
-    return API_BASE + '?' + search.toString();
+
+    const query = search.toString();
+    return query ? path + '?' + query : path;
   }
 
   function buildCatalogUrl(offset) {
@@ -203,7 +208,7 @@
       id: entity.id,
       source: 'mangadex',
       sourceUrl: TITLE_BASE + '/' + entity.id,
-      title: pickLocalized(attributes.title, 'Р‘РµР· РЅР°Р·РІР°РЅРёСЏ'),
+      title: pickLocalized(attributes.title, 'Без названия'),
       desc: getDescription(attributes),
       description: getDescription(attributes),
       author: getAuthorName(entity),
@@ -220,14 +225,35 @@
     };
   }
 
-  async function fetchJson(url) {
-    const response = await fetch(url, {
-      headers: { Accept: 'application/json' },
-      mode: 'cors',
-      credentials: 'omit'
-    });
-    if (!response.ok) throw new Error('Catalog request failed: ' + response.status);
-    return response.json();
+  async function fetchJson(url, timeoutMs) {
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = controller ? setTimeout(function() {
+      controller.abort();
+    }, timeoutMs || 15000) : null;
+
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: 'application/json' },
+        mode: 'cors',
+        credentials: 'omit',
+        signal: controller ? controller.signal : undefined
+      });
+      if (!response.ok) throw new Error('Catalog request failed: ' + response.status);
+      return response.json();
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        throw new Error('Catalog request timed out');
+      }
+      throw error;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  async function loadFallbackCatalog() {
+    const fallback = await fetchJson(FALLBACK_CATALOG_URL, 8000);
+    if (!fallback || typeof fallback !== 'object') return {};
+    return fallback;
   }
 
   async function loadCatalog(opts) {
@@ -244,7 +270,13 @@
         });
       });
       return nextCatalog;
-    }).catch(function(error) {
+    }).catch(async function(error) {
+      const fallback = await loadFallbackCatalog().catch(function() {
+        return null;
+      });
+      if (fallback && Object.keys(fallback).length) {
+        return fallback;
+      }
       catalogPromise = null;
       throw error;
     });
@@ -441,8 +473,8 @@
   }
 
   function getChapterLabel(chapter, chapterNumber) {
-    const suffix = chapter && chapter.title ? ' вЂў ' + chapter.title : '';
-    return 'Р“Р»Р°РІР° ' + chapterNumber + suffix;
+    const suffix = chapter && chapter.title ? ' • ' + chapter.title : '';
+    return 'Глава ' + chapterNumber + suffix;
   }
 
   window.mangaCatalogProvider = {

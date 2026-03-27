@@ -1,9 +1,11 @@
-﻿const CACHE_NAME = "mangacloud-shell-v12";
+﻿const CACHE_NAME = "mangacloud-shell-v13";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./catalog-provider.js",
-  "./catalog-provider.js?v=4",
+  "./catalog-provider.js?v=5",
+  "./catalog-fallback.json",
+  "./catalog-fallback.json?v=1",
   "./manifest.webmanifest",
   "./manifest.webmanifest?v=4",
   "./robots.txt",
@@ -74,6 +76,21 @@ self.addEventListener("fetch", event => {
 
   if (event.request.mode === "navigate") {
     event.respondWith(networkFirst(event.request, "./index.html"));
+    return;
+  }
+
+  if (url.origin === self.location.origin && url.pathname === "/api/mangadex" && url.searchParams.get("endpoint")) {
+    const endpoint = url.searchParams.get("endpoint").replace(/^\/+/, "");
+    const proxyUrl = new URL("/api/mangadex/" + endpoint, self.location.origin);
+    url.searchParams.forEach((value, key) => {
+      if (key !== "endpoint") proxyUrl.searchParams.append(key, value);
+    });
+    event.respondWith(networkFirst(new Request(proxyUrl.toString(), event.request), proxyUrl.toString()));
+    return;
+  }
+
+  if (url.origin === self.location.origin && url.pathname.startsWith("/api/mangadex/")) {
+    event.respondWith(networkFirst(event.request));
     return;
   }
 

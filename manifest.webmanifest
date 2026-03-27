@@ -2,7 +2,7 @@
   "id": "./",
   "name": "MangaCloud",
   "short_name": "MangaCloud",
-  "description": "Чтение манги и манхвы с поиском, рекомендациями, историей и офлайн-режимом.",
+  "description": "������ ����� � ������ � �������, ��������������, �������� � ������-�������.",
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
@@ -23,9 +23,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Главная",
-      "short_name": "Главная",
-      "description": "Открыть персональную ленту MangaCloud",
+      "name": "�������",
+      "short_name": "�������",
+      "description": "������� ������������ ����� MangaCloud",
       "url": "./",
       "icons": [
         {
@@ -36,9 +36,9 @@
       ]
     },
     {
-      "name": "Каталог",
-      "short_name": "Каталог",
-      "description": "Перейти в каталог манги и манхвы",
+      "name": "�������",
+      "short_name": "�������",
+      "description": "������� � ������� ����� � ������",
       "url": "./?page=catalog",
       "icons": [
         {
@@ -49,9 +49,9 @@
       ]
     },
     {
-      "name": "Открытия",
-      "short_name": "Открытия",
-      "description": "Открыть тренды и подборки",
+      "name": "��������",
+      "short_name": "��������",
+      "description": "������� ������ � ��������",
       "url": "./?page=discoveries",
       "icons": [
         {
@@ -62,9 +62,9 @@
       ]
     },
     {
-      "name": "Настройки",
-      "short_name": "Настройки",
-      "description": "Перейти к настройкам сайта",
+      "name": "���������",
+      "short_name": "���������",
+      "description": "������� � ���������� �����",
       "url": "./?page=settings",
       "icons": [
         {
