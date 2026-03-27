@@ -1,7 +1,9 @@
-const CACHE_NAME = "mangacloud-shell-v8";
+const CACHE_NAME = "mangacloud-shell-v10";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./catalog-provider.js",
+  "./catalog-provider.js?v=2",
   "./manifest.webmanifest",
   "./manifest.webmanifest?v=4",
   "./robots.txt",
@@ -72,6 +74,19 @@ self.addEventListener("fetch", event => {
 
   if (event.request.mode === "navigate") {
     event.respondWith(networkFirst(event.request, "./index.html"));
+    return;
+  }
+
+  if (
+    url.hostname === "api.mangadex.org" ||
+    url.hostname === "uploads.mangadex.org" ||
+    url.hostname.endsWith(".mangadex.network")
+  ) {
+    event.respondWith(
+      url.hostname === "api.mangadex.org"
+        ? networkFirst(event.request)
+        : staleWhileRevalidate(event.request)
+    );
     return;
   }
 
