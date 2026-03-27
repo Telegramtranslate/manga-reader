@@ -36,7 +36,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <script type="application/ld+json" id="seo-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"MangaCloud","inLanguage":"ru","description":"Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud."}</script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
   <style>
     :root {
       --bg: #07070f; --bg2: #0c0c1a; --bg3: #10101f; --card: #111122; --card2: #181830;
@@ -1321,7 +1324,7 @@
   <div id="user-dd" role="dialog" aria-label="Меню пользователя">
     <div class="dd-head">
       <div id="dd-avatar-shell" class="avatar-shell avatar-size-md dd-avatar-shell" onclick="openAvatarModal()" title="Изменить аватар">
-        <img id="dd-av" class="dd-avatar" src="" alt="Аватар"/>
+        <img id="dd-av" class="dd-avatar" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23140b2f'/%3E%3Cstop offset='1' stop-color='%236d28d9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='120' height='120' rx='30' fill='url(%23g)'/%3E%3Ccircle cx='60' cy='46' r='18' fill='%23f8fafc' fill-opacity='.95'/%3E%3Cpath d='M31 96c7-15 18-23 29-23s22 8 29 23' fill='none' stroke='%23f8fafc' stroke-width='14' stroke-linecap='round'/%3E%3C/svg%3E" onerror="window.applyAvatarFallback(this,'U')" alt="Аватар"/>
       </div>
       <div class="dd-info">
         <div class="dd-name" id="dd-name"></div>
@@ -1362,7 +1365,7 @@
   <nav id="sidebar" role="navigation" aria-label="Навигация">
     <div class="sb-head" onclick="sbProfileClick()">
       <div class="sb-av-wrap avatar-shell avatar-size-md" id="sb-avatar-shell">
-        <img id="sb-av" src="https://via.placeholder.com/56/6d28d9/fff?text=👤" class="sb-av" alt="Аватар"/>
+        <img id="sb-av" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23140b2f'/%3E%3Cstop offset='1' stop-color='%236d28d9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='120' height='120' rx='30' fill='url(%23g)'/%3E%3Ccircle cx='60' cy='46' r='18' fill='%23f8fafc' fill-opacity='.95'/%3E%3Cpath d='M31 96c7-15 18-23 29-23s22 8 29 23' fill='none' stroke='%23f8fafc' stroke-width='14' stroke-linecap='round'/%3E%3C/svg%3E" class="sb-av" onerror="window.applyAvatarFallback(this,'U')" alt="Аватар"/>
         <div class="sb-online"></div>
       </div>
       <div class="sb-name" id="sb-name">Гость</div>
@@ -1680,7 +1683,7 @@
         </div>
         <div class="chat-box" id="chat-area">
           <div class="chat-hd">
-            <img id="chat-av" src="https://via.placeholder.com/40/6d28d9/fff?text=💬" style="width:30px;height:30px;border-radius:50%;object-fit:cover" alt="Собеседник"/>
+            <img id="chat-av" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23140b2f'/%3E%3Cstop offset='1' stop-color='%236d28d9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='120' height='120' rx='30' fill='url(%23g)'/%3E%3Ccircle cx='60' cy='46' r='18' fill='%23f8fafc' fill-opacity='.95'/%3E%3Cpath d='M31 96c7-15 18-23 29-23s22 8 29 23' fill='none' stroke='%23f8fafc' stroke-width='14' stroke-linecap='round'/%3E%3C/svg%3E" style="width:30px;height:30px;border-radius:50%;object-fit:cover" onerror="window.applyAvatarFallback(this,'?','chat')" alt="Собеседник"/>
             <span id="chat-name">Выберите диалог</span>
             <div style="margin-left:auto;display:flex;gap:6px" id="chat-hd-actions"></div>
           </div>
@@ -1700,7 +1703,7 @@
       <div class="profile-card">
         <div class="p-av-wrap">
           <div id="p-avatar-shell" class="avatar-shell avatar-size-xl" onclick="openAvatarModal()" style="cursor:pointer" title="Изменить аватар">
-            <img id="p-av" class="p-av" src="https://via.placeholder.com/115/6d28d9/fff?text=👤" alt="Аватар"/>
+            <img id="p-av" class="p-av" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23140b2f'/%3E%3Cstop offset='1' stop-color='%236d28d9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='120' height='120' rx='30' fill='url(%23g)'/%3E%3Ccircle cx='60' cy='46' r='18' fill='%23f8fafc' fill-opacity='.95'/%3E%3Cpath d='M31 96c7-15 18-23 29-23s22 8 29 23' fill='none' stroke='%23f8fafc' stroke-width='14' stroke-linecap='round'/%3E%3C/svg%3E" onerror="window.applyAvatarFallback(this,'U')" alt="Аватар"/>
           </div>
           <div class="p-edit-group">
             <button class="p-edit" onclick="changeNick()" title="Изменить ник" aria-label="Изменить ник">✏️</button>
@@ -2314,6 +2317,44 @@
     let shopTab='avatars';
     let publicProfileState={open:false,uid:'',data:null,fallback:null};
     function svgToDataUri(svg){return'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg.replace(/\n+/g,'').replace(/>\s+</g,'><').trim());}
+    const INLINE_AVATAR_PLACEHOLDER='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 120 120%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop stop-color=%27%23140b2f%27/%3E%3Cstop offset=%271%27 stop-color=%27%236d28d9%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%27120%27 height=%27120%27 rx=%2730%27 fill=%27url(%23g)%27/%3E%3Ccircle cx=%2760%27 cy=%2746%27 r=%2718%27 fill=%27%23f8fafc%27 fill-opacity=%27.95%27/%3E%3Cpath d=%27M31 96c7-15 18-23 29-23s22 8 29 23%27 fill=%27none%27 stroke=%27%23f8fafc%27 stroke-width=%2714%27 stroke-linecap=%27round%27/%3E%3C/svg%3E';
+    function getAvatarInitial(value,fallback='U'){
+      const match=String(value||'').trim().replace(/^[@#]+/,'').match(/[A-Za-z0-9]/);
+      return match?match[0].toUpperCase():fallback;
+    }
+    function getAvatarPlaceholder(label='U',variant='avatar'){
+      const initial=getAvatarInitial(label,variant==='chat'?'?':'U');
+      const palette=variant==='chat'
+        ?{bg1:'#0f172a',bg2:'#5b21b6',glow:'#a78bfa'}
+        :{bg1:'#140b2f',bg2:'#6d28d9',glow:'#c084fc'};
+      return svgToDataUri(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="${palette.bg1}"/>
+              <stop offset="100%" stop-color="${palette.bg2}"/>
+            </linearGradient>
+            <radialGradient id="glow" cx="50%" cy="30%" r="75%">
+              <stop offset="0%" stop-color="${palette.glow}" stop-opacity=".38"/>
+              <stop offset="100%" stop-color="${palette.glow}" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="120" height="120" rx="30" fill="url(#bg)"/>
+          <circle cx="60" cy="42" r="34" fill="url(#glow)"/>
+          <circle cx="60" cy="44" r="18" fill="#f8fafc" fill-opacity=".18"/>
+          <path d="M30 98c7-15 18-23 30-23s23 8 30 23" fill="none" stroke="#f8fafc" stroke-opacity=".2" stroke-width="14" stroke-linecap="round"/>
+          <text x="60" y="67" text-anchor="middle" fill="#f8fafc" font-size="42" font-family="Arial, sans-serif" font-weight="700">${initial}</text>
+        </svg>
+      `);
+    }
+    const DEFAULT_AVATAR_PLACEHOLDER=getAvatarPlaceholder('U');
+    const DEFAULT_CHAT_PLACEHOLDER=getAvatarPlaceholder('?','chat');
+    window.getAvatarPlaceholder=getAvatarPlaceholder;
+    window.applyAvatarFallback=function(img,label='U',variant='avatar'){
+      if(!img)return;
+      img.onerror=null;
+      img.src=getAvatarPlaceholder(label,variant);
+    };
     function createAvatarArt({bg1='#09090f',bg2='#5b21b6',accent='#f43f5e',hair='#f8fafc',hairShadow='#cbd5f5',skin='#f6d3c4',eye='#ef4444',robe='#0f172a',mark='#fda4af',halo1='#8b5cf6',halo2='#ec4899',animated=false,shape='ghoul'}={}){
       const haloAnim=animated?'<animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 160 160" to="360 160 160" dur="9s" repeatCount="indefinite"/>':'';
       const pulseAnim=animated?'<animate attributeName="r" values="4.4;5.6;4.4" dur="2.4s" repeatCount="indefinite"/>':'';
@@ -2539,11 +2580,11 @@
       if(picture)return picture;
       if(uid){
         const name=getDisplayUserName(user,source);
-        return'https://via.placeholder.com/115/6d28d9/fff?text='+encodeURIComponent((name[0]||'U').toUpperCase());
+        return getAvatarPlaceholder(name);
       }
       const anon=localStorage.getItem('mc_avatar_anon');
       if(anon)return anon;
-      return'https://via.placeholder.com/115/6d28d9/fff?text=👤';
+      return DEFAULT_AVATAR_PLACEHOLDER;
     }
     function buildAvatarShellMarkup({src,name='Avatar',frameId='',avatarId='',size='md',className='',imgClass='avatar-core'}={}){
       const item=getStoreItemById('frame',frameId);
@@ -2553,7 +2594,7 @@
       const frameAssetHtml=frameAsset?'<span class="avatar-frame-image" style="background-image:url(\''+esc(frameAsset)+'\')"></span>':'';
       const imageOverlayClass=frameAsset?' frame-image-overlay':'';
       className=(getAvatarMotionClass(avatarId)?getAvatarMotionClass(avatarId)+(className?' ':''):'')+className;
-      return'<div class="avatar-shell avatar-size-'+size+frameClass+animatedClass+imageOverlayClass+(className?' '+className:'')+'">'+frameAssetHtml+'<img class="'+imgClass+'" src="'+esc(src||getAvatarUrl(null))+'" alt="'+esc(name)+'" onerror="this.src=\'https://via.placeholder.com/115/6d28d9/fff?text=👤\'"></div>';
+      return'<div class="avatar-shell avatar-size-'+size+frameClass+animatedClass+imageOverlayClass+(className?' '+className:'')+'">'+frameAssetHtml+'<img class="'+imgClass+'" src="'+esc(src||getAvatarUrl(null))+'" alt="'+esc(name)+'" onerror="window.applyAvatarFallback(this,\''+esc(getAvatarInitial(name))+'\')"></div>';
     }
     function applyAvatarFrame(el,frameId,avatarId=''){
       if(!el)return;
@@ -2604,7 +2645,7 @@
     window.openAvatarModal=openAvatarModal;window.closeAvatarModal=closeAvatarModal;
     function selectPresetAvatar(url){pendingAvatarUrl=url;document.getElementById('avatar-preview-img').src=url;document.querySelectorAll('.avatar-preset').forEach(el=>el.classList.toggle('selected',el.src===url));}
     window.selectPresetAvatar=selectPresetAvatar;
-    function previewAvatarUrl(url){if(!url)return;try{new URL(url);}catch{return;}pendingAvatarUrl=url;const prev=document.getElementById('avatar-preview-img');prev.onerror=()=>{prev.src='https://via.placeholder.com/120/6d28d9/fff?text=?';};prev.src=url;}
+    function previewAvatarUrl(url){if(!url)return;try{new URL(url);}catch{return;}pendingAvatarUrl=url;const prev=document.getElementById('avatar-preview-img');prev.onerror=()=>window.applyAvatarFallback(prev,'?','chat');prev.src=url;}
     window.previewAvatarUrl=previewAvatarUrl;
     function handleAvatarFile(input){if(input.files&&input.files[0])processAvatarFile(input.files[0]);}
     window.handleAvatarFile=handleAvatarFile;
@@ -2993,7 +3034,7 @@
         const mail=esc(user.email||'—');
         const commentLabel=user.commentBlocked?'Разрешить комментарии':'Запретить комментарии';
         const chatLabel=user.chatBlocked?'Разрешить чат':'Запретить чат';
-        return '<div class="admin-user-card"><div class="admin-user-top"><img class="admin-user-avatar" src="'+esc(avatar)+'" alt="'+name+'" onerror="this.src=\'https://via.placeholder.com/42/6d28d9/fff?text=U\'"><div class="admin-user-copy"><div class="admin-user-name">'+name+(isAdmin?'<span class="role-badge admin">АДМИН</span>':'')+'</div><div class="admin-user-mail">'+mail+'</div></div><div class="admin-user-chip">PRIZM: '+(Number(user.prizmBalance)||0)+'</div></div><div class="admin-user-meta">'+(user.commentBlocked?'<span class="admin-user-chip danger">Комменты OFF</span>':'<span class="admin-user-chip">Комменты ON</span>')+(user.chatBlocked?'<span class="admin-user-chip warn">Чат OFF</span>':'<span class="admin-user-chip">Чат ON</span>')+'</div><div class="admin-user-actions"><button class="btn btn-sec btn-sm" type="button" onclick="toggleAdminUserFlag(\''+esc(user.uid)+'\',\'commentBlocked\','+(user.commentBlocked?'false':'true')+')">'+commentLabel+'</button><button class="btn btn-sec btn-sm" type="button" onclick="toggleAdminUserFlag(\''+esc(user.uid)+'\',\'chatBlocked\','+(user.chatBlocked?'false':'true')+')">'+chatLabel+'</button><button class="btn btn-sm" type="button" onclick="adjustAdminUserPrizm(\''+esc(user.uid)+'\',50)">+50 PRIZM</button><button class="btn btn-sec btn-sm" type="button" onclick="adjustAdminUserPrizm(\''+esc(user.uid)+'\',-50)">-50 PRIZM</button></div></div>';
+        return '<div class="admin-user-card"><div class="admin-user-top"><img class="admin-user-avatar" src="'+esc(avatar)+'" alt="'+name+'" onerror="window.applyAvatarFallback(this,\''+esc(getAvatarInitial(user.customNickname||user.name))+'\')"><div class="admin-user-copy"><div class="admin-user-name">'+name+(isAdmin?'<span class="role-badge admin">АДМИН</span>':'')+'</div><div class="admin-user-mail">'+mail+'</div></div><div class="admin-user-chip">PRIZM: '+(Number(user.prizmBalance)||0)+'</div></div><div class="admin-user-meta">'+(user.commentBlocked?'<span class="admin-user-chip danger">Комменты OFF</span>':'<span class="admin-user-chip">Комменты ON</span>')+(user.chatBlocked?'<span class="admin-user-chip warn">Чат OFF</span>':'<span class="admin-user-chip">Чат ON</span>')+'</div><div class="admin-user-actions"><button class="btn btn-sec btn-sm" type="button" onclick="toggleAdminUserFlag(\''+esc(user.uid)+'\',\'commentBlocked\','+(user.commentBlocked?'false':'true')+')">'+commentLabel+'</button><button class="btn btn-sec btn-sm" type="button" onclick="toggleAdminUserFlag(\''+esc(user.uid)+'\',\'chatBlocked\','+(user.chatBlocked?'false':'true')+')">'+chatLabel+'</button><button class="btn btn-sm" type="button" onclick="adjustAdminUserPrizm(\''+esc(user.uid)+'\',50)">+50 PRIZM</button><button class="btn btn-sec btn-sm" type="button" onclick="adjustAdminUserPrizm(\''+esc(user.uid)+'\',-50)">-50 PRIZM</button></div></div>';
       }).join('');
     }
     async function loadAdminUsers(){
@@ -4024,7 +4065,7 @@
         const frameClass=getFrameClass(frameId);
         const motionClass=getAvatarMotionClass(avatarId);
         const animatedClass=(getStoreItemById('frame',frameId)||{}).animated?' animated-frame':'';
-        area.innerHTML='<div class="hdr-avatar avatar-shell avatar-size-sm'+(frameClass?' '+frameClass:'')+(motionClass?' '+motionClass:'')+animatedClass+'" onclick="toggleDd()" title="'+esc(name)+'"><img src="'+esc(pic)+'" alt="'+esc(name)+'" onerror="this.src=\'https://via.placeholder.com/40/6d28d9/fff?text='+encodeURIComponent((name[0]||'U').toUpperCase())+'\'"></div>';
+        area.innerHTML='<div class="hdr-avatar avatar-shell avatar-size-sm'+(frameClass?' '+frameClass:'')+(motionClass?' '+motionClass:'')+animatedClass+'" onclick="toggleDd()" title="'+esc(name)+'"><img src="'+esc(pic)+'" alt="'+esc(name)+'" onerror="window.applyAvatarFallback(this,\''+esc(getAvatarInitial(name))+'\')"></div>';
         document.getElementById('dd-av').src=pic;
         document.getElementById('dd-name').textContent=name;
         document.getElementById('dd-email').textContent=u.email||'';
@@ -4070,7 +4111,7 @@
       if(reqs>0){
         html+=(window.pendingReqs||[]).map(req=>'<div class="notif-item unread" style="flex-direction:column;border-left-color:var(--red)">'
           +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:9px;width:100%">'
-          +'<img src="'+esc(req.picture||'')+'" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--a2);object-fit:cover;flex-shrink:0" onerror="this.src=\'https://via.placeholder.com/28/6d28d9/fff?text=👤\'">'
+          +'<img src="'+esc(req.picture||DEFAULT_AVATAR_PLACEHOLDER)+'" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--a2);object-fit:cover;flex-shrink:0" onerror="window.applyAvatarFallback(this,\''+esc(getAvatarInitial(req.name))+'\')">'
           +'<div><strong>'+esc(req.name)+'</strong> хочет добавить вас в друзья!</div>'
           +'</div>'
           +'<div style="display:flex;gap:7px;width:100%">'
@@ -4224,7 +4265,7 @@
             else if(isFr)btn='<span style="color:var(--a3);font-size:.78rem;font-weight:700">В друзьях ✓</span>';
             else btn='<button class="list-act" onclick="sendFriendReq(\''+esc(us.uid)+'\',\''+esc(us.customNickname||us.name)+'\',\''+esc(avatar)+'\')">+ Добавить</button>';
             return'<div class="list-item" style="border-color:var(--a2)">'
-              +'<img src="'+esc(avatar)+'" class="list-av" onerror="this.src=\'https://via.placeholder.com/44/6d28d9/fff?text=👤\'">'
+              +'<img src="'+esc(avatar)+'" class="list-av" onerror="window.applyAvatarFallback(this,\''+esc(getAvatarInitial(us.customNickname||us.name))+'\')">'
               +'<div class="list-info"><div class="list-title">'+esc(us.customNickname||us.name)+'</div><div class="list-sub">Пользователь MangaCloud</div></div>'
               +btn+'</div>';
           }).join('');
@@ -4236,7 +4277,7 @@
     function renderFriendsList(){
       const c=document.getElementById('friends-list');if(!c)return;
       c.innerHTML=window.myFriends.length?window.myFriends.map(f=>'<div class="list-item">'
-        +'<img src="'+esc(f.picture||'https://via.placeholder.com/44/6d28d9/fff?text=👤')+'" class="list-av" onerror="this.src=\'https://via.placeholder.com/44/6d28d9/fff?text=👤\'">'
+        +'<img src="'+esc(f.picture||getAvatarPlaceholder(f.name))+'" class="list-av" onerror="window.applyAvatarFallback(this,\''+esc(getAvatarInitial(f.name))+'\')">'
         +'<div class="list-info"><div class="list-title">'+esc(f.name)+'</div></div>'
         +'<div style="display:flex;gap:7px;flex-wrap:wrap">'
         +'<button class="list-act" onclick="openChat(\''+esc(f.uid)+'\',\''+esc(f.name)+'\',\''+esc(f.picture||'')+'\')">Написать</button>'
@@ -4250,7 +4291,7 @@
     function renderDialogs(){
       const c=document.getElementById('dialogs-c');if(!c)return;
       c.innerHTML=window.myFriends.length?window.myFriends.map(f=>'<div class="list-item" style="padding:9px;margin-bottom:6px" onclick="openChat(\''+esc(f.uid)+'\',\''+esc(f.name)+'\',\''+esc(f.picture||'')+'\')">'
-        +'<img src="'+esc(f.picture||'https://via.placeholder.com/40/6d28d9/fff?text=👤')+'" class="list-av" style="width:38px;height:38px" onerror="this.src=\'https://via.placeholder.com/40/6d28d9/fff?text=👤\'">'
+        +'<img src="'+esc(f.picture||getAvatarPlaceholder(f.name))+'" class="list-av" style="width:38px;height:38px" onerror="window.applyAvatarFallback(this,\''+esc(getAvatarInitial(f.name))+'\')">'
         +'<div class="list-info"><div class="list-title" style="font-size:.85rem">'+esc(f.name)+'</div><div class="list-sub" style="font-size:.68rem">Открыть чат...</div></div>'
         +'<button class="list-act" style="padding:4px 8px;background:rgba(244,63,94,.08);border-color:var(--red);color:var(--red)" onclick="event.stopPropagation();removeFriend(\''+esc(f.uid)+'\',\''+esc(f.name)+'\')">🗑️</button>'
         +'</div>').join('')
@@ -4264,7 +4305,7 @@
       goPage('messages');
       activeChat={uid:fUid,name:fName,picture:fPic};
       document.getElementById('chat-name').textContent=fName;
-      document.getElementById('chat-av').src=fPic||'https://via.placeholder.com/40/6d28d9/fff?text=💬';
+      document.getElementById('chat-av').src=fPic||DEFAULT_CHAT_PLACEHOLDER;
       document.getElementById('chat-hd-actions').innerHTML='<button class="list-act" style="padding:5px 10px" onclick="goPage(\'friends\')">Список друзей</button><button class="list-act" style="padding:5px 10px;background:rgba(244,63,94,.08);border-color:var(--red);color:var(--red)" onclick="removeFriend(\''+esc(fUid)+'\',\''+esc(fName)+'\')">Удалить</button>';
       document.getElementById('chat-input').placeholder=getCloudUserData().chatBlocked?'Чат отключён администратором':'Написать '+fName+'...';
       document.getElementById('chat-input').disabled=!!getCloudUserData().chatBlocked;
@@ -4302,7 +4343,7 @@
     }
     window.deleteMsgInChat=deleteMsgInChat;
 
-    window.clearChatIf=function(uid){if(activeChat&&activeChat.uid===uid){activeChat=null;document.getElementById('chat-name').textContent='Выберите диалог';document.getElementById('chat-av').src='https://via.placeholder.com/40/6d28d9/fff?text=💬';document.getElementById('chat-hd-actions').innerHTML='';document.getElementById('chat-input').placeholder='Выберите диалог слева...';document.getElementById('chat-input').disabled=true;document.getElementById('chat-msgs').innerHTML='<div style="text-align:center;color:var(--text2);margin-top:50px">Здесь будут ваши сообщения</div>';if(chatUnsub){chatUnsub();chatUnsub=null;}refreshChatAccessState();}};
+    window.clearChatIf=function(uid){if(activeChat&&activeChat.uid===uid){activeChat=null;document.getElementById('chat-name').textContent='Выберите диалог';document.getElementById('chat-av').src=DEFAULT_CHAT_PLACEHOLDER;document.getElementById('chat-hd-actions').innerHTML='';document.getElementById('chat-input').placeholder='Выберите диалог слева...';document.getElementById('chat-input').disabled=true;document.getElementById('chat-msgs').innerHTML='<div style="text-align:center;color:var(--text2);margin-top:50px">Здесь будут ваши сообщения</div>';if(chatUnsub){chatUnsub();chatUnsub=null;}refreshChatAccessState();}};
 
     function checkChat(){if(!activeChat)toast('Выберите друга из списка!','error');}
     window.checkChat=checkChat;
