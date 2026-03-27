@@ -34,7 +34,8 @@
   <link rel="apple-touch-icon" href="mc-icon-192.png?v=4"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;700&display=swap"/></noscript>
   <script type="application/ld+json" id="seo-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"MangaCloud","inLanguage":"ru","description":"Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud."}</script>
   <script>
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
@@ -76,12 +77,12 @@
     .sr-only{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0,0,0,0) !important;white-space:nowrap !important;border:0 !important;}
 
     /* LOADER */
-    #loader{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .5s,visibility .5s;}
+    #loader{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .5s ease;}
     #loader.out{opacity:0;visibility:hidden;pointer-events:none;}
     .loader-logo{font-family:var(--ff-display);font-size:clamp(2rem,6vw,3rem);font-weight:800;background:linear-gradient(135deg,var(--a2),var(--a4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:logoPulse 1.8s ease-in-out infinite;}
     @keyframes logoPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)}}
     .loader-track{width:220px;height:3px;background:rgba(139,92,246,.15);border-radius:3px;overflow:hidden;}
-    .loader-fill{height:100%;width:0;background:linear-gradient(90deg,var(--a1),var(--a4));border-radius:3px;transition:width .3s ease;box-shadow:0 0 10px var(--glow);}
+    .loader-fill{height:100%;width:100%;transform:scaleX(0);transform-origin:left center;background:linear-gradient(90deg,var(--a1),var(--a4));border-radius:3px;transition:transform .3s ease;box-shadow:0 0 10px var(--glow);}
     .loader-msg{font-size:.82rem;color:var(--text2);text-align:center;}
     .loader-tip{font-size:.72rem;color:rgba(139,92,246,.55);text-align:center;max-width:280px;}
 
@@ -368,7 +369,7 @@
 
     /* TELEGRAM FLOAT */
     .tg-float-btn{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 70px);right:14px;z-index:900;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none;}
-    .tg-btn{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;font-weight:700;font-size:.8rem;text-decoration:none;border:none;cursor:pointer;font-family:var(--ff-body);box-shadow:0 6px 24px rgba(0,136,204,.45),0 0 0 3px rgba(0,136,204,.15);transition:var(--tr-spring);white-space:nowrap;animation:floatPulse 3s ease-in-out infinite;pointer-events:auto;}
+    .tg-btn{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;font-weight:700;font-size:.8rem;text-decoration:none;border:none;cursor:pointer;font-family:var(--ff-body);box-shadow:0 6px 24px rgba(0,136,204,.45),0 0 0 3px rgba(0,136,204,.15);transition:transform var(--tr-fast),box-shadow var(--tr-fast);white-space:nowrap;pointer-events:auto;}
     .tg-btn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 12px 32px rgba(0,136,204,.55),0 0 0 6px rgba(0,136,204,.1);}
     .mail-btn{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;font-weight:700;font-size:.8rem;text-decoration:none;border:none;cursor:pointer;font-family:var(--ff-body);box-shadow:0 6px 24px var(--glow),0 0 0 3px var(--glow2);transition:var(--tr-spring);white-space:nowrap;pointer-events:auto;}
     .mail-btn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 12px 32px var(--glow),0 0 0 6px var(--glow2);}
@@ -428,7 +429,7 @@
     /* HERO BANNER */
     .hero-banner{position:relative;border-radius:var(--br-lg);overflow:hidden;margin-bottom:24px;min-height:170px;border:1px solid var(--border2);cursor:pointer;transition:var(--tr);}
     .hero-banner:hover{box-shadow:0 16px 50px rgba(0,0,0,.45),0 0 30px var(--glow);transform:translateY(-2px);}
-    .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(18px) brightness(.35);transform:scale(1.12);}
+    .hero-bg{position:absolute;inset:0;background:radial-gradient(circle at 18% 22%,rgba(232,121,249,.28),transparent 34%),radial-gradient(circle at 82% 18%,rgba(59,130,246,.2),transparent 30%),radial-gradient(circle at 50% 100%,rgba(109,40,217,.28),transparent 42%),linear-gradient(135deg,rgba(13,15,29,.96),rgba(24,24,48,.92));transform:translateZ(0);}
     .hero-content{position:relative;z-index:2;padding:clamp(18px,3.5vw,36px);display:flex;align-items:center;gap:clamp(14px,2.5vw,26px);}
     .hero-cover{width:clamp(85px,14vw,120px);aspect-ratio:2/3;border-radius:var(--br-sm);object-fit:cover;border:2px solid var(--border2);box-shadow:0 8px 24px rgba(0,0,0,.4);flex-shrink:0;}
     .hero-info{flex:1;min-width:0;}
@@ -1091,7 +1092,7 @@
     [data-performance="lite"] .discover-mini-card{
       animation:none !important;
     }
-    [data-performance="lite"] .hero-bg{filter:blur(10px) brightness(.42);}
+    [data-performance="lite"] .hero-bg{opacity:.92;}
     [data-performance="lite"] .card-img img,
     [data-performance="lite"] .hero-cover,
     [data-performance="lite"] .cont-cover{will-change:auto;}
@@ -1486,7 +1487,20 @@
         </div>
         <div id="search-history" class="search-history"></div>
         </div>
-        <div id="hero-wrap"></div>
+        <div id="hero-wrap">
+          <div class="hero-banner" onclick="goPage('catalog')">
+            <div class="hero-bg" aria-hidden="true"></div>
+            <div class="hero-content">
+              <img class="hero-cover" src="mc-icon-192.png?v=4" alt="MangaCloud" loading="eager" decoding="async" fetchpriority="high" width="120" height="180"/>
+              <div class="hero-info">
+                <div class="hero-label">⚡ Быстрый старт</div>
+                <div class="hero-title">MangaCloud открывается быстро и догружает облачные данные уже после первого экрана</div>
+                <div class="hero-desc">Каталог, рекомендации и облачные функции подтягиваются позже, чтобы мобильная загрузка не упиралась в тяжёлые запросы.</div>
+                <button class="btn" type="button" style="width:auto;padding:9px 20px;font-size:.78rem" onclick="event.stopPropagation();goPage('catalog')">Открыть каталог →</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="hero-dashboard">
           <div id="focus-panel"></div>
           <div id="quick-panel"></div>
@@ -2104,7 +2118,7 @@
     const CATALOG_CACHE_KEY="mc_catalog_cache_v1";
     const PUBLIC_RATINGS_CACHE_KEY="mc_public_ratings_v1";
     window.mangaDB={};window.publicRatings={};window.firebaseReady=false;window.currentUserCloud={};window.siteMeta={};
-    function setProgress(pct,msg){const b=document.getElementById('l-fill'),m=document.getElementById('l-msg');if(b)b.style.width=pct+'%';if(m)m.textContent=msg;}
+    function setProgress(pct,msg){const b=document.getElementById('l-fill'),m=document.getElementById('l-msg');if(b)b.style.transform='scaleX('+Math.max(0,Math.min(1,pct/100))+')';if(m)m.textContent=msg;}
     function _store(k,fb){try{return JSON.parse(localStorage.getItem(k))||fb;}catch{return fb;}}
     function readCatalogCache(){return _store(CATALOG_CACHE_KEY,{});}
     function readPublicRatingsCache(){return _store(PUBLIC_RATINGS_CACHE_KEY,{});}
@@ -2157,22 +2171,26 @@
     function ensureAuth(){if(auth)return auth;auth=getAuth(app);window.auth=auth;return auth;}
     function createFirestoreClient(appInstance){try{return initializeFirestore(appInstance,FIRESTORE_SETTINGS);}catch(error){console.warn('Firestore long-polling init failed, falling back to default transport',error);return getFirestore(appInstance);}}
     let authListenerStarted=false;
+    let firebaseInitPromise=null;
     function startAuthListener(){
       if(authListenerStarted||!app)return;
       authListenerStarted=true;
       onAuthStateChanged(ensureAuth(),async user=>{if(user){const payload={sub:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,picture:user.photoURL||''};localStorage.setItem('mc_user',JSON.stringify(payload));if(window.loadCloud){const cd=await window.loadCloud(user.uid);window.currentUserCloud=cd||{};if(cd){let cn=_store('mc_nicks',{});if(cd.customNickname){cn[user.uid]=cd.customNickname;localStorage.setItem('mc_nicks',JSON.stringify(cn));}if(cd.customAvatar){localStorage.setItem('mc_avatar_'+user.uid,cd.customAvatar);}if(cd.friendsList){window.myFriends=cd.friendsList;localStorage.setItem('mc_friends',JSON.stringify(window.myFriends));}}}if(window.saveUserDB){let cn=_store('mc_nicks',{});await window.saveUserDB(payload,cn[user.uid]||payload.name);}if(window.listenMyData&&!window.listeningMyData){window.listenMyData(user.uid);window.listeningMyData=true;}window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();window.renderShopPage&&window.renderShopPage();window.syncPublicHistoryFromLocal&&window.syncPublicHistoryFromLocal(true);}else{window.currentUserCloud={};window.updateProfileUI&&window.updateProfileUI();window.updateHdrAuth&&window.updateHdrAuth();window.renderSettingsPage&&window.renderSettingsPage();window.renderAnnouncementBar&&window.renderAnnouncementBar();window.renderShopPage&&window.renderShopPage();}});
     }
+    function ensureFirebaseBoot(){if(firebaseInitPromise)return firebaseInitPromise;firebaseInitPromise=initFirebase().catch(error=>{firebaseInitPromise=null;throw error;});return firebaseInitPromise;}
+    function scheduleFirebaseBootstrap(){const start=()=>{ensureFirebaseBoot().catch(error=>console.error(error));};const queue=()=>{'requestIdleCallback'in window?requestIdleCallback(start,{timeout:1500}):setTimeout(start,420);};if(document.readyState==='interactive'||document.readyState==='complete'){queue();return;}document.addEventListener('DOMContentLoaded',queue,{once:true});}
     async function initFirebase(){try{setProgress(20,'????????????? Firebase...');restoreCatalogFromCache();restorePublicRatingsFromCache();app=initializeApp(CONFIG);db=createFirestoreClient(app);window.db=db;window.firebaseReady=true;
     if(_store('mc_user',null))startAuthListener();
     initPresence();setProgress(50,hasCatalogData(window.mangaDB)?'????????? ??????? ?????...':'???????? ???????? ?????...');await loadCatalog();}catch(e){console.error(e);const restored=restoreCatalogFromCache();setProgress(100,restored?'?????? ????????? ???????':'???????? ? ??????? ??????');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1500);}}
     async function loadCatalog(opts={}){const background=!!opts.background;try{const snap=await getDocs(collection(db,"manga"));let lastSeen=_store('mc_seen',{}),isFirst=Object.keys(lastSeen).length===0,save=false;const nextCatalog={};snap.forEach(d=>{const data=d.data();data.id=d.id;nextCatalog[d.id]=data;if(data.updatedAt){if(!isFirst&&(!lastSeen[d.id]||data.updatedAt>lastSeen[d.id])){window.pushNotif&&window.pushNotif('Вышло обновление: '+data.title+'!',d.id);}lastSeen[d.id]=data.updatedAt;save=true;}});if(hasCatalogData(nextCatalog)){window.mangaDB=nextCatalog;window.invalidateComputedCaches&&window.invalidateComputedCaches();saveCatalogCache(nextCatalog);}else restoreCatalogFromCache();await loadPublicRatings();if(save)localStorage.setItem('mc_seen',JSON.stringify(lastSeen));if(background){window.startUI&&window.startUI();window.toast&&window.toast('Каталог обновлён','success');return;}setProgress(100,'Готово! Тайтлов: '+Object.keys(window.mangaDB).length);setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},350);}catch(e){console.error(e);const restored=restoreCatalogFromCache();restorePublicRatingsFromCache();if(background){window.startUI&&window.startUI();window.toast&&window.toast(restored?'Каталог восстановлен из кэша':'Не удалось обновить каталог','warning');return;}setProgress(100,restored?'Загружен локальный каталог':'Ошибка загрузки каталога');setTimeout(()=>{hideLoader();window.startUI&&window.startUI();},restored?500:1200);}}
     function hideLoader(){const l=document.getElementById('loader');l.classList.add('out');setTimeout(()=>{l.style.display='none';},550);}
-    window.reloadCatalog=loadCatalog;
-    window.fbLogin=(e,p)=>{startAuthListener();return signInWithEmailAndPassword(ensureAuth(),e,p);};
-    window.fbRegister=async(e,p,n)=>{startAuthListener();const c=await createUserWithEmailAndPassword(ensureAuth(),e,p);if(n)await updateProfile(c.user,{displayName:n});return c;};
-    window.fbGoogle=()=>{startAuthListener();const pr=new GoogleAuthProvider();pr.addScope('email');pr.addScope('profile');return signInWithPopup(ensureAuth(),pr);};
+    restoreCatalogFromCache();restorePublicRatingsFromCache();setProgress(12,'Подготавливаем витрину...');
+    window.reloadCatalog=opts=>ensureFirebaseBoot().then(()=>loadCatalog(opts));
+    window.fbLogin=(e,p)=>ensureFirebaseBoot().then(()=>{startAuthListener();return signInWithEmailAndPassword(ensureAuth(),e,p);});
+    window.fbRegister=(e,p,n)=>ensureFirebaseBoot().then(async()=>{startAuthListener();const c=await createUserWithEmailAndPassword(ensureAuth(),e,p);if(n)await updateProfile(c.user,{displayName:n});return c;});
+    window.fbGoogle=()=>ensureFirebaseBoot().then(()=>{startAuthListener();const pr=new GoogleAuthProvider();pr.addScope('email');pr.addScope('profile');return signInWithPopup(ensureAuth(),pr);});
     window.fbLogout=()=>auth?signOut(auth).catch(e=>console.error(e)):Promise.resolve();
-    window.fbResetPwd=e=>{startAuthListener();return sendPasswordResetEmail(ensureAuth(),e);};
+    window.fbResetPwd=e=>ensureFirebaseBoot().then(()=>{startAuthListener();return sendPasswordResetEmail(ensureAuth(),e);});
     window.saveUserDB=async(payload,nick)=>{if(!db)return;try{const refDoc=doc(db,"users_data",payload.sub),existing=await getDoc(refDoc),nextNick=nick||payload.name,baseData={uid:payload.sub,name:payload.name,email:payload.email,picture:payload.picture||'',customNickname:nextNick,searchName:nextNick.toLowerCase()};if(existing.exists()){await setDoc(refDoc,{...baseData,role:(existing.data().role)||((payload.email||'').toLowerCase()===ADMIN_EMAIL_DB?'admin':'user')},{merge:true});}else{await setDoc(refDoc,{...baseData,role:(payload.email||'').toLowerCase()===ADMIN_EMAIL_DB?'admin':'user',commentBlocked:false,chatBlocked:false,prizmBalance:0,prizmDailyReadSeconds:0,prizmReadDay:'',prizmLastClaimDay:'',readingTimeTotal:0,moderationNote:'',profileBio:'',historyVisible:true,publicReadingHistory:[],ownedStoreAvatars:[],ownedStoreFrames:[],equippedStoreAvatar:'',equippedStoreFrame:'',createdAt:Date.now()},{merge:true});}}catch(e){console.error(e);}};
     window.saveNickCloud=async nick=>{const u=_store('mc_user',null);if(!u||!db)return;try{await setDoc(doc(db,"users_data",u.sub),{customNickname:nick,searchName:nick.toLowerCase()},{merge:true});}catch(e){console.error(e);}};
     window.saveAvatarCloud=async url=>{const u=_store('mc_user',null);if(!u||!db)return;try{await setDoc(doc(db,"users_data",u.sub),{customAvatar:url},{merge:true});}catch(e){console.error(e);}};
@@ -2204,8 +2222,7 @@
     window.updateComments=async(mid,list)=>{if(!db)return;try{await setDoc(doc(db,"manga_comments",mid),{list});}catch(e){console.error(e);}};
     window.loadComments=async mid=>{if(!db)return[];try{const s=await getDoc(doc(db,"manga_comments",mid));if(s.exists()&&s.data().list)return s.data().list;}catch(e){}return[];};
     window._store=_store;
-    const fbTimeout=setTimeout(()=>{if(!window.firebaseReady){restoreCatalogFromCache();restorePublicRatingsFromCache();document.getElementById('loader').classList.add('out');setTimeout(()=>document.getElementById('loader').style.display='none',550);window.startUI&&window.startUI();}},7000);
-    initFirebase().then(()=>clearTimeout(fbTimeout));
+    scheduleFirebaseBootstrap();
   </script>
 
   <!-- APP LOGIC -->
@@ -2261,10 +2278,11 @@
     function detectLowPerformanceDevice(){
       const reducedMotion=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       const smallScreen=!!(window.matchMedia&&window.matchMedia('(max-width: 900px)').matches);
+      const touchScreen=!!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches);
       const cores=Number(navigator.hardwareConcurrency||0);
       const memory=Number(navigator.deviceMemory||0);
       const saveData=!!(navigator.connection&&navigator.connection.saveData);
-      return reducedMotion||saveData||(cores&&cores<=4)||(memory&&memory<=4)||(smallScreen&&cores&&cores<=6);
+      return reducedMotion||saveData||(cores&&cores<=4)||(memory&&memory<=4)||(smallScreen&&cores&&cores<=6)||(smallScreen&&touchScreen);
     }
     function getPerformanceModeLabel(mode){
       if(mode==='full')return'Полный';
@@ -3478,7 +3496,7 @@
       const audioDuration=Number.isFinite(musicAudio.duration)?musicAudio.duration:0;
       return audioDuration>0?audioDuration:Math.max(metaDuration,0);
     }
-    function getTrackArtwork(track){if(track&&typeof track.artwork==='string'&&track.artwork)return track.artwork;const art=track&&track.artwork?track.artwork:{};const userPic=track&&track.user&&track.user.profile_picture?track.user.profile_picture:{};return art['150x150']||art['480x480']||art['1000x1000']||userPic['150x150']||userPic['480x480']||userPic['1000x1000']||'https://placehold.co/64x64/111122/22c55e?text=%E2%99%AA';}
+    function getTrackArtwork(track){if(track&&typeof track.artwork==='string'&&track.artwork)return track.artwork;const art=track&&track.artwork?track.artwork:{};const userPic=track&&track.user&&track.user.profile_picture?track.user.profile_picture:{};return art['150x150']||art['480x480']||art['1000x1000']||userPic['150x150']||userPic['480x480']||userPic['1000x1000']||'mc-icon-192.png?v=4';}
     function getTrackArtist(track){return track&&((track.artist&&String(track.artist).trim())||(track.creator&&String(track.creator).trim())||(track.user&&track.user.name&&String(track.user.name).trim()))||'Unknown Artist';}
     function getTrackSourceLabel(track){return track&&track.sourceLabel?track.sourceLabel:(track&&track.source==='archive'?'Internet Archive':'Audius');}
     function normalizeAudiusHost(host){return String(host||'').replace(/\/+$/,'');}
@@ -3573,7 +3591,7 @@
             artist,
             duration,
             genre:'',
-            artwork:'https://placehold.co/64x64/111122/22c55e?text=IA',
+      artwork:'mc-icon-192.png?v=4',
             streamUrl:MUSIC_ARCHIVE_ENDPOINT+'/download/'+encodeURIComponent(doc.identifier)+'/'+encodeArchiveFilePath(file.name)
           };
         }catch{return null;}
@@ -3823,7 +3841,7 @@
         const artist=getTrackArtist(track);
         const meta=[getTrackSourceLabel(track),track.genre||'',track.duration?formatMusicDuration(track.duration):''].filter(Boolean).join(' • ');
         return '<button class="music-result'+(active?' active':'')+'" type="button" onclick="playAudiusTrackAt('+index+')">'
-          +'<img class="music-result-art" src="'+esc(getTrackArtwork(track))+'" alt="'+esc(track.title)+'" onerror="this.src=\'https://placehold.co/64x64/111122/8b5cf6?text=%E2%99%AA\'">'
+        +'<img class="music-result-art" src="'+esc(getTrackArtwork(track))+'" alt="'+esc(track.title)+'" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">'
           +'<span class="music-result-info"><span class="music-result-title">'+esc(track.title)+'</span><span class="music-result-artist">'+esc(artist)+'</span>'+(meta?'<span class="music-result-meta">'+esc(meta)+'</span>':'')+'</span>'
           +'</button>';
       }).join('');
@@ -3895,28 +3913,32 @@
 
     // ── PARTICLES ──
     (function(){
-      const cv=document.getElementById('canvas');if(!cv)return;
-      const cx=cv.getContext('2d',{alpha:true});let pts=[],W,H,frameSkip=0;
-      function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
-      function buildParticles(){
-        const particleCount=W<=720?12:22;
-        pts=Array.from({length:particleCount},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:Math.random()*2+.4,a:Math.random()*.35+.08}));
+      function initParticles(){
+        const cv=document.getElementById('canvas');if(!cv)return;
+        const cx=cv.getContext('2d',{alpha:true});let pts=[],W,H,frameSkip=0;
+        function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+        function buildParticles(){
+          const particleCount=W<=720?12:22;
+          pts=Array.from({length:particleCount},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:Math.random()*2+.4,a:Math.random()*.35+.08}));
+        }
+        resize();buildParticles();
+        window.addEventListener('resize',()=>{resize();buildParticles();},{passive:true});
+        function draw(){
+          requestAnimationFrame(draw);
+          const loader=document.getElementById('loader'),reader=document.getElementById('reader');
+          if(document.hidden)return;
+          if(!loader.classList.contains('out')||reader.style.display==='block')return;
+          if(window.areParticlesEnabled&&!window.areParticlesEnabled()){cx.clearRect(0,0,W,H);return;}
+          if(W<=720&&(frameSkip++%2))return;
+          cx.clearRect(0,0,W,H);
+          const isDark=!document.documentElement.getAttribute('data-theme');
+          pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=isDark?`rgba(139,92,246,${p.a})`:`rgba(109,40,217,${p.a*.5})`;cx.fill();});
+          for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<115){cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle=isDark?`rgba(139,92,246,${.055*(1-d/115)})`:`rgba(109,40,217,${.025*(1-d/115)})`;cx.stroke();}}
+        }
+        draw();
       }
-      resize();buildParticles();
-      window.addEventListener('resize',()=>{resize();buildParticles();},{passive:true});
-      function draw(){
-        requestAnimationFrame(draw);
-        const loader=document.getElementById('loader'),reader=document.getElementById('reader');
-        if(document.hidden)return;
-        if(!loader.classList.contains('out')||reader.style.display==='block')return;
-        if(window.areParticlesEnabled&&!window.areParticlesEnabled()){cx.clearRect(0,0,W,H);return;}
-        if(W<=720&&(frameSkip++%2))return;
-        cx.clearRect(0,0,W,H);
-        const isDark=!document.documentElement.getAttribute('data-theme');
-        pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=isDark?`rgba(139,92,246,${p.a})`:`rgba(109,40,217,${p.a*.5})`;cx.fill();});
-        for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<115){cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle=isDark?`rgba(139,92,246,${.055*(1-d/115)})`:`rgba(109,40,217,${.025*(1-d/115)})`;cx.stroke();}}
-      }
-      draw();
+      if(document.readyState==='complete')setTimeout(initParticles,120);
+      else window.addEventListener('load',()=>setTimeout(initParticles,120),{once:true});
     })();
 
     // ── HEADER HIDE ON SCROLL ──
@@ -4385,16 +4407,34 @@
     }
     window.sendMsg=sendMsg;window.sendRealMessage=sendMsg;
 
+    function getPosterLoadingAttrs(index,{eagerCount=0,highPriority=false}={}){
+      const eager=index<eagerCount;
+      if(!eager)return'loading="lazy" decoding="async"';
+      return'loading="eager" decoding="async"'+(highPriority&&index===0?' fetchpriority="high"':'');
+    }
+
     // ── HERO BANNER ──
     function renderHero(){
       const c=document.getElementById('hero-wrap');
       const all=Object.values(window.mangaDB);
-      if(!all.length){c.innerHTML='';return;}
+      if(!all.length){
+        c.innerHTML='<div class="hero-banner" onclick="goPage(\'catalog\')">'
+          +'<div class="hero-bg" aria-hidden="true"></div>'
+          +'<div class="hero-content">'
+          +'<img class="hero-cover" src="mc-icon-192.png?v=4" alt="MangaCloud" loading="eager" decoding="async" fetchpriority="high" width="120" height="180">'
+          +'<div class="hero-info">'
+          +'<div class="hero-label">⚡ Быстрый старт</div>'
+          +'<div class="hero-title">MangaCloud готовит витрину и не держит телефон на заставке</div>'
+          +'<div class="hero-desc">Сначала показываем быстрый экран и локальный кеш, а облачные обновления подтягиваем позже, чтобы мобильная загрузка была легче.</div>'
+          +'<button class="btn" type="button" style="width:auto;padding:9px 20px;font-size:.78rem" onclick="event.stopPropagation();goPage(\'catalog\')">Открыть каталог →</button>'
+          +'</div></div></div>';
+        return;
+      }
       const m=getRecommendedList(1)[0]||all[Math.floor(Math.random()*all.length)];
       c.innerHTML='<div class="hero-banner" onclick="openTitle(\''+esc(m.id)+'\')">'
-        +'<div class="hero-bg" style="background-image:url(\''+esc(m.cover)+'\')"></div>'
+        +'<div class="hero-bg" aria-hidden="true"></div>'
         +'<div class="hero-content">'
-        +'<img class="hero-cover" src="'+esc(m.cover)+'" alt="'+esc(m.title)+'" loading="lazy" onerror="this.src=\'https://placehold.co/120x180/111122/8b5cf6?text=?\'">'
+        +'<img class="hero-cover" src="'+esc(m.cover)+'" alt="'+esc(m.title)+'" '+getPosterLoadingAttrs(0,{eagerCount:1,highPriority:true})+' width="120" height="180" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">'
         +'<div class="hero-info">'
         +'<div class="hero-label">'+(homeMode==='recommended'?'🧠 Под ваш вкус':'✨ Рекомендация дня')+'</div>'
         +'<div class="hero-title">'+esc(m.title)+'</div>'
@@ -4548,8 +4588,9 @@
         const badges=['⭐ '+rating.toFixed(1)];
         if((m.genres||[]).length)badges.push((m.genres||[])[0]);
         if(topGenres.some(genre=>(m.genres||[]).includes(genre)))badges.push('Ваш жанр');
+        const posterAttrs=getPosterLoadingAttrs(index,{eagerCount:1});
         return'<div class="spot-card" onclick="openTitle(\''+esc(m.id)+'\')">'
-          +'<img class="spot-card-cover" src="'+esc(m.cover)+'" alt="'+esc(m.title)+'" loading="lazy" onerror="this.src=\'https://placehold.co/120x170/111122/8b5cf6?text=?\'">'
+          +'<img class="spot-card-cover" src="'+esc(m.cover)+'" alt="'+esc(m.title)+'" '+posterAttrs+' width="120" height="170" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">'
           +'<div class="spot-card-info">'
           +'<div>'
           +'<div class="spot-card-label">'+(index===0?'Лучшее попадание':'Рекомендуем')+'</div>'
@@ -4711,11 +4752,12 @@
         const isNew=m.updatedAt&&(Date.now()/1000-m.updatedAt)<7*24*3600;
         const highlightedTitle=highlightText(m.title,currentSearchQuery);
         const highlightedGenres=(m.genres?m.genres.slice(0,2).map(g=>'<span class="card-genre">'+highlightText(g,currentSearchQuery)+'</span>').join(''):'');
+        const posterAttrs=getPosterLoadingAttrs(index,{eagerCount:targetId==='home-grid'?2:0,highPriority:targetId==='home-grid'});
         return'<div class="card" onclick="openTitle(\''+esc(m.id)+'\')">'
           +'<div class="card-img">'
           +(isNew?'<span class="badge b-new">NEW</span>':'<span class="badge b-status">'+esc(m.status||'')+'</span>')
           +(r?'<span class="badge b-rating">★ '+r.toFixed(1)+'</span>':'')
-          +'<img src="'+esc(m.cover)+'" alt="'+esc(m.title)+'" loading="lazy" decoding="async" onerror="this.src=\'https://placehold.co/300x450/111122/8b5cf6?text=?\'">'
+          +'<img src="'+esc(m.cover)+'" alt="'+esc(m.title)+'" '+posterAttrs+' width="300" height="435" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">'
           +'</div>'
           +'<div class="card-info" style="animation:fadeUp .25s ease both;animation-delay:'+(index*0.025).toFixed(3)+'s"><h3>'+highlightedTitle+'</h3>'
           +'<div class="card-sub">'+highlightedGenres+(isLoved?' <span style="color:var(--red)">❤️</span>':'')+'</div>'
@@ -4731,7 +4773,7 @@
       if(!manga){c.innerHTML='';return;}
       const stats=getTitleReadStats(last.id);
       c.innerHTML='<div class="continue-widget" onclick="openTitle(\''+esc(last.id)+'\')">'
-        +'<img class="cont-cover" src="'+esc(manga.cover)+'" alt="'+esc(manga.title)+'" loading="lazy" onerror="this.src=\'https://placehold.co/68x68/111122/8b5cf6?text=?\'">'
+        +'<img class="cont-cover" src="'+esc(manga.cover)+'" alt="'+esc(manga.title)+'" loading="lazy" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">'
         +'<div class="cont-info"><div class="cont-label">▶ Продолжить чтение</div><div class="cont-title">'+esc(manga.title)+'</div><div class="cont-ch">Глава '+last.ch+' • '+stats.pct+'%</div></div>'
         +'<div class="cont-arrow">→</div></div>';
     }
@@ -4916,7 +4958,7 @@
         +'<div class="stat-card"><div class="stat-val">'+fmtTime(totalReadTime)+'</div><div class="stat-lbl">Время чтения</div></div></div>';}
       renderHistoryAnalytics();
       if(!readHist.length){c.innerHTML='<div class="empty"><div class="empty-icon">🕒</div><div class="empty-txt">История пуста</div><div class="empty-sub">Начните читать мангу!</div></div>';return;}
-      c.innerHTML=readHist.slice().reverse().map(h=>{const m=window.mangaDB[h.id];if(!m)return'';return'<div class="list-item" onclick="openTitle(\''+esc(h.id)+'\')">'+'<img src="'+esc(m.cover)+'" class="list-av" style="border-radius:7px" alt="'+esc(m.title)+'" onerror="this.src=\'https://placehold.co/44x44/111122/8b5cf6?text=?\'">'+'<div class="list-info"><div class="list-title">'+esc(m.title)+'</div><div class="list-sub">Глава '+h.ch+'</div></div>'+'<span class="list-act">Читать</span></div>';}).join('');
+    c.innerHTML=readHist.slice().reverse().map(h=>{const m=window.mangaDB[h.id];if(!m)return'';return'<div class="list-item" onclick="openTitle(\''+esc(h.id)+'\')">'+'<img src="'+esc(m.cover)+'" class="list-av" style="border-radius:7px" alt="'+esc(m.title)+'" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">'+'<div class="list-info"><div class="list-title">'+esc(m.title)+'</div><div class="list-sub">Глава '+h.ch+'</div></div>'+'<span class="list-act">Читать</span></div>';}).join('');
     }
     function clearHistory(){showAlert({icon:'🗑️',title:'Очистить историю?',msg:'Вся история чтения будет удалена без возможности восстановления.',type:'danger',confirmText:'Очистить',cancelText:'Отмена',onConfirm:async()=>{readHist=[];_save('mc_hist',readHist);totalReadTime=0;localStorage.setItem('mc_rt','0');await syncPublicHistoryFromLocal(true);renderHistoryList();updateProfileUI();refreshHomeUI();renderSettingsPage();toast('История очищена','warning');}});}
     window.clearHistory=clearHistory;
@@ -4928,7 +4970,7 @@
       currentPage='title';
       goPage('title',{skipSeo:true,skipRoute:true});
       document.getElementById('t-cover').src=m.cover;
-      document.getElementById('t-cover').onerror=function(){this.src='https://placehold.co/265x400/111122/8b5cf6?text=?';};
+    document.getElementById('t-cover').onerror=function(){this.onerror=null;this.src='mc-icon-192.png?v=4';};
       document.getElementById('t-name').textContent=m.title;
       document.getElementById('t-meta').textContent=(m.author||'Неизвестен')+' • '+(m.year||'')+' • '+(m.status||'');
       document.getElementById('t-genres').innerHTML=(m.genres||[]).map(g=>'<span class="genre-tag">'+esc(g)+'</span>').join('');
@@ -5126,7 +5168,7 @@
       readerEl.style.display='block';document.body.style.overflow='hidden';
       document.getElementById('r-info').textContent=m.title+' — Гл. '+ch;
       const imgs=m.chapters[ch];
-      document.getElementById('reader-imgs').innerHTML=(Array.isArray(imgs)?imgs:[imgs]).map((url,i)=>'<img src="'+esc(url)+'" alt="Стр. '+(i+1)+'" loading="'+(i<3?'eager':'lazy')+'" onerror="this.src=\'https://placehold.co/800x1200/0d0d18/8b5cf6?text=Ошибка+загрузки\'">').join('');
+    document.getElementById('reader-imgs').innerHTML=(Array.isArray(imgs)?imgs:[imgs]).map((url,i)=>'<img src="'+esc(url)+'" alt="Стр. '+(i+1)+'" loading="'+(i<3?'eager':'lazy')+'" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">').join('');
       readerImageMetrics=[];
       [...document.querySelectorAll('#reader-imgs img')].forEach(img=>img.addEventListener('load',scheduleReaderMetricRebuild,{once:true}));
       document.getElementById('r-prog').style.width='0%';
@@ -5183,9 +5225,16 @@
     window.openReader=openReader;window.closeReader=closeReader;window.moveChapter=moveChapter;window.toggleWidth=toggleWidth;window.changeReaderFont=changeReaderFont;window.jumpToReaderChapter=jumpToReaderChapter;
 
     // ── START UI ──
+    let initialUiPaintDone=false;
+    function dismissLoaderSoon(delay=90){
+      const loader=document.getElementById('loader');
+      if(!loader||loader.style.display==='none'||loader.classList.contains('out'))return;
+      setTimeout(()=>{loader.classList.add('out');setTimeout(()=>{loader.style.display='none';},550);},delay);
+    }
     function startUI(){
       refreshHomeUI();updateMusicUI();
       buildFilters();updateProfileUI();updateHdrAuth();renderNotifs();updateBadges();updateOfflineBanner();renderAnnouncementBar();renderDiscoveriesPage();renderSettingsPage();renderShopPage();registerServiceWorker();applyUrlState();syncPublicHistoryFromLocal(true);updateSeoMeta(currentPage,{manga:curId&&window.mangaDB[curId]});
+      if(!initialUiPaintDone){initialUiPaintDone=true;dismissLoaderSoon(Object.keys(window.mangaDB||{}).length?60:120);}
     }
     window.startUI=startUI;
 
@@ -5196,7 +5245,7 @@
         setTimeout(()=>document.getElementById('loader').style.display='none',550);
         startUI();
       }
-    },8500);
+    },4000);
   </script>
 </body>
 </html>
