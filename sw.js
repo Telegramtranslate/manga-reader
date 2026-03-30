@@ -1,8 +1,10 @@
-const CACHE_NAME = "mangacloud-shell-v20";
+const CACHE_NAME = "mangacloud-shell-v21";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./catalog-provider.js?v=13",
+  "./catalog-provider.js?v=14",
+  "./local-library.json?v=1",
+  "./local-library.example.json",
   "./catalog-seed.json?v=3",
   "./catalog-fallback.json?v=8",
   "./manifest.webmanifest",

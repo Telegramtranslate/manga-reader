@@ -1,0 +1,45 @@
+{
+  "mb_example-title": {
+    "id": "mb_example-title",
+    "source": "local",
+    "title": "Пример локального тайтла",
+    "description": "Этот пример показывает формат своих глав и страниц внутри MangaCloud.",
+    "author": "Ваш проект",
+    "year": 2026,
+    "status": "Онгоинг",
+    "type": "Манга",
+    "origin": "Япония",
+    "genres": [
+      "Экшен",
+      "Фэнтези"
+    ],
+    "cover": "./mc-icon-512.png",
+    "coverThumb": "./mc-icon-192.png",
+    "chapterCount": 2,
+    "updatedAt": 1770000000,
+    "chapters": {
+      "1000": {
+        "id": "mb_example-title_ch_1_1",
+        "number": 1,
+        "tome": "1",
+        "chapter": "1",
+        "title": "Том 1 • Глава 1",
+        "pages": [
+          "./mc-icon-512.png",
+          "./mc-icon-192.png"
+        ]
+      },
+      "2000": {
+        "id": "mb_example-title_ch_1_2",
+        "number": 2,
+        "tome": "1",
+        "chapter": "2",
+        "title": "Том 1 • Глава 2",
+        "pages": [
+          "./mc-icon-512.png",
+          "./mc-icon-192.png"
+        ]
+      }
+    }
+  }
+}

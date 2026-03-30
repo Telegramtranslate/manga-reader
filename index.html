@@ -2109,7 +2109,7 @@
     <div class="reader-hint">Свайп, A/D или стрелки переключают главы. Выбранная ширина и размер сохраняются автоматически.</div>
   </div>
 
-  <script src="./catalog-provider.js?v=13"></script>
+  <script src="./catalog-provider.js?v=14"></script>
 
   <!-- FIREBASE -->
   <script type="module">
@@ -2120,8 +2120,8 @@
     const FIRESTORE_SETTINGS={experimentalForceLongPolling:true,experimentalLongPollingOptions:{timeoutSeconds:25}};
     let app,db,auth;
     const ADMIN_EMAIL_DB='zarobotokjoker@gmail.com';
-    const CATALOG_CACHE_KEY="mc_catalog_cache_v11";
-    const LEGACY_CATALOG_CACHE_KEYS=["mc_catalog_cache_v10","mc_catalog_cache_v9","mc_catalog_cache_v8","mc_catalog_cache_v7","mc_catalog_cache_v6","mc_catalog_cache_v5","mc_catalog_cache_v4","mc_catalog_cache_v3","mc_catalog_cache_v2","mc_catalog_cache_v1"];
+    const CATALOG_CACHE_KEY="mc_catalog_cache_v12";
+    const LEGACY_CATALOG_CACHE_KEYS=["mc_catalog_cache_v11","mc_catalog_cache_v10","mc_catalog_cache_v9","mc_catalog_cache_v8","mc_catalog_cache_v7","mc_catalog_cache_v6","mc_catalog_cache_v5","mc_catalog_cache_v4","mc_catalog_cache_v3","mc_catalog_cache_v2","mc_catalog_cache_v1"];
     const CATALOG_CACHE_MAX_CHARS=900000;
     const PUBLIC_RATINGS_CACHE_MAX_CHARS=250000;
     const PUBLIC_RATINGS_CACHE_KEY="mc_public_ratings_v1";
@@ -5151,7 +5151,10 @@
       const m=window.mangaDB[id];
       if(!wrap||!m){if(wrap)wrap.innerHTML='';return;}
       const chapters=getSortedChapterNumbers(m);
-      if(!chapters.length){wrap.innerHTML='<div class="title-next-card"><div class="title-next-head"><div><div class="title-next-label">Загрузка</div><div class="title-next-title">Подтягиваем список глав</div><div class="title-next-sub">Каталог загружен из внешней базы, поэтому главы появляются по запросу и сохраняются в кэш.</div></div></div><div class="title-next-actions"><button class="btn btn-sec btn-sm" type="button" onclick="renderChapters(\''+esc(id)+'\')">Обновить главы</button></div></div>';return;}
+      if(!chapters.length){
+        wrap.innerHTML='<div class="title-next-card"><div class="title-next-head"><div><div class="title-next-label">Свои главы</div><div class="title-next-title">Нативные главы ещё не добавлены</div><div class="title-next-sub">Каталог можно брать из внешней базы, но для чтения внутри MangaCloud главы и страницы должны лежать у вас. Добавьте их в local-library.json.</div></div></div><div class="title-next-actions"><button class="btn btn-sec btn-sm" type="button" onclick="renderChapters(\''+esc(id)+'\')">Обновить список</button>'+(m.sourceUrl?'<a class="btn btn-sec btn-sm" href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener" style="text-decoration:none">Открыть источник ↗</a>':'')+'</div></div>';
+        return;
+      }
       const history=readHist.filter(h=>h.id===id).sort((a,b)=>b.date-a.date);
       const readSet=new Set(history.map(h=>h.ch));
       const nextUnread=chapters.find(ch=>!readSet.has(ch));
@@ -5183,11 +5186,10 @@
       }
       const chs=getSortedChapterNumbers(m);
       if(!chs.length){
-        if(m.source==='mangabuff'&&m.sourceUrl){
+        if(m.sourceUrl){
           c.innerHTML=
-            '<div style="padding:18px;border:1px solid rgba(139,92,246,.22);border-radius:18px;background:rgba(17,17,34,.78);color:var(--text2);text-align:center;margin-bottom:14px">Внутренний список глав временно недоступен, поэтому ниже открыта оригинальная страница тайтла с MangaBuff.</div>'+
-            '<div style="display:flex;justify-content:center;margin-bottom:14px"><a class="btn" href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener" style="text-decoration:none">Открыть MangaBuff ↗</a></div>'+
-            '<iframe src="'+esc(m.sourceUrl)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;min-height:72vh;border:1px solid rgba(139,92,246,.18);border-radius:18px;background:#0b0b16"></iframe>';
+            '<div style="padding:18px;border:1px solid rgba(139,92,246,.22);border-radius:18px;background:rgba(17,17,34,.78);color:var(--text2);text-align:center;margin-bottom:14px">Для этого тайтла в MangaCloud пока нет своих глав. Чтобы читать его без сторонней встройки, добавьте главы и страницы в local-library.json.</div>'+
+            '<div style="display:flex;justify-content:center;margin-bottom:8px"><a class="btn btn-sec" href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener" style="text-decoration:none">Открыть источник в новой вкладке ↗</a></div>';
           renderTitleProg(id);renderQStats();return;
         }
         c.innerHTML='<p style="padding:18px;color:var(--text2);text-align:center">Нет доступных глав</p>';renderTitleProg(id);return;
@@ -5342,9 +5344,8 @@
         const sourceEntry=getChapterEntry(m,ch);
         if(sourceEntry&&sourceEntry.sourceUrl){
           readerImgsEl.innerHTML=
-            '<div class="reader-loading" style="padding-bottom:12px">Страницы не удалось забрать в локальный ридер, поэтому глава открыта во встроенном окне MangaBuff.</div>'+
-            '<div style="display:flex;justify-content:center;padding:0 16px 16px"><a class="btn" href="'+esc(sourceEntry.sourceUrl)+'" target="_blank" rel="noopener" style="text-decoration:none">Открыть главу в новой вкладке ↗</a></div>'+
-            '<iframe src="'+esc(sourceEntry.sourceUrl)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;min-height:78vh;border:0;border-radius:18px;background:#0b0b16"></iframe>';
+            '<div class="reader-loading" style="padding-bottom:12px">У этой главы нет локально сохранённых страниц. Для нативного чтения внутри MangaCloud добавьте страницы главы в local-library.json.</div>'+
+            '<div style="display:flex;justify-content:center;padding:0 16px 16px"><a class="btn btn-sec" href="'+esc(sourceEntry.sourceUrl)+'" target="_blank" rel="noopener" style="text-decoration:none">Открыть источник в новой вкладке ↗</a></div>';
           renderReaderMeta(id,ch);
           return;
         }

@@ -5,9 +5,11 @@
   const SOURCE_ORIGIN = "https://mangabuff.ru";
   const SOURCE_PROXY = "/api/mangabuff";
   const CACHE_PREFIX = "mc_mangabuff_";
-  const CATALOG_CACHE_KEY = CACHE_PREFIX + "catalog_v9";
-  const CATALOG_META_KEY = CACHE_PREFIX + "catalog_meta_v5";
+  const CATALOG_CACHE_KEY = CACHE_PREFIX + "catalog_v10";
+  const CATALOG_META_KEY = CACHE_PREFIX + "catalog_meta_v6";
   const LEGACY_CACHE_KEYS = [
+    CACHE_PREFIX + "catalog_v9",
+    CACHE_PREFIX + "catalog_meta_v5",
     CACHE_PREFIX + "catalog_v8",
     CACHE_PREFIX + "catalog_meta_v4",
     CACHE_PREFIX + "catalog_v7",
@@ -17,6 +19,7 @@
   const CACHE_TTL = 12 * 60 * 60 * 1000;
   const TITLE_CACHE_TTL = 24 * 60 * 60 * 1000;
   const PAGE_CACHE_TTL = 24 * 60 * 60 * 1000;
+  const LOCAL_LIBRARY_URL = "./local-library.json?v=1";
   const SEED_CATALOG_URL = "./catalog-seed.json?v=3";
   const FALLBACK_CATALOG_URL = "./catalog-fallback.json?v=8";
   const PART_URLS = [
@@ -246,6 +249,14 @@
     return {};
   }
 
+  async function loadLocalLibrary() {
+    try {
+      const data = await fetchJson(LOCAL_LIBRARY_URL);
+      if (data && typeof data === "object" && Object.keys(data).length) return data;
+    } catch (error) {}
+    return {};
+  }
+
   function scheduleWarmCatalog(seedCatalog, loadedParts) {
     if (warmCatalogPromise) return;
     const startIndex = Math.max(0, loadedParts || 0);
@@ -355,34 +366,46 @@
     if (catalogPromise && !force) return catalogPromise;
 
     catalogPromise = (async function () {
+      const localLibrary = await loadLocalLibrary();
       const cachedCatalog = force ? null : readCache(CATALOG_CACHE_KEY, null);
       if (cachedCatalog && Object.keys(cachedCatalog).length && !force) {
         const cachedMeta = readCache(CATALOG_META_KEY, { loadedParts: 0 });
         loadedCatalog = cloneCatalog(cachedCatalog);
+        if (Object.keys(localLibrary).length) {
+          mergeCatalog(loadedCatalog, localLibrary);
+        }
         loadedPartsCount = Math.min(Number(cachedMeta.loadedParts) || 0, PART_URLS.length);
         return cloneCatalog(loadedCatalog);
       }
 
       try {
         const seedCatalog = await loadSeedCatalog();
-        writeCache(CATALOG_CACHE_KEY, seedCatalog, CACHE_TTL);
+        const mergedSeed = cloneCatalog(seedCatalog);
+        if (Object.keys(localLibrary).length) {
+          mergeCatalog(mergedSeed, localLibrary);
+        }
+        writeCache(CATALOG_CACHE_KEY, mergedSeed, CACHE_TTL);
         writeCache(CATALOG_META_KEY, { loadedParts: 0 }, CACHE_TTL);
-        loadedCatalog = cloneCatalog(seedCatalog);
+        loadedCatalog = cloneCatalog(mergedSeed);
         loadedPartsCount = 0;
         return cloneCatalog(loadedCatalog);
       } catch (error) {
         console.error("Failed to load seed catalog:", error);
         const fallback = await loadFallbackCatalog();
         if (Object.keys(fallback).length) {
-          writeCache(CATALOG_CACHE_KEY, fallback, 30 * 60 * 1000);
+          const mergedFallback = cloneCatalog(fallback);
+          if (Object.keys(localLibrary).length) {
+            mergeCatalog(mergedFallback, localLibrary);
+          }
+          writeCache(CATALOG_CACHE_KEY, mergedFallback, 30 * 60 * 1000);
           writeCache(CATALOG_META_KEY, { loadedParts: 0 }, 30 * 60 * 1000);
-          loadedCatalog = cloneCatalog(fallback);
+          loadedCatalog = cloneCatalog(mergedFallback);
           loadedPartsCount = 0;
           return cloneCatalog(loadedCatalog);
         }
-        loadedCatalog = {};
+        loadedCatalog = cloneCatalog(localLibrary);
         loadedPartsCount = 0;
-        return {};
+        return cloneCatalog(loadedCatalog);
       }
     })();
 
