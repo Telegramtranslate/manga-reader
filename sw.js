@@ -1,11 +1,11 @@
-﻿const CACHE_NAME = "mangacloud-shell-v13";
+const CACHE_NAME = "mangacloud-shell-v15";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./catalog-provider.js",
-  "./catalog-provider.js?v=5",
+  "./catalog-provider.js?v=8",
   "./catalog-fallback.json",
-  "./catalog-fallback.json?v=1",
+  "./catalog-fallback.json?v=3",
   "./manifest.webmanifest",
   "./manifest.webmanifest?v=4",
   "./robots.txt",
@@ -20,7 +20,7 @@ const APP_SHELL = [
 async function networkFirst(request, fallbackUrl) {
   try {
     const response = await fetch(request);
-    if (response && response.ok) {
+    if (response && (response.ok || response.type === "opaque")) {
       const cache = await caches.open(CACHE_NAME);
       await cache.put(fallbackUrl || request, response.clone());
     }
@@ -37,21 +37,17 @@ async function staleWhileRevalidate(request) {
   const cached = await cache.match(request);
   const networkPromise = fetch(request)
     .then(response => {
-      if (response && response.ok) {
+      if (response && (response.ok || response.type === "opaque")) {
         cache.put(request, response.clone());
       }
       return response;
     })
     .catch(() => null);
 
-  if (cached) {
-    return cached;
-  }
+  if (cached) return cached;
 
   const networkResponse = await networkPromise;
-  if (networkResponse) {
-    return networkResponse;
-  }
+  if (networkResponse) return networkResponse;
 
   return caches.match("./index.html");
 }
@@ -79,31 +75,19 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  if (url.origin === self.location.origin && url.pathname === "/api/mangadex" && url.searchParams.get("endpoint")) {
-    const endpoint = url.searchParams.get("endpoint").replace(/^\/+/, "");
-    const proxyUrl = new URL("/api/mangadex/" + endpoint, self.location.origin);
-    url.searchParams.forEach((value, key) => {
-      if (key !== "endpoint") proxyUrl.searchParams.append(key, value);
-    });
-    event.respondWith(networkFirst(new Request(proxyUrl.toString(), event.request), proxyUrl.toString()));
-    return;
-  }
-
-  if (url.origin === self.location.origin && url.pathname.startsWith("/api/mangadex/")) {
+  if (url.origin === self.location.origin && (url.pathname === "/api/mangabuff" || url.pathname.startsWith("/api/mangabuff/"))) {
     event.respondWith(networkFirst(event.request));
     return;
   }
 
   if (
-    url.hostname === "api.mangadex.org" ||
-    url.hostname === "uploads.mangadex.org" ||
-    url.hostname.endsWith(".mangadex.network")
+    url.hostname === "mangabuff.ru" ||
+    url.hostname === "custom.mangabuff.ru"
   ) {
-    event.respondWith(
-      url.hostname === "api.mangadex.org"
-        ? networkFirst(event.request)
-        : staleWhileRevalidate(event.request)
-    );
+    const isImageRequest = /\.(?:png|jpe?g|webp|gif|avif|svg)(?:$|\?)/i.test(url.pathname) ||
+      url.pathname.indexOf("/chapters/") !== -1 ||
+      url.pathname.indexOf("/posters/") !== -1;
+    event.respondWith(isImageRequest ? staleWhileRevalidate(event.request) : networkFirst(event.request));
     return;
   }
 
@@ -111,5 +95,3 @@ self.addEventListener("fetch", event => {
     event.respondWith(staleWhileRevalidate(event.request));
   }
 });
-
-
