@@ -1600,6 +1600,7 @@
         <div id="cat-info" style="margin-top:9px;margin-bottom:5px;font-size:.79rem;color:var(--text2)"></div>
         <div id="catalog-tags" class="tag-cloud"></div>
         <div class="grid" id="cat-grid" style="margin-top:13px"></div>
+        <div id="cat-more-wrap" style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:16px"></div>
       </div>
       <aside class="filters">
         <div class="filters-head">
@@ -2108,7 +2109,7 @@
     <div class="reader-hint">Свайп, A/D или стрелки переключают главы. Выбранная ширина и размер сохраняются автоматически.</div>
   </div>
 
-  <script src="./catalog-provider.js?v=11"></script>
+  <script src="./catalog-provider.js?v=12"></script>
 
   <!-- FIREBASE -->
   <script type="module">
@@ -2119,14 +2120,17 @@
     const FIRESTORE_SETTINGS={experimentalForceLongPolling:true,experimentalLongPollingOptions:{timeoutSeconds:25}};
     let app,db,auth;
     const ADMIN_EMAIL_DB='zarobotokjoker@gmail.com';
-    const CATALOG_CACHE_KEY="mc_catalog_cache_v9";
-    const LEGACY_CATALOG_CACHE_KEYS=["mc_catalog_cache_v8","mc_catalog_cache_v7","mc_catalog_cache_v6","mc_catalog_cache_v5","mc_catalog_cache_v4","mc_catalog_cache_v3","mc_catalog_cache_v2","mc_catalog_cache_v1"];
+    const CATALOG_CACHE_KEY="mc_catalog_cache_v10";
+    const LEGACY_CATALOG_CACHE_KEYS=["mc_catalog_cache_v9","mc_catalog_cache_v8","mc_catalog_cache_v7","mc_catalog_cache_v6","mc_catalog_cache_v5","mc_catalog_cache_v4","mc_catalog_cache_v3","mc_catalog_cache_v2","mc_catalog_cache_v1"];
+    const CATALOG_CACHE_MAX_CHARS=900000;
+    const PUBLIC_RATINGS_CACHE_MAX_CHARS=250000;
     const PUBLIC_RATINGS_CACHE_KEY="mc_public_ratings_v1";
     window.mangaDB={};window.publicRatings={};window.firebaseReady=false;window.currentUserCloud={};window.siteMeta={};
     function setProgress(pct,msg){const b=document.getElementById('l-fill'),m=document.getElementById('l-msg');if(b)b.style.transform='scaleX('+Math.max(0,Math.min(1,pct/100))+')';if(m)m.textContent=msg;}
-    function _store(k,fb){try{return JSON.parse(localStorage.getItem(k))||fb;}catch{return fb;}}
-    function readCatalogCache(){return _store(CATALOG_CACHE_KEY,{});}
-    function readPublicRatingsCache(){return _store(PUBLIC_RATINGS_CACHE_KEY,{});}
+    function readJsonCache(key,fb,maxChars=0){try{const raw=localStorage.getItem(key);if(!raw)return fb;if(maxChars&&raw.length>maxChars){localStorage.removeItem(key);return fb;}return JSON.parse(raw)||fb;}catch(e){try{localStorage.removeItem(key);}catch(_e){}return fb;}}
+    function _store(k,fb){return readJsonCache(k,fb);}
+    function readCatalogCache(){return readJsonCache(CATALOG_CACHE_KEY,{},CATALOG_CACHE_MAX_CHARS);}
+    function readPublicRatingsCache(){return readJsonCache(PUBLIC_RATINGS_CACHE_KEY,{},PUBLIC_RATINGS_CACHE_MAX_CHARS);}
     function hasCatalogData(data){return !!data&&typeof data==='object'&&Object.keys(data).length>0;}
     function hasPublicRatingsData(data){return !!data&&typeof data==='object'&&Object.keys(data).length>0;}
     function restoreCatalogFromCache(){
@@ -2145,11 +2149,11 @@
     }
     function saveCatalogCache(data){
       if(!hasCatalogData(data))return;
-      try{localStorage.setItem(CATALOG_CACHE_KEY,JSON.stringify(data));}catch(e){console.warn('Catalog cache skipped',e);}
+      try{const raw=JSON.stringify(data);if(raw.length>CATALOG_CACHE_MAX_CHARS)return;localStorage.setItem(CATALOG_CACHE_KEY,raw);}catch(e){console.warn('Catalog cache skipped',e);}
     }
     function savePublicRatingsCache(data){
       if(!hasPublicRatingsData(data))return;
-      try{localStorage.setItem(PUBLIC_RATINGS_CACHE_KEY,JSON.stringify(data));}catch(e){console.warn('Ratings cache skipped',e);}
+      try{const raw=JSON.stringify(data);if(raw.length>PUBLIC_RATINGS_CACHE_MAX_CHARS)return;localStorage.setItem(PUBLIC_RATINGS_CACHE_KEY,raw);}catch(e){console.warn('Ratings cache skipped',e);}
     }
     function getAverageRatingFromDoc(data){
       const scores=Object.values(data||{}).map(v=>Number(v)).filter(v=>Number.isFinite(v)&&v>=1&&v<=10);
@@ -2277,6 +2281,8 @@
     let searchSaveTimer=null;
     let discoveryTag='all';
     let activeCatalogTags=_store('mc_catalog_tags',[]);
+    let catalogFilteredList=[];
+    let catalogVisibleCount=96;
     let randomHistory=_store('mc_random_history',[]);
     let deferredInstallPrompt=null;
     let pwaInstalled=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;
@@ -2284,6 +2290,7 @@
     let cachedHighRatingThreshold=null;
     let adminUsersCache=[];
     let siteMetaListening=false;
+    const CATALOG_PAGE_SIZE=96;
     const DEFAULT_SEO_TITLE='MangaCloud — Читать мангу онлайн бесплатно';
     const DEFAULT_SEO_DESCRIPTION='Читать цветную мангу и манхву онлайн в высоком качестве. Самая большая база цветных тайтлов на MangaCloud.';
     const HOME_MODE_KEYS=['popular','new','top','recommended','continue'];
@@ -4810,6 +4817,7 @@
     function renderGrid(list,targetId){
       const c=document.getElementById(targetId);if(!c)return;
       if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon">🔍</div><div class="empty-txt">Ничего не найдено</div><div class="empty-sub">Попробуйте изменить запрос или сбросить фильтры</div></div>';return;}
+      const animateCards=list.length<=48;
       c.innerHTML=list.map((m,index)=>{
         const isLoved=loved.includes(m.id),r=getDisplayRating(m);
         const isNew=m.updatedAt&&(Date.now()/1000-m.updatedAt)<7*24*3600;
@@ -4822,11 +4830,30 @@
           +(r?'<span class="badge b-rating">★ '+r.toFixed(1)+'</span>':'')
           +'<img src="'+esc(m.coverThumb||m.cover)+'" alt="'+esc(m.title)+'" '+posterAttrs+' width="300" height="435" onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">'
           +'</div>'
-          +'<div class="card-info" style="animation:fadeUp .25s ease both;animation-delay:'+(index*0.025).toFixed(3)+'s"><h3>'+highlightedTitle+'</h3>'
+          +'<div class="card-info" style="'+(animateCards?('animation:fadeUp .25s ease both;animation-delay:'+(index*0.025).toFixed(3)+'s'):'')+'"><h3>'+highlightedTitle+'</h3>'
           +'<div class="card-sub">'+highlightedGenres+(isLoved?' <span style="color:var(--red)">❤️</span>':'')+'</div>'
           +'</div></div>';
       }).join('');
     }
+    function renderCatalogResults(list,opts={}){
+      const resetVisible=opts.resetVisible!==false;
+      if(resetVisible)catalogVisibleCount=CATALOG_PAGE_SIZE;
+      catalogFilteredList=list.slice();
+      const visibleList=catalogFilteredList.slice(0,catalogVisibleCount);
+      const info=document.getElementById('cat-info');
+      if(info)info.textContent='Найдено: '+catalogFilteredList.length+' тайтлов'+(catalogFilteredList.length>visibleList.length?' • показано '+visibleList.length:'');
+      renderGrid(visibleList,'cat-grid');
+      const more=document.getElementById('cat-more-wrap');
+      if(!more)return;
+      const remaining=Math.max(0,catalogFilteredList.length-visibleList.length);
+      more.innerHTML=remaining?'<button class="btn btn-sec" type="button" onclick="loadMoreCatalog()">Показать ещё '+Math.min(CATALOG_PAGE_SIZE,remaining)+'</button><div style="font-size:.78rem;color:var(--text2)">Осталось '+remaining+'</div>':'';
+    }
+    function loadMoreCatalog(){
+      if(catalogVisibleCount>=catalogFilteredList.length)return;
+      catalogVisibleCount+=CATALOG_PAGE_SIZE;
+      renderCatalogResults(catalogFilteredList,{resetVisible:false});
+    }
+    window.loadMoreCatalog=loadMoreCatalog;
 
     // ── CONTINUE READING ──
     function renderContinue(){
@@ -4936,8 +4963,7 @@
       else if(sort==='rating')list.sort((a,b)=>getPublicRating(b)-getPublicRating(a));
       else if(sort==='new')list.sort((a,b)=>(b.year||0)-(a.year||0));
       else if(sort==='updated')list.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-      document.getElementById('cat-info').textContent='Найдено: '+list.length+' тайтлов';
-      renderGrid(list,'cat-grid');
+      renderCatalogResults(list,{resetVisible:true});
     }
     function resetFilters(){document.querySelectorAll('.filters input[type="checkbox"]').forEach(i=>i.checked=false);activeCatalogTags=[];_save('mc_catalog_tags',activeCatalogTags);renderCatalogTags();document.getElementById('sort-sel').value='popular';applyFilters();toast('Фильтры сброшены','info');}
     window.applyFilters=applyFilters;window.resetFilters=resetFilters;
@@ -5334,6 +5360,21 @@
       if(!loader||loader.style.display==='none'||loader.classList.contains('out'))return;
       setTimeout(()=>{loader.classList.add('out');setTimeout(()=>{loader.style.display='none';},550);},delay);
     }
+    let catalogRefreshTimer=null;
+    function requestCatalogRefresh(opts={}){
+      clearTimeout(catalogRefreshTimer);
+      catalogRefreshTimer=setTimeout(()=>{
+        catalogRefreshTimer=null;
+        if(currentPage==='catalog'){buildFilters();applyFilters();}
+        else if(currentPage==='home')refreshHomeUI();
+        else if(currentPage==='discoveries')renderDiscoveriesPage();
+        else if(currentPage==='fav')renderFavGrid();
+        else if(currentPage==='loved')renderLovedGrid();
+        else if(currentPage==='hist')renderHistoryList();
+        if(opts.final&&window.toast&&opts.total>CATALOG_PAGE_SIZE)window.toast('Каталог расширен: '+opts.total+' тайтлов','success');
+      },opts.final?80:220);
+    }
+    window.requestCatalogRefresh=requestCatalogRefresh;
     function startUI(){
       refreshHomeUI();updateMusicUI();
       buildFilters();updateProfileUI();updateHdrAuth();renderNotifs();updateBadges();updateOfflineBanner();renderAnnouncementBar();renderDiscoveriesPage();renderSettingsPage();renderShopPage();registerServiceWorker();applyUrlState();syncPublicHistoryFromLocal(true);updateSeoMeta(currentPage,{manga:curId&&window.mangaDB[curId]});
