@@ -2108,7 +2108,7 @@
     <div class="reader-hint">Свайп, A/D или стрелки переключают главы. Выбранная ширина и размер сохраняются автоматически.</div>
   </div>
 
-  <script src="./catalog-provider.js?v=8"></script>
+  <script src="./catalog-provider.js?v=11"></script>
 
   <!-- FIREBASE -->
   <script type="module">
@@ -2119,8 +2119,8 @@
     const FIRESTORE_SETTINGS={experimentalForceLongPolling:true,experimentalLongPollingOptions:{timeoutSeconds:25}};
     let app,db,auth;
     const ADMIN_EMAIL_DB='zarobotokjoker@gmail.com';
-    const CATALOG_CACHE_KEY="mc_catalog_cache_v6";
-    const LEGACY_CATALOG_CACHE_KEYS=["mc_catalog_cache_v5","mc_catalog_cache_v4","mc_catalog_cache_v3","mc_catalog_cache_v2","mc_catalog_cache_v1"];
+    const CATALOG_CACHE_KEY="mc_catalog_cache_v9";
+    const LEGACY_CATALOG_CACHE_KEYS=["mc_catalog_cache_v8","mc_catalog_cache_v7","mc_catalog_cache_v6","mc_catalog_cache_v5","mc_catalog_cache_v4","mc_catalog_cache_v3","mc_catalog_cache_v2","mc_catalog_cache_v1"];
     const PUBLIC_RATINGS_CACHE_KEY="mc_public_ratings_v1";
     window.mangaDB={};window.publicRatings={};window.firebaseReady=false;window.currentUserCloud={};window.siteMeta={};
     function setProgress(pct,msg){const b=document.getElementById('l-fill'),m=document.getElementById('l-msg');if(b)b.style.transform='scaleX('+Math.max(0,Math.min(1,pct/100))+')';if(m)m.textContent=msg;}
@@ -2144,10 +2144,12 @@
       return true;
     }
     function saveCatalogCache(data){
-      if(hasCatalogData(data))localStorage.setItem(CATALOG_CACHE_KEY,JSON.stringify(data));
+      if(!hasCatalogData(data))return;
+      try{localStorage.setItem(CATALOG_CACHE_KEY,JSON.stringify(data));}catch(e){console.warn('Catalog cache skipped',e);}
     }
     function savePublicRatingsCache(data){
-      if(hasPublicRatingsData(data))localStorage.setItem(PUBLIC_RATINGS_CACHE_KEY,JSON.stringify(data));
+      if(!hasPublicRatingsData(data))return;
+      try{localStorage.setItem(PUBLIC_RATINGS_CACHE_KEY,JSON.stringify(data));}catch(e){console.warn('Ratings cache skipped',e);}
     }
     function getAverageRatingFromDoc(data){
       const scores=Object.values(data||{}).map(v=>Number(v)).filter(v=>Number.isFinite(v)&&v>=1&&v<=10);
@@ -5104,7 +5106,16 @@
         if(curId!==id)return;
       }
       const chs=getSortedChapterNumbers(m);
-      if(!chs.length){c.innerHTML='<p style="padding:18px;color:var(--text2);text-align:center">Нет доступных глав</p>';renderTitleProg(id);return;}
+      if(!chs.length){
+        if(m.source==='mangabuff'&&m.sourceUrl){
+          c.innerHTML=
+            '<div style="padding:18px;border:1px solid rgba(139,92,246,.22);border-radius:18px;background:rgba(17,17,34,.78);color:var(--text2);text-align:center;margin-bottom:14px">Внутренний список глав временно недоступен, поэтому ниже открыта оригинальная страница тайтла с MangaBuff.</div>'+
+            '<div style="display:flex;justify-content:center;margin-bottom:14px"><a class="btn" href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener" style="text-decoration:none">Открыть MangaBuff ↗</a></div>'+
+            '<iframe src="'+esc(m.sourceUrl)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;min-height:72vh;border:1px solid rgba(139,92,246,.18);border-radius:18px;background:#0b0b16"></iframe>';
+          renderTitleProg(id);renderQStats();return;
+        }
+        c.innerHTML='<p style="padding:18px;color:var(--text2);text-align:center">Нет доступных глав</p>';renderTitleProg(id);return;
+      }
       c.innerHTML=chs.map(ch=>{const isRead=readHist.some(h=>h.id===id&&h.ch===ch);return'<div class="ch-item'+(isRead?' read':'')+'" onclick="openReader(\''+esc(id)+'\','+ch+')">'+'<span class="ch-num">'+esc(getChapterDisplayLabel(m,ch))+(isRead?' ✓':'')+'</span>'+'<span class="ch-act">ЧИТАТЬ →</span></div>';}).join('');
       renderTitleProg(id);renderQStats();
     }
@@ -5251,7 +5262,18 @@
       let imgs=getChapterImages(getChapterEntry(m,ch));
       if(!imgs.length&&window.mangaCatalogProvider&&window.mangaCatalogProvider.ensureChapterPages){try{imgs=await window.mangaCatalogProvider.ensureChapterPages(id,ch);}catch(e){console.error(e);}}
       if(requestId!==readerOpenRequestId||curId!==id||curCh!==ch)return;
-      if(!imgs.length){readerImgsEl.innerHTML='<div class="reader-loading">Не удалось загрузить страницы. Попробуйте ещё раз через пару секунд.</div>';toast('Не удалось загрузить страницы главы','error');renderReaderMeta(id,ch);return;}
+      if(!imgs.length){
+        const sourceEntry=getChapterEntry(m,ch);
+        if(sourceEntry&&sourceEntry.sourceUrl){
+          readerImgsEl.innerHTML=
+            '<div class="reader-loading" style="padding-bottom:12px">Страницы не удалось забрать в локальный ридер, поэтому глава открыта во встроенном окне MangaBuff.</div>'+
+            '<div style="display:flex;justify-content:center;padding:0 16px 16px"><a class="btn" href="'+esc(sourceEntry.sourceUrl)+'" target="_blank" rel="noopener" style="text-decoration:none">Открыть главу в новой вкладке ↗</a></div>'+
+            '<iframe src="'+esc(sourceEntry.sourceUrl)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;min-height:78vh;border:0;border-radius:18px;background:#0b0b16"></iframe>';
+          renderReaderMeta(id,ch);
+          return;
+        }
+        readerImgsEl.innerHTML='<div class="reader-loading">Не удалось загрузить страницы. Попробуйте ещё раз через пару секунд.</div>';toast('Не удалось загрузить страницы главы','error');renderReaderMeta(id,ch);return;
+      }
       readerImgsEl.innerHTML=imgs.map((url,i)=>'<img src="'+esc(url)+'" alt="Стр. '+(i+1)+'" loading="'+(i<6?'eager':'lazy')+'" decoding="async" '+(i===0?'fetchpriority="high" ':'')+'onerror="this.onerror=null;this.src=\'mc-icon-192.png?v=4\'">').join('');
       [...document.querySelectorAll('#reader-imgs img')].forEach(img=>img.addEventListener('load',scheduleReaderMetricRebuild,{once:true}));
       renderReaderMeta(id,ch);

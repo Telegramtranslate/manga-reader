@@ -5,118 +5,21 @@
   const SOURCE_ORIGIN = "https://mangabuff.ru";
   const SOURCE_PROXY = "/api/mangabuff";
   const CACHE_PREFIX = "mc_mangabuff_";
-  const CACHE_TTL = 6 * 60 * 60 * 1000;
-  const LISTING_PATHS = [
-    "/",
-    "/manga/top",
-    "/types/manxva/2026",
-    "/types/manxya/2026",
-    "/types/manga/2026",
-    "/types/manxva/2025",
-    "/types/manxya/2025",
-    "/types/manga/2025"
-  ];
-
-  const FALLBACK_ITEMS = [
-    {
-      slug: "ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora",
-      title: "Я стала жертвой одержимости злого императора",
-      type: "Манхва",
-      genre: "Драма",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora.jpg?1757890971",
-      cover: "https://mangabuff.ru/img/manga/posters/ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora.jpg?1757890971"
-    },
-    {
-      slug: "reinkarnaciya-korolya-kvona",
-      title: "Реинкарнация короля Квона",
-      type: "Манхва",
-      genre: "Боевые искусства",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/reinkarnaciya-korolya-kvona.jpg?1757891723",
-      cover: "https://mangabuff.ru/img/manga/posters/reinkarnaciya-korolya-kvona.jpg?1757891723"
-    },
-    {
-      slug: "absolyutnoe-chuvstvo-mecha",
-      title: "Абсолютное чувство меча",
-      type: "Манхва",
-      genre: "Экшен",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/absolyutnoe-chuvstvo-mecha.jpg?1755870764",
-      cover: "https://mangabuff.ru/img/manga/posters/absolyutnoe-chuvstvo-mecha.jpg?1755870764"
-    },
-    {
-      slug: "vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou",
-      title: "Ведите себя как подобает боссу подземелий, мистер Сваллоу!",
-      type: "Манхва",
-      genre: "Экшен",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou.jpg?1704839025",
-      cover: "https://mangabuff.ru/img/manga/posters/vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou.jpg?1704839025"
-    },
-    {
-      slug: "legendarnye-geroi-otlichniki-akademii",
-      title: "Реинкарнация Легендарного Героя",
-      type: "Манхва",
-      genre: "Приключения",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/legendarnye-geroi-otlichniki-akademii.jpg",
-      cover: "https://mangabuff.ru/img/manga/posters/legendarnye-geroi-otlichniki-akademii.jpg"
-    },
-    {
-      slug: "kak-otvergnut-moego-navyazchivogo-byvshego-muzha",
-      title: "Как отвергнуть моего навязчивого бывшего мужа",
-      type: "Манхва",
-      genre: "История",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/kak-otvergnut-moego-navyazchivogo-byvshego-muzha.jpg?1760960114",
-      cover: "https://mangabuff.ru/img/manga/posters/kak-otvergnut-moego-navyazchivogo-byvshego-muzha.jpg?1760960114"
-    },
-    {
-      slug: "tipichnaya-reinkarnaciya",
-      title: "Моя типичная реинкарнация",
-      type: "Манхва",
-      genre: "Экшен",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/tipichnaya-reinkarnaciya.jpg?1755868090",
-      cover: "https://mangabuff.ru/img/manga/posters/tipichnaya-reinkarnaciya.jpg?1755868090"
-    },
-    {
-      slug: "zatknis-drakon-ya-bolshe-ne-hochu-vospityvat-detei-s-toboi",
-      title: "Заткнись, дракон, я больше не хочу воспитывать детей с тобой.",
-      type: "Маньхуа",
-      genre: "Героическое фэнтези",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/zatknis-drakon-ya-bolshe-ne-hochu-vospityvat-detei-s-toboi.jpg",
-      cover: "https://mangabuff.ru/img/manga/posters/zatknis-drakon-ya-bolshe-ne-hochu-vospityvat-detei-s-toboi.jpg"
-    },
-    {
-      slug: "eto-vpervye-kogda-ya-lyubima",
-      title: "Это впервые, когда я любима",
-      type: "Манхва",
-      genre: "Романтика",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/eto-vpervye-kogda-ya-lyubima.jpg?1762522552",
-      cover: "https://mangabuff.ru/img/manga/posters/eto-vpervye-kogda-ya-lyubima.jpg?1762522552"
-    },
-    {
-      slug: "neveroyatnoe-obuchenie",
-      title: "Невероятное обучение",
-      type: "Манхва",
-      genre: "Экшен",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/neveroyatnoe-obuchenie.jpg?1757895042",
-      cover: "https://mangabuff.ru/img/manga/posters/neveroyatnoe-obuchenie.jpg?1757895042"
-    },
-    {
-      slug: "tri-genialnyh-sestry-neozhidanno-okazalis-vlyubleny",
-      title: "Три гениальных сестры неожиданно влюбились",
-      type: "Манга",
-      genre: "Комедия",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/tri-genialnyh-sestry-neozhidanno-okazalis-vlyubleny.jpg?1699049401",
-      cover: "https://mangabuff.ru/img/manga/posters/tri-genialnyh-sestry-neozhidanno-okazalis-vlyubleny.jpg?1699049401"
-    },
-    {
-      slug: "voennye-trofei-gercogini",
-      title: "Герцогиня-трофей",
-      type: "Манхва",
-      genre: "Драма",
-      coverThumb: "https://mangabuff.ru/x180/img/manga/posters/voennye-trofei-gercogini.jpg?1757440392",
-      cover: "https://mangabuff.ru/img/manga/posters/voennye-trofei-gercogini.jpg?1757440392"
-    }
-  ];
+  const STATIC_CATALOG_URL = "./catalog-full.json?v=1";
+  const CATALOG_CACHE_KEY = CACHE_PREFIX + "catalog_v6";
+  const CATALOG_META_KEY = CACHE_PREFIX + "catalog_meta_v2";
+  const CACHE_TTL = 12 * 60 * 60 * 1000;
+  const TITLE_CACHE_TTL = 24 * 60 * 60 * 1000;
+  const PAGE_CACHE_TTL = 24 * 60 * 60 * 1000;
+  const CATALOG_FIRST_PAGE = 1;
+  const CATALOG_LAST_PAGE = 247;
+  const INITIAL_PAGE_LIMIT = 12;
+  const FORCE_REFRESH_PAGE_LIMIT = 24;
+  const REQUEST_CHUNK_SIZE = 4;
+  const WARMUP_DELAY_MS = 800;
 
   let catalogPromise = null;
+  let warmCatalogPromise = null;
   const titlePromises = new Map();
   const chapterPromises = new Map();
 
@@ -153,10 +56,6 @@
         expires: Date.now() + (ttl || CACHE_TTL)
       }));
     } catch (error) {}
-  }
-
-  function clone(value) {
-    return JSON.parse(JSON.stringify(value));
   }
 
   function absoluteUrl(url) {
@@ -210,18 +109,6 @@
     }
   }
 
-  function inferTypeFromPath(path) {
-    if (path.indexOf("/types/manxva") !== -1) return "Манхва";
-    if (path.indexOf("/types/manxya") !== -1) return "Маньхуа";
-    if (path.indexOf("/types/manga") !== -1) return "Манга";
-    return "";
-  }
-
-  function inferYearFromPath(path) {
-    const match = String(path || "").match(/\/(20\d{2})(?:\/)?$/);
-    return match ? Number.parseInt(match[1], 10) : null;
-  }
-
   function extractBackgroundUrl(style) {
     const match = String(style || "").match(/url\(['"]?([^'")]+)['"]?\)/i);
     return match ? match[1] : "";
@@ -249,7 +136,42 @@
     }
   }
 
-  function normalizeListingEntry(anchor, contextPath) {
+  function pagePath(page) {
+    return "/manga?page=" + page;
+  }
+
+  function chunked(items, size) {
+    const chunks = [];
+    for (let i = 0; i < items.length; i += size) {
+      chunks.push(items.slice(i, i + size));
+    }
+    return chunks;
+  }
+
+  function range(from, to) {
+    const values = [];
+    for (let page = from; page <= to; page += 1) values.push(page);
+    return values;
+  }
+
+  function mergeCatalog(target, incoming) {
+    Object.keys(incoming || {}).forEach(id => {
+      const nextEntry = incoming[id];
+      const currentEntry = target[id];
+      target[id] = currentEntry
+        ? {
+            ...currentEntry,
+            ...nextEntry,
+            genres: mergeUnique([...(currentEntry.genres || []), ...(nextEntry.genres || [])]),
+            rating: currentEntry.rating ?? nextEntry.rating ?? null,
+            updatedAt: Math.max(currentEntry.updatedAt || 0, nextEntry.updatedAt || 0)
+          }
+        : nextEntry;
+    });
+    return target;
+  }
+
+  function normalizeListingEntry(anchor) {
     const href = anchor.getAttribute("href") || "";
     const slugMatch = href.match(/\/manga\/([^/?#]+)/);
     if (!slugMatch) return null;
@@ -260,9 +182,7 @@
     const rawCover = extractBackgroundUrl(anchor.querySelector(".cards__img")?.getAttribute("style"));
     const thumb = coverToThumb(rawCover);
     const fullCover = coverToFull(rawCover);
-    const fallbackType = inferTypeFromPath(contextPath);
-    const year = inferYearFromPath(contextPath);
-    const type = infoParts[0] || fallbackType || "";
+    const type = infoParts[0] || "";
     const primaryGenre = infoParts[1] || "";
     const updatedAt = extractUpdatedAtFromUrl(rawCover);
 
@@ -275,7 +195,7 @@
       desc: "",
       description: "",
       author: "",
-      year: year,
+      year: null,
       status: "",
       genres: primaryGenre ? [primaryGenre] : [],
       cover: fullCover || thumb || "mc-icon-192.png?v=4",
@@ -289,57 +209,109 @@
     };
   }
 
-  function parseListingHtml(html, contextPath) {
+  function parseListingHtml(html) {
     const doc = createDoc(html);
     const catalog = {};
     doc.querySelectorAll("a.cards__item[href*=\"/manga/\"]").forEach(anchor => {
-      const entry = normalizeListingEntry(anchor, contextPath);
+      const entry = normalizeListingEntry(anchor);
       if (!entry) return;
-      catalog[entry.id] = catalog[entry.id]
-        ? {
-            ...catalog[entry.id],
-            ...entry,
-            genres: mergeUnique([...(catalog[entry.id].genres || []), ...(entry.genres || [])]),
-            rating: entry.rating || catalog[entry.id].rating,
-            updatedAt: entry.updatedAt || catalog[entry.id].updatedAt
-          }
-        : entry;
+      mergeCatalog(catalog, { [entry.id]: entry });
     });
     return catalog;
   }
 
   function buildFallbackCatalog() {
-    const catalog = {};
-    FALLBACK_ITEMS.forEach(item => {
-      const id = createMangaId(item.slug);
-      catalog[id] = {
-        id: id,
+    return {
+      "mb_ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora": {
+        id: "mb_ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora",
         source: SOURCE_NAME,
-        sourceUrl: absoluteUrl("/manga/" + item.slug),
-        slug: item.slug,
-        title: item.title,
+        sourceUrl: "https://mangabuff.ru/manga/ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora",
+        slug: "ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora",
+        title: "Я стала жертвой одержимости злого императора",
         desc: "",
         description: "",
         author: "",
         year: 2026,
         status: "",
-        genres: item.genre ? [item.genre] : [],
-        cover: item.cover,
-        coverThumb: item.coverThumb,
-        type: item.type,
-        origin: getOriginByType(item.type),
+        genres: ["Драма"],
+        cover: "https://mangabuff.ru/img/manga/posters/ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora.jpg?1757890971",
+        coverThumb: "https://mangabuff.ru/x180/img/manga/posters/ya-stala-zhertvoi-oderzhimosti-zlogo-imperatora.jpg?1757890971",
+        type: "Манхва",
+        origin: "Корея",
         chapterCount: 0,
-        updatedAt: extractUpdatedAtFromUrl(item.cover) || 1774890000,
+        updatedAt: 1757890971,
         chapters: null,
         rating: null
-      };
-    });
-    return catalog;
+      },
+      "mb_reinkarnaciya-korolya-kvona": {
+        id: "mb_reinkarnaciya-korolya-kvona",
+        source: SOURCE_NAME,
+        sourceUrl: "https://mangabuff.ru/manga/reinkarnaciya-korolya-kvona",
+        slug: "reinkarnaciya-korolya-kvona",
+        title: "Реинкарнация короля Квона",
+        desc: "",
+        description: "",
+        author: "",
+        year: 2026,
+        status: "",
+        genres: ["Боевые искусства"],
+        cover: "https://mangabuff.ru/img/manga/posters/reinkarnaciya-korolya-kvona.jpg?1757891723",
+        coverThumb: "https://mangabuff.ru/x180/img/manga/posters/reinkarnaciya-korolya-kvona.jpg?1757891723",
+        type: "Манхва",
+        origin: "Корея",
+        chapterCount: 0,
+        updatedAt: 1757891723,
+        chapters: null,
+        rating: null
+      },
+      "mb_absolyutnoe-chuvstvo-mecha": {
+        id: "mb_absolyutnoe-chuvstvo-mecha",
+        source: SOURCE_NAME,
+        sourceUrl: "https://mangabuff.ru/manga/absolyutnoe-chuvstvo-mecha",
+        slug: "absolyutnoe-chuvstvo-mecha",
+        title: "Абсолютное чувство меча",
+        desc: "",
+        description: "",
+        author: "",
+        year: 2026,
+        status: "",
+        genres: ["Экшен"],
+        cover: "https://mangabuff.ru/img/manga/posters/absolyutnoe-chuvstvo-mecha.jpg?1755870764",
+        coverThumb: "https://mangabuff.ru/x180/img/manga/posters/absolyutnoe-chuvstvo-mecha.jpg?1755870764",
+        type: "Манхва",
+        origin: "Корея",
+        chapterCount: 0,
+        updatedAt: 1755870764,
+        chapters: null,
+        rating: null
+      },
+      "mb_vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou": {
+        id: "mb_vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou",
+        source: SOURCE_NAME,
+        sourceUrl: "https://mangabuff.ru/manga/vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou",
+        slug: "vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou",
+        title: "Ведите себя как подобает боссу подземелий, мистер Сваллоу!",
+        desc: "",
+        description: "",
+        author: "",
+        year: 2026,
+        status: "",
+        genres: ["Экшен"],
+        cover: "https://mangabuff.ru/img/manga/posters/vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou.jpg?1704839025",
+        coverThumb: "https://mangabuff.ru/x180/img/manga/posters/vedite-sebya-kak-podobaet-bossu-podzemelii-mister-svollou.jpg?1704839025",
+        type: "Манхва",
+        origin: "Корея",
+        chapterCount: 0,
+        updatedAt: 1704839025,
+        chapters: null,
+        rating: null
+      }
+    };
   }
 
   async function loadJsonFallback() {
     try {
-      const response = await fetch("./catalog-fallback.json?v=3", { cache: "no-store" });
+      const response = await fetch("./catalog-fallback.json?v=5", { cache: "no-store" });
       if (!response.ok) throw new Error("Fallback request failed: " + response.status);
       const data = await response.json();
       if (data && typeof data === "object" && Object.keys(data).length) return data;
@@ -347,6 +319,16 @@
       console.error("Failed to load fallback catalog file:", error);
     }
     return buildFallbackCatalog();
+  }
+
+  async function loadStaticCatalog() {
+    const response = await fetch(STATIC_CATALOG_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("Static catalog request failed: " + response.status);
+    const data = await response.json();
+    if (!data || typeof data !== "object" || !Object.keys(data).length) {
+      throw new Error("Static catalog is empty");
+    }
+    return data;
   }
 
   function buildChapterKey(tome, chapter) {
@@ -423,47 +405,106 @@
       .filter(Boolean);
   }
 
+  async function fetchCatalogPages(pageNumbers) {
+    const catalog = {};
+    const chunks = chunked(pageNumbers, REQUEST_CHUNK_SIZE);
+    for (const chunk of chunks) {
+      const results = await Promise.all(chunk.map(async page => {
+        try {
+          const html = await fetchText(pagePath(page));
+          return { page: page, catalog: parseListingHtml(html) };
+        } catch (error) {
+          console.error("Failed catalog page:", page, error);
+          return { page: page, catalog: {} };
+        }
+      }));
+      results.forEach(result => mergeCatalog(catalog, result.catalog));
+    }
+    return catalog;
+  }
+
+  function notifyCatalogExpanded(catalog) {
+    try {
+      if (!window.mangaDB || Object.keys(catalog).length <= Object.keys(window.mangaDB).length) return;
+      window.mangaDB = { ...catalog };
+      window.invalidateComputedCaches && window.invalidateComputedCaches();
+      window.startUI && window.startUI();
+    } catch (error) {
+      console.error("Failed to refresh expanded catalog:", error);
+    }
+  }
+
+  function scheduleWarmCatalog(cachedCatalog, loadedUntil) {
+    const nextPage = Math.max(CATALOG_FIRST_PAGE, (loadedUntil || 0) + 1);
+    if (nextPage > CATALOG_LAST_PAGE || warmCatalogPromise) return;
+
+    const startWarmup = function () {
+      if (warmCatalogPromise) return;
+      warmCatalogPromise = (async function () {
+        const catalog = { ...(cachedCatalog || {}) };
+        let lastLoaded = loadedUntil || 0;
+        for (let from = nextPage; from <= CATALOG_LAST_PAGE; from += REQUEST_CHUNK_SIZE) {
+          const to = Math.min(CATALOG_LAST_PAGE, from + REQUEST_CHUNK_SIZE - 1);
+          const parsed = await fetchCatalogPages(range(from, to));
+          mergeCatalog(catalog, parsed);
+          lastLoaded = to;
+          writeCache(CATALOG_CACHE_KEY, catalog, CACHE_TTL);
+          writeCache(CATALOG_META_KEY, { loadedUntil: lastLoaded, totalPages: CATALOG_LAST_PAGE }, CACHE_TTL);
+          if (lastLoaded % 24 === 0 || lastLoaded === CATALOG_LAST_PAGE) {
+            notifyCatalogExpanded(catalog);
+          }
+        }
+      })().catch(error => {
+        console.error("Background catalog warmup failed:", error);
+      }).finally(() => {
+        warmCatalogPromise = null;
+      });
+    };
+
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(startWarmup, { timeout: 2000 });
+    } else {
+      setTimeout(startWarmup, WARMUP_DELAY_MS);
+    }
+  }
+
   async function loadCatalog(options) {
     const force = !!(options && options.force);
     if (catalogPromise && !force) return catalogPromise;
 
     catalogPromise = (async function () {
-      const cacheKey = CACHE_PREFIX + "catalog_v3";
-      if (!force) {
-        const cached = readCache(cacheKey, null);
-        if (cached && Object.keys(cached).length) return cached;
+      const cachedCatalog = force ? null : readCache(CATALOG_CACHE_KEY, null);
+      const cachedMeta = readCache(CATALOG_META_KEY, { loadedUntil: 0, totalPages: CATALOG_LAST_PAGE });
+
+      if (cachedCatalog && Object.keys(cachedCatalog).length && !force) {
+        return cachedCatalog;
       }
 
       try {
-        const pages = await Promise.all(LISTING_PATHS.map(async path => ({
-          path: path,
-          html: await fetchText(path)
-        })));
+        const staticCatalog = await loadStaticCatalog();
+        writeCache(CATALOG_CACHE_KEY, staticCatalog, CACHE_TTL);
+        writeCache(CATALOG_META_KEY, { loadedUntil: CATALOG_LAST_PAGE, totalPages: CATALOG_LAST_PAGE }, CACHE_TTL);
+        return staticCatalog;
+      } catch (staticError) {
+        console.error("Failed to load static MangaBuff catalog:", staticError);
+      }
 
-        const catalog = {};
-        pages.forEach(page => {
-          const parsed = parseListingHtml(page.html, page.path);
-          Object.keys(parsed).forEach(id => {
-            const existing = catalog[id];
-          catalog[id] = existing
-              ? {
-                  ...existing,
-                  ...parsed[id],
-                  genres: mergeUnique([...(existing.genres || []), ...(parsed[id].genres || [])]),
-                  rating: existing.rating ?? parsed[id].rating ?? null,
-                  updatedAt: parsed[id].updatedAt || existing.updatedAt
-                }
-              : parsed[id];
-          });
-        });
-
+      try {
+        const firstPage = CATALOG_FIRST_PAGE;
+        const lastPage = force ? Math.min(CATALOG_LAST_PAGE, FORCE_REFRESH_PAGE_LIMIT) : Math.min(CATALOG_LAST_PAGE, INITIAL_PAGE_LIMIT);
+        const catalog = await fetchCatalogPages(range(firstPage, lastPage));
         if (!Object.keys(catalog).length) throw new Error("Catalog is empty");
-        writeCache(cacheKey, catalog);
+        writeCache(CATALOG_CACHE_KEY, catalog, CACHE_TTL);
+        writeCache(CATALOG_META_KEY, { loadedUntil: lastPage, totalPages: CATALOG_LAST_PAGE }, CACHE_TTL);
+        if (lastPage < CATALOG_LAST_PAGE) {
+          scheduleWarmCatalog(catalog, lastPage);
+        }
         return catalog;
       } catch (error) {
         console.error("Failed to load MangaBuff catalog:", error);
         const fallback = await loadJsonFallback();
-        writeCache(cacheKey, fallback, 30 * 60 * 1000);
+        writeCache(CATALOG_CACHE_KEY, fallback, 30 * 60 * 1000);
+        writeCache(CATALOG_META_KEY, { loadedUntil: 0, totalPages: CATALOG_LAST_PAGE }, 30 * 60 * 1000);
         return fallback;
       }
     })();
@@ -490,7 +531,7 @@
         const html = await fetchText("/manga/" + slug);
         const enriched = parseTitleHtml(html, slug, manga);
         Object.assign(manga, enriched);
-        writeCache(titleCacheKey, enriched, 24 * 60 * 60 * 1000);
+        writeCache(titleCacheKey, enriched, TITLE_CACHE_TTL);
         return manga.chapters || {};
       })().finally(() => {
         titlePromises.delete(mangaId);
@@ -526,7 +567,7 @@
         const html = await fetchText("/manga/" + slug + "/" + chapter.tome + "/" + chapter.chapter);
         const pages = parseChapterImages(html);
         chapter.pages = pages;
-        writeCache(pagesCacheKey, pages, 24 * 60 * 60 * 1000);
+        writeCache(pagesCacheKey, pages, PAGE_CACHE_TTL);
         return pages;
       })().finally(() => {
         chapterPromises.delete(promiseKey);
