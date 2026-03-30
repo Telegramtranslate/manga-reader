@@ -2109,7 +2109,7 @@
     <div class="reader-hint">Свайп, A/D или стрелки переключают главы. Выбранная ширина и размер сохраняются автоматически.</div>
   </div>
 
-  <script src="./catalog-provider.js?v=12"></script>
+  <script src="./catalog-provider.js?v=13"></script>
 
   <!-- FIREBASE -->
   <script type="module">
@@ -2120,8 +2120,8 @@
     const FIRESTORE_SETTINGS={experimentalForceLongPolling:true,experimentalLongPollingOptions:{timeoutSeconds:25}};
     let app,db,auth;
     const ADMIN_EMAIL_DB='zarobotokjoker@gmail.com';
-    const CATALOG_CACHE_KEY="mc_catalog_cache_v10";
-    const LEGACY_CATALOG_CACHE_KEYS=["mc_catalog_cache_v9","mc_catalog_cache_v8","mc_catalog_cache_v7","mc_catalog_cache_v6","mc_catalog_cache_v5","mc_catalog_cache_v4","mc_catalog_cache_v3","mc_catalog_cache_v2","mc_catalog_cache_v1"];
+    const CATALOG_CACHE_KEY="mc_catalog_cache_v11";
+    const LEGACY_CATALOG_CACHE_KEYS=["mc_catalog_cache_v10","mc_catalog_cache_v9","mc_catalog_cache_v8","mc_catalog_cache_v7","mc_catalog_cache_v6","mc_catalog_cache_v5","mc_catalog_cache_v4","mc_catalog_cache_v3","mc_catalog_cache_v2","mc_catalog_cache_v1"];
     const CATALOG_CACHE_MAX_CHARS=900000;
     const PUBLIC_RATINGS_CACHE_MAX_CHARS=250000;
     const PUBLIC_RATINGS_CACHE_KEY="mc_public_ratings_v1";
@@ -2283,6 +2283,7 @@
     let activeCatalogTags=_store('mc_catalog_tags',[]);
     let catalogFilteredList=[];
     let catalogVisibleCount=96;
+    let catalogPrimed=false;
     let randomHistory=_store('mc_random_history',[]);
     let deferredInstallPrompt=null;
     let pwaInstalled=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;
@@ -4846,12 +4847,41 @@
       const more=document.getElementById('cat-more-wrap');
       if(!more)return;
       const remaining=Math.max(0,catalogFilteredList.length-visibleList.length);
-      more.innerHTML=remaining?'<button class="btn btn-sec" type="button" onclick="loadMoreCatalog()">Показать ещё '+Math.min(CATALOG_PAGE_SIZE,remaining)+'</button><div style="font-size:.78rem;color:var(--text2)">Осталось '+remaining+'</div>':'';
+      const canLoadCatalogChunk=!!(window.mangaCatalogProvider&&window.mangaCatalogProvider.hasMoreCatalogParts&&window.mangaCatalogProvider.hasMoreCatalogParts());
+      if(remaining){
+        more.innerHTML='<button class="btn btn-sec" type="button" onclick="loadMoreCatalog()">Показать ещё '+Math.min(CATALOG_PAGE_SIZE,remaining)+'</button><div style="font-size:.78rem;color:var(--text2)">Осталось '+remaining+'</div>';
+        return;
+      }
+      more.innerHTML=canLoadCatalogChunk?'<button class="btn btn-sec" type="button" onclick="loadMoreCatalog()">Подгрузить ещё тайтлы</button><div style="font-size:.78rem;color:var(--text2)">Каталог хранится по частям, чтобы сайт не зависал при старте.</div>':'';
     }
-    function loadMoreCatalog(){
-      if(catalogVisibleCount>=catalogFilteredList.length)return;
-      catalogVisibleCount+=CATALOG_PAGE_SIZE;
-      renderCatalogResults(catalogFilteredList,{resetVisible:false});
+    async function loadMoreCatalog(){
+      if(catalogVisibleCount<catalogFilteredList.length){
+        catalogVisibleCount+=CATALOG_PAGE_SIZE;
+        renderCatalogResults(catalogFilteredList,{resetVisible:false});
+        return;
+      }
+      const provider=window.mangaCatalogProvider;
+      if(!(provider&&provider.loadNextCatalogChunk&&provider.hasMoreCatalogParts&&provider.hasMoreCatalogParts()))return;
+      const more=document.getElementById('cat-more-wrap');
+      const btn=more?more.querySelector('button'):null;
+      const prevText=btn?btn.textContent:'';
+      if(btn){btn.disabled=true;btn.textContent='Загружаем ещё...';}
+      try{
+        const result=await provider.loadNextCatalogChunk();
+        if(result&&result.catalog&&Object.keys(result.catalog).length){
+          window.mangaDB=result.catalog;
+          window.invalidateComputedCaches&&window.invalidateComputedCaches();
+          catalogVisibleCount+=CATALOG_PAGE_SIZE;
+          buildFilters();
+          applyFilters({resetVisible:false});
+          if(result.added)toast('Добавлено ещё '+result.added+' тайтлов','success');
+        }
+      }catch(e){
+        console.error(e);
+        toast('Не удалось подгрузить ещё тайтлы','error');
+      }finally{
+        if(btn){btn.disabled=false;btn.textContent=prevText;}
+      }
     }
     window.loadMoreCatalog=loadMoreCatalog;
 
@@ -4949,7 +4979,7 @@
       if(yc)yc.innerHTML=Array.from(yrs).sort((a,b)=>b-a).map(y=>'<label><input type="checkbox" value="'+y+'" onchange="applyFilters()"/><span>'+y+'</span></label>').join('');
       renderCatalogTags();
     }
-    function applyFilters(){
+    function applyFilters(opts={}){
       const sort=document.getElementById('sort-sel').value;
       const sg=Array.from(document.querySelectorAll('#flt-genre input:checked')).map(i=>i.value);
       const ss=Array.from(document.querySelectorAll('#flt-status input:checked')).map(i=>i.value);
@@ -4963,7 +4993,7 @@
       else if(sort==='rating')list.sort((a,b)=>getPublicRating(b)-getPublicRating(a));
       else if(sort==='new')list.sort((a,b)=>(b.year||0)-(a.year||0));
       else if(sort==='updated')list.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-      renderCatalogResults(list,{resetVisible:true});
+      renderCatalogResults(list,{resetVisible:opts.resetVisible!==false});
     }
     function resetFilters(){document.querySelectorAll('.filters input[type="checkbox"]').forEach(i=>i.checked=false);activeCatalogTags=[];_save('mc_catalog_tags',activeCatalogTags);renderCatalogTags();document.getElementById('sort-sel').value='popular';applyFilters();toast('Фильтры сброшены','info');}
     window.applyFilters=applyFilters;window.resetFilters=resetFilters;
@@ -4987,7 +5017,7 @@
       if(page==='hist')renderHistoryList();
       if(page==='friends')renderFriendsList();
       if(page==='messages')renderDialogs();
-      if(page==='catalog')applyFilters();
+      if(page==='catalog'){applyFilters();primeCatalogPage();}
       if(page==='profile')updateProfileUI();
       if(page==='shop')renderShopPage();
       if(page==='settings'){renderSettingsPage();if(isAdminUser())setTimeout(()=>loadAdminUsers(),0);}
@@ -4995,6 +5025,26 @@
       if(!opts.skipRoute&&page!=='title')syncRoute(page,{q:page==='home'?qOrEmpty():'',mode:homeMode,tag:discoveryTag,tab:page==='shop'?shopTab:''},{replace:!!opts.replaceRoute});
     }
     window.goPage=goPage;window.switchPage=goPage;
+    async function primeCatalogPage(){
+      if(catalogPrimed)return;
+      const provider=window.mangaCatalogProvider;
+      if(!(provider&&provider.loadNextCatalogChunk&&provider.hasMoreCatalogParts&&provider.hasMoreCatalogParts()))return;
+      catalogPrimed=true;
+      try{
+        const result=await provider.loadNextCatalogChunk();
+        if(result&&result.catalog&&Object.keys(result.catalog).length){
+          window.mangaDB=result.catalog;
+          window.invalidateComputedCaches&&window.invalidateComputedCaches();
+          if(currentPage==='catalog'){
+            buildFilters();
+            applyFilters({resetVisible:false});
+          }
+        }
+      }catch(e){
+        console.error(e);
+        catalogPrimed=false;
+      }
+    }
 
     // ── FAV/LOVED GRIDS ──
     function renderFavGrid(){const list=favs.map(id=>window.mangaDB[id]).filter(Boolean);if(!list.length){document.getElementById('fav-grid').innerHTML='<div class="empty"><div class="empty-icon">🔖</div><div class="empty-txt">Закладок пока нет</div><div class="empty-sub">Добавляйте мангу в закладки, чтобы не потерять</div></div>';return;}renderGrid(list,'fav-grid');}

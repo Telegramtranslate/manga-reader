@@ -5,9 +5,11 @@
   const SOURCE_ORIGIN = "https://mangabuff.ru";
   const SOURCE_PROXY = "/api/mangabuff";
   const CACHE_PREFIX = "mc_mangabuff_";
-  const CATALOG_CACHE_KEY = CACHE_PREFIX + "catalog_v8";
-  const CATALOG_META_KEY = CACHE_PREFIX + "catalog_meta_v4";
+  const CATALOG_CACHE_KEY = CACHE_PREFIX + "catalog_v9";
+  const CATALOG_META_KEY = CACHE_PREFIX + "catalog_meta_v5";
   const LEGACY_CACHE_KEYS = [
+    CACHE_PREFIX + "catalog_v8",
+    CACHE_PREFIX + "catalog_meta_v4",
     CACHE_PREFIX + "catalog_v7",
     CACHE_PREFIX + "catalog_meta_v3"
   ];
@@ -15,17 +17,17 @@
   const CACHE_TTL = 12 * 60 * 60 * 1000;
   const TITLE_CACHE_TTL = 24 * 60 * 60 * 1000;
   const PAGE_CACHE_TTL = 24 * 60 * 60 * 1000;
-  const SEED_CATALOG_URL = "./catalog-seed.json?v=2";
-  const FALLBACK_CATALOG_URL = "./catalog-fallback.json?v=7";
+  const SEED_CATALOG_URL = "./catalog-seed.json?v=3";
+  const FALLBACK_CATALOG_URL = "./catalog-fallback.json?v=8";
   const PART_URLS = [
-    "./catalog-part-01.json?v=2",
-    "./catalog-part-02.json?v=2",
-    "./catalog-part-03.json?v=2",
-    "./catalog-part-04.json?v=2",
-    "./catalog-part-05.json?v=2",
-    "./catalog-part-06.json?v=2",
-    "./catalog-part-07.json?v=2",
-    "./catalog-part-08.json?v=2"
+    "./catalog-part-01.json?v=3",
+    "./catalog-part-02.json?v=3",
+    "./catalog-part-03.json?v=3",
+    "./catalog-part-04.json?v=3",
+    "./catalog-part-05.json?v=3",
+    "./catalog-part-06.json?v=3",
+    "./catalog-part-07.json?v=3",
+    "./catalog-part-08.json?v=3"
   ];
 
   let catalogPromise = null;
@@ -33,6 +35,9 @@
   let catalogRefreshTimer = null;
   let pendingExpandedCatalog = null;
   let pendingExpandedCatalogFinal = false;
+  let loadedCatalog = null;
+  let loadedPartsCount = 0;
+  let loadNextPartPromise = null;
   const titlePromises = new Map();
   const chapterPromises = new Map();
 
@@ -351,31 +356,81 @@
 
     catalogPromise = (async function () {
       const cachedCatalog = force ? null : readCache(CATALOG_CACHE_KEY, null);
-      const cachedMeta = readCache(CATALOG_META_KEY, { loadedParts: 0 });
       if (cachedCatalog && Object.keys(cachedCatalog).length && !force) {
-        scheduleWarmCatalog(cachedCatalog, cachedMeta.loadedParts || 0);
-        return cachedCatalog;
+        const cachedMeta = readCache(CATALOG_META_KEY, { loadedParts: 0 });
+        loadedCatalog = cloneCatalog(cachedCatalog);
+        loadedPartsCount = Math.min(Number(cachedMeta.loadedParts) || 0, PART_URLS.length);
+        return cloneCatalog(loadedCatalog);
       }
 
       try {
         const seedCatalog = await loadSeedCatalog();
         writeCache(CATALOG_CACHE_KEY, seedCatalog, CACHE_TTL);
         writeCache(CATALOG_META_KEY, { loadedParts: 0 }, CACHE_TTL);
-        scheduleWarmCatalog(seedCatalog, 0);
-        return seedCatalog;
+        loadedCatalog = cloneCatalog(seedCatalog);
+        loadedPartsCount = 0;
+        return cloneCatalog(loadedCatalog);
       } catch (error) {
         console.error("Failed to load seed catalog:", error);
         const fallback = await loadFallbackCatalog();
         if (Object.keys(fallback).length) {
           writeCache(CATALOG_CACHE_KEY, fallback, 30 * 60 * 1000);
           writeCache(CATALOG_META_KEY, { loadedParts: 0 }, 30 * 60 * 1000);
-          return fallback;
+          loadedCatalog = cloneCatalog(fallback);
+          loadedPartsCount = 0;
+          return cloneCatalog(loadedCatalog);
         }
+        loadedCatalog = {};
+        loadedPartsCount = 0;
         return {};
       }
     })();
 
     return catalogPromise;
+  }
+
+  async function loadNextCatalogChunk() {
+    if (loadNextPartPromise) return loadNextPartPromise;
+    if (!loadedCatalog || !Object.keys(loadedCatalog).length) {
+      await loadCatalog();
+    }
+    if (loadedPartsCount >= PART_URLS.length) {
+      return {
+        catalog: cloneCatalog(loadedCatalog || {}),
+        hasMore: false,
+        added: 0
+      };
+    }
+
+    loadNextPartPromise = (async function () {
+      const partUrl = PART_URLS[loadedPartsCount];
+      const part = await fetchJson(partUrl);
+      mergeCatalog(loadedCatalog, part);
+      loadedPartsCount += 1;
+      const snapshot = cloneCatalog(loadedCatalog);
+      if (Object.keys(snapshot).length < 1500) {
+        writeCache(CATALOG_CACHE_KEY, snapshot, CACHE_TTL);
+        writeCache(CATALOG_META_KEY, { loadedParts: loadedPartsCount }, CACHE_TTL);
+      } else {
+        try {
+          localStorage.removeItem(CATALOG_CACHE_KEY);
+          localStorage.removeItem(CATALOG_META_KEY);
+        } catch (error) {}
+      }
+      return {
+        catalog: snapshot,
+        hasMore: loadedPartsCount < PART_URLS.length,
+        added: Object.keys(part || {}).length
+      };
+    })().finally(() => {
+      loadNextPartPromise = null;
+    });
+
+    return loadNextPartPromise;
+  }
+
+  function hasMoreCatalogParts() {
+    return loadedPartsCount < PART_URLS.length;
   }
 
   async function ensureTitleChapters(mangaId) {
@@ -463,6 +518,8 @@
 
   window.mangaCatalogProvider = {
     loadCatalog: loadCatalog,
+    loadNextCatalogChunk: loadNextCatalogChunk,
+    hasMoreCatalogParts: hasMoreCatalogParts,
     ensureTitleChapters: ensureTitleChapters,
     ensureChapterPages: ensureChapterPages,
     getTitleMetaParts: getTitleMetaParts,
