@@ -2,17 +2,16 @@
   "id": "./",
   "name": "AnimeCloud",
   "short_name": "AnimeCloud",
-  "description": "Каталог аниме с русской озвучкой на базе AniLibria. Поиск, релизы, эпизоды и просмотр в одном интерфейсе.",
+  "description": "Каталог аниме с русской озвучкой на базе AniLibria: новинки, поиск, каталог, расписание и встроенный плеер.",
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#09111f",
-  "theme_color": "#09111f",
+  "background_color": "#08111f",
+  "theme_color": "#08111f",
   "categories": [
     "entertainment",
-    "video",
-    "lifestyle"
+    "video"
   ],
   "icons": [
     {
