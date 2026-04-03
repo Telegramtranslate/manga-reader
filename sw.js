@@ -1,10 +1,11 @@
-const CACHE_NAME = "animecloud-shell-v2";
+const CACHE_NAME = "animecloud-shell-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./style.css?v=3",
-  "./app.js?v=2",
-  "./manifest.webmanifest?v=6",
+  "./style.css?v=5",
+  "./app.js?v=5",
+  "./auth.js?v=3",
+  "./manifest.webmanifest?v=8",
   "./mc-icon-192.png?v=4",
   "./mc-icon-512.png?v=4"
 ];
@@ -25,6 +26,7 @@ function isStaticAsset(url) {
   return (
     url.origin === self.location.origin &&
     !url.pathname.startsWith("/api/") &&
+    !url.pathname.includes("/videos/media/") &&
     (/\.(css|js|png|svg|webmanifest)$/i.test(url.pathname) || url.pathname === "/" || url.pathname.endsWith("/index.html"))
   );
 }
