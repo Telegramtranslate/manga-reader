@@ -2,24 +2,24 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/api/mangabuff",
-      "destination": "https://mangabuff.ru/"
+      "source": "/api/anilibria/:path*",
+      "destination": "https://anilibria.top/api/v1/:path*"
     },
     {
-      "source": "/api/mangabuff/:path*",
-      "destination": "https://mangabuff.ru/:path*"
+      "source": "/api/anilibria-media/:path*",
+      "destination": "https://cache.libria.fun/:path*"
     }
   ],
   "headers": [
     {
-      "source": "/api/mangabuff",
+      "source": "/api/anilibria/:path*",
       "headers": [
         { "key": "x-vercel-enable-rewrite-caching", "value": "1" },
-        { "key": "CDN-Cache-Control", "value": "max-age=300, stale-while-revalidate=86400" }
+        { "key": "CDN-Cache-Control", "value": "max-age=120, stale-while-revalidate=86400" }
       ]
     },
     {
-      "source": "/api/mangabuff/:path*",
+      "source": "/api/anilibria-media/:path*",
       "headers": [
         { "key": "x-vercel-enable-rewrite-caching", "value": "1" },
         { "key": "CDN-Cache-Control", "value": "max-age=300, stale-while-revalidate=86400" }

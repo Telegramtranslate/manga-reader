@@ -1,79 +1,18 @@
 {
   "id": "./",
-  "name": "MangaCloud",
-  "short_name": "MangaCloud",
-  "description": "������ ����� � ������ � �������, ��������������, �������� � ������-�������.",
+  "name": "AnimeCloud",
+  "short_name": "AnimeCloud",
+  "description": "Каталог аниме с русской озвучкой на базе AniLibria. Поиск, релизы, эпизоды и просмотр в одном интерфейсе.",
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": [
-    "window-controls-overlay",
-    "standalone",
-    "browser"
-  ],
-  "background_color": "#07070f",
-  "theme_color": "#07070f",
-  "orientation": "portrait-primary",
-  "prefer_related_applications": false,
+  "background_color": "#09111f",
+  "theme_color": "#09111f",
   "categories": [
-    "books",
     "entertainment",
+    "video",
     "lifestyle"
-  ],
-  "shortcuts": [
-    {
-      "name": "�������",
-      "short_name": "�������",
-      "description": "������� ������������ ����� MangaCloud",
-      "url": "./",
-      "icons": [
-        {
-          "src": "./mc-icon-192.png?v=4",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "�������",
-      "short_name": "�������",
-      "description": "������� � ������� ����� � ������",
-      "url": "./?page=catalog",
-      "icons": [
-        {
-          "src": "./mc-icon-192.png?v=4",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "��������",
-      "short_name": "��������",
-      "description": "������� ������ � ��������",
-      "url": "./?page=discoveries",
-      "icons": [
-        {
-          "src": "./mc-icon-192.png?v=4",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "���������",
-      "short_name": "���������",
-      "description": "������� � ���������� �����",
-      "url": "./?page=settings",
-      "icons": [
-        {
-          "src": "./mc-icon-192.png?v=4",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    }
   ],
   "icons": [
     {
