@@ -694,6 +694,13 @@ button {
   grid-column: 1 / -1;
 }
 
+.user-role-badge[hidden],
+.profile-role-badge[hidden],
+.admin-panel[hidden],
+#detail-admin-pin-btn[hidden] {
+  display: none !important;
+}
+
 .admin-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
