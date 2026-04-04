@@ -469,23 +469,26 @@ button {
 
 .anime-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+  align-items: start;
+  justify-items: center;
 }
 
 .anime-card {
+  width: 100%;
   min-width: 0;
-  max-width: 228px;
+  max-width: 250px;
   content-visibility: auto;
   contain: layout style paint;
-  contain-intrinsic-size: 320px;
+  contain-intrinsic-size: 400px;
 }
 
 .anime-card__action {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 228px;
-  min-width: 0;
-  margin-inline: auto;
+  min-height: 100%;
   overflow: hidden;
   padding: 0;
   text-align: left;
@@ -497,6 +500,7 @@ button {
 .anime-card__poster-wrap {
   position: relative;
   overflow: hidden;
+  aspect-ratio: 1 / 1;
   background: linear-gradient(180deg, rgba(30, 44, 72, 0.6), rgba(14, 20, 33, 0.96));
 }
 
@@ -511,9 +515,9 @@ button {
 
 .anime-card__poster {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center top;
   background: #10192a;
 }
 
@@ -541,6 +545,9 @@ button {
 }
 
 .anime-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
   padding: 15px 15px 17px;
 }
 
@@ -549,10 +556,20 @@ button {
   font-size: 1.05rem;
   line-height: 1.34;
   color: var(--text-strong);
+  display: -webkit-box;
+  min-height: 2.8em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .anime-card__meta {
   margin: 10px 0 0;
+  display: -webkit-box;
+  min-height: 3.1em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .anime-card__tags {
@@ -1157,6 +1174,24 @@ button {
   border: 1px solid var(--line);
   border-radius: 20px;
   background: rgba(12, 18, 30, 0.76);
+}
+
+#google-auth-button {
+  display: flex;
+  min-height: 52px;
+}
+
+.google-auth-launch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+}
+
+.google-auth-launch[disabled] {
+  opacity: 0.66;
+  cursor: wait;
 }
 
 .auth-tabs {

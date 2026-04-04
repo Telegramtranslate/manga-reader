@@ -9,6 +9,24 @@
     name="description"
     content="AnimeCloud — каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером на базе AniLibria."
   >
+  <script>
+    (function () {
+      if (!window.opener) return;
+      const rawHash = window.location.hash ? window.location.hash.slice(1) : "";
+      const rawSearch = window.location.search ? window.location.search.slice(1) : "";
+      const params = new URLSearchParams(rawHash || rawSearch);
+      if (!params.has("id_token") && !params.has("error")) return;
+      try {
+        window.opener.postMessage(
+          { type: "animecloud-google-auth", payload: Object.fromEntries(params.entries()) },
+          window.location.origin
+        );
+      } catch {}
+      document.documentElement.style.background = "#070b14";
+      document.documentElement.style.color = "#f5f8ff";
+      window.close();
+    })();
+  </script>
   <title>AnimeCloud — аниме с русской озвучкой</title>
   <link rel="manifest" href="./manifest.webmanifest?v=8">
   <link rel="icon" href="./mc-icon-192.png?v=4" sizes="192x192">
@@ -16,7 +34,7 @@
   <link rel="preconnect" href="https://cache.libria.fun">
   <link rel="preconnect" href="https://accounts.google.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="./style.css?v=7">
+  <link rel="stylesheet" href="./style.css?v=8">
 </head>
 <body>
   <div class="page-glow" aria-hidden="true"></div>
@@ -532,7 +550,7 @@
     <article class="anime-card">
       <button class="anime-card__action" type="button">
         <div class="anime-card__poster-wrap">
-          <img class="anime-card__poster" alt="" width="640" height="960">
+          <img class="anime-card__poster" alt="" width="640" height="640">
           <span class="anime-card__age"></span>
           <span class="anime-card__status"></span>
         </div>
@@ -546,9 +564,8 @@
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="./app.js?v=6" defer></script>
-  <script src="./auth.js?v=3" defer></script>
+  <script src="./app.js?v=7" defer></script>
+  <script src="./auth.js?v=4" defer></script>
   <script src="./watch-features.js?v=2" defer></script>
 </body>
 </html>

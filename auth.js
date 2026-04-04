@@ -1,5 +1,6 @@
 const AUTH_STORAGE_KEY = "animecloud_auth_v1";
-const GOOGLE_CLIENT_FALLBACK = "263581962151-lvpcil2qlnv9btimsvsgtth0bm2cbl3v.apps.googleusercontent.com";
+const GOOGLE_POPUP_MESSAGE_TYPE = "animecloud-google-auth";
+const GOOGLE_POPUP_NAME = "animecloud_google_signin";
 
 const authEls = {
   openBtn: document.getElementById("auth-open-btn"),
@@ -28,9 +29,9 @@ const authEls = {
 const authState = {
   tab: "login",
   session: null,
-  googleClientId: "",
-  googleInitialized: false,
-  googleLoading: false
+  googleLoading: false,
+  googlePopup: null,
+  googlePopupPoller: 0
 };
 
 function readSession() {
@@ -196,80 +197,158 @@ async function signUpWithEmail(email, password) {
   writeSession(normalizeSession(data, { email, providerId: "password" }));
 }
 
-async function resolveGoogleClientId() {
-  try {
-    const data = await postJson("/api/identity/accounts:createAuthUri", {
-      providerId: "google.com",
-      continueUri: window.location.origin
+async function exchangeGoogleIdToken(idToken) {
+  const data = await postJson("/api/identity/accounts:signInWithIdp", {
+    postBody: `id_token=${encodeURIComponent(idToken)}&providerId=google.com`,
+    requestUri: window.location.origin,
+    returnIdpCredential: true,
+    returnSecureToken: true
+  });
+  writeSession(normalizeSession(data, { providerId: "google.com" }));
+  setStatus("Вход выполнен.", "is-success");
+  authEls.googleNote.textContent = "Google-вход выполнен.";
+  closeAuthModal();
+  window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
+}
+
+function renderGoogleButton() {
+  authEls.googleButton.innerHTML = "";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "primary-btn google-auth-launch";
+  button.textContent = authState.googleLoading ? "Подождите…" : "Войти через Google";
+  button.disabled = authState.googleLoading;
+  button.addEventListener("click", () => {
+    startGoogleSignIn().catch((error) => {
+      console.error(error);
+      setStatus("Не удалось подготовить Google-вход.", "is-error");
+      authEls.googleNote.textContent = "Не удалось подготовить Google-вход.";
+      authState.googleLoading = false;
+      renderGoogleButton();
     });
-    const authUri = data.authUri || "";
-    const clientId = authUri ? new URL(authUri).searchParams.get("client_id") : "";
-    return clientId || GOOGLE_CLIENT_FALLBACK;
-  } catch {
-    return GOOGLE_CLIENT_FALLBACK;
+  });
+
+  authEls.googleButton.appendChild(button);
+
+  if (!authEls.googleNote.textContent.trim()) {
+    authEls.googleNote.textContent = "Google-вход готов.";
   }
 }
 
-async function handleGoogleCredential(response) {
-  if (!response?.credential) {
-    setStatus("Google не вернул credential.", "is-error");
+function clearGooglePopupPoller() {
+  if (authState.googlePopupPoller) {
+    window.clearInterval(authState.googlePopupPoller);
+    authState.googlePopupPoller = 0;
+  }
+}
+
+function cleanupGooglePopup(note = "") {
+  clearGooglePopupPoller();
+  authState.googlePopup = null;
+  authState.googleLoading = false;
+  renderGoogleButton();
+  if (note) authEls.googleNote.textContent = note;
+}
+
+function openGooglePopup(url) {
+  const width = 520;
+  const height = 720;
+  const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
+  const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
+  return window.open(
+    url,
+    GOOGLE_POPUP_NAME,
+    `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+  );
+}
+
+async function resolveGoogleAuthUri() {
+  const data = await postJson("/api/identity/accounts:createAuthUri", {
+    providerId: "google.com",
+    continueUri: window.location.origin
+  });
+  if (!data.authUri) {
+    throw new Error("GOOGLE_AUTH_URI_MISSING");
+  }
+  return data.authUri;
+}
+
+async function startGoogleSignIn() {
+  if (authState.googleLoading) return;
+
+  authState.googleLoading = true;
+  renderGoogleButton();
+  setStatus("");
+  authEls.googleNote.textContent = "Открываем окно Google…";
+
+  try {
+    const authUri = await resolveGoogleAuthUri();
+    const popup = openGooglePopup(authUri);
+
+    if (!popup) {
+      cleanupGooglePopup("Браузер заблокировал всплывающее окно. Разрешите popup для этого сайта.");
+      return;
+    }
+
+    authState.googlePopup = popup;
+    authEls.googleNote.textContent = "Продолжите вход в новом окне Google.";
+    clearGooglePopupPoller();
+    authState.googlePopupPoller = window.setInterval(() => {
+      if (authState.googlePopup && authState.googlePopup.closed) {
+        cleanupGooglePopup("Окно Google было закрыто до завершения входа.");
+      }
+    }, 500);
+  } catch (error) {
+    console.error(error);
+    cleanupGooglePopup("Не удалось подготовить Google-вход.");
+    setStatus(mapAuthError(error), "is-error");
+  }
+}
+
+async function handleGooglePopupResult(payload) {
+  clearGooglePopupPoller();
+  if (authState.googlePopup && !authState.googlePopup.closed) {
+    authState.googlePopup.close();
+  }
+  authState.googlePopup = null;
+
+  if (payload?.error) {
+    authState.googleLoading = false;
+    renderGoogleButton();
+    authEls.googleNote.textContent =
+      payload.error === "access_denied" ? "Вход через Google отменён." : "Google вернул ошибку авторизации.";
+    setStatus("Не удалось выполнить вход через Google.", "is-error");
+    return;
+  }
+
+  if (!payload?.id_token) {
+    authState.googleLoading = false;
+    renderGoogleButton();
+    authEls.googleNote.textContent = "Google не вернул токен входа.";
+    setStatus("Не удалось выполнить вход через Google.", "is-error");
     return;
   }
 
   try {
     setStatus("Выполняем вход через Google…");
-    const data = await postJson("/api/identity/accounts:signInWithIdp", {
-      postBody: `id_token=${encodeURIComponent(response.credential)}&providerId=google.com`,
-      requestUri: window.location.origin,
-      returnIdpCredential: true,
-      returnSecureToken: true
-    });
-    writeSession(normalizeSession(data, { providerId: "google.com" }));
-    setStatus("Вход выполнен.", "is-success");
-    closeAuthModal();
-    window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
+    await exchangeGoogleIdToken(payload.id_token);
   } catch (error) {
+    console.error(error);
     setStatus(mapAuthError(error), "is-error");
+    authEls.googleNote.textContent = "Не удалось завершить вход через Google.";
+  } finally {
+    authState.googleLoading = false;
+    renderGoogleButton();
   }
 }
 
-async function renderGoogleButton() {
-  if (authState.googleLoading) return;
-  if (!window.google?.accounts?.id) {
-    authEls.googleNote.textContent = "Google-вход пока не загрузился.";
-    return;
-  }
-
-  try {
-    authState.googleLoading = true;
-    if (!authState.googleClientId) {
-      authState.googleClientId = await resolveGoogleClientId();
-    }
-
-    if (!authState.googleInitialized) {
-      window.google.accounts.id.initialize({
-        client_id: authState.googleClientId,
-        callback: handleGoogleCredential,
-        use_fedcm_for_prompt: true
-      });
-      authState.googleInitialized = true;
-    }
-
-    authEls.googleButton.innerHTML = "";
-    window.google.accounts.id.renderButton(authEls.googleButton, {
-      theme: "filled_black",
-      size: "large",
-      shape: "pill",
-      text: "signin_with",
-      logo_alignment: "left",
-      width: Math.max(280, authEls.googleButton.clientWidth || 320)
-    });
-    authEls.googleNote.textContent = "Google-вход готов.";
-  } catch {
-    authEls.googleNote.textContent = "Не удалось инициализировать Google-вход.";
-  } finally {
-    authState.googleLoading = false;
-  }
+function bindGoogleMessages() {
+  window.addEventListener("message", (event) => {
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type !== GOOGLE_POPUP_MESSAGE_TYPE) return;
+    handleGooglePopupResult(event.data.payload || {}).catch(console.error);
+  });
 }
 
 function bindAuthEvents() {
@@ -330,6 +409,7 @@ function bindAuthEvents() {
 }
 
 async function initAuth() {
+  bindGoogleMessages();
   bindAuthEvents();
   setAuthTab("login");
   authState.session = readSession();
@@ -341,9 +421,8 @@ async function initAuth() {
   }
 
   renderAuthState();
-  setTimeout(() => {
-    renderGoogleButton().catch(() => {});
-  }, 400);
+  authEls.googleNote.textContent = "Google-вход готов.";
+  renderGoogleButton();
 }
 
 initAuth().catch(() => {
