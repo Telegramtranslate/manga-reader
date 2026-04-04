@@ -268,7 +268,7 @@ button {
   overflow: hidden;
   border-radius: 36px;
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 360px);
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 300px);
   gap: 28px;
   padding: 28px;
   background:
@@ -350,7 +350,7 @@ button {
 
 .hero-poster-frame {
   position: relative;
-  width: min(100%, 340px);
+  width: min(100%, 300px);
   border-radius: 28px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -374,6 +374,12 @@ button {
   object-fit: cover;
   object-position: center;
   background: linear-gradient(180deg, #16243d, #0c1322);
+}
+
+.detail-poster {
+  max-width: 260px;
+  margin-inline: auto;
+  border-radius: 24px;
 }
 
 .stats-row {
@@ -463,12 +469,13 @@ button {
 
 .anime-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 16px;
 }
 
 .anime-card {
   min-width: 0;
+  max-width: 228px;
   content-visibility: auto;
   contain: layout style paint;
   contain-intrinsic-size: 360px;
@@ -476,7 +483,9 @@ button {
 
 .anime-card__action {
   width: 100%;
+  max-width: 228px;
   min-width: 0;
+  margin-inline: auto;
   overflow: hidden;
   padding: 0;
   text-align: left;
@@ -780,7 +789,7 @@ button {
 
 .detail-hero {
   display: grid;
-  grid-template-columns: minmax(220px, 290px) minmax(0, 1fr);
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
   gap: 22px;
   margin-bottom: 22px;
 }
@@ -789,12 +798,17 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(320px, 390px);
   gap: 18px;
+  align-items: start;
 }
 
 .player-pane,
 .side-card {
   border-radius: 24px;
   padding: 18px;
+}
+
+.player-pane {
+  min-width: 0;
 }
 
 .player-toolbar {
@@ -829,16 +843,22 @@ button {
 .player-surface {
   position: relative;
   margin-top: 18px;
+  width: min(100%, 980px);
+  margin-inline: auto;
   border-radius: 24px;
   overflow: hidden;
   border: 1px solid var(--line);
   background: #05070c;
+  aspect-ratio: 16 / 9;
+  max-height: min(72vh, 780px);
 }
 
 .anime-player,
 .external-player {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: contain;
   background: #000;
 }
 
@@ -1119,7 +1139,11 @@ button {
   }
 
   .hero-card {
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+
+  .hero-poster-frame {
+    width: min(100%, 260px);
   }
 }
 
@@ -1161,7 +1185,7 @@ button {
   }
 
   .hero-poster-frame {
-    width: min(320px, 100%);
+    width: min(260px, 100%);
     margin: 0 auto;
   }
 
@@ -1173,6 +1197,11 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .anime-card,
+  .anime-card__action {
+    max-width: none;
+  }
+
   .profile-cards {
     grid-template-columns: 1fr;
   }
@@ -1182,7 +1211,7 @@ button {
   }
 
   .detail-poster {
-    max-width: 320px;
+    max-width: 240px;
   }
 
   .auth-modal__content {
@@ -1220,6 +1249,10 @@ button {
     padding: 18px;
   }
 
+  .hero-poster-frame {
+    width: min(220px, 100%);
+  }
+
   .hero-copy h1 {
     font-size: 2rem;
   }
@@ -1253,6 +1286,14 @@ button {
 
   .drawer-scroll {
     padding: 18px;
+  }
+
+  .detail-poster {
+    max-width: 220px;
+  }
+
+  .player-surface {
+    border-radius: 18px;
   }
 
   .player-toolbar {
