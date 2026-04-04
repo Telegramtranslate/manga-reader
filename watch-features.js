@@ -1,5 +1,5 @@
-const WATCH_PROGRESS_KEY = "animecloud_watch_progress_v1";
-const COMMENTS_STORAGE_KEY = "animecloud_comments_v1";
+const WATCH_FEATURES_PROGRESS_KEY = "animecloud_watch_progress_v1";
+const WATCH_FEATURES_COMMENTS_STORAGE_KEY = "animecloud_comments_v1";
 const EXTRA_DUBS = ["AniDub", "DEEP", "Studio Band", "AniStar", "Dream Cast"];
 
 const watchEls = {
@@ -72,11 +72,11 @@ function escapeSelector(value) {
 }
 
 function getProgressMap() {
-  return readJson(WATCH_PROGRESS_KEY, {});
+  return readJson(WATCH_FEATURES_PROGRESS_KEY, {});
 }
 
 function saveProgressMap(map) {
-  writeJson(WATCH_PROGRESS_KEY, map);
+  writeJson(WATCH_FEATURES_PROGRESS_KEY, map);
 }
 
 function getCurrentProgress() {
@@ -130,11 +130,11 @@ function renderCommentUser() {
 }
 
 function getCommentsMap() {
-  return readJson(COMMENTS_STORAGE_KEY, {});
+  return readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {});
 }
 
 function saveCommentsMap(map) {
-  writeJson(COMMENTS_STORAGE_KEY, map);
+  writeJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, map);
 }
 
 function clearAllComments() {
@@ -408,7 +408,7 @@ async function syncReleaseCommentsFromCloud(alias = watchState.release?.alias) {
     const cloudComments = await window.animeCloudSync.loadComments(alias);
     const map = getCommentsMap();
     map[alias] = mergeCloudComments(map[alias], cloudComments);
-    writeJson(COMMENTS_STORAGE_KEY, map);
+    writeJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, map);
     if (watchState.release?.alias === alias) {
       renderComments();
     }

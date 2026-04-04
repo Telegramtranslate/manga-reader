@@ -1,11 +1,11 @@
 {
-  "id": "./",
+  "id": "/",
   "name": "AnimeCloud",
   "short_name": "AnimeCloud",
   "description": "Каталог аниме с русской озвучкой, подборками, избранным, расписанием и быстрым плеером на базе AniLibria.",
   "lang": "ru",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#070b14",
   "theme_color": "#070b14",
@@ -35,13 +35,13 @@
   ],
   "icons": [
     {
-      "src": "./mc-icon-192.png?v=4",
+      "src": "/mc-icon-192.png?v=4",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./mc-icon-512.png?v=4",
+      "src": "/mc-icon-512.png?v=4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
