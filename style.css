@@ -478,7 +478,7 @@ button {
   max-width: 228px;
   content-visibility: auto;
   contain: layout style paint;
-  contain-intrinsic-size: 360px;
+  contain-intrinsic-size: 320px;
 }
 
 .anime-card__action {
@@ -511,9 +511,9 @@ button {
 
 .anime-card__poster {
   width: 100%;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  object-position: center top;
+  object-position: center;
   background: #10192a;
 }
 
@@ -866,6 +866,127 @@ button {
   margin: 14px 0 0;
 }
 
+.player-footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.resume-box,
+.dub-box,
+.comments-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(11, 17, 29, 0.88);
+}
+
+.resume-box__meta {
+  margin-top: 10px;
+  color: var(--text-strong);
+  line-height: 1.5;
+}
+
+.resume-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.dub-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dub-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(18, 29, 47, 0.88);
+  color: var(--text-strong);
+  font-size: 0.82rem;
+}
+
+.comments-card {
+  margin-top: 18px;
+}
+
+.comment-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.comment-input {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(14, 20, 33, 0.92);
+  color: var(--text);
+  outline: none;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.comment-user {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.comments-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.comment-item {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(16, 23, 38, 0.92);
+}
+
+.comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
+.comment-episode,
+.comment-date {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.comment-body {
+  color: var(--text);
+  line-height: 1.58;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .episodes-list,
 .crew-list {
   display: grid;
@@ -1131,6 +1252,10 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
   }
+
+  .player-footer {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -1214,6 +1339,11 @@ button {
     max-width: 240px;
   }
 
+  .comment-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .auth-modal__content {
     grid-template-columns: 1fr;
   }
@@ -1294,6 +1424,10 @@ button {
 
   .player-surface {
     border-radius: 18px;
+  }
+
+  .resume-actions {
+    flex-direction: column;
   }
 
   .player-toolbar {

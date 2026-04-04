@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://cache.libria.fun">
   <link rel="preconnect" href="https://accounts.google.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="./style.css?v=6">
+  <link rel="stylesheet" href="./style.css?v=7">
 </head>
 <body>
   <div class="page-glow" aria-hidden="true"></div>
@@ -392,6 +392,25 @@
             </div>
 
             <p class="player-note" id="player-note">Выберите релиз и серию справа.</p>
+
+            <div class="player-footer">
+              <div class="resume-box" id="resume-box" hidden>
+                <div class="detail-label">Продолжить просмотр</div>
+                <div class="resume-box__meta" id="resume-text">Прогресс пока не сохранён.</div>
+                <div class="resume-actions">
+                  <button class="ghost-btn" type="button" id="resume-btn">Продолжить</button>
+                  <button class="ghost-btn" type="button" id="resume-clear-btn">Сбросить</button>
+                </div>
+              </div>
+
+              <div class="dub-box" id="dub-box" hidden>
+                <div class="detail-label">Доп. озвучки</div>
+                <div class="dub-list" id="dub-list"></div>
+                <p class="player-note" id="dub-note">
+                  Дополнительные озвучки выбираются во внешнем плеере, если источник их реально отдаёт.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div class="side-pane">
@@ -405,6 +424,33 @@
               <div class="crew-list" id="crew-list"></div>
             </section>
           </div>
+        </section>
+
+        <section class="comments-card">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Обсуждение</div>
+              <h2>Комментарии</h2>
+              <p class="section-summary" id="comments-summary">
+                Комментарии сохраняются в этом браузере. Если вы вошли в аккаунт, будет показано ваше имя.
+              </p>
+            </div>
+          </div>
+
+          <form class="comment-form" id="comment-form">
+            <textarea
+              class="comment-input"
+              id="comment-input"
+              placeholder="Напишите комментарий по тайтлу или текущей серии…"
+              maxlength="800"
+            ></textarea>
+            <div class="comment-actions">
+              <span class="comment-user" id="comment-user">Комментируете как гость</span>
+              <button class="primary-btn" type="submit" id="comment-submit">Отправить</button>
+            </div>
+          </form>
+
+          <div class="comments-list" id="comments-list"></div>
         </section>
       </div>
     </div>
@@ -501,7 +547,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="./app.js?v=5" defer></script>
+  <script src="./app.js?v=6" defer></script>
   <script src="./auth.js?v=3" defer></script>
+  <script src="./watch-features.js?v=2" defer></script>
 </body>
 </html>
