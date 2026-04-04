@@ -16,6 +16,7 @@
   state.hlsLoaderPromise = state.hlsLoaderPromise || null;
 
   Object.assign(els, {
+    homePanel: document.querySelector('[data-view-panel="home"]'),
     heroDots: document.getElementById("hero-dots"),
     catalogGenreChips: document.getElementById("catalog-genre-chips"),
     listWatchingGrid: document.getElementById("list-watching-grid"),
@@ -32,6 +33,14 @@
   });
 
   function relocateInjectedControls() {
+    if (els.homePanel && els.heroCard && els.homePanel.firstElementChild !== els.heroCard) {
+      els.homePanel.insertAdjacentElement("afterbegin", els.heroCard);
+    }
+
+    if (els.homePanel && els.statsRow && els.heroCard?.nextElementSibling !== els.statsRow) {
+      els.heroCard?.insertAdjacentElement("afterend", els.statsRow);
+    }
+
     const heroActions = document.querySelector(".hero-actions");
     if (heroActions && els.heroDots && els.heroDots.previousElementSibling !== heroActions) {
       heroActions.insertAdjacentElement("afterend", els.heroDots);
