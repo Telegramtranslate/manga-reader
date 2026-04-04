@@ -35,12 +35,14 @@ const els={
   brandBtn:document.getElementById("brand-btn"),
   refreshBtn:document.getElementById("refresh-btn"),
   searchInput:document.getElementById("search-input"),
+  heroCard:document.getElementById("hero-card"),
   heroTitle:document.getElementById("hero-title"),
   heroDescription:document.getElementById("hero-description"),
   heroMeta:document.getElementById("hero-meta"),
   heroPoster:document.getElementById("hero-poster"),
   heroOpenBtn:document.getElementById("hero-open-btn"),
   heroRandomBtn:document.getElementById("hero-random-btn"),
+  statsRow:document.querySelector(".stats-row"),
   latestCount:document.getElementById("latest-count"),
   catalogCount:document.getElementById("catalog-count"),
   ongoingCount:document.getElementById("ongoing-count"),
@@ -213,7 +215,8 @@ function updateGrid(target,releases,emptyMessage,options={}){const append=Boolea
 function renderHero(release){if(!release)return;const meta=[`${release.type} • ${release.year}`,release.season,`${release.episodesTotal||"?"} эп.`,release.publishDay?`Выходит: ${release.publishDay}`:"",release.age].filter(Boolean);els.heroTitle.textContent=release.title;els.heroDescription.textContent=release.description;els.heroMeta.replaceChildren(...meta.map(createMetaPill));els.heroPoster.src=release.poster;els.heroPoster.alt=release.title;}
 function applyAdminHero(releases){const forcedAlias=readAdminHeroAlias();if(!forcedAlias)return null;return releases.find((release)=>release.alias===forcedAlias)||null;}
 function updateStats(){els.latestCount.textContent=formatNumber(state.latest.length);els.catalogCount.textContent=formatNumber(state.catalogTotal);els.ongoingCount.textContent=formatNumber(state.ongoingTotal);els.topCount.textContent=formatNumber(state.popular.length||state.topItems.length);}
-function setView(view,options={}){state.currentView=view;if(view!=="search")state.previousView=view;els.tabs.forEach((b)=>{const active=b.dataset.view===view;b.classList.toggle("is-active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});els.mobileTabs.forEach((b)=>{const active=b.dataset.view===view;b.classList.toggle("is-active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});els.panels.forEach((p)=>p.classList.toggle("is-active",p.dataset.viewPanel===view));if(options.updateHistory!==false)navigateTo(getViewPath(view),{replace:options.replaceHistory});updateViewSeo(view);if(view==="search")safeIdle(()=>els.searchInput?.focus());if(view==="profile")renderProfile();ensureViewLoaded(view).catch(console.error);}
+function syncHomeChrome(view){const visible=view==="home";if(els.heroCard)els.heroCard.hidden=!visible;if(els.statsRow)els.statsRow.hidden=!visible;}
+function setView(view,options={}){state.currentView=view;if(view!=="search")state.previousView=view;els.tabs.forEach((b)=>{const active=b.dataset.view===view;b.classList.toggle("is-active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});els.mobileTabs.forEach((b)=>{const active=b.dataset.view===view;b.classList.toggle("is-active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});els.panels.forEach((p)=>p.classList.toggle("is-active",p.dataset.viewPanel===view));syncHomeChrome(view);if(options.updateHistory!==false)navigateTo(getViewPath(view),{replace:options.replaceHistory});updateViewSeo(view);if(view==="search")safeIdle(()=>els.searchInput?.focus());if(view==="profile")renderProfile();ensureViewLoaded(view).catch(console.error);}
 
 async function ensureViewLoaded(view){
   if(view==="home"&&!state.homeLoaded)return loadHome();
