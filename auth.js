@@ -1,8 +1,11 @@
 const AUTH_STORAGE_KEY = "animecloud_auth_v1";
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0",
+  apiKey: "AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY",
   authDomain: "oauth-489621.firebaseapp.com",
-  projectId: "oauth-489621"
+  projectId: "oauth-489621",
+  storageBucket: "oauth-489621.firebasestorage.app",
+  messagingSenderId: "263581962151",
+  appId: "1:263581962151:web:41538be2d5bae44d037082"
 };
 const FIREBASE_SDK_VERSION = "10.12.5";
 const ADMIN_EMAILS = new Set(["serikovmaksim94@gmail.com"]);
@@ -77,14 +80,15 @@ function deriveName(session) {
   return "Гость";
 }
 
-function decorateSession(session) {
+function isOwnerEmail(session) {
   const email = String(session?.email || "").trim().toLowerCase();
-  const isAdmin = ADMIN_EMAILS.has(email);
-  return {
-    ...session,
-    isAdmin,
-    role: isAdmin ? "admin" : "user"
-  };
+  return ADMIN_EMAILS.has(email);
+}
+
+function decorateSession(session) {
+  if (!session) return null;
+  const { isAdmin, role, ...rest } = session;
+  return rest;
 }
 
 function normalizeSession(data, current = null) {
@@ -208,7 +212,7 @@ function renderAuthState() {
   authEls.openBtn.hidden = loggedIn;
   authEls.userMenu.hidden = !loggedIn;
   authEls.userName.textContent = deriveName(session);
-  authEls.userRoleBadge.hidden = !session?.isAdmin;
+  authEls.userRoleBadge.hidden = !isOwnerEmail(session);
   authEls.userEmail.textContent = session?.email || "Вход не выполнен";
   authEls.userAvatar.src = session?.photoUrl || "./mc-icon-192.png?v=4";
 }

@@ -7,11 +7,11 @@
     },
     {
       "source": "/api/identity/:path*",
-      "destination": "https://identitytoolkit.googleapis.com/v1/:path*?key=AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0"
+      "destination": "https://identitytoolkit.googleapis.com/v1/:path*?key=AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY"
     },
     {
       "source": "/api/securetoken",
-      "destination": "https://securetoken.googleapis.com/v1/token?key=AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0"
+      "destination": "https://securetoken.googleapis.com/v1/token?key=AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY"
     },
     {
       "source": "/api/anilibria-media/:path*",

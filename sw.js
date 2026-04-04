@@ -1,11 +1,12 @@
-const CACHE_NAME = "animecloud-shell-v13";
+const CACHE_NAME = "animecloud-shell-v16";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./style.css?v=14",
-  "./app.js?v=11",
-  "./auth.js?v=6",
-  "./watch-features.js?v=4",
+  "./style.css?v=15",
+  "./cloud-sync.js?v=1",
+  "./app.js?v=14",
+  "./auth.js?v=8",
+  "./watch-features.js?v=6",
   "./manifest.webmanifest?v=9",
   "./robots.txt",
   "./sitemap.xml",

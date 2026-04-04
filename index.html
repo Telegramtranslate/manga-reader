@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://cache.libria.fun">
   <link rel="preconnect" href="https://accounts.google.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="./style.css?v=14">
+  <link rel="stylesheet" href="./style.css?v=15">
   <script id="structured-data" type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -109,7 +109,7 @@
                 >
                 <span class="user-chip__text">
                   <strong id="user-name">Гость</strong>
-                  <span class="user-role-badge" id="user-role-badge" hidden>Админ</span>
+                  <span class="user-role-badge" id="user-role-badge" hidden>Владелец</span>
                   <small id="user-email">Вход не выполнен</small>
                 </span>
               </button>
@@ -352,7 +352,7 @@
                 >
                 <div class="profile-user__meta">
                   <strong id="profile-name">Гость</strong>
-                  <span class="profile-role-badge" id="profile-role-badge" hidden>Администратор</span>
+                  <span class="profile-role-badge" id="profile-role-badge" hidden>Владелец</span>
                   <span id="profile-email">Вход не выполнен</span>
                 </div>
               </div>
@@ -373,14 +373,14 @@
             </section>
 
             <section class="profile-card admin-panel" id="admin-panel" hidden>
-              <div class="detail-label">Админ-панель</div>
+              <div class="detail-label">Локальные инструменты</div>
               <div class="admin-actions">
                 <button class="ghost-btn" type="button" id="admin-refresh-btn">Обновить данные сайта</button>
                 <button class="ghost-btn" type="button" id="admin-clear-cache-btn">Очистить кэш сайта</button>
                 <button class="ghost-btn" type="button" id="admin-clear-comments-btn">Очистить комментарии</button>
                 <button class="ghost-btn" type="button" id="admin-clear-progress-btn">Сбросить прогресс просмотра</button>
               </div>
-              <div class="admin-note" id="admin-note">Панель доступна только администратору.</div>
+              <div class="admin-note" id="admin-note">Панель видна только владельцу в этой локальной сборке.</div>
             </section>
           </div>
 
@@ -517,7 +517,7 @@
               <div class="section-kicker">Обсуждение</div>
               <h2>Комментарии</h2>
               <p class="section-summary" id="comments-summary">
-                Комментарии сохраняются в этом браузере. Если вы вошли в аккаунт, будет показано ваше имя.
+                Комментарии и история пока сохраняются локально в этом браузере. Вход сейчас нужен для разделения профилей и имени автора.
               </p>
             </div>
           </div>
@@ -642,8 +642,9 @@
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
-  <script src="./app.js?v=11" defer></script>
-  <script src="./auth.js?v=6" defer></script>
-  <script src="./watch-features.js?v=4" defer></script>
+  <script src="./cloud-sync.js?v=1" defer></script>
+  <script src="./app.js?v=14" defer></script>
+  <script src="./auth.js?v=8" defer></script>
+  <script src="./watch-features.js?v=6" defer></script>
 </body>
 </html>

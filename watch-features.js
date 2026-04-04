@@ -160,6 +160,7 @@ function renderComments() {
   const comments = getCommentsForCurrentRelease()
     .slice()
     .sort((left, right) => (right.createdAt || 0) - (left.createdAt || 0));
+  const visibleComments = comments.slice(0, 80);
 
   watchEls.commentsSummary.textContent = comments.length
     ? `Комментариев: ${comments.length}. Текущая серия будет указана автоматически, если она выбрана.`
@@ -174,7 +175,7 @@ function renderComments() {
   }
 
   watchEls.commentsList.replaceChildren(
-    ...comments.map((comment) => {
+    ...visibleComments.map((comment) => {
       const item = document.createElement("article");
       item.className = "comment-item";
       item.innerHTML = `
@@ -327,7 +328,6 @@ function bindFeatureEvents() {
     watchState.release = event.detail?.release || watchState.release;
     watchState.episode = event.detail?.episode || null;
     watchState.sourceId = event.detail?.sourceId || "anilibria";
-    renderComments();
     renderResumeBox();
   });
 
