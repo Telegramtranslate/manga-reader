@@ -1,19 +1,32 @@
 const API_BASE="/api/anilibria";
 const MEDIA_PROXY_BASE="/api/anilibria-media";
 const ORIGIN_BASE="https://anilibria.top";
+const SITE_URL="https://color-manga-cloud.vercel.app";
+const DEFAULT_SEO_TITLE="AnimeCloud — аниме с русской озвучкой";
+const DEFAULT_SEO_DESCRIPTION="AnimeCloud — каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером на базе AniLibria.";
+const VIEW_SEO={
+  home:{title:DEFAULT_SEO_TITLE,description:DEFAULT_SEO_DESCRIPTION},
+  catalog:{title:"Каталог аниме с русской озвучкой — AnimeCloud",description:"Каталог аниме с русской озвучкой: популярные релизы, подбор жанров, форматы, онгоинги и быстрый поиск на AnimeCloud."},
+  ongoing:{title:"Онгоинги аниме с русской озвучкой — AnimeCloud",description:"Свежие онгоинги аниме с русской озвучкой и быстрым плеером. Следите за выходом новых эпизодов на AnimeCloud."},
+  top:{title:"Топ аниме с русской озвучкой — AnimeCloud",description:"Топ аниме с русской озвучкой: популярные и высоко оценённые релизы в каталоге AnimeCloud."},
+  schedule:{title:"Расписание выхода аниме — AnimeCloud",description:"Расписание выхода аниме с русской озвучкой по дням недели на AnimeCloud."},
+  search:{title:"Поиск аниме с русской озвучкой — AnimeCloud",description:"Поиск аниме по названию, формату и жанрам в каталоге AnimeCloud."},
+  profile:{title:"Профиль зрителя — AnimeCloud",description:"Профиль, избранное и история просмотра в AnimeCloud."}
+};
 const CACHE_TTL=120000;
 const DETAIL_TTL=300000;
 const GRID_PAGE_SIZE=24;
 const SEARCH_DEBOUNCE=260;
 const RENDER_BATCH_SIZE=8;
 const FAVORITES_STORAGE_PREFIX="animecloud_favorites";
+const WATCH_PROGRESS_KEY="animecloud_watch_progress_v1";
 const ADMIN_HERO_STORAGE_KEY="animecloud_admin_featured_alias";
 let ignoreHashChange=false;
 const responseCache=new Map();
 const requestCache=new Map();
 const manifestCache=new Map();
 
-const state={currentView:"home",previousView:"home",latest:[],recommended:[],popular:[],catalogItems:[],ongoingItems:[],topItems:[],scheduleItems:[],searchResults:[],sortingOptions:[],typeOptions:[],genreOptions:[],favorites:[],authUser:null,featured:null,searchTimer:null,searchAbort:null,searchQuery:"",catalogPage:0,catalogTotal:0,catalogHasMore:false,catalogSort:"FRESH_AT_DESC",catalogType:"",catalogGenre:"",ongoingPage:0,ongoingTotal:0,ongoingHasMore:false,topPage:0,topTotal:0,topHasMore:false,referencesLoaded:false,homeLoaded:false,catalogLoaded:false,ongoingLoaded:false,topLoaded:false,scheduleLoaded:false,currentAnime:null,currentEpisode:null,currentQuality:"auto",currentSource:"anilibria",manifestBlobUrl:null,hls:null};
+const state={currentView:"home",previousView:"home",latest:[],recommended:[],popular:[],catalogItems:[],ongoingItems:[],topItems:[],scheduleItems:[],searchResults:[],sortingOptions:[],typeOptions:[],genreOptions:[],favorites:[],authUser:null,featured:null,searchTimer:null,searchAbort:null,searchQuery:"",catalogPage:0,catalogTotal:0,catalogHasMore:false,catalogSort:"FRESH_AT_DESC",catalogType:"",catalogGenre:"",ongoingPage:0,ongoingTotal:0,ongoingHasMore:false,topPage:0,topTotal:0,topHasMore:false,referencesLoaded:false,homeLoaded:false,catalogLoaded:false,ongoingLoaded:false,topLoaded:false,scheduleLoaded:false,currentAnime:null,currentEpisode:null,currentQuality:"auto",currentSource:"anilibria",manifestBlobUrl:null,hls:null,infiniteObserver:null};
 
 const els={
   tabs:[...document.querySelectorAll(".tab-btn[data-view]")],
@@ -35,18 +48,22 @@ const els={
   latestGrid:document.getElementById("latest-grid"),
   recommendedGrid:document.getElementById("recommended-grid"),
   popularGrid:document.getElementById("popular-grid"),
+  continueGrid:document.getElementById("continue-grid"),
   catalogGrid:document.getElementById("catalog-grid"),
   ongoingGrid:document.getElementById("ongoing-grid"),
   topGrid:document.getElementById("top-grid"),
   scheduleGrid:document.getElementById("schedule-grid"),
   searchGrid:document.getElementById("search-grid"),
   favoritesGrid:document.getElementById("favorites-grid"),
+  profileProgressGrid:document.getElementById("profile-progress-grid"),
+  continueSummary:document.getElementById("continue-summary"),
   catalogSummary:document.getElementById("catalog-summary"),
   ongoingSummary:document.getElementById("ongoing-summary"),
   topSummary:document.getElementById("top-summary"),
   scheduleSummary:document.getElementById("schedule-summary"),
   searchSummary:document.getElementById("search-summary"),
   profileSummary:document.getElementById("profile-summary"),
+  profileProgressSummary:document.getElementById("profile-progress-summary"),
   profileAvatar:document.getElementById("profile-avatar"),
   profileName:document.getElementById("profile-name"),
   profileRoleBadge:document.getElementById("profile-role-badge"),
@@ -85,7 +102,19 @@ const els={
   qualitySwitch:document.getElementById("quality-switch"),
   player:document.getElementById("anime-player"),
   externalPlayer:document.getElementById("external-player"),
-  cardTemplate:document.getElementById("anime-card-template")
+  cardTemplate:document.getElementById("anime-card-template"),
+  metaDescription:document.getElementById("meta-description"),
+  metaRobots:document.getElementById("meta-robots"),
+  canonicalLink:document.getElementById("canonical-link"),
+  ogType:document.getElementById("og-type"),
+  ogTitle:document.getElementById("og-title"),
+  ogDescription:document.getElementById("og-description"),
+  ogUrl:document.getElementById("og-url"),
+  ogImage:document.getElementById("og-image"),
+  twitterTitle:document.getElementById("twitter-title"),
+  twitterDescription:document.getElementById("twitter-description"),
+  twitterImage:document.getElementById("twitter-image"),
+  structuredData:document.getElementById("structured-data")
 };
 
 const formatNumber=(v)=>new Intl.NumberFormat("ru-RU").format(Number(v||0));
@@ -93,6 +122,18 @@ const escapeHtml=(v)=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;
 const absoluteUrl=(path)=>!path?"./mc-icon-512.png?v=4":/^https?:\/\//i.test(path)?path:path.startsWith("//")?`https:${path}`:ORIGIN_BASE+path;
 function normalizeExternalPlayer(url){if(!url)return"";const raw=url.startsWith("//")?`https:${url}`:url;try{const parsed=new URL(raw);if(parsed.hostname.includes("kodik"))parsed.searchParams.set("translations","true");return parsed.toString();}catch{return raw;}}
 function apiUrl(path,params){const url=new URL(API_BASE+path,window.location.origin);if(params)Object.entries(params).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=="")url.searchParams.set(k,String(v));});return url.toString();}
+function siteUrl(path="/"){return new URL(path,SITE_URL).toString();}
+function normalizePath(path){const next=`/${String(path||"").replace(/^\/+/,"")}`.replace(/\/{2,}/g,"/");return next.length>1?next.replace(/\/+$/,""):"/";}
+function getViewPath(view){return view==="home"?"/":normalizePath(view);}
+function getAnimePath(alias){return `/anime/${encodeURIComponent(alias)}`;}
+function routeFromLocation(){const pathname=normalizePath(location.pathname);if(pathname.startsWith("/anime/"))return{type:"anime",alias:decodeURIComponent(pathname.slice(7)),legacy:false};const views=new Set(["/","/catalog","/ongoing","/top","/schedule","/search","/profile"]);if(views.has(pathname))return{type:"view",view:pathname==="/"
+?"home":pathname.slice(1),legacy:false};const rawHash=(location.hash||"").replace(/^#/,"");if(rawHash.startsWith("anime/"))return{type:"anime",alias:decodeURIComponent(rawHash.slice(6)),legacy:true};if(rawHash)return{type:"view",view:rawHash,legacy:true};return{type:"view",view:"home",legacy:false};}
+function navigateTo(path,options={}){const next=normalizePath(path);if(normalizePath(location.pathname)===next&&!location.hash)return;history[options.replace?"replaceState":"pushState"]({}, "", next);}
+function truncateSeoText(text,max=170){const clean=String(text||"").replace(/\s+/g," ").trim();if(clean.length<=max)return clean;return `${clean.slice(0,Math.max(0,max-1)).trim()}…`;}
+function buildStructuredData(page){return JSON.stringify({"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"AnimeCloud","url":siteUrl("/"),"inLanguage":"ru","description":DEFAULT_SEO_DESCRIPTION},page]});}
+function applySeo({title,description,path,image,type="website",structuredData}){const canonical=siteUrl(path||"/");document.title=title||DEFAULT_SEO_TITLE;if(els.metaDescription)els.metaDescription.content=description||DEFAULT_SEO_DESCRIPTION;if(els.metaRobots)els.metaRobots.content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";if(els.canonicalLink)els.canonicalLink.href=canonical;if(els.ogType)els.ogType.content=type;if(els.ogTitle)els.ogTitle.content=title||DEFAULT_SEO_TITLE;if(els.ogDescription)els.ogDescription.content=description||DEFAULT_SEO_DESCRIPTION;if(els.ogUrl)els.ogUrl.content=canonical;if(els.ogImage)els.ogImage.content=image||siteUrl("/mc-icon-512.png?v=4");if(els.twitterTitle)els.twitterTitle.content=title||DEFAULT_SEO_TITLE;if(els.twitterDescription)els.twitterDescription.content=description||DEFAULT_SEO_DESCRIPTION;if(els.twitterImage)els.twitterImage.content=image||siteUrl("/mc-icon-512.png?v=4");if(els.structuredData)els.structuredData.textContent=structuredData||buildStructuredData({"@type":"CollectionPage","name":title||DEFAULT_SEO_TITLE,"url":canonical,"inLanguage":"ru","description":description||DEFAULT_SEO_DESCRIPTION,"isPartOf":{"@type":"WebSite","name":"AnimeCloud","url":siteUrl("/")}});}
+function updateViewSeo(view){const seo=VIEW_SEO[view]||VIEW_SEO.home;applySeo({title:seo.title,description:seo.description,path:getViewPath(view),structuredData:buildStructuredData({"@type":"CollectionPage","name":seo.title,"url":siteUrl(getViewPath(view)),"inLanguage":"ru","description":seo.description,"isPartOf":{"@type":"WebSite","name":"AnimeCloud","url":siteUrl("/")}})});}
+function updateReleaseSeo(release){const description=truncateSeoText(`${release.description||DEFAULT_SEO_DESCRIPTION} ${release.genres?.length?`Жанры: ${release.genres.join(", ")}.`:""} ${release.episodesTotal?`Эпизодов: ${release.episodesTotal}.`:""}`);const path=getAnimePath(release.alias);applySeo({title:`${release.title} — смотреть онлайн с русской озвучкой | AnimeCloud`,description,path,image:release.poster||siteUrl("/mc-icon-512.png?v=4"),type:"video.other",structuredData:buildStructuredData({"@type":"TVSeries","name":release.title,"url":siteUrl(path),"description":description,"image":release.poster||siteUrl("/mc-icon-512.png?v=4"),"genre":release.genres||[],"inLanguage":"ru","numberOfEpisodes":release.episodesTotal||undefined,"dateCreated":/^\d{4}$/.test(String(release.year||""))?String(release.year):undefined,"isPartOf":{"@type":"WebSite","name":"AnimeCloud","url":siteUrl("/")}})});}
 async function fetchJson(path,params,options={}){const ttl=options.ttl??CACHE_TTL;const url=apiUrl(path,params);const cached=responseCache.get(url);if(ttl>0&&cached&&Date.now()-cached.time<ttl)return cached.data;if(requestCache.has(url))return requestCache.get(url);const promise=fetch(url,{cache:"no-store",signal:options.signal}).then(async(r)=>{if(!r.ok)throw new Error(`API request failed: ${r.status}`);const data=await r.json();if(ttl>0)responseCache.set(url,{time:Date.now(),data});return data;}).finally(()=>requestCache.delete(url));requestCache.set(url,promise);return promise;}
 const extractList=(payload)=>Array.isArray(payload)?payload:Array.isArray(payload?.data)?payload.data:[];
 const extractPagination=(payload)=>payload?.meta?.pagination||{current_page:1,total_pages:1,total:extractList(payload).length};
@@ -110,6 +151,7 @@ function buildRelease(item){
 }
 
 const buildReleases=(payload)=>extractList(payload).map(buildRelease);
+function formatClock(seconds){const value=Math.max(0,Math.floor(Number(seconds||0)));const hours=Math.floor(value/3600);const minutes=Math.floor((value%3600)/60);const secs=value%60;return hours?`${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(secs).padStart(2,"0")}`:`${String(minutes).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;}
 const formatDurationMinutes=(m)=>m?`${m} мин.`:"";
 const formatEpisodeDuration=(s)=>s?`${Math.max(1,Math.round(s/60))} мин.`:"";
 function shouldPreferFastStart(){const connection=navigator.connection||navigator.mozConnection||navigator.webkitConnection;const saveData=Boolean(connection?.saveData);const effectiveType=String(connection?.effectiveType||"");const downlink=Number(connection?.downlink||0);if(saveData||effectiveType==="slow-2g"||effectiveType==="2g"||effectiveType==="3g")return true;if(downlink&&downlink<4)return true;return Boolean(window.matchMedia?.("(max-width: 860px)").matches&&(!downlink||downlink<6));}
@@ -119,6 +161,20 @@ function scheduleChunkAppend(target,nodes){const token=`${Date.now()}-${Math.ran
 function createTag(text){const n=document.createElement("span");n.className="tag";n.textContent=text;return n;}
 function createMetaPill(text){const n=document.createElement("span");n.className="meta-pill";n.textContent=text;return n;}
 function createChip(text){const n=document.createElement("span");n.className="chip";n.textContent=text;return n;}
+function readProgressMap(){try{return JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY)||"{}");}catch{return{};}}
+function getProgressForAlias(alias){return alias?readProgressMap()[alias]||null:null;}
+function getAllKnownReleases(){const pool=[...state.latest,...state.recommended,...state.popular,...state.catalogItems,...state.ongoingItems,...state.topItems,...state.searchResults,...state.favorites].filter(Boolean);const seen=new Set();return pool.filter((item)=>{if(!item?.alias||seen.has(item.alias))return false;seen.add(item.alias);return true;});}
+function findReleaseByAlias(alias){if(!alias)return null;return getAllKnownReleases().find((item)=>item.alias===alias)||null;}
+function buildProgressRelease(progress){const known=findReleaseByAlias(progress.alias);if(known)return{...known,__progress:progress};return{id:progress.alias,alias:progress.alias,title:progress.title||"Без названия",year:"",type:"Аниме",age:"",statusLabel:"Продолжить",publishDay:"",poster:progress.poster||"./mc-icon-512.png?v=4",cardPoster:progress.cardPoster||progress.poster||"./mc-icon-512.png?v=4",thumb:progress.cardPoster||progress.poster||"./mc-icon-512.png?v=4",genres:[],episodesTotal:progress.episodeOrdinal||0,__progress:progress};}
+function getContinueWatchingReleases(limit=12){return Object.values(readProgressMap()).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,limit).map(buildProgressRelease);}
+function progressPercent(progress){const duration=Number(progress?.duration||0);const time=Number(progress?.time||0);if(!duration||duration<=0)return 0;return Math.max(0,Math.min(100,Math.round((time/duration)*100)));}
+function createSkeletonCard(){const article=document.createElement("article");article.className="anime-card anime-card--skeleton";article.setAttribute("aria-hidden","true");article.innerHTML='<div class="anime-card__action anime-card__action--skeleton"><div class="anime-card__poster-wrap skeleton-block"></div><div class="anime-card__body"><div class="skeleton-line skeleton-line--title"></div><div class="skeleton-line skeleton-line--meta"></div><div class="skeleton-tags"><span class="skeleton-pill"></span><span class="skeleton-pill"></span></div></div></div>';return article;}
+function renderSkeletonGrid(target,count=8){if(!target)return;target.innerHTML="";const fragment=document.createDocumentFragment();for(let i=0;i<count;i+=1)fragment.appendChild(createSkeletonCard());target.appendChild(fragment);}
+function decorateCardProgress(node,release){const progress=release?.__progress||getProgressForAlias(release?.alias);if(!progress)return node;const body=node.querySelector(".anime-card__body");if(!body||body.querySelector(".anime-card__progress"))return node;const progressNode=document.createElement("div");progressNode.className="anime-card__progress";progressNode.innerHTML=`<div class="anime-card__progress-bar"><span style="width:${progressPercent(progress)}%"></span></div><div class="anime-card__progress-meta">${escapeHtml(progress.episodeLabel||"Продолжить просмотр")} • ${escapeHtml(formatClock(progress.time||0))}</div>`;body.appendChild(progressNode);return node;}
+function renderContinueWatchingSections(){const releases=getContinueWatchingReleases();const summary=releases.length?`Недосмотренных релизов: ${formatNumber(releases.length)}. Быстрый возврат к серии и времени просмотра.`:"Когда начнёте смотреть аниме, здесь появится быстрый возврат к серии.";if(els.continueSummary)els.continueSummary.textContent=summary;if(els.profileProgressSummary)els.profileProgressSummary.textContent=summary;updateGrid(els.continueGrid,releases,"Продолжение просмотра пока пусто.");updateGrid(els.profileProgressGrid,releases,"Продолжение просмотра пока пусто.");}
+function decorateEpisodeProgress(release){const progress=getProgressForAlias(release?.alias);if(!progress)return;els.episodesList.querySelectorAll(".episode-btn").forEach((button)=>{const matchId=progress.episodeId&&button.dataset.episodeId===progress.episodeId;const matchOrdinal=!matchId&&String(progress.episodeOrdinal||"")===button.dataset.ordinal;if(!matchId&&!matchOrdinal)return;button.classList.add("has-progress");if(!button.querySelector(".episode-progress")){const bar=document.createElement("div");bar.className="episode-progress";bar.innerHTML=`<span style="width:${progressPercent(progress)}%"></span>`;button.appendChild(bar);}if(!button.querySelector(".episode-progress-meta")){const meta=document.createElement("small");meta.className="episode-progress-meta";meta.textContent=`Продолжить с ${formatClock(progress.time||0)}`;button.appendChild(meta);}});}
+function syncHeroOpenLink(){if(state.featured&&els.heroOpenBtn)els.heroOpenBtn.dataset.alias=state.featured.alias;}
+function setupInfiniteScroll(){if(state.infiniteObserver)state.infiniteObserver.disconnect();if(!("IntersectionObserver" in window))return;const buttons=[els.catalogMoreBtn,els.ongoingMoreBtn,els.topMoreBtn].filter(Boolean);state.infiniteObserver=new IntersectionObserver((entries)=>{entries.forEach((entry)=>{const button=entry.target;if(!entry.isIntersecting||button.hidden||button.disabled)return;button.click();});},{rootMargin:"280px 0px 320px"});buttons.forEach((button)=>state.infiniteObserver.observe(button));}
 function registerGenres(releases){const next=new Set(state.genreOptions);(releases||[]).forEach((release)=>{(release.genres||[]).forEach((genre)=>{const label=String(genre||"").trim();if(label)next.add(label);});});const sorted=[...next].sort((a,b)=>a.localeCompare(b,"ru"));if(sorted.length===state.genreOptions.length&&sorted.every((value,index)=>value===state.genreOptions[index]))return;state.genreOptions=sorted;renderCatalogControls();}
 function getFilteredCatalogItems(){if(!state.catalogGenre)return state.catalogItems;return state.catalogItems.filter((release)=>(release.genres||[]).includes(state.catalogGenre));}
 function isAdminUser(){const email=String(state.authUser?.email||"").trim().toLowerCase();return Boolean(state.authUser?.isAdmin||email==="serikovmaksim94@gmail.com");}
@@ -133,7 +189,7 @@ function toggleFavorite(release){const exists=isFavorite(release.alias);state.fa
 function renderFavoriteButton(){if(!els.detailFavoriteBtn)return;const active=Boolean(state.currentAnime&&isFavorite(state.currentAnime.alias));els.detailFavoriteBtn.textContent=active?"Убрать из избранного":"В избранное";els.detailFavoriteBtn.classList.toggle("is-active",active);}
 function renderProfile(){if(!els.favoritesGrid)return;const user=state.authUser;const admin=isAdminUser();els.profileAvatar.src=user?.photoUrl||"./mc-icon-192.png?v=4";els.profileName.textContent=user?.displayName||user?.email?.split("@")[0]||"Гость";els.profileRoleBadge.hidden=!admin;els.profileEmail.textContent=user?.email||"Вход не выполнен";els.favoritesCount.textContent=formatNumber(state.favorites.length);els.favoritesMode.textContent=admin?"Админ":user?.localId?"Аккаунт":"Локально";els.profileSummary.textContent=admin?"У этого аккаунта включён локальный админ-режим для управления сайтом в этом браузере.":user?.localId?"Избранное привязано к текущему аккаунту в этом браузере.":"Войдите, чтобы хранить свою коллекцию отдельно. Без входа избранное сохранится только в этом браузере.";els.adminPanel.hidden=!admin;if(els.adminNote)els.adminNote.textContent=admin?"Админ-инструменты применяются локально в этом браузере и в этой сборке сайта.":"Панель доступна только администратору.";updateGrid(els.favoritesGrid,state.favorites,"В избранном пока пусто.");}
 function syncHash(hash){if(location.hash===hash)return;ignoreHashChange=true;location.hash=hash;setTimeout(()=>{ignoreHashChange=false;},0);}
-function handleRoute(){const raw=(location.hash||"#home").replace(/^#/,"");if(raw.startsWith("anime/")){const alias=decodeURIComponent(raw.slice(6));if(alias)openRelease(alias,{updateHash:false}).catch(console.error);return;}const nextView=raw||"home";const known=els.panels.some((panel)=>panel.dataset.viewPanel===nextView);setView(known?nextView:"home",{updateHash:false});}
+function handleRoute(){const route=routeFromLocation();if(route.legacy){if(route.type==="anime"&&route.alias){navigateTo(getAnimePath(route.alias),{replace:true});}else{navigateTo(getViewPath(route.view||"home"),{replace:true});}}if(route.type==="anime"&&route.alias){openRelease(route.alias,{updateHistory:false}).catch(console.error);return;}if(els.drawer.classList.contains("is-open"))closeDrawer({updateHistory:false});const nextView=route.view||"home";const known=els.panels.some((panel)=>panel.dataset.viewPanel===nextView);setView(known?nextView:"home",{updateHistory:false});}
 
 function createAnimeCard(release,index){
   const node=els.cardTemplate.content.firstElementChild.cloneNode(true);
@@ -145,7 +201,9 @@ function createAnimeCard(release,index){
   node.querySelector(".anime-card__meta").textContent=[release.type,release.year,`${release.episodesTotal||"?"} эп.`].filter(Boolean).join(" • ");
   poster.src=release.cardPoster;poster.alt=release.title;poster.loading=index<4?"eager":"lazy";poster.decoding="async";poster.fetchPriority=index<2?"high":"auto";poster.srcset=`${release.cardPoster} 1x, ${release.poster} 2x`;poster.sizes="(max-width: 560px) 44vw, (max-width: 920px) 30vw, 220px";
   const tags=node.querySelector(".anime-card__tags");const values=release.genres.slice(0,2);if(!values.length&&release.publishDay)values.push(release.publishDay);values.forEach((v)=>tags.appendChild(createTag(v)));
-  button.addEventListener("click",()=>openRelease(release.alias).catch(console.error));
+  button.href=getAnimePath(release.alias);
+  button.setAttribute("aria-label",`${release.title}: открыть релиз`);
+  button.addEventListener("click",(event)=>{event.preventDefault();openRelease(release.alias).catch(console.error);});
   button.addEventListener("mouseenter",()=>prefetchRelease(release.alias),{once:true});
   button.addEventListener("focus",()=>prefetchRelease(release.alias),{once:true});
   return node;
@@ -155,7 +213,7 @@ function updateGrid(target,releases,emptyMessage,options={}){const append=Boolea
 function renderHero(release){if(!release)return;const meta=[`${release.type} • ${release.year}`,release.season,`${release.episodesTotal||"?"} эп.`,release.publishDay?`Выходит: ${release.publishDay}`:"",release.age].filter(Boolean);els.heroTitle.textContent=release.title;els.heroDescription.textContent=release.description;els.heroMeta.replaceChildren(...meta.map(createMetaPill));els.heroPoster.src=release.poster;els.heroPoster.alt=release.title;}
 function applyAdminHero(releases){const forcedAlias=readAdminHeroAlias();if(!forcedAlias)return null;return releases.find((release)=>release.alias===forcedAlias)||null;}
 function updateStats(){els.latestCount.textContent=formatNumber(state.latest.length);els.catalogCount.textContent=formatNumber(state.catalogTotal);els.ongoingCount.textContent=formatNumber(state.ongoingTotal);els.topCount.textContent=formatNumber(state.popular.length||state.topItems.length);}
-function setView(view,options={}){state.currentView=view;if(view!=="search")state.previousView=view;els.tabs.forEach((b)=>b.classList.toggle("is-active",b.dataset.view===view));els.mobileTabs.forEach((b)=>b.classList.toggle("is-active",b.dataset.view===view));els.panels.forEach((p)=>p.classList.toggle("is-active",p.dataset.viewPanel===view));if(options.updateHash!==false)syncHash(`#${view}`);if(view==="search")safeIdle(()=>els.searchInput?.focus());if(view==="profile")renderProfile();ensureViewLoaded(view).catch(console.error);}
+function setView(view,options={}){state.currentView=view;if(view!=="search")state.previousView=view;els.tabs.forEach((b)=>{const active=b.dataset.view===view;b.classList.toggle("is-active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});els.mobileTabs.forEach((b)=>{const active=b.dataset.view===view;b.classList.toggle("is-active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});els.panels.forEach((p)=>p.classList.toggle("is-active",p.dataset.viewPanel===view));if(options.updateHistory!==false)navigateTo(getViewPath(view),{replace:options.replaceHistory});updateViewSeo(view);if(view==="search")safeIdle(()=>els.searchInput?.focus());if(view==="profile")renderProfile();ensureViewLoaded(view).catch(console.error);}
 
 async function ensureViewLoaded(view){
   if(view==="home"&&!state.homeLoaded)return loadHome();
@@ -227,7 +285,7 @@ function renderSearchEmpty(){updateGrid(els.searchGrid,[],"Введите наз
 async function runSearch(query){const cleanQuery=query.trim();state.searchQuery=cleanQuery;if(state.searchAbort){state.searchAbort.abort();state.searchAbort=null;}if(!cleanQuery){state.searchResults=[];renderSearchEmpty();setView(state.previousView||"home");return;}const controller=new AbortController();state.searchAbort=controller;setView("search");els.searchSummary.textContent="Ищем релизы…";updateGrid(els.searchGrid,[],"Ищем релизы…");try{const payload=await fetchJson("/app/search/releases",{query:cleanQuery},{ttl:60000,signal:controller.signal});if(controller.signal.aborted)return;state.searchResults=buildReleases(payload).slice(0,36);els.searchSummary.textContent=state.searchResults.length?`Найдено ${formatNumber(state.searchResults.length)} релизов по запросу «${cleanQuery}».`:`По запросу «${cleanQuery}» ничего не найдено.`;updateGrid(els.searchGrid,state.searchResults,"Ничего не найдено.");}catch(error){if(error.name==="AbortError")return;console.error(error);els.searchSummary.textContent="Поиск временно недоступен.";updateGrid(els.searchGrid,[],"Поиск временно недоступен.");}finally{if(state.searchAbort===controller)state.searchAbort=null;}}
 const prefetchRelease=(alias)=>fetchJson(`/anime/releases/${encodeURIComponent(alias)}`,null,{ttl:DETAIL_TTL}).catch(()=>{});
 function openDrawer(){els.drawer.classList.add("is-open");els.drawer.setAttribute("aria-hidden","false");}
-function closeDrawer(options={}){els.drawer.classList.remove("is-open");els.drawer.setAttribute("aria-hidden","true");destroyPlayer();stopExternalPlayer();if(options.updateHash!==false&&location.hash.startsWith("#anime/"))syncHash(`#${state.previousView||"home"}`);}
+function closeDrawer(options={}){els.drawer.classList.remove("is-open");els.drawer.setAttribute("aria-hidden","true");destroyPlayer();stopExternalPlayer();if(options.updateHistory!==false)navigateTo(getViewPath(state.previousView||"home"),{replace:options.replaceHistory});updateViewSeo(state.previousView||state.currentView||"home");}
 function destroyPlayer(){if(state.hls){state.hls.destroy();state.hls=null;}els.player.pause();els.player.removeAttribute("src");els.player.load();if(state.manifestBlobUrl){URL.revokeObjectURL(state.manifestBlobUrl);state.manifestBlobUrl=null;}}
 function stopExternalPlayer(){els.externalPlayer.src="about:blank";els.externalPlayer.hidden=true;els.player.hidden=false;}
 function showVideoSurface(){els.externalPlayer.hidden=true;els.player.hidden=false;}
@@ -251,8 +309,27 @@ function pickRandomRelease(){const pool=[...state.latest,...state.recommended,..
 function safeIdle(callback){if("requestIdleCallback"in window){window.requestIdleCallback(callback,{timeout:1200});return;}setTimeout(callback,180);}
 async function refreshAll(){responseCache.clear();requestCache.clear();manifestCache.clear();state.homeLoaded=false;state.catalogLoaded=false;state.ongoingLoaded=false;state.topLoaded=false;state.scheduleLoaded=false;state.referencesLoaded=false;state.genreOptions=[];if(state.searchAbort){state.searchAbort.abort();state.searchAbort=null;}await loadReferences(true);await loadHome(true);await ensureViewLoaded(state.currentView);}
 async function clearSiteRuntimeCaches(){responseCache.clear();requestCache.clear();manifestCache.clear();if("caches"in window){const keys=await caches.keys();await Promise.all(keys.map((key)=>caches.delete(key)));}}
-function registerServiceWorker(){if(!("serviceWorker"in navigator))return;window.addEventListener("load",()=>{navigator.serviceWorker.register("./sw.js?v=11",{updateViaCache:"none"}).catch(()=>{});});}
-function bindViewButtons(buttons){buttons.forEach((button)=>button.addEventListener("click",()=>setView(button.dataset.view)));}
+function registerServiceWorker(){if(!("serviceWorker"in navigator))return;window.addEventListener("load",()=>{navigator.serviceWorker.register("./sw.js?v=13",{updateViaCache:"none"}).catch(()=>{});});}
+function bindViewButtons(buttons){buttons.forEach((button)=>button.addEventListener("click",(event)=>{event.preventDefault();setView(button.dataset.view);}));}
+function bindNavigationDelegates(){document.addEventListener("click",(event)=>{const link=event.target.closest("a");if(!link)return;if(link.id==="brand-btn"){event.preventDefault();setView("home");return;}if(link.classList.contains("seo-footer__link")){const view=(link.getAttribute("href")||"/").replace(/^\/+/,"")||"home";event.preventDefault();setView(view==="home"?"home":view);}});window.addEventListener("popstate",handleRoute);window.addEventListener("hashchange",()=>{if(!ignoreHashChange)handleRoute();});window.addEventListener("animecloud:release-opened",(event)=>{const release=event.detail?.release;if(!release?.alias)return;updateReleaseSeo(release);navigateTo(getAnimePath(release.alias));});}
 function bindEvents(){bindViewButtons(els.tabs);bindViewButtons(els.mobileTabs);els.brandBtn.addEventListener("click",()=>setView("home"));els.refreshBtn.addEventListener("click",()=>refreshAll().catch(console.error));els.heroOpenBtn.addEventListener("click",()=>state.featured&&openRelease(state.featured.alias).catch(console.error));els.heroRandomBtn.addEventListener("click",pickRandomRelease);els.catalogMoreBtn.addEventListener("click",()=>loadCatalog({reset:false}).catch(console.error));els.ongoingMoreBtn.addEventListener("click",()=>loadOngoing({reset:false}).catch(console.error));els.topMoreBtn.addEventListener("click",()=>loadTop({reset:false}).catch(console.error));els.catalogSort.addEventListener("change",()=>{state.catalogSort=els.catalogSort.value;state.catalogLoaded=false;loadCatalog({reset:true}).catch(console.error);});els.catalogType.addEventListener("change",()=>{state.catalogType=els.catalogType.value;state.catalogLoaded=false;loadCatalog({reset:true}).catch(console.error);});els.catalogGenre.addEventListener("change",()=>{state.catalogGenre=els.catalogGenre.value;state.catalogLoaded=false;loadCatalog({reset:true}).catch(console.error);});els.searchInput.addEventListener("input",(event)=>{clearTimeout(state.searchTimer);state.searchTimer=setTimeout(()=>runSearch(event.target.value).catch(console.error),SEARCH_DEBOUNCE);});els.drawerClose.addEventListener("click",()=>closeDrawer());els.drawerBackdrop.addEventListener("click",()=>closeDrawer());els.detailFavoriteBtn.addEventListener("click",()=>{if(state.currentAnime)toggleFavorite(state.currentAnime);});els.detailAdminPinBtn.addEventListener("click",()=>{if(!state.currentAnime||!isAdminUser())return;writeAdminHeroAlias(state.currentAnime.alias);state.featured=state.currentAnime;renderHero(state.currentAnime);els.detailAdminPinBtn.textContent="Главный баннер выбран";});els.detailShareBtn.addEventListener("click",async()=>{if(!state.currentAnime)return;const url=`${location.origin}${location.pathname}#anime/${encodeURIComponent(state.currentAnime.alias)}`;try{await navigator.clipboard.writeText(url);els.detailShareBtn.textContent="Ссылка скопирована";setTimeout(()=>{els.detailShareBtn.textContent="Скопировать ссылку";},1400);}catch{els.detailShareBtn.textContent="Не удалось скопировать";setTimeout(()=>{els.detailShareBtn.textContent="Скопировать ссылку";},1400);}});els.adminRefreshBtn.addEventListener("click",()=>refreshAll().catch(console.error));els.adminClearCacheBtn.addEventListener("click",async()=>{await clearSiteRuntimeCaches();window.dispatchEvent(new CustomEvent("animecloud:admin-cache-cleared"));await refreshAll().catch(console.error);});els.adminClearCommentsBtn.addEventListener("click",()=>window.dispatchEvent(new CustomEvent("animecloud:admin-clear-comments")));els.adminClearProgressBtn.addEventListener("click",()=>window.dispatchEvent(new CustomEvent("animecloud:admin-clear-progress")));window.addEventListener("hashchange",()=>{if(!ignoreHashChange)handleRoute();});window.addEventListener("animecloud:auth",(event)=>{state.authUser=event.detail?.user||null;loadFavorites();renderProfile();renderFavoriteButton();if(state.currentAnime)renderDetails(state.currentAnime);});window.addEventListener("animecloud:profile-request",()=>setView("profile"));document.addEventListener("keydown",(event)=>{if(event.key==="Escape"&&els.drawer.classList.contains("is-open"))closeDrawer();});}
 async function init(){bindEvents();registerServiceWorker();try{state.authUser=JSON.parse(localStorage.getItem("animecloud_auth_v1")||"null");}catch{state.authUser=null;}loadFavorites();renderProfile();renderSearchEmpty();try{await loadReferences();await loadHome();updateStats();handleRoute();safeIdle(()=>{loadSchedule().catch(()=>{});loadTop({reset:true}).catch(()=>{});});}catch(error){console.error(error);updateGrid(els.latestGrid,[],"Не удалось загрузить домашнюю страницу.");updateGrid(els.recommendedGrid,[],"Не удалось загрузить домашнюю страницу.");updateGrid(els.popularGrid,[],"Не удалось загрузить домашнюю страницу.");}}
+const createAnimeCardBase=createAnimeCard;
+createAnimeCard=function(release,index){return decorateCardProgress(createAnimeCardBase(release,index),release);};
+const renderEpisodesBase=renderEpisodes;
+renderEpisodes=function(release){renderEpisodesBase(release);decorateEpisodeProgress(release);};
+const renderHeroBase=renderHero;
+renderHero=function(release){renderHeroBase(release);syncHeroOpenLink();};
+const renderProfileBase=renderProfile;
+renderProfile=function(){renderProfileBase();renderContinueWatchingSections();};
+const loadHomeBase=loadHome;
+loadHome=async function(force=false){if(!state.homeLoaded||force){renderSkeletonGrid(els.continueGrid,4);renderSkeletonGrid(els.latestGrid,6);renderSkeletonGrid(els.recommendedGrid,6);renderSkeletonGrid(els.popularGrid,6);}const result=await loadHomeBase(force);renderContinueWatchingSections();syncHeroOpenLink();return result;};
+const loadCatalogBase=loadCatalog;
+loadCatalog=async function(options={}){if(options?.reset)renderSkeletonGrid(els.catalogGrid,8);const result=await loadCatalogBase(options);setupInfiniteScroll();return result;};
+const loadOngoingBase=loadOngoing;
+loadOngoing=async function(options={}){if(options?.reset)renderSkeletonGrid(els.ongoingGrid,8);const result=await loadOngoingBase(options);setupInfiniteScroll();return result;};
+const loadTopBase=loadTop;
+loadTop=async function(options={}){if(options?.reset)renderSkeletonGrid(els.topGrid,8);const result=await loadTopBase(options);setupInfiniteScroll();return result;};
+window.addEventListener("animecloud:progress-updated",()=>{renderContinueWatchingSections();if(state.currentAnime)decorateEpisodeProgress(state.currentAnime);});
+bindNavigationDelegates();
 init().catch(console.error);

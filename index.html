@@ -5,18 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#070b14">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta id="meta-robots" name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <link id="canonical-link" rel="canonical" href="https://color-manga-cloud.vercel.app/">
+  <meta id="og-type" property="og:type" content="website">
+  <meta property="og:site_name" content="AnimeCloud">
+  <meta id="og-title" property="og:title" content="AnimeCloud — аниме с русской озвучкой">
+  <meta id="og-description" property="og:description" content="AnimeCloud — каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером на базе AniLibria.">
+  <meta id="og-url" property="og:url" content="https://color-manga-cloud.vercel.app/">
+  <meta id="og-image" property="og:image" content="https://color-manga-cloud.vercel.app/mc-icon-512.png?v=4">
+  <meta property="og:image:alt" content="AnimeCloud">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta id="twitter-title" name="twitter:title" content="AnimeCloud — аниме с русской озвучкой">
+  <meta id="twitter-description" name="twitter:description" content="AnimeCloud — каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером на базе AniLibria.">
+  <meta id="twitter-image" name="twitter:image" content="https://color-manga-cloud.vercel.app/mc-icon-512.png?v=4">
   <meta
+    id="meta-description"
     name="description"
     content="AnimeCloud — каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером на базе AniLibria."
   >
   <title>AnimeCloud — аниме с русской озвучкой</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=8">
+  <link rel="manifest" href="./manifest.webmanifest?v=9">
   <link rel="icon" href="./mc-icon-192.png?v=4" sizes="192x192">
   <link rel="preconnect" href="https://anilibria.top">
   <link rel="preconnect" href="https://cache.libria.fun">
   <link rel="preconnect" href="https://accounts.google.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="./style.css?v=12">
+  <link rel="stylesheet" href="./style.css?v=14">
+  <script id="structured-data" type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "AnimeCloud",
+          "url": "https://color-manga-cloud.vercel.app/",
+          "inLanguage": "ru",
+          "description": "AnimeCloud — каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером на базе AniLibria."
+        },
+        {
+          "@type": "CollectionPage",
+          "name": "AnimeCloud — аниме с русской озвучкой",
+          "url": "https://color-manga-cloud.vercel.app/",
+          "inLanguage": "ru",
+          "description": "AnimeCloud — каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером на базе AniLibria.",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "AnimeCloud",
+            "url": "https://color-manga-cloud.vercel.app/"
+          }
+        }
+      ]
+    }
+  </script>
 </head>
 <body>
   <div class="page-glow" aria-hidden="true"></div>
@@ -24,7 +64,7 @@
   <div class="site-shell">
     <header class="topbar">
       <div class="brand-column">
-        <button class="brand-btn" type="button" id="brand-btn">AnimeCloud</button>
+        <a class="brand-btn" href="/" id="brand-btn">AnimeCloud</a>
         <p class="brand-sub">
           Премиальный каталог аниме с русской озвучкой, топами, расписанием и быстрым плеером.
         </p>
@@ -132,6 +172,19 @@
       </section>
 
       <section class="view is-active" data-view-panel="home">
+        <div class="section-shell" id="continue-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Продолжить</div>
+              <h2>Продолжить просмотр</h2>
+              <p class="section-summary" id="continue-summary">
+                Открывайте серии с того места, где остановились.
+              </p>
+            </div>
+          </div>
+          <div class="anime-grid" id="continue-grid"></div>
+        </div>
+
         <div class="section-shell">
           <div class="section-head">
             <div>
@@ -273,7 +326,7 @@
         </div>
       </section>
 
-      <section class="view" data-view-panel="profile">
+        <section class="view" data-view-panel="profile">
         <div class="section-shell">
           <div class="section-head">
             <div>
@@ -331,6 +384,17 @@
             </section>
           </div>
 
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">История</div>
+              <h2>Продолжить просмотр</h2>
+              <p class="section-summary" id="profile-progress-summary">
+                Ваш недосмотр и быстрый возврат к серии.
+              </p>
+            </div>
+          </div>
+
+          <div class="anime-grid" id="profile-progress-grid"></div>
           <div class="anime-grid" id="favorites-grid"></div>
         </div>
       </section>
@@ -549,9 +613,20 @@
     </div>
   </div>
 
+  <footer class="seo-footer" aria-label="Разделы сайта">
+    <div class="seo-footer__inner">
+      <a class="seo-footer__link" href="/">Главная</a>
+      <a class="seo-footer__link" href="/catalog">Каталог аниме</a>
+      <a class="seo-footer__link" href="/ongoing">Онгоинги</a>
+      <a class="seo-footer__link" href="/top">Топ аниме</a>
+      <a class="seo-footer__link" href="/schedule">Расписание выхода</a>
+      <a class="seo-footer__link" href="/search">Поиск аниме</a>
+    </div>
+  </footer>
+
   <template id="anime-card-template">
     <article class="anime-card">
-      <button class="anime-card__action" type="button">
+        <a class="anime-card__action" href="/">
         <div class="anime-card__poster-wrap">
           <img class="anime-card__poster" alt="" width="640" height="640">
           <span class="anime-card__age"></span>
@@ -562,13 +637,13 @@
           <p class="anime-card__meta"></p>
           <div class="anime-card__tags"></div>
         </div>
-      </button>
+        </a>
     </article>
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
-  <script src="./app.js?v=9" defer></script>
+  <script src="./app.js?v=11" defer></script>
   <script src="./auth.js?v=6" defer></script>
-  <script src="./watch-features.js?v=3" defer></script>
+  <script src="./watch-features.js?v=4" defer></script>
 </body>
 </html>

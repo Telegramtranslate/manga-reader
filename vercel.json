@@ -16,6 +16,34 @@
     {
       "source": "/api/anilibria-media/:path*",
       "destination": "https://cache.libria.fun/:path*"
+    },
+    {
+      "source": "/catalog",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ongoing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/top",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/schedule",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/search",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/anime/:path*",
+      "destination": "/index.html"
     }
   ],
   "headers": [

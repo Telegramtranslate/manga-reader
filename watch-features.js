@@ -90,12 +90,14 @@ function clearCurrentProgress() {
   delete map[watchState.release.alias];
   saveProgressMap(map);
   renderResumeBox();
+  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { alias: watchState.release.alias } }));
 }
 
 function clearAllProgress() {
   saveProgressMap({});
   watchState.pendingResume = null;
   renderResumeBox();
+  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { cleared: true } }));
 }
 
 function renderDubBox() {
@@ -214,6 +216,8 @@ function saveProgress(force = false) {
   map[watchState.release.alias] = {
     alias: watchState.release.alias,
     title: watchState.release.title,
+    poster: watchState.release.poster || "",
+    cardPoster: watchState.release.cardPoster || watchState.release.poster || "",
     episodeId: watchState.episode.id,
     episodeOrdinal: watchState.episode.ordinal || 0,
     episodeLabel: `${watchState.episode.ordinal || "?"} серия${watchState.episode.name ? ` • ${watchState.episode.name}` : ""}`,
@@ -224,6 +228,7 @@ function saveProgress(force = false) {
 
   saveProgressMap(map);
   renderResumeBox();
+  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { alias: watchState.release.alias } }));
 }
 
 function applyPendingResume() {
