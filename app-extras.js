@@ -98,6 +98,10 @@
   }
 
   loadFavorites = function () {
+    if (state.authUser?.localId) {
+      state.favorites = normalizeFavoriteItems(state.favorites || []);
+      return;
+    }
     try {
       const raw = localStorage.getItem(favoriteStorageKey());
       state.favorites = normalizeFavoriteItems(raw ? JSON.parse(raw) : []);
@@ -112,9 +116,11 @@
 
   function persistFavoriteState() {
     state.favorites = normalizeFavoriteItems(state.favorites);
-    try {
-      localStorage.setItem(favoriteStorageKey(), JSON.stringify(state.favorites));
-    } catch {}
+    if (!state.authUser?.localId) {
+      try {
+        localStorage.setItem(favoriteStorageKey(), JSON.stringify(state.favorites));
+      } catch {}
+    }
     renderProfile();
     renderFavoriteButton();
     updateListButtons();
@@ -444,7 +450,7 @@
     if (!("serviceWorker" in navigator)) return;
     const registerLatestWorker = async () => {
       try {
-        await navigator.serviceWorker.register("/sw.js?v=18", { updateViaCache: "none" });
+        await navigator.serviceWorker.register("/sw.js?v=19", { updateViaCache: "none" });
         const registration = await navigator.serviceWorker.ready;
         if (registration.periodicSync) {
           try {
@@ -476,6 +482,41 @@
       { once: true }
     );
   }
+
+  renderProfile = function () {
+    if (!els.favoritesGrid) return;
+    const user = state.authUser;
+    const admin = typeof isAdminUser === "function" ? isAdminUser() : false;
+    const total = state.favorites.length;
+
+    if (els.profileAvatar) els.profileAvatar.src = user?.photoUrl || "/mc-icon-192.png?v=4";
+    if (els.profileName) els.profileName.textContent = user?.displayName || user?.email?.split("@")[0] || "Гость";
+    if (els.profileRoleBadge) els.profileRoleBadge.hidden = !admin;
+    if (els.profileEmail) els.profileEmail.textContent = user?.email || "Вход не выполнен";
+    if (els.favoritesCount) els.favoritesCount.textContent = formatNumber(total);
+    if (els.favoritesMode) els.favoritesMode.textContent = user?.localId ? "Облако" : "Локально";
+    if (els.profileSummary) {
+      els.profileSummary.textContent = user?.localId
+        ? "Списки, прогресс и комментарии хранятся в облаке Firebase для вашего аккаунта. Локальная копия на этом устройстве не сохраняется."
+        : "Без входа данные хранятся только в этом браузере. После входа сайт сможет синхронизировать их через Firebase.";
+    }
+    if (els.adminPanel) els.adminPanel.hidden = !admin;
+    if (els.adminNote) {
+      els.adminNote.textContent = admin
+        ? "Локальные инструменты владельца доступны только в этой сборке сайта."
+        : "Панель видна только владельцу.";
+    }
+
+    updateGrid(els.listWatchingGrid, getListItems("watching"), "Список «Смотрю» пока пуст.");
+    updateGrid(els.listPlannedGrid, getListItems("planned"), "Пока ничего не запланировано.");
+    updateGrid(els.listCompletedGrid, getListItems("completed"), "Просмотренные тайтлы пока не отмечены.");
+    updateGrid(els.listPausedGrid, getListItems("paused"), "Отложенных тайтлов пока нет.");
+    updateGrid(els.favoritesGrid, state.favorites, "Список пока пуст.");
+    if (typeof renderContinueWatchingSections === "function") {
+      renderContinueWatchingSections();
+    }
+    updateListButtons();
+  };
 
   function refreshInitialState() {
     loadFavorites();

@@ -13,6 +13,7 @@ const CLOUD_FAVORITES_PREFIX = "animecloud_favorites";
 const CLOUD_PROGRESS_KEY = "animecloud_watch_progress_v1";
 const CLOUD_COMMENTS_KEY = "animecloud_comments_v1";
 const CLOUD_LISTS_KEY = "animecloud_lists_v1";
+const CLOUD_SETTINGS_KEY = "animecloud_settings_v1";
 const CLOUD_FAVORITES_LIMIT = 200;
 const CLOUD_COMMENTS_LIMIT = 200;
 const CLOUD_DB_NAME = "animecloud-db";
@@ -33,7 +34,18 @@ const cloudState = {
   syncRegistrationPromise: null
 };
 
-function cloudReadJsonSync(key, fallback) {
+function shouldPersistKeyLocally(key, session, options = {}) {
+  if (options.forceLocal) return true;
+  if (session === undefined) session = cloudReadSession();
+  if (key === CLOUD_AUTH_STORAGE_KEY) return true;
+  if (!session?.localId) return true;
+  return key === cloudGuestFavoriteKey();
+}
+
+function cloudReadJsonSync(key, fallback, options = {}) {
+  if (!shouldPersistKeyLocally(key, options.session, options)) {
+    return fallback;
+  }
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
@@ -42,14 +54,18 @@ function cloudReadJsonSync(key, fallback) {
   }
 }
 
-function cloudWriteJsonSync(key, value) {
+function cloudWriteJsonSync(key, value, options = {}) {
+  if (!shouldPersistKeyLocally(key, options.session, options)) {
+    return value;
+  }
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {}
+  return value;
 }
 
 function cloudReadSession() {
-  return cloudReadJsonSync(CLOUD_AUTH_STORAGE_KEY, null);
+  return cloudReadJsonSync(CLOUD_AUTH_STORAGE_KEY, null, { forceLocal: true });
 }
 
 function cloudFavoriteKey(session) {
@@ -155,18 +171,26 @@ function requestToPromise(request) {
   });
 }
 
-async function cloudReadJson(key, fallback) {
+async function cloudReadJson(key, fallback, options = {}) {
+  if (!shouldPersistKeyLocally(key, options.session, options)) {
+    return fallback;
+  }
   try {
     const raw = await withStore(CLOUD_KV_STORE, "readonly", (store) => requestToPromise(store.get(key)));
     if (raw === undefined) return fallback;
     return raw ?? fallback;
   } catch {
-    return cloudReadJsonSync(key, fallback);
+    return cloudReadJsonSync(key, fallback, options);
   }
 }
 
-async function cloudWriteJson(key, value) {
-  cloudWriteJsonSync(key, value);
+async function cloudWriteJson(key, value, options = {}) {
+  if (!shouldPersistKeyLocally(key, options.session, options)) {
+    await deleteCloudJson(key, { forceLocal: true });
+    return value;
+  }
+
+  cloudWriteJsonSync(key, value, options);
   try {
     await withStore(CLOUD_KV_STORE, "readwrite", (store) => requestToPromise(store.put(value, key)));
   } catch {}
@@ -202,6 +226,20 @@ async function enqueuePendingOperation(operation) {
   } catch {}
   queueBackgroundSync();
   return payload;
+}
+
+async function clearAccountLocalCaches(session = cloudReadSession()) {
+  if (!session?.localId) return;
+  await Promise.all([
+    deleteCloudJson(cloudFavoriteKey(session), { forceLocal: true }),
+    deleteCloudJson(CLOUD_LISTS_KEY, { forceLocal: true }),
+    deleteCloudJson(CLOUD_PROGRESS_KEY, { forceLocal: true }),
+    deleteCloudJson(CLOUD_COMMENTS_KEY, { forceLocal: true }),
+    deleteCloudJson(CLOUD_SETTINGS_KEY, { forceLocal: true })
+  ]);
+  try {
+    await withStore(CLOUD_PENDING_STORE, "readwrite", (store) => requestToPromise(store.clear()));
+  } catch {}
 }
 
 async function removePendingOperation(id) {
@@ -279,16 +317,18 @@ async function writeCloudDoc(pathParts, data) {
   );
 }
 
-async function writeCloudDocQueued(pathParts, data) {
+async function writeCloudDocQueued(pathParts, data, options = {}) {
   try {
     await writeCloudDoc(pathParts, data);
     return true;
   } catch (error) {
-    await enqueuePendingOperation({
-      type: "setDoc",
-      pathParts,
-      data
-    });
+    if (options.queueOnFailure !== false) {
+      await enqueuePendingOperation({
+        type: "setDoc",
+        pathParts,
+        data
+      });
+    }
     throw error;
   }
 }
@@ -345,29 +385,35 @@ function subscribeDoc(pathParts, fallback, callback) {
 async function hydrateSessionData(session = cloudReadSession()) {
   if (!session?.localId) {
     return {
-      favorites: (await cloudReadJson(cloudGuestFavoriteKey(), [])) || [],
-      progress: (await cloudReadJson(CLOUD_PROGRESS_KEY, {})) || {}
+      favorites: (await cloudReadJson(cloudGuestFavoriteKey(), [], { session: null })) || [],
+      progress: (await cloudReadJson(CLOUD_PROGRESS_KEY, {}, { session: null })) || {},
+      settings: (await cloudReadJson(CLOUD_SETTINGS_KEY, { autoplayNext: true }, { session: null })) || {
+        autoplayNext: true
+      }
     };
   }
 
   const uid = session.localId;
-  const localFavorites = await cloudReadJson(cloudFavoriteKey(session), []);
-  const guestFavorites = await cloudReadJson(cloudGuestFavoriteKey(), []);
-  const localProgress = await cloudReadJson(CLOUD_PROGRESS_KEY, {});
+  const localFavorites = await cloudReadJson(cloudFavoriteKey(session), [], { forceLocal: true });
+  const guestFavorites = await cloudReadJson(cloudGuestFavoriteKey(), [], { forceLocal: true, session: null });
+  const localProgress = await cloudReadJson(CLOUD_PROGRESS_KEY, {}, { forceLocal: true });
+  const localSettings = await cloudReadJson(CLOUD_SETTINGS_KEY, { autoplayNext: true }, { forceLocal: true });
 
-  const [cloudFavoritesDoc, cloudProgressDoc] = await Promise.all([
+  const [cloudFavoritesDoc, cloudProgressDoc, cloudSettingsDoc] = await Promise.all([
     readCloudDoc(["users", uid, "private", "favorites"], { items: [] }),
-    readCloudDoc(["users", uid, "private", "progress"], { items: {} })
+    readCloudDoc(["users", uid, "private", "progress"], { items: {} }),
+    readCloudDoc(["users", uid, "private", "settings"], { item: { autoplayNext: true } })
   ]);
 
   const mergedFavorites = mergeFavorites(cloudFavoritesDoc?.items || [], localFavorites, guestFavorites);
   const mergedProgress = mergeProgressMaps(cloudProgressDoc?.items || {}, localProgress);
+  const mergedSettings = {
+    autoplayNext: true,
+    ...(localSettings || {}),
+    ...(cloudSettingsDoc?.item || {})
+  };
 
-  await Promise.all([
-    cloudWriteJson(cloudFavoriteKey(session), mergedFavorites),
-    cloudWriteJson(CLOUD_LISTS_KEY, mergedFavorites),
-    cloudWriteJson(CLOUD_PROGRESS_KEY, mergedProgress)
-  ]);
+  await clearAccountLocalCaches(session);
 
   if (!isSameJson(cloudFavoritesDoc?.items || [], mergedFavorites)) {
     try {
@@ -375,7 +421,7 @@ async function hydrateSessionData(session = cloudReadSession()) {
         uid,
         email: session.email || "",
         items: mergedFavorites
-      });
+      }, { queueOnFailure: false });
     } catch {}
   }
 
@@ -385,17 +431,29 @@ async function hydrateSessionData(session = cloudReadSession()) {
         uid,
         email: session.email || "",
         items: mergedProgress
-      });
+      }, { queueOnFailure: false });
     } catch {}
   }
 
-  return { favorites: mergedFavorites, progress: mergedProgress };
+  if (!isSameJson(cloudSettingsDoc?.item || { autoplayNext: true }, mergedSettings)) {
+    try {
+      await writeCloudDocQueued(["users", uid, "private", "settings"], {
+        uid,
+        email: session.email || "",
+        item: mergedSettings
+      }, { queueOnFailure: false });
+    } catch {}
+  }
+
+  return { favorites: mergedFavorites, progress: mergedProgress, settings: mergedSettings };
 }
 
 async function saveFavorites(session = cloudReadSession(), items = []) {
   const next = mergeFavorites(items);
-  await cloudWriteJson(cloudFavoriteKey(session), next);
-  await cloudWriteJson(CLOUD_LISTS_KEY, next);
+  if (!session?.localId) {
+    await cloudWriteJson(cloudFavoriteKey(session), next, { session: null });
+    await cloudWriteJson(CLOUD_LISTS_KEY, next, { session: null });
+  }
 
   if (!session?.localId) return false;
 
@@ -404,14 +462,16 @@ async function saveFavorites(session = cloudReadSession(), items = []) {
       uid: session.localId,
       email: session.email || "",
       items: next
-    });
+    }, { queueOnFailure: false });
   } catch {}
 
   return true;
 }
 
 async function saveProgress(session = cloudReadSession(), map = {}) {
-  await cloudWriteJson(CLOUD_PROGRESS_KEY, map);
+  if (!session?.localId) {
+    await cloudWriteJson(CLOUD_PROGRESS_KEY, map, { session: null });
+  }
 
   if (!session?.localId) return false;
 
@@ -420,7 +480,49 @@ async function saveProgress(session = cloudReadSession(), map = {}) {
       uid: session.localId,
       email: session.email || "",
       items: map
+    }, { queueOnFailure: false });
+  } catch {}
+
+  return true;
+}
+
+async function loadSettings(session = cloudReadSession()) {
+  if (!session?.localId) {
+    return (await cloudReadJson(CLOUD_SETTINGS_KEY, { autoplayNext: true }, { session: null })) || {
+      autoplayNext: true
+    };
+  }
+
+  try {
+    const docData = await readCloudDoc(["users", session.localId, "private", "settings"], {
+      item: { autoplayNext: true }
     });
+    return {
+      autoplayNext: true,
+      ...(docData?.item || {})
+    };
+  } catch {
+    return { autoplayNext: true };
+  }
+}
+
+async function saveSettings(session = cloudReadSession(), settings = {}) {
+  const next = {
+    autoplayNext: true,
+    ...(settings || {})
+  };
+
+  if (!session?.localId) {
+    await cloudWriteJson(CLOUD_SETTINGS_KEY, next, { session: null });
+    return false;
+  }
+
+  try {
+    await writeCloudDocQueued(["users", session.localId, "private", "settings"], {
+      uid: session.localId,
+      email: session.email || "",
+      item: next
+    }, { queueOnFailure: false });
   } catch {}
 
   return true;
@@ -429,14 +531,19 @@ async function saveProgress(session = cloudReadSession(), map = {}) {
 async function loadComments(alias) {
   if (!alias) return [];
 
-  const localMap = await cloudReadJson(CLOUD_COMMENTS_KEY, {});
+  const session = cloudReadSession();
+  const localMap = session?.localId
+    ? {}
+    : await cloudReadJson(CLOUD_COMMENTS_KEY, {}, { session: null });
   const localItems = Array.isArray(localMap?.[alias]) ? localMap[alias] : [];
 
   try {
     const docData = await readCloudDoc(["anime_comments", alias], { items: [] });
     const next = mergeCommentLists(localItems, Array.isArray(docData?.items) ? docData.items : []);
-    const mergedMap = { ...(localMap || {}), [alias]: next };
-    await cloudWriteJson(CLOUD_COMMENTS_KEY, mergedMap);
+    if (!session?.localId) {
+      const mergedMap = { ...(localMap || {}), [alias]: next };
+      await cloudWriteJson(CLOUD_COMMENTS_KEY, mergedMap, { session: null });
+    }
     return next;
   } catch {
     return localItems;
@@ -446,15 +553,20 @@ async function loadComments(alias) {
 async function saveComments(alias, comments = []) {
   if (!alias) return [];
   const next = Array.isArray(comments) ? comments.slice(-CLOUD_COMMENTS_LIMIT) : [];
-  const localMap = await cloudReadJson(CLOUD_COMMENTS_KEY, {});
-  localMap[alias] = next;
-  await cloudWriteJson(CLOUD_COMMENTS_KEY, localMap);
+  const session = cloudReadSession();
+
+  if (!session?.localId) {
+    const localMap = await cloudReadJson(CLOUD_COMMENTS_KEY, {}, { session: null });
+    localMap[alias] = next;
+    await cloudWriteJson(CLOUD_COMMENTS_KEY, localMap, { session: null });
+    return next;
+  }
 
   try {
     await writeCloudDocQueued(["anime_comments", alias], {
       alias,
       items: next
-    });
+    }, { queueOnFailure: false });
   } catch {}
 
   return next;
@@ -467,9 +579,15 @@ function subscribeComments(alias, callback) {
 
   const unsubscribe = subscribeDoc(["anime_comments", alias], { items: [] }, async (data) => {
     const list = Array.isArray(data?.items) ? data.items : [];
-    const localMap = await cloudReadJson(CLOUD_COMMENTS_KEY, {});
+    const session = cloudReadSession();
+    if (session?.localId) {
+      callback(list);
+      return;
+    }
+
+    const localMap = await cloudReadJson(CLOUD_COMMENTS_KEY, {}, { session: null });
     localMap[alias] = mergeCommentLists(localMap[alias], list);
-    await cloudWriteJson(CLOUD_COMMENTS_KEY, localMap);
+    await cloudWriteJson(CLOUD_COMMENTS_KEY, localMap, { session: null });
     callback(localMap[alias]);
   });
 
@@ -491,10 +609,8 @@ function subscribeProgress(session, callback) {
   cloudState.progressUnsubscribe = subscribeDoc(
     ["users", session.localId, "private", "progress"],
     { items: {} },
-    async (data) => {
-      const next = mergeProgressMaps(await cloudReadJson(CLOUD_PROGRESS_KEY, {}), data?.items || {});
-      await cloudWriteJson(CLOUD_PROGRESS_KEY, next);
-      callback(next);
+    (data) => {
+      callback(data?.items || {});
     }
   );
 
@@ -551,6 +667,8 @@ window.animeCloudSync = {
   hydrateSessionData,
   saveFavorites,
   saveProgress,
+  loadSettings,
+  saveSettings,
   loadComments,
   saveComments,
   subscribeComments,

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v18";
+const CACHE_VERSION = "v19";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -7,11 +7,11 @@ const APP_SHELL = [
   "/",
   "/index.html",
   "/style.css?v=16",
-  "/cloud-sync.js?v=2",
-  "/app.js?v=15",
-  "/app-extras.js?v=1",
+  "/cloud-sync.js?v=3",
+  "/app.js?v=16",
+  "/app-extras.js?v=2",
   "/auth.js?v=8",
-  "/watch-features.js?v=8",
+  "/watch-features.js?v=9",
   "/manifest.webmanifest?v=11",
   "/robots.txt",
   "/sitemap.xml",

@@ -35,7 +35,14 @@ const watchState = {
   }
 };
 
+function shouldPersistWatchDataLocally() {
+  return !getAuthUserSafe()?.localId;
+}
+
 function readJson(key, fallback) {
+  if (!shouldPersistWatchDataLocally()) {
+    return fallback;
+  }
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
@@ -45,6 +52,9 @@ function readJson(key, fallback) {
 }
 
 function writeJson(key, value) {
+  if (!shouldPersistWatchDataLocally()) {
+    return value;
+  }
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {}
@@ -77,6 +87,10 @@ function saveSettings(patch = {}) {
     ...patch
   };
   writeJson(WATCH_SETTINGS_KEY, watchState.settings);
+  const user = getAuthUserSafe();
+  if (user?.localId && window.animeCloudSync?.saveSettings) {
+    window.animeCloudSync.saveSettings(user, watchState.settings).catch(console.error);
+  }
   if (watchEls.autoplayToggle) {
     watchEls.autoplayToggle.checked = Boolean(watchState.settings.autoplayNext);
   }
@@ -338,6 +352,7 @@ function resumeFromSavedProgress() {
 }
 
 async function hydrateLocalCachesFromIndexedDb() {
+  if (!shouldPersistWatchDataLocally()) return;
   if (!window.animeCloudSync?.readLocalJson) return;
 
   try {
@@ -356,6 +371,40 @@ async function hydrateLocalCachesFromIndexedDb() {
     writeJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, watchState.commentsMap);
   } catch (error) {
     console.error(error);
+  }
+}
+
+async function hydrateWatchPersistence() {
+  const user = getAuthUserSafe();
+
+  if (user?.localId && window.animeCloudSync?.hydrateSessionData) {
+    try {
+      const [payload, settings] = await Promise.all([
+        window.animeCloudSync.hydrateSessionData(user),
+        window.animeCloudSync.loadSettings ? window.animeCloudSync.loadSettings(user) : Promise.resolve({})
+      ]);
+
+      watchState.progressMap = payload?.progress || {};
+      watchState.commentsMap = {};
+      watchState.settings = {
+        autoplayNext: true,
+        ...(settings || payload?.settings || {})
+      };
+    } catch (error) {
+      console.error(error);
+      watchState.progressMap = {};
+      watchState.commentsMap = {};
+      watchState.settings = { autoplayNext: true };
+    }
+  } else {
+    readSettings();
+    watchState.progressMap = readJson(WATCH_FEATURES_PROGRESS_KEY, {});
+    watchState.commentsMap = readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {});
+    await hydrateLocalCachesFromIndexedDb();
+  }
+
+  if (watchEls.autoplayToggle) {
+    watchEls.autoplayToggle.checked = Boolean(watchState.settings.autoplayNext);
   }
 }
 
@@ -517,7 +566,8 @@ function bindFeatureEvents() {
     renderDubBox();
   });
 
-  window.addEventListener("animecloud:auth", () => {
+  window.addEventListener("animecloud:auth", async () => {
+    await hydrateWatchPersistence();
     renderCommentUser();
     renderComments();
     renderResumeBox();
@@ -542,10 +592,7 @@ function bindFeatureEvents() {
 async function initWatchFeatures() {
   if (!watchEls.player || !watchEls.commentForm) return;
 
-  readSettings();
-  watchState.progressMap = readJson(WATCH_FEATURES_PROGRESS_KEY, {});
-  watchState.commentsMap = readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {});
-  await hydrateLocalCachesFromIndexedDb();
+  await hydrateWatchPersistence();
 
   bindPlayerTracking();
   bindFeatureEvents();
@@ -556,5 +603,17 @@ async function initWatchFeatures() {
   renderDubBox();
   renderNextEpisodeButton();
 }
+
+window.animeCloudWatchState = {
+  getProgressMap() {
+    return watchState.progressMap || {};
+  },
+  getCommentsMap() {
+    return watchState.commentsMap || {};
+  },
+  getSettings() {
+    return watchState.settings || { autoplayNext: true };
+  }
+};
 
 initWatchFeatures().catch(console.error);
