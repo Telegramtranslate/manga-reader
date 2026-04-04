@@ -361,3 +361,78 @@ function initWatchFeatures() {
 }
 
 initWatchFeatures();
+const saveProgressMapBase = saveProgressMap;
+saveProgressMap = function (map) {
+  saveProgressMapBase(map);
+  const user = getAuthUser();
+  if (user?.localId && window.animeCloudSync?.saveProgress) {
+    window.animeCloudSync.saveProgress(user, map).catch(console.error);
+  }
+};
+
+const saveCommentsMapBase = saveCommentsMap;
+saveCommentsMap = function (map) {
+  saveCommentsMapBase(map);
+  const alias = watchState.release?.alias;
+  if (!alias || !window.animeCloudSync?.saveComments) return;
+  const comments = Array.isArray(map?.[alias]) ? map[alias] : [];
+  window.animeCloudSync.saveComments(alias, comments).catch(console.error);
+};
+
+const clearAllCommentsBase = clearAllComments;
+clearAllComments = function () {
+  const aliases = Object.keys(getCommentsMap());
+  clearAllCommentsBase();
+  if (!window.animeCloudSync?.saveComments) return;
+  aliases.forEach((alias) => {
+    window.animeCloudSync.saveComments(alias, []).catch(console.error);
+  });
+};
+
+function mergeCloudComments(localItems, cloudItems) {
+  const seen = new Set();
+  return [...(cloudItems || []), ...(localItems || [])]
+    .filter((item) => {
+      const key = item?.id || `${item?.author || ""}-${item?.createdAt || 0}-${item?.body || ""}`;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((left, right) => Number(left?.createdAt || 0) - Number(right?.createdAt || 0))
+    .slice(-200);
+}
+
+async function syncReleaseCommentsFromCloud(alias = watchState.release?.alias) {
+  if (!alias || !window.animeCloudSync?.loadComments) return;
+  try {
+    const cloudComments = await window.animeCloudSync.loadComments(alias);
+    const map = getCommentsMap();
+    map[alias] = mergeCloudComments(map[alias], cloudComments);
+    writeJson(COMMENTS_STORAGE_KEY, map);
+    if (watchState.release?.alias === alias) {
+      renderComments();
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+window.addEventListener("animecloud:release-opened", (event) => {
+  const alias = event.detail?.release?.alias;
+  if (alias) {
+    syncReleaseCommentsFromCloud(alias).catch(console.error);
+  }
+});
+
+window.addEventListener("animecloud:auth", () => {
+  renderCommentUser();
+  renderComments();
+  renderResumeBox();
+  if (watchState.release?.alias) {
+    syncReleaseCommentsFromCloud(watchState.release.alias).catch(console.error);
+  }
+});
+
+window.addEventListener("animecloud:progress-updated", () => {
+  renderResumeBox();
+});

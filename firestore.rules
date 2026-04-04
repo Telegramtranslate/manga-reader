@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function ownerEmail() {
+      return signedIn() && request.auth.token.email is string
+        ? request.auth.token.email
+        : "";
+    }
+
+    function ownerDataShape(userId) {
+      return request.resource.data.keys().hasAll(['uid', 'email', 'items', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'items', 'updatedAt']) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.email is string &&
+        request.resource.data.email == ownerEmail() &&
+        request.resource.data.updatedAt == request.time;
+    }
+
+    function validFavorites(userId) {
+      return ownerDataShape(userId) &&
+        request.resource.data.items is list &&
+        request.resource.data.items.size() <= 120;
+    }
+
+    function validProgress(userId) {
+      return ownerDataShape(userId) &&
+        request.resource.data.items is map &&
+        request.resource.data.items.keys().size() <= 500;
+    }
+
+    function adminEmail() {
+      return signedIn() && request.auth.token.email == 'serikovmaksim94@gmail.com';
+    }
+
+    // NOTE:
+    // Comments are currently stored as one shared document per title:
+    // anime_comments/{alias}
+    // This lets us lock writes to authenticated users only, but it cannot safely
+    // enforce per-comment ownership while the whole array lives in one document.
+    // The stronger next step is:
+    // anime_comments/{alias}/items/{commentId}
+    function validCommentBucket(alias) {
+      return signedIn() &&
+        request.resource.data.keys().hasAll(['alias', 'items', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['alias', 'items', 'updatedAt']) &&
+        request.resource.data.alias == alias &&
+        request.resource.data.items is list &&
+        request.resource.data.items.size() <= 200 &&
+        request.resource.data.updatedAt == request.time;
+    }
+
+    match /users/{userId}/private/{docId} {
+      allow read: if owner(userId);
+
+      allow create, update: if owner(userId) && (
+        (docId == 'favorites' && validFavorites(userId)) ||
+        (docId == 'progress' && validProgress(userId))
+      );
+
+      allow delete: if owner(userId);
+    }
+
+    match /anime_comments/{alias} {
+      allow read: if true;
+      allow create, update: if validCommentBucket(alias);
+      allow delete: if adminEmail();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
