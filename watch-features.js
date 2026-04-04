@@ -1,6 +1,6 @@
 const WATCH_FEATURES_PROGRESS_KEY = "animecloud_watch_progress_v1";
 const WATCH_FEATURES_COMMENTS_STORAGE_KEY = "animecloud_comments_v1";
-const EXTRA_DUBS = ["AniDub", "DEEP", "Studio Band", "AniStar", "Dream Cast"];
+const WATCH_SETTINGS_KEY = "animecloud_settings_v1";
 
 const watchEls = {
   player: document.getElementById("anime-player"),
@@ -8,6 +8,7 @@ const watchEls = {
   resumeText: document.getElementById("resume-text"),
   resumeBtn: document.getElementById("resume-btn"),
   resumeClearBtn: document.getElementById("resume-clear-btn"),
+  nextEpisodeBtn: document.getElementById("next-episode-btn"),
   dubBox: document.getElementById("dub-box"),
   dubList: document.getElementById("dub-list"),
   dubNote: document.getElementById("dub-note"),
@@ -15,7 +16,8 @@ const watchEls = {
   commentInput: document.getElementById("comment-input"),
   commentUser: document.getElementById("comment-user"),
   commentsSummary: document.getElementById("comments-summary"),
-  commentsList: document.getElementById("comments-list")
+  commentsList: document.getElementById("comments-list"),
+  autoplayToggle: document.getElementById("settings-autoplay-next")
 };
 
 const watchState = {
@@ -23,7 +25,14 @@ const watchState = {
   episode: null,
   sourceId: "anilibria",
   pendingResume: null,
-  lastProgressSave: 0
+  lastProgressSave: 0,
+  progressMap: {},
+  commentsMap: {},
+  realtimeCommentsStop: null,
+  realtimeProgressStop: null,
+  settings: {
+    autoplayNext: true
+  }
 };
 
 function readJson(key, fallback) {
@@ -36,15 +45,84 @@ function readJson(key, fallback) {
 }
 
 function writeJson(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+  return value;
 }
 
-function getAuthUser() {
+function getAuthUserSafe() {
   try {
-    return JSON.parse(localStorage.getItem("animecloud_auth_v1") || "null");
+    return typeof getAuthUser === "function" ? getAuthUser() : null;
   } catch {
     return null;
   }
+}
+
+function readSettings() {
+  const next = {
+    autoplayNext: true,
+    ...(readJson(WATCH_SETTINGS_KEY, {}) || {})
+  };
+  watchState.settings = next;
+  if (watchEls.autoplayToggle) {
+    watchEls.autoplayToggle.checked = Boolean(next.autoplayNext);
+  }
+  return next;
+}
+
+function saveSettings(patch = {}) {
+  watchState.settings = {
+    ...watchState.settings,
+    ...patch
+  };
+  writeJson(WATCH_SETTINGS_KEY, watchState.settings);
+  if (watchEls.autoplayToggle) {
+    watchEls.autoplayToggle.checked = Boolean(watchState.settings.autoplayNext);
+  }
+}
+
+function getProgressMap() {
+  return watchState.progressMap;
+}
+
+function saveProgressMap(map, options = {}) {
+  watchState.progressMap = map || {};
+  writeJson(WATCH_FEATURES_PROGRESS_KEY, watchState.progressMap);
+
+  const user = options.user || getAuthUserSafe();
+  if (!options.skipCloud && user?.localId && window.animeCloudSync?.saveProgress) {
+    window.animeCloudSync.saveProgress(user, watchState.progressMap).catch(console.error);
+  }
+
+  window.dispatchEvent(
+    new CustomEvent("animecloud:progress-updated", {
+      detail: { alias: watchState.release?.alias || "" }
+    })
+  );
+}
+
+function getCommentsMap() {
+  return watchState.commentsMap;
+}
+
+function saveCommentsMap(map, options = {}) {
+  watchState.commentsMap = map || {};
+  writeJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, watchState.commentsMap);
+
+  const alias = options.alias || watchState.release?.alias;
+  if (!options.skipCloud && alias && window.animeCloudSync?.saveComments) {
+    const comments = Array.isArray(watchState.commentsMap[alias]) ? watchState.commentsMap[alias] : [];
+    window.animeCloudSync.saveComments(alias, comments).catch(console.error);
+  }
+}
+
+function getCurrentProgress() {
+  return watchState.release?.alias ? watchState.progressMap[watchState.release.alias] || null : null;
+}
+
+function getCommentsForCurrentRelease() {
+  return watchState.release?.alias ? watchState.commentsMap[watchState.release.alias] || [] : [];
 }
 
 function formatClock(seconds) {
@@ -57,95 +135,35 @@ function formatClock(seconds) {
     : `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+function currentDisplayName() {
+  const user = getAuthUserSafe();
+  return user?.displayName || user?.email?.split("@")[0] || "Гость";
 }
 
-function escapeSelector(value) {
-  if (window.CSS?.escape) return window.CSS.escape(value);
-  return String(value).replace(/["\\]/g, "\\$&");
-}
-
-function getProgressMap() {
-  return readJson(WATCH_FEATURES_PROGRESS_KEY, {});
-}
-
-function saveProgressMap(map) {
-  writeJson(WATCH_FEATURES_PROGRESS_KEY, map);
-}
-
-function getCurrentProgress() {
-  if (!watchState.release?.alias) return null;
-  return getProgressMap()[watchState.release.alias] || null;
-}
-
-function clearCurrentProgress() {
-  if (!watchState.release?.alias) return;
-  const map = getProgressMap();
-  delete map[watchState.release.alias];
-  saveProgressMap(map);
-  renderResumeBox();
-  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { alias: watchState.release.alias } }));
-}
-
-function clearAllProgress() {
-  saveProgressMap({});
-  watchState.pendingResume = null;
-  renderResumeBox();
-  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { cleared: true } }));
-}
-
-function renderDubBox() {
-  if (!watchState.release?.externalPlayer) {
-    watchEls.dubBox.hidden = true;
-    return;
-  }
-
-  watchEls.dubBox.hidden = false;
-  watchEls.dubList.replaceChildren(
-    ...EXTRA_DUBS.map((label) => {
-      const node = document.createElement("span");
-      node.className = "dub-pill";
-      node.textContent = label;
-      return node;
-    })
-  );
-
-  watchEls.dubNote.textContent =
-    watchState.sourceId === "external"
-      ? "Сейчас открыт мульти-источник. Популярные озвучки выбираются уже внутри внешнего плеера."
-      : "Если релиз поддерживает мульти-источник, здесь могут быть AniDub, DEEP, Studio Band и другие озвучки.";
+function escapeText(value) {
+  return String(value || "").trim();
 }
 
 function renderCommentUser() {
-  const user = getAuthUser();
-  watchEls.commentUser.textContent = user?.email
-    ? `Комментируете как ${user.displayName || user.email}`
+  if (!watchEls.commentUser) return;
+  const user = getAuthUserSafe();
+  watchEls.commentUser.textContent = user?.localId
+    ? `Комментируете как ${currentDisplayName()}`
     : "Комментируете как гость";
 }
 
-function getCommentsMap() {
-  return readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {});
-}
-
-function saveCommentsMap(map) {
-  writeJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, map);
-}
-
-function clearAllComments() {
-  saveCommentsMap({});
-  renderComments();
-}
-
-function getCommentsForCurrentRelease() {
-  if (!watchState.release?.alias) return [];
-  const map = getCommentsMap();
-  return Array.isArray(map[watchState.release.alias]) ? map[watchState.release.alias] : [];
+function mergeComments(localItems, cloudItems) {
+  const seen = new Set();
+  return [...(cloudItems || []), ...(localItems || [])]
+    .filter(Boolean)
+    .filter((item) => {
+      const id = item.id || `${item.author || ""}:${item.createdAt || 0}:${item.body || ""}`;
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    })
+    .sort((left, right) => Number(left?.createdAt || 0) - Number(right?.createdAt || 0))
+    .slice(-200);
 }
 
 function renderComments() {
@@ -157,51 +175,111 @@ function renderComments() {
     return;
   }
 
-  const comments = getCommentsForCurrentRelease()
-    .slice()
-    .sort((left, right) => (right.createdAt || 0) - (left.createdAt || 0));
-  const visibleComments = comments.slice(0, 80);
-
+  const comments = getCommentsForCurrentRelease();
   watchEls.commentsSummary.textContent = comments.length
-    ? `Комментариев: ${comments.length}. Текущая серия будет указана автоматически, если она выбрана.`
-    : "Пока пусто. Напишите первый комментарий по тайтлу или серии.";
+    ? `Комментариев: ${comments.length}. Новые сообщения приходят в реальном времени.`
+    : "Комментариев пока нет. Будьте первым.";
 
-  if (!comments.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "Комментариев пока нет.";
-    watchEls.commentsList.replaceChildren(empty);
-    return;
-  }
+  watchEls.commentsList.innerHTML = "";
+  if (!comments.length) return;
 
-  watchEls.commentsList.replaceChildren(
-    ...visibleComments.map((comment) => {
-      const item = document.createElement("article");
-      item.className = "comment-item";
-      item.innerHTML = `
-        <div class="comment-meta">
-          <span class="comment-author">${escapeHtml(comment.author)}</span>
-          <span class="comment-episode">${escapeHtml(comment.episodeLabel || "Без привязки к серии")}</span>
-          <span class="comment-date">${escapeHtml(new Date(comment.createdAt).toLocaleString("ru-RU"))}</span>
-        </div>
-        <div class="comment-body">${escapeHtml(comment.body)}</div>
-      `;
-      return item;
-    })
-  );
+  const fragment = document.createDocumentFragment();
+  comments.forEach((comment) => {
+    const article = document.createElement("article");
+    article.className = "comment-item";
+
+    const author = document.createElement("strong");
+    author.textContent = escapeText(comment.author) || "Пользователь";
+    article.appendChild(author);
+
+    const meta = document.createElement("small");
+    const time = Number(comment.createdAt || 0);
+    meta.textContent = time ? new Date(time).toLocaleString("ru-RU") : "Только что";
+    article.appendChild(meta);
+
+    const body = document.createElement("p");
+    body.textContent = escapeText(comment.body);
+    article.appendChild(body);
+
+    fragment.appendChild(article);
+  });
+
+  watchEls.commentsList.appendChild(fragment);
 }
 
 function renderResumeBox() {
+  if (!watchEls.resumeBox) return;
   const progress = getCurrentProgress();
+  watchState.pendingResume = progress;
 
-  if (!watchState.release?.alias || !progress) {
+  if (!progress) {
     watchEls.resumeBox.hidden = true;
+    watchEls.resumeText.textContent = "Прогресс пока не сохранён.";
     return;
   }
 
   watchEls.resumeBox.hidden = false;
-  watchEls.resumeText.textContent =
-    `Остановились на ${progress.episodeLabel || "серии"} • ${formatClock(progress.time)}${progress.duration ? ` из ${formatClock(progress.duration)}` : ""}`;
+  watchEls.resumeText.textContent = `Остановились на ${progress.episodeLabel || "серии"} • ${formatClock(
+    progress.time
+  )}${progress.duration ? ` из ${formatClock(progress.duration)}` : ""}`;
+}
+
+function renderDubBox() {
+  if (!watchEls.dubBox) return;
+
+  if (!watchState.release?.externalPlayer) {
+    watchEls.dubBox.hidden = true;
+    watchEls.dubList.innerHTML = "";
+    return;
+  }
+
+  watchEls.dubBox.hidden = false;
+  watchEls.dubList.innerHTML = "";
+
+  ["AniDub", "DEEP", "Studio Band", "AniStar", "Dream Cast"].forEach((name) => {
+    const item = document.createElement("span");
+    item.className = "chip";
+    item.textContent = name;
+    watchEls.dubList.appendChild(item);
+  });
+
+  watchEls.dubNote.textContent =
+    "Дополнительные озвучки доступны во внешнем плеере, если конкретный источник действительно их отдаёт.";
+}
+
+function getNextEpisode() {
+  if (!watchState.release?.episodes?.length || !watchState.episode?.id) return null;
+  const currentIndex = watchState.release.episodes.findIndex((episode) => episode.id === watchState.episode.id);
+  return currentIndex >= 0 ? watchState.release.episodes[currentIndex + 1] || null : null;
+}
+
+function renderNextEpisodeButton() {
+  if (!watchEls.nextEpisodeBtn) return;
+  const nextEpisode = getNextEpisode();
+  watchEls.nextEpisodeBtn.hidden = !nextEpisode;
+  watchEls.nextEpisodeBtn.disabled = !nextEpisode;
+  if (nextEpisode) {
+    watchEls.nextEpisodeBtn.textContent = `Следующая серия: ${nextEpisode.ordinal}`;
+  }
+}
+
+function clearCurrentProgress() {
+  if (!watchState.release?.alias) return;
+  const map = { ...getProgressMap() };
+  delete map[watchState.release.alias];
+  saveProgressMap(map);
+  renderResumeBox();
+}
+
+function clearAllProgress() {
+  saveProgressMap({});
+  watchState.pendingResume = null;
+  renderResumeBox();
+}
+
+function clearAllComments() {
+  saveCommentsMap({});
+  renderComments();
 }
 
 function saveProgress(force = false) {
@@ -210,102 +288,190 @@ function saveProgress(force = false) {
   if (watchEls.player.hidden) return;
 
   const now = Date.now();
-  if (!force && now - watchState.lastProgressSave < 4000) return;
+  const currentTime = Number(watchEls.player.currentTime || 0);
+  const duration = Number(watchEls.player.duration || 0);
+
+  if (!force && now - watchState.lastProgressSave < 10000) return;
+  if (!force && currentTime < 5) return;
+
   watchState.lastProgressSave = now;
 
-  const map = getProgressMap();
+  const map = { ...getProgressMap() };
   map[watchState.release.alias] = {
     alias: watchState.release.alias,
     title: watchState.release.title,
-    poster: watchState.release.poster || "",
-    cardPoster: watchState.release.cardPoster || watchState.release.poster || "",
+    poster: watchState.release.poster,
+    cardPoster: watchState.release.cardPoster || watchState.release.poster,
     episodeId: watchState.episode.id,
     episodeOrdinal: watchState.episode.ordinal || 0,
-    episodeLabel: `${watchState.episode.ordinal || "?"} серия${watchState.episode.name ? ` • ${watchState.episode.name}` : ""}`,
-    time: Math.floor(watchEls.player.currentTime || 0),
-    duration: Math.floor(watchEls.player.duration || 0),
+    episodeLabel: `${watchState.episode.ordinal || "?"} серия`,
+    time: currentTime,
+    duration,
     updatedAt: now
   };
 
   saveProgressMap(map);
   renderResumeBox();
-  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { alias: watchState.release.alias } }));
+  renderNextEpisodeButton();
 }
 
 function applyPendingResume() {
   const progress = watchState.pendingResume;
-  if (!progress) return;
-  if (!watchState.episode?.id) return;
-  if (watchState.episode.id !== progress.episodeId) return;
-  if (!watchEls.player.duration || Number.isNaN(watchEls.player.duration)) return;
+  if (!progress || !watchState.episode?.id) return;
 
-  const targetTime = Math.max(0, Math.min(progress.time || 0, Math.max(0, watchEls.player.duration - 2)));
-  watchEls.player.currentTime = targetTime;
-  watchState.pendingResume = null;
+  const sameEpisode =
+    (progress.episodeId && progress.episodeId === watchState.episode.id) ||
+    String(progress.episodeOrdinal || "") === String(watchState.episode.ordinal || "");
+
+  if (!sameEpisode || !progress.time) return;
+
+  try {
+    watchEls.player.currentTime = Math.max(0, Number(progress.time || 0));
+  } catch {}
 }
 
 function resumeFromSavedProgress() {
   const progress = getCurrentProgress();
   if (!progress) return;
-
   watchState.pendingResume = progress;
+  applyPendingResume();
+}
 
-  if (watchState.episode?.id === progress.episodeId) {
-    applyPendingResume();
-    return;
-  }
+async function hydrateLocalCachesFromIndexedDb() {
+  if (!window.animeCloudSync?.readLocalJson) return;
 
-  const byId = document.querySelector(`.episode-btn[data-episode-id="${escapeSelector(progress.episodeId)}"]`);
-  if (byId) {
-    byId.click();
-    return;
-  }
+  try {
+    const [progressMap, commentsMap] = await Promise.all([
+      window.animeCloudSync.readLocalJson(WATCH_FEATURES_PROGRESS_KEY, readJson(WATCH_FEATURES_PROGRESS_KEY, {})),
+      window.animeCloudSync.readLocalJson(
+        WATCH_FEATURES_COMMENTS_STORAGE_KEY,
+        readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {})
+      )
+    ]);
 
-  const byOrdinal = document.querySelector(`.episode-btn[data-ordinal="${escapeSelector(String(progress.episodeOrdinal || ""))}"]`);
-  if (byOrdinal) {
-    byOrdinal.click();
+    watchState.progressMap = progressMap || {};
+    watchState.commentsMap = commentsMap || {};
+
+    writeJson(WATCH_FEATURES_PROGRESS_KEY, watchState.progressMap);
+    writeJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, watchState.commentsMap);
+  } catch (error) {
+    console.error(error);
   }
 }
 
 function handleCommentSubmit(event) {
   event.preventDefault();
-  const body = watchEls.commentInput.value.trim();
-  if (!body || !watchState.release?.alias) return;
 
-  const user = getAuthUser();
-  const map = getCommentsMap();
-  const list = Array.isArray(map[watchState.release.alias]) ? map[watchState.release.alias] : [];
+  if (!watchState.release?.alias) return;
+
+  const body = escapeText(watchEls.commentInput.value);
+  if (!body) return;
+
+  const user = getAuthUserSafe();
+  const map = { ...getCommentsMap() };
+  const list = Array.isArray(map[watchState.release.alias]) ? [...map[watchState.release.alias]] : [];
 
   list.push({
-    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    author: user?.displayName || user?.email || "Гость",
-    episodeId: watchState.episode?.id || "",
-    episodeOrdinal: watchState.episode?.ordinal || 0,
-    episodeLabel: watchState.episode ? `${watchState.episode.ordinal || "?"} серия` : "Без привязки к серии",
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    author: currentDisplayName(),
+    uid: user?.localId || "",
     body,
     createdAt: Date.now()
   });
 
   map[watchState.release.alias] = list.slice(-200);
-  saveCommentsMap(map);
+  saveCommentsMap(map, { alias: watchState.release.alias });
   watchEls.commentInput.value = "";
   renderComments();
 }
 
-function bindPlayerTracking() {
-  ["timeupdate", "pause", "seeked"].forEach((eventName) => {
-    watchEls.player.addEventListener(eventName, () => saveProgress(false));
-  });
+function stopRealtimeComments() {
+  if (typeof watchState.realtimeCommentsStop === "function") {
+    watchState.realtimeCommentsStop();
+  }
+  watchState.realtimeCommentsStop = null;
+}
 
-  watchEls.player.addEventListener("loadedmetadata", applyPendingResume);
-  watchEls.player.addEventListener("ended", () => saveProgress(true));
+function bindRealtimeComments(alias) {
+  stopRealtimeComments();
+  if (!alias || !window.animeCloudSync?.subscribeComments) return;
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") {
-      saveProgress(true);
+  watchState.realtimeCommentsStop = window.animeCloudSync.subscribeComments(alias, (items) => {
+    const map = { ...getCommentsMap() };
+    map[alias] = mergeComments(map[alias], items);
+    saveCommentsMap(map, { alias, skipCloud: true });
+    if (watchState.release?.alias === alias) {
+      renderComments();
     }
   });
+}
 
+function stopRealtimeProgress() {
+  if (typeof watchState.realtimeProgressStop === "function") {
+    watchState.realtimeProgressStop();
+  }
+  watchState.realtimeProgressStop = null;
+}
+
+function bindRealtimeProgress() {
+  stopRealtimeProgress();
+  const user = getAuthUserSafe();
+  if (!user?.localId || !window.animeCloudSync?.subscribeProgress) return;
+
+  watchState.realtimeProgressStop = window.animeCloudSync.subscribeProgress(user, (map) => {
+    watchState.progressMap = map || {};
+    writeJson(WATCH_FEATURES_PROGRESS_KEY, watchState.progressMap);
+    renderResumeBox();
+    renderNextEpisodeButton();
+    window.dispatchEvent(
+      new CustomEvent("animecloud:progress-updated", {
+        detail: { alias: watchState.release?.alias || "", remote: true }
+      })
+    );
+  });
+}
+
+function playNextEpisode() {
+  const nextEpisode = getNextEpisode();
+  if (!nextEpisode) return;
+  window.dispatchEvent(
+    new CustomEvent("animecloud:play-next-episode", {
+      detail: {
+        release: watchState.release,
+        episode: nextEpisode
+      }
+    })
+  );
+}
+
+function handlePlayerTimeupdate() {
+  saveProgress(false);
+}
+
+function handlePlayerPause() {
+  saveProgress(true);
+}
+
+function handlePlayerEnded() {
+  saveProgress(true);
+  if (watchState.settings.autoplayNext) {
+    playNextEpisode();
+  }
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === "hidden") {
+    saveProgress(true);
+  }
+}
+
+function bindPlayerTracking() {
+  watchEls.player.addEventListener("timeupdate", handlePlayerTimeupdate, { passive: true });
+  watchEls.player.addEventListener("pause", handlePlayerPause, { passive: true });
+  watchEls.player.addEventListener("seeked", handlePlayerTimeupdate, { passive: true });
+  watchEls.player.addEventListener("loadedmetadata", applyPendingResume);
+  watchEls.player.addEventListener("ended", handlePlayerEnded);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
   window.addEventListener("beforeunload", () => saveProgress(true));
 }
 
@@ -314,21 +480,35 @@ function bindFeatureEvents() {
   watchEls.resumeBtn.addEventListener("click", resumeFromSavedProgress);
   watchEls.resumeClearBtn.addEventListener("click", clearCurrentProgress);
 
+  if (watchEls.nextEpisodeBtn) {
+    watchEls.nextEpisodeBtn.addEventListener("click", playNextEpisode);
+  }
+
+  if (watchEls.autoplayToggle) {
+    watchEls.autoplayToggle.addEventListener("change", (event) => {
+      saveSettings({ autoplayNext: Boolean(event.target.checked) });
+    });
+  }
+
   window.addEventListener("animecloud:release-opened", (event) => {
     watchState.release = event.detail?.release || null;
     watchState.episode = null;
     watchState.sourceId = "anilibria";
     watchState.pendingResume = getCurrentProgress();
+    bindRealtimeComments(watchState.release?.alias || "");
     renderDubBox();
     renderComments();
     renderResumeBox();
+    renderNextEpisodeButton();
   });
 
   window.addEventListener("animecloud:episode-selected", (event) => {
     watchState.release = event.detail?.release || watchState.release;
     watchState.episode = event.detail?.episode || null;
     watchState.sourceId = event.detail?.sourceId || "anilibria";
+    watchState.pendingResume = getCurrentProgress();
     renderResumeBox();
+    renderNextEpisodeButton();
   });
 
   window.addEventListener("animecloud:source-changed", (event) => {
@@ -340,6 +520,9 @@ function bindFeatureEvents() {
   window.addEventListener("animecloud:auth", () => {
     renderCommentUser();
     renderComments();
+    renderResumeBox();
+    bindRealtimeProgress();
+    bindRealtimeComments(watchState.release?.alias || "");
   });
 
   window.addEventListener("animecloud:admin-clear-comments", () => {
@@ -349,90 +532,29 @@ function bindFeatureEvents() {
   window.addEventListener("animecloud:admin-clear-progress", () => {
     clearAllProgress();
   });
+
+  window.addEventListener("animecloud:progress-updated", () => {
+    renderResumeBox();
+    renderNextEpisodeButton();
+  });
 }
 
-function initWatchFeatures() {
+async function initWatchFeatures() {
   if (!watchEls.player || !watchEls.commentForm) return;
+
+  readSettings();
+  watchState.progressMap = readJson(WATCH_FEATURES_PROGRESS_KEY, {});
+  watchState.commentsMap = readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {});
+  await hydrateLocalCachesFromIndexedDb();
+
   bindPlayerTracking();
   bindFeatureEvents();
+  bindRealtimeProgress();
   renderCommentUser();
   renderComments();
   renderResumeBox();
+  renderDubBox();
+  renderNextEpisodeButton();
 }
 
-initWatchFeatures();
-const saveProgressMapBase = saveProgressMap;
-saveProgressMap = function (map) {
-  saveProgressMapBase(map);
-  const user = getAuthUser();
-  if (user?.localId && window.animeCloudSync?.saveProgress) {
-    window.animeCloudSync.saveProgress(user, map).catch(console.error);
-  }
-};
-
-const saveCommentsMapBase = saveCommentsMap;
-saveCommentsMap = function (map) {
-  saveCommentsMapBase(map);
-  const alias = watchState.release?.alias;
-  if (!alias || !window.animeCloudSync?.saveComments) return;
-  const comments = Array.isArray(map?.[alias]) ? map[alias] : [];
-  window.animeCloudSync.saveComments(alias, comments).catch(console.error);
-};
-
-const clearAllCommentsBase = clearAllComments;
-clearAllComments = function () {
-  const aliases = Object.keys(getCommentsMap());
-  clearAllCommentsBase();
-  if (!window.animeCloudSync?.saveComments) return;
-  aliases.forEach((alias) => {
-    window.animeCloudSync.saveComments(alias, []).catch(console.error);
-  });
-};
-
-function mergeCloudComments(localItems, cloudItems) {
-  const seen = new Set();
-  return [...(cloudItems || []), ...(localItems || [])]
-    .filter((item) => {
-      const key = item?.id || `${item?.author || ""}-${item?.createdAt || 0}-${item?.body || ""}`;
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .sort((left, right) => Number(left?.createdAt || 0) - Number(right?.createdAt || 0))
-    .slice(-200);
-}
-
-async function syncReleaseCommentsFromCloud(alias = watchState.release?.alias) {
-  if (!alias || !window.animeCloudSync?.loadComments) return;
-  try {
-    const cloudComments = await window.animeCloudSync.loadComments(alias);
-    const map = getCommentsMap();
-    map[alias] = mergeCloudComments(map[alias], cloudComments);
-    writeJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, map);
-    if (watchState.release?.alias === alias) {
-      renderComments();
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-window.addEventListener("animecloud:release-opened", (event) => {
-  const alias = event.detail?.release?.alias;
-  if (alias) {
-    syncReleaseCommentsFromCloud(alias).catch(console.error);
-  }
-});
-
-window.addEventListener("animecloud:auth", () => {
-  renderCommentUser();
-  renderComments();
-  renderResumeBox();
-  if (watchState.release?.alias) {
-    syncReleaseCommentsFromCloud(watchState.release.alias).catch(console.error);
-  }
-});
-
-window.addEventListener("animecloud:progress-updated", () => {
-  renderResumeBox();
-});
+initWatchFeatures().catch(console.error);

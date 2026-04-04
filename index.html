@@ -24,13 +24,13 @@
     content="AnimeCloud — каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером на базе AniLibria."
   >
   <title>AnimeCloud — аниме с русской озвучкой</title>
-  <link rel="manifest" href="/manifest.webmanifest?v=10">
+  <link rel="manifest" href="/manifest.webmanifest?v=11">
   <link rel="icon" href="/mc-icon-192.png?v=4" sizes="192x192">
   <link rel="preconnect" href="https://anilibria.top">
   <link rel="preconnect" href="https://cache.libria.fun">
   <link rel="preconnect" href="https://accounts.google.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="/style.css?v=15">
+  <link rel="stylesheet" href="/style.css?v=16">
   <script id="structured-data" type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -115,7 +115,14 @@
               </button>
               <button class="ghost-btn auth-logout-btn" type="button" id="logout-btn">Выйти</button>
             </div>
+            <div class="detail-list-actions" id="detail-list-actions">
+              <button class="ghost-btn" type="button" id="list-watch-btn">Смотрю</button>
+              <button class="ghost-btn" type="button" id="list-plan-btn">Запланировано</button>
+              <button class="ghost-btn" type="button" id="list-complete-btn">Просмотрено</button>
+              <button class="ghost-btn" type="button" id="list-pause-btn">Отложено</button>
+            </div>
           </div>
+          <div class="hero-dots" id="hero-dots" aria-label="Главные релизы"></div>
         </div>
       </div>
     </header>
@@ -181,6 +188,7 @@
                 Открывайте серии с того места, где остановились.
               </p>
             </div>
+            <div class="genre-chip-row" id="catalog-genre-chips" aria-label="Быстрый фильтр по жанрам"></div>
           </div>
           <div class="anime-grid" id="continue-grid"></div>
         </div>
@@ -354,6 +362,7 @@
                   <strong id="profile-name">Гость</strong>
                   <span class="profile-role-badge" id="profile-role-badge" hidden>Владелец</span>
                   <span id="profile-email">Вход не выполнен</span>
+                  <button class="primary-btn" type="button" id="next-episode-btn" hidden>Следующая серия</button>
                 </div>
               </div>
             </section>
@@ -370,6 +379,17 @@
                   <span>режим хранения</span>
                 </div>
               </div>
+            </section>
+
+            <section class="profile-card">
+              <div class="detail-label">Настройки просмотра</div>
+              <label class="settings-toggle">
+                <input id="settings-autoplay-next" type="checkbox" checked>
+                <span>
+                  <strong>Автовоспроизведение следующей серии</strong>
+                  <small>После завершения текущего эпизода сайт автоматически откроет следующий.</small>
+                </span>
+              </label>
             </section>
 
             <section class="profile-card admin-panel" id="admin-panel" hidden>
@@ -395,7 +415,56 @@
           </div>
 
           <div class="anime-grid" id="profile-progress-grid"></div>
-          <div class="anime-grid" id="favorites-grid"></div>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Мои списки</div>
+                <h3>Смотрю</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="list-watching-grid"></div>
+          </section>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Мои списки</div>
+                <h3>Запланировано</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="list-planned-grid"></div>
+          </section>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Мои списки</div>
+                <h3>Просмотрено</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="list-completed-grid"></div>
+          </section>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Мои списки</div>
+                <h3>Отложено</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="list-paused-grid"></div>
+          </section>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Быстрый доступ</div>
+                <h3>Избранное</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="favorites-grid"></div>
+          </section>
         </div>
       </section>
     </main>
@@ -641,10 +710,10 @@
     </article>
   </template>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
-  <script src="/cloud-sync.js?v=1" defer></script>
+  <script src="/cloud-sync.js?v=2" defer></script>
   <script src="/app.js?v=15" defer></script>
   <script src="/auth.js?v=8" defer></script>
-  <script src="/watch-features.js?v=7" defer></script>
+  <script src="/app-extras.js?v=1" defer></script>
+  <script src="/watch-features.js?v=8" defer></script>
 </body>
 </html>

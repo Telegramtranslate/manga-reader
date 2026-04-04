@@ -2,11 +2,15 @@
   "id": "/",
   "name": "AnimeCloud",
   "short_name": "AnimeCloud",
-  "description": "Каталог аниме с русской озвучкой, подборками, избранным, расписанием и быстрым плеером на базе AniLibria.",
+  "description": "Каталог аниме с русской озвучкой, быстрым плеером, расписанием, избранным и продолжением просмотра.",
   "lang": "ru",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#070b14",
   "theme_color": "#070b14",
   "categories": [
@@ -29,7 +33,7 @@
     {
       "name": "Профиль",
       "short_name": "Профиль",
-      "description": "Открыть избранное и прогресс просмотра",
+      "description": "Открыть списки и продолжение просмотра",
       "url": "/profile"
     }
   ],
