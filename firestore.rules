@@ -15,9 +15,8 @@ service cloud.firestore {
         : "";
     }
 
-    function ownerDataShape(userId) {
-      return request.resource.data.keys().hasAll(['uid', 'email', 'items', 'updatedAt']) &&
-        request.resource.data.keys().hasOnly(['uid', 'email', 'items', 'updatedAt']) &&
+    function ownerBaseShape(userId) {
+      return request.resource.data.keys().hasAll(['uid', 'email', 'updatedAt']) &&
         request.resource.data.uid == userId &&
         request.resource.data.email is string &&
         request.resource.data.email == ownerEmail() &&
@@ -25,36 +24,55 @@ service cloud.firestore {
     }
 
     function validFavorites(userId) {
-      return ownerDataShape(userId) &&
+      return ownerBaseShape(userId) &&
+        request.resource.data.keys().hasAll(['uid', 'email', 'items', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'items', 'updatedAt']) &&
         request.resource.data.items is list &&
         request.resource.data.items.size() <= 120;
     }
 
     function validProgress(userId) {
-      return ownerDataShape(userId) &&
+      return ownerBaseShape(userId) &&
+        request.resource.data.keys().hasAll(['uid', 'email', 'items', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'items', 'updatedAt']) &&
         request.resource.data.items is map &&
         request.resource.data.items.keys().size() <= 500;
+    }
+
+    function validSettings(userId) {
+      return ownerBaseShape(userId) &&
+        request.resource.data.keys().hasAll(['uid', 'email', 'item', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'item', 'updatedAt']) &&
+        request.resource.data.item is map &&
+        request.resource.data.item.keys().hasOnly(['autoplayNext']) &&
+        request.resource.data.item.autoplayNext is bool;
     }
 
     function adminEmail() {
       return signedIn() && request.auth.token.email == 'serikovmaksim94@gmail.com';
     }
 
-    // NOTE:
-    // Comments are currently stored as one shared document per title:
-    // anime_comments/{alias}
-    // This lets us lock writes to authenticated users only, but it cannot safely
-    // enforce per-comment ownership while the whole array lives in one document.
-    // The stronger next step is:
-    // anime_comments/{alias}/items/{commentId}
-    function validCommentBucket(alias) {
+    function validCommentCreate(alias) {
       return signedIn() &&
-        request.resource.data.keys().hasAll(['alias', 'items', 'updatedAt']) &&
-        request.resource.data.keys().hasOnly(['alias', 'items', 'updatedAt']) &&
+        request.resource.data.keys().hasAll(['alias', 'author', 'uid', 'body', 'createdAt']) &&
+        request.resource.data.keys().hasOnly(['alias', 'author', 'uid', 'body', 'createdAt', 'clientId']) &&
         request.resource.data.alias == alias &&
-        request.resource.data.items is list &&
-        request.resource.data.items.size() <= 200 &&
-        request.resource.data.updatedAt == request.time;
+        request.resource.data.author is string &&
+        request.resource.data.author.size() > 0 &&
+        request.resource.data.author.size() <= 80 &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.body is string &&
+        request.resource.data.body.size() > 0 &&
+        request.resource.data.body.size() <= 2000 &&
+        (
+          !request.resource.data.keys().hasAny(['clientId']) ||
+          (
+            request.resource.data.clientId is string &&
+            request.resource.data.clientId.size() > 0 &&
+            request.resource.data.clientId.size() <= 120
+          )
+        ) &&
+        request.resource.data.createdAt == request.time;
     }
 
     match /users/{userId}/private/{docId} {
@@ -62,7 +80,8 @@ service cloud.firestore {
 
       allow create, update: if owner(userId) && (
         (docId == 'favorites' && validFavorites(userId)) ||
-        (docId == 'progress' && validProgress(userId))
+        (docId == 'progress' && validProgress(userId)) ||
+        (docId == 'settings' && validSettings(userId))
       );
 
       allow delete: if owner(userId);
@@ -70,8 +89,14 @@ service cloud.firestore {
 
     match /anime_comments/{alias} {
       allow read: if true;
-      allow create, update: if validCommentBucket(alias);
-      allow delete: if adminEmail();
+      allow write: if false;
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if validCommentCreate(alias);
+        allow update: if false;
+        allow delete: if adminEmail();
+      }
     }
 
     match /{document=**} {

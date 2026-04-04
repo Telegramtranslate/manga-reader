@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v19";
+const CACHE_VERSION = "v24";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,12 +6,11 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=16",
-  "/cloud-sync.js?v=3",
-  "/app.js?v=16",
-  "/app-extras.js?v=2",
-  "/auth.js?v=8",
-  "/watch-features.js?v=9",
+  "/style.css?v=17",
+  "/cloud-sync.js?v=5",
+  "/app.js?v=18",
+  "/auth.js?v=10",
+  "/watch-features.js?v=10",
   "/manifest.webmanifest?v=11",
   "/robots.txt",
   "/sitemap.xml",
@@ -46,13 +45,14 @@ function isPosterRequest(request, url) {
   );
 }
 
-async function staleWhileRevalidate(request, cacheName) {
+async function staleWhileRevalidate(request, cacheName, cacheKey = request) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
+  const cached = await cache.match(cacheKey);
   const networkPromise = fetch(request)
     .then((response) => {
       if (canCache(response)) {
-        cache.put(request, response.clone());
+        const responseClone = response.clone();
+        cache.put(cacheKey, responseClone).catch(() => {});
       }
       return response;
     })
@@ -96,7 +96,8 @@ self.addEventListener("fetch", (event) => {
       fetch(event.request)
         .then((response) => {
           if (canCache(response)) {
-            caches.open(SHELL_CACHE).then((cache) => cache.put("/index.html", response.clone()));
+            const responseClone = response.clone();
+            caches.open(SHELL_CACHE).then((cache) => cache.put("/index.html", responseClone).catch(() => {}));
           }
           return response;
         })
@@ -117,20 +118,7 @@ self.addEventListener("fetch", (event) => {
 
   if (!isShellAsset(url)) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((response) => {
-          if (canCache(response)) {
-            caches.open(SHELL_CACHE).then((cache) => cache.put(event.request, response.clone()));
-          }
-          return response;
-        })
-        .catch(() => null);
-
-      return cached || network;
-    })
-  );
+  event.respondWith(staleWhileRevalidate(event.request, SHELL_CACHE));
 });
 
 self.addEventListener("sync", (event) => {

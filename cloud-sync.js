@@ -34,6 +34,37 @@ const cloudState = {
   syncRegistrationPromise: null
 };
 
+async function ensureFirebaseAppCheck(app) {
+  if (!APP_CHECK_KEY) return null;
+  if (globalThis.__animeCloudAppCheckPromise) {
+    return globalThis.__animeCloudAppCheckPromise;
+  }
+
+  globalThis.__animeCloudAppCheckPromise = import(
+    `https://www.gstatic.com/firebasejs/${CLOUD_FIREBASE_SDK_VERSION}/firebase-app-check.js`
+  )
+    .then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) => {
+      try {
+        return initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(APP_CHECK_KEY),
+          isTokenAutoRefreshEnabled: true
+        });
+      } catch (error) {
+        const message = String(error?.message || "").toLowerCase();
+        if (error?.code === "app-check/already-initialized" || message.includes("already") && message.includes("app check")) {
+          return null;
+        }
+        throw error;
+      }
+    })
+    .catch((error) => {
+      console.warn("AnimeCloud App Check skipped", error);
+      return null;
+    });
+
+  return globalThis.__animeCloudAppCheckPromise;
+}
+
 function shouldPersistKeyLocally(key, session, options = {}) {
   if (options.forceLocal) return true;
   if (session === undefined) session = cloudReadSession();
@@ -114,7 +145,10 @@ function mergeCommentLists(...lists) {
     .flat()
     .filter(Boolean)
     .filter((item) => {
-      const id = item.id || `${item.author || ""}:${item.createdAt || 0}:${item.body || ""}`;
+      const id =
+        item.clientId ||
+        item.id ||
+        `${item.author || ""}:${item.createdAt || 0}:${item.body || ""}`;
       if (!id || seen.has(id)) return false;
       seen.add(id);
       return true;
@@ -264,24 +298,18 @@ async function getCloudContext() {
       getDoc,
       setDoc,
       serverTimestamp,
-      onSnapshot
+      onSnapshot,
+      collection,
+      query,
+      getDocs,
+      addDoc,
+      orderBy,
+      limit
     } = firestoreModule;
 
     const app = getApps().length ? getApp() : initializeApp(CLOUD_FIREBASE_CONFIG);
 
-    if (APP_CHECK_KEY) {
-      try {
-        const { initializeAppCheck, ReCaptchaV3Provider } = await import(
-          `https://www.gstatic.com/firebasejs/${CLOUD_FIREBASE_SDK_VERSION}/firebase-app-check.js`
-        );
-        initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider(APP_CHECK_KEY),
-          isTokenAutoRefreshEnabled: true
-        });
-      } catch (error) {
-        console.warn("AnimeCloud App Check skipped", error);
-      }
-    }
+    await ensureFirebaseAppCheck(app);
 
     return {
       db: getFirestore(app),
@@ -289,7 +317,13 @@ async function getCloudContext() {
       getDoc,
       setDoc,
       serverTimestamp,
-      onSnapshot
+      onSnapshot,
+      collection,
+      query,
+      getDocs,
+      addDoc,
+      orderBy,
+      limit
     };
   })().catch((error) => {
     cloudState.contextPromise = null;
@@ -303,6 +337,46 @@ async function readCloudDoc(pathParts, fallback) {
   const { db, doc, getDoc } = await getCloudContext();
   const snap = await getDoc(doc(db, ...pathParts));
   return snap.exists() ? snap.data() : fallback;
+}
+
+function normalizeTimestampValue(value) {
+  if (typeof value === "number") return value;
+  if (typeof value?.toMillis === "function") return value.toMillis();
+  if (typeof value?.seconds === "number") return Number(value.seconds) * 1000;
+  return 0;
+}
+
+function normalizeCommentData(id, data = {}) {
+  return {
+    id: id || "",
+    clientId: String(data.clientId || "").trim(),
+    alias: String(data.alias || ""),
+    author: String(data.author || "").trim(),
+    uid: String(data.uid || "").trim(),
+    body: String(data.body || "").trim(),
+    createdAt: normalizeTimestampValue(data.createdAt)
+  };
+}
+
+async function readLegacyComments(alias) {
+  try {
+    const docData = await readCloudDoc(["anime_comments", alias], { items: [] });
+    return Array.isArray(docData?.items) ? docData.items : [];
+  } catch {
+    return [];
+  }
+}
+
+async function loadCommentCollection(alias) {
+  if (!alias) return [];
+  const { db, collection, query, getDocs, orderBy, limit } = await getCloudContext();
+  const commentsQuery = query(
+    collection(db, "anime_comments", alias, "comments"),
+    orderBy("createdAt", "asc"),
+    limit(CLOUD_COMMENTS_LIMIT)
+  );
+  const snapshot = await getDocs(commentsQuery);
+  return snapshot.docs.map((item) => normalizeCommentData(item.id, item.data()));
 }
 
 async function writeCloudDoc(pathParts, data) {
@@ -538,8 +612,11 @@ async function loadComments(alias) {
   const localItems = Array.isArray(localMap?.[alias]) ? localMap[alias] : [];
 
   try {
-    const docData = await readCloudDoc(["anime_comments", alias], { items: [] });
-    const next = mergeCommentLists(localItems, Array.isArray(docData?.items) ? docData.items : []);
+    const [legacyItems, collectionItems] = await Promise.all([
+      readLegacyComments(alias),
+      loadCommentCollection(alias)
+    ]);
+    const next = mergeCommentLists(localItems, legacyItems, collectionItems);
     if (!session?.localId) {
       const mergedMap = { ...(localMap || {}), [alias]: next };
       await cloudWriteJson(CLOUD_COMMENTS_KEY, mergedMap, { session: null });
@@ -562,14 +639,28 @@ async function saveComments(alias, comments = []) {
     return next;
   }
 
-  try {
-    await writeCloudDocQueued(["anime_comments", alias], {
-      alias,
-      items: next
-    }, { queueOnFailure: false });
-  } catch {}
-
   return next;
+}
+
+async function addComment(alias, comment, session = cloudReadSession()) {
+  if (!alias || !session?.localId) return false;
+
+  const body = String(comment?.body || "").trim();
+  if (!body) return false;
+
+  const author = String(comment?.author || session.displayName || session.email?.split("@")[0] || "Пользователь").trim();
+  const { db, collection, addDoc, serverTimestamp } = await getCloudContext();
+
+  await addDoc(collection(db, "anime_comments", alias, "comments"), {
+    alias,
+    author,
+    clientId: String(comment?.id || "").trim(),
+    uid: session.localId,
+    body,
+    createdAt: serverTimestamp()
+  });
+
+  return true;
 }
 
 function subscribeComments(alias, callback) {
@@ -577,25 +668,55 @@ function subscribeComments(alias, callback) {
   const current = cloudState.commentsUnsubscribers.get(alias);
   if (current) current();
 
-  const unsubscribe = subscribeDoc(["anime_comments", alias], { items: [] }, async (data) => {
-    const list = Array.isArray(data?.items) ? data.items : [];
-    const session = cloudReadSession();
-    if (session?.localId) {
-      callback(list);
-      return;
-    }
-
-    const localMap = await cloudReadJson(CLOUD_COMMENTS_KEY, {}, { session: null });
-    localMap[alias] = mergeCommentLists(localMap[alias], list);
-    await cloudWriteJson(CLOUD_COMMENTS_KEY, localMap, { session: null });
-    callback(localMap[alias]);
-  });
-
-  cloudState.commentsUnsubscribers.set(alias, unsubscribe);
-  return () => {
+  let active = true;
+  let unsubscribe = () => {};
+  const stop = () => {
+    active = false;
     unsubscribe();
     cloudState.commentsUnsubscribers.delete(alias);
   };
+
+  loadComments(alias)
+    .then((items) => {
+      if (active) callback(items);
+    })
+    .catch((error) => console.error(error));
+
+  getCloudContext()
+    .then(({ db, collection, query, onSnapshot, orderBy, limit }) => {
+      if (!active) return;
+
+      const commentsQuery = query(
+        collection(db, "anime_comments", alias, "comments"),
+        orderBy("createdAt", "asc"),
+        limit(CLOUD_COMMENTS_LIMIT)
+      );
+
+      unsubscribe = onSnapshot(
+        commentsQuery,
+        async (snapshot) => {
+          const liveItems = snapshot.docs.map((item) => normalizeCommentData(item.id, item.data()));
+          const legacyItems = await readLegacyComments(alias);
+          const session = cloudReadSession();
+          const next = mergeCommentLists(legacyItems, liveItems);
+
+          if (session?.localId) {
+            callback(next);
+            return;
+          }
+
+          const localMap = await cloudReadJson(CLOUD_COMMENTS_KEY, {}, { session: null });
+          localMap[alias] = mergeCommentLists(localMap[alias], next);
+          await cloudWriteJson(CLOUD_COMMENTS_KEY, localMap, { session: null });
+          callback(localMap[alias]);
+        },
+        (error) => console.error(error)
+      );
+    })
+    .catch((error) => console.error(error));
+
+  cloudState.commentsUnsubscribers.set(alias, stop);
+  return stop;
 }
 
 function subscribeProgress(session, callback) {
@@ -671,6 +792,7 @@ window.animeCloudSync = {
   saveSettings,
   loadComments,
   saveComments,
+  addComment,
   subscribeComments,
   subscribeProgress,
   flushPendingSync,

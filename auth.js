@@ -8,6 +8,10 @@ const FIREBASE_CONFIG = {
   appId: "1:263581962151:web:41538be2d5bae44d037082"
 };
 const FIREBASE_SDK_VERSION = "10.12.5";
+const APP_CHECK_KEY =
+  document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
+  window.ANIMECLOUD_APP_CHECK_KEY ||
+  "";
 const ADMIN_EMAILS = new Set(["serikovmaksim94@gmail.com"]);
 
 const authEls = {
@@ -47,6 +51,37 @@ const firebaseState = {
   signOut: null
 };
 
+async function ensureFirebaseAppCheck(app) {
+  if (!APP_CHECK_KEY) return null;
+  if (globalThis.__animeCloudAppCheckPromise) {
+    return globalThis.__animeCloudAppCheckPromise;
+  }
+
+  globalThis.__animeCloudAppCheckPromise = import(
+    `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app-check.js`
+  )
+    .then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) => {
+      try {
+        return initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(APP_CHECK_KEY),
+          isTokenAutoRefreshEnabled: true
+        });
+      } catch (error) {
+        const message = String(error?.message || "").toLowerCase();
+        if (error?.code === "app-check/already-initialized" || message.includes("already") && message.includes("app check")) {
+          return null;
+        }
+        throw error;
+      }
+    })
+    .catch((error) => {
+      console.warn("AnimeCloud Auth App Check skipped", error);
+      return null;
+    });
+
+  return globalThis.__animeCloudAppCheckPromise;
+}
+
 function readSession() {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -84,6 +119,12 @@ function isOwnerEmail(session) {
   const email = String(session?.email || "").trim().toLowerCase();
   return ADMIN_EMAILS.has(email);
 }
+
+function getAuthUser() {
+  return authState.session;
+}
+
+window.getAuthUser = getAuthUser;
 
 function decorateSession(session) {
   if (!session) return null;
@@ -258,6 +299,7 @@ async function getFirebaseContext() {
     ]);
 
     const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+    await ensureFirebaseAppCheck(app);
     const auth = getAuth(app);
     await setPersistence(auth, browserLocalPersistence).catch(() => {});
 

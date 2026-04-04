@@ -1,6 +1,8 @@
 const WATCH_FEATURES_PROGRESS_KEY = "animecloud_watch_progress_v1";
 const WATCH_FEATURES_COMMENTS_STORAGE_KEY = "animecloud_comments_v1";
 const WATCH_SETTINGS_KEY = "animecloud_settings_v1";
+const WATCH_PROGRESS_MIN_INTERVAL = 15000;
+const WATCH_PROGRESS_MIN_DELTA = 15;
 
 const watchEls = {
   player: document.getElementById("anime-player"),
@@ -26,6 +28,7 @@ const watchState = {
   sourceId: "anilibria",
   pendingResume: null,
   lastProgressSave: 0,
+  lastProgressPosition: 0,
   progressMap: {},
   commentsMap: {},
   realtimeCommentsStop: null,
@@ -125,7 +128,8 @@ function saveCommentsMap(map, options = {}) {
   writeJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, watchState.commentsMap);
 
   const alias = options.alias || watchState.release?.alias;
-  if (!options.skipCloud && alias && window.animeCloudSync?.saveComments) {
+  const user = getAuthUserSafe();
+  if (!options.skipCloud && alias && !user?.localId && window.animeCloudSync?.saveComments) {
     const comments = Array.isArray(watchState.commentsMap[alias]) ? watchState.commentsMap[alias] : [];
     window.animeCloudSync.saveComments(alias, comments).catch(console.error);
   }
@@ -171,7 +175,10 @@ function mergeComments(localItems, cloudItems) {
   return [...(cloudItems || []), ...(localItems || [])]
     .filter(Boolean)
     .filter((item) => {
-      const id = item.id || `${item.author || ""}:${item.createdAt || 0}:${item.body || ""}`;
+      const id =
+        item.clientId ||
+        item.id ||
+        `${item.author || ""}:${item.createdAt || 0}:${item.body || ""}`;
       if (!id || seen.has(id)) return false;
       seen.add(id);
       return true;
@@ -305,10 +312,17 @@ function saveProgress(force = false) {
   const currentTime = Number(watchEls.player.currentTime || 0);
   const duration = Number(watchEls.player.duration || 0);
 
-  if (!force && now - watchState.lastProgressSave < 10000) return;
+  if (
+    !force &&
+    now - watchState.lastProgressSave < WATCH_PROGRESS_MIN_INTERVAL &&
+    Math.abs(currentTime - Number(watchState.lastProgressPosition || 0)) < WATCH_PROGRESS_MIN_DELTA
+  ) {
+    return;
+  }
   if (!force && currentTime < 5) return;
 
   watchState.lastProgressSave = now;
+  watchState.lastProgressPosition = currentTime;
 
   const map = { ...getProgressMap() };
   map[watchState.release.alias] = {
@@ -420,16 +434,23 @@ function handleCommentSubmit(event) {
   const map = { ...getCommentsMap() };
   const list = Array.isArray(map[watchState.release.alias]) ? [...map[watchState.release.alias]] : [];
 
-  list.push({
+  const nextComment = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     author: currentDisplayName(),
     uid: user?.localId || "",
     body,
     createdAt: Date.now()
-  });
+  };
+
+  list.push(nextComment);
 
   map[watchState.release.alias] = list.slice(-200);
-  saveCommentsMap(map, { alias: watchState.release.alias });
+  saveCommentsMap(map, { alias: watchState.release.alias, skipCloud: true });
+  if (user?.localId && window.animeCloudSync?.addComment) {
+    window.animeCloudSync.addComment(watchState.release.alias, nextComment, user).catch(console.error);
+  } else if (!user?.localId && window.animeCloudSync?.saveComments) {
+    window.animeCloudSync.saveComments(watchState.release.alias, map[watchState.release.alias]).catch(console.error);
+  }
   watchEls.commentInput.value = "";
   renderComments();
 }
@@ -497,6 +518,10 @@ function handlePlayerTimeupdate() {
   saveProgress(false);
 }
 
+function handlePlayerSeeked() {
+  saveProgress(true);
+}
+
 function handlePlayerPause() {
   saveProgress(true);
 }
@@ -517,7 +542,7 @@ function handleVisibilityChange() {
 function bindPlayerTracking() {
   watchEls.player.addEventListener("timeupdate", handlePlayerTimeupdate, { passive: true });
   watchEls.player.addEventListener("pause", handlePlayerPause, { passive: true });
-  watchEls.player.addEventListener("seeked", handlePlayerTimeupdate, { passive: true });
+  watchEls.player.addEventListener("seeked", handlePlayerSeeked, { passive: true });
   watchEls.player.addEventListener("loadedmetadata", applyPendingResume);
   watchEls.player.addEventListener("ended", handlePlayerEnded);
   document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -564,6 +589,10 @@ function bindFeatureEvents() {
     watchState.release = event.detail?.release || watchState.release;
     watchState.sourceId = event.detail?.sourceId || watchState.sourceId;
     renderDubBox();
+  });
+
+  window.addEventListener("animecloud:drawer-closed", () => {
+    stopRealtimeComments();
   });
 
   window.addEventListener("animecloud:auth", async () => {
