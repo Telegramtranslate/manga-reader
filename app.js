@@ -2328,7 +2328,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=24", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=25", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -2562,7 +2562,7 @@ async function init() {
   releaseViewportLocks();
 
   try {
-    state.authUser = JSON.parse(localStorage.getItem("animecloud_auth_v1") || "null");
+    state.authUser = typeof window.getAuthUser === "function" ? window.getAuthUser() : null;
   } catch {
     state.authUser = null;
   }
@@ -2578,9 +2578,6 @@ async function init() {
     updateStats();
     handleRoute();
     safeIdle(() => {
-      if (state.authUser?.localId) {
-        hydrateCloudSessionData(state.authUser).catch(console.error);
-      }
       loadSchedule().catch(() => {});
       loadTop({ reset: true }).catch(() => {});
     });

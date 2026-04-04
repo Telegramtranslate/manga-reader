@@ -21,10 +21,13 @@ const CLOUD_DB_VERSION = 1;
 const CLOUD_KV_STORE = "kv";
 const CLOUD_PENDING_STORE = "pending";
 const SYNC_TAG = "animecloud-sync";
-const APP_CHECK_KEY =
+const CLOUD_APP_CHECK_SITE_KEY =
   document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
   window.ANIMECLOUD_APP_CHECK_KEY ||
   "";
+const CLOUD_APP_CHECK_ENABLED =
+  document.querySelector('meta[name="firebase-app-check-enabled"]')?.content === "true" ||
+  window.ANIMECLOUD_ENABLE_APP_CHECK === true;
 
 const cloudState = {
   contextPromise: null,
@@ -35,7 +38,7 @@ const cloudState = {
 };
 
 async function ensureFirebaseAppCheck(app) {
-  if (!APP_CHECK_KEY) return null;
+  if (!CLOUD_APP_CHECK_ENABLED || !CLOUD_APP_CHECK_SITE_KEY) return null;
   if (globalThis.__animeCloudAppCheckPromise) {
     return globalThis.__animeCloudAppCheckPromise;
   }
@@ -46,7 +49,7 @@ async function ensureFirebaseAppCheck(app) {
     .then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) => {
       try {
         return initializeAppCheck(app, {
-          provider: new ReCaptchaEnterpriseProvider(APP_CHECK_KEY),
+          provider: new ReCaptchaEnterpriseProvider(CLOUD_APP_CHECK_SITE_KEY),
           isTokenAutoRefreshEnabled: true
         });
       } catch (error) {
