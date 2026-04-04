@@ -92,6 +92,12 @@ function clearCurrentProgress() {
   renderResumeBox();
 }
 
+function clearAllProgress() {
+  saveProgressMap({});
+  watchState.pendingResume = null;
+  renderResumeBox();
+}
+
 function renderDubBox() {
   if (!watchState.release?.externalPlayer) {
     watchEls.dubBox.hidden = true;
@@ -127,6 +133,11 @@ function getCommentsMap() {
 
 function saveCommentsMap(map) {
   writeJson(COMMENTS_STORAGE_KEY, map);
+}
+
+function clearAllComments() {
+  saveCommentsMap({});
+  renderComments();
 }
 
 function getCommentsForCurrentRelease() {
@@ -324,6 +335,14 @@ function bindFeatureEvents() {
   window.addEventListener("animecloud:auth", () => {
     renderCommentUser();
     renderComments();
+  });
+
+  window.addEventListener("animecloud:admin-clear-comments", () => {
+    clearAllComments();
+  });
+
+  window.addEventListener("animecloud:admin-clear-progress", () => {
+    clearAllProgress();
   });
 }
 

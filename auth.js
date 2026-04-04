@@ -5,6 +5,7 @@ const FIREBASE_CONFIG = {
   projectId: "oauth-489621"
 };
 const FIREBASE_SDK_VERSION = "10.12.5";
+const ADMIN_EMAILS = new Set(["serikovmaksim94@gmail.com"]);
 
 const authEls = {
   openBtn: document.getElementById("auth-open-btn"),
@@ -12,6 +13,7 @@ const authEls = {
   userChip: document.getElementById("user-chip"),
   userAvatar: document.getElementById("user-avatar"),
   userName: document.getElementById("user-name"),
+  userRoleBadge: document.getElementById("user-role-badge"),
   userEmail: document.getElementById("user-email"),
   logoutBtn: document.getElementById("logout-btn"),
   modal: document.getElementById("auth-modal"),
@@ -45,17 +47,18 @@ const firebaseState = {
 function readSession() {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? decorateSession(JSON.parse(raw)) : null;
   } catch {
     return null;
   }
 }
 
 function writeSession(session) {
-  authState.session = session;
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+  const next = decorateSession(session);
+  authState.session = next;
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(next));
   renderAuthState();
-  window.dispatchEvent(new CustomEvent("animecloud:auth", { detail: { user: session } }));
+  window.dispatchEvent(new CustomEvent("animecloud:auth", { detail: { user: next } }));
 }
 
 function clearSession() {
@@ -72,6 +75,16 @@ function deriveName(session) {
   if (session?.displayName) return session.displayName;
   if (session?.email) return session.email.split("@")[0];
   return "Гость";
+}
+
+function decorateSession(session) {
+  const email = String(session?.email || "").trim().toLowerCase();
+  const isAdmin = ADMIN_EMAILS.has(email);
+  return {
+    ...session,
+    isAdmin,
+    role: isAdmin ? "admin" : "user"
+  };
 }
 
 function normalizeSession(data, current = null) {
@@ -195,6 +208,7 @@ function renderAuthState() {
   authEls.openBtn.hidden = loggedIn;
   authEls.userMenu.hidden = !loggedIn;
   authEls.userName.textContent = deriveName(session);
+  authEls.userRoleBadge.hidden = !session?.isAdmin;
   authEls.userEmail.textContent = session?.email || "Вход не выполнен";
   authEls.userAvatar.src = session?.photoUrl || "./mc-icon-192.png?v=4";
 }

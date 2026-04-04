@@ -690,6 +690,23 @@ button {
   color: var(--muted);
 }
 
+.admin-panel {
+  grid-column: 1 / -1;
+}
+
+.admin-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.admin-note {
+  margin-top: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .profile-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1142,6 +1159,7 @@ button {
 .user-chip__text {
   display: grid;
   min-width: 0;
+  gap: 4px;
 }
 
 .user-chip__text strong,
@@ -1157,6 +1175,23 @@ button {
 
 .user-chip__text small {
   color: var(--muted);
+}
+
+.user-role-badge,
+.profile-role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 186, 77, 0.26);
+  background: linear-gradient(135deg, rgba(255, 186, 77, 0.18), rgba(255, 122, 89, 0.14));
+  color: #ffd28a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .auth-modal {
@@ -1408,6 +1443,10 @@ button {
   }
 
   .profile-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-actions {
     grid-template-columns: 1fr;
   }
 
