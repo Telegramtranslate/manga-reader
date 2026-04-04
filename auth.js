@@ -1,6 +1,10 @@
 const AUTH_STORAGE_KEY = "animecloud_auth_v1";
-const GOOGLE_POPUP_MESSAGE_TYPE = "animecloud-google-auth";
-const GOOGLE_POPUP_NAME = "animecloud_google_signin";
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA9DYwfQ79bPwkEN2-pv4bVT1jkTGtOAB0",
+  authDomain: "oauth-489621.firebaseapp.com",
+  projectId: "oauth-489621"
+};
+const FIREBASE_SDK_VERSION = "10.12.5";
 
 const authEls = {
   openBtn: document.getElementById("auth-open-btn"),
@@ -29,9 +33,13 @@ const authEls = {
 const authState = {
   tab: "login",
   session: null,
-  googleLoading: false,
-  googlePopup: null,
-  googlePopupPoller: 0
+  googleLoading: false
+};
+
+const firebaseState = {
+  contextPromise: null,
+  auth: null,
+  signOut: null
 };
 
 function readSession() {
@@ -54,6 +62,9 @@ function clearSession() {
   authState.session = null;
   localStorage.removeItem(AUTH_STORAGE_KEY);
   renderAuthState();
+  if (firebaseState.auth && firebaseState.signOut) {
+    firebaseState.signOut(firebaseState.auth).catch(() => {});
+  }
   window.dispatchEvent(new CustomEvent("animecloud:auth", { detail: { user: null } }));
 }
 
@@ -65,6 +76,9 @@ function deriveName(session) {
 
 function normalizeSession(data, current = null) {
   const expiresIn = Number(data.expiresIn || data.expires_in || 3600);
+  const expiresAt =
+    Number(data.expiresAt || current?.expiresAt || 0) || Date.now() + expiresIn * 1000 - 60000;
+
   return {
     idToken: data.idToken || data.id_token || current?.idToken || "",
     refreshToken: data.refreshToken || data.refresh_token || current?.refreshToken || "",
@@ -73,7 +87,20 @@ function normalizeSession(data, current = null) {
     displayName: data.displayName || current?.displayName || "",
     photoUrl: data.photoUrl || current?.photoUrl || "",
     providerId: data.providerId || current?.providerId || "",
-    expiresAt: Date.now() + expiresIn * 1000 - 60000
+    expiresAt
+  };
+}
+
+function normalizeFirebaseUser(user, idToken) {
+  return {
+    idToken,
+    refreshToken: user?.refreshToken || "",
+    localId: user?.uid || "",
+    email: user?.email || "",
+    displayName: user?.displayName || "",
+    photoUrl: user?.photoURL || "",
+    providerId: "google.com",
+    expiresAt: Number(user?.stsTokenManager?.expirationTime || Date.now() + 55 * 60 * 1000)
   };
 }
 
@@ -90,7 +117,7 @@ function setFormDisabled(form, disabled) {
 }
 
 function mapAuthError(error) {
-  const code = error?.message || error?.error?.message || "";
+  const code = error?.code || error?.message || error?.error?.message || "";
   const map = {
     EMAIL_EXISTS: "Этот email уже зарегистрирован.",
     EMAIL_NOT_FOUND: "Аккаунт с таким email не найден.",
@@ -101,7 +128,13 @@ function mapAuthError(error) {
     INVALID_IDP_RESPONSE: "Google-вход вернул некорректный ответ.",
     FEDERATED_USER_ID_ALREADY_LINKED: "Этот Google-аккаунт уже привязан к другому профилю.",
     INVALID_EMAIL: "Некорректный email.",
-    WEAK_PASSWORD: "Пароль слишком простой. Используйте минимум 6 символов."
+    WEAK_PASSWORD: "Пароль слишком простой. Используйте минимум 6 символов.",
+    "auth/popup-closed-by-user": "Окно Google было закрыто до завершения входа.",
+    "auth/popup-blocked": "Браузер заблокировал окно Google. Разрешите popup для этого сайта.",
+    "auth/cancelled-popup-request": "Предыдущий запрос входа был прерван.",
+    "auth/unauthorized-domain": "Этот домен не добавлен в разрешённые домены Firebase Auth.",
+    "auth/operation-not-allowed": "Google-вход не включён в настройках Firebase Auth.",
+    "auth/network-request-failed": "Сеть недоступна. Проверьте подключение и повторите попытку."
   };
   return map[code] || "Не удалось выполнить авторизацию.";
 }
@@ -197,18 +230,60 @@ async function signUpWithEmail(email, password) {
   writeSession(normalizeSession(data, { email, providerId: "password" }));
 }
 
-async function exchangeGoogleIdToken(idToken) {
-  const data = await postJson("/api/identity/accounts:signInWithIdp", {
-    postBody: `id_token=${encodeURIComponent(idToken)}&providerId=google.com`,
-    requestUri: window.location.origin,
-    returnIdpCredential: true,
-    returnSecureToken: true
+async function getFirebaseContext() {
+  if (firebaseState.contextPromise) return firebaseState.contextPromise;
+
+  firebaseState.contextPromise = (async () => {
+    const [{ initializeApp, getApp, getApps }, { browserLocalPersistence, getAuth, GoogleAuthProvider, setPersistence, signInWithPopup, signOut }] = await Promise.all([
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`),
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`)
+    ]);
+
+    const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+    const auth = getAuth(app);
+    await setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+    firebaseState.auth = auth;
+    firebaseState.signOut = signOut;
+
+    return { auth, GoogleAuthProvider, signInWithPopup, signOut };
+  })().catch((error) => {
+    firebaseState.contextPromise = null;
+    throw error;
   });
-  writeSession(normalizeSession(data, { providerId: "google.com" }));
-  setStatus("Вход выполнен.", "is-success");
-  authEls.googleNote.textContent = "Google-вход выполнен.";
-  closeAuthModal();
-  window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
+
+  return firebaseState.contextPromise;
+}
+
+async function signInWithGoogle() {
+  if (authState.googleLoading) return;
+
+  authState.googleLoading = true;
+  renderGoogleButton();
+  setStatus("");
+  authEls.googleNote.textContent = "Открываем вход через Google…";
+
+  try {
+    const { auth, GoogleAuthProvider, signInWithPopup } = await getFirebaseContext();
+    const provider = new GoogleAuthProvider();
+    provider.addScope("email");
+    provider.addScope("profile");
+
+    const result = await signInWithPopup(auth, provider);
+    const idToken = await result.user.getIdToken();
+    writeSession(normalizeFirebaseUser(result.user, idToken));
+    authEls.googleNote.textContent = "Google-вход выполнен.";
+    setStatus("Вход выполнен.", "is-success");
+    closeAuthModal();
+    window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
+  } catch (error) {
+    console.error(error);
+    authEls.googleNote.textContent = "Не удалось выполнить вход через Google.";
+    setStatus(mapAuthError(error), "is-error");
+  } finally {
+    authState.googleLoading = false;
+    renderGoogleButton();
+  }
 }
 
 function renderGoogleButton() {
@@ -220,13 +295,7 @@ function renderGoogleButton() {
   button.textContent = authState.googleLoading ? "Подождите…" : "Войти через Google";
   button.disabled = authState.googleLoading;
   button.addEventListener("click", () => {
-    startGoogleSignIn().catch((error) => {
-      console.error(error);
-      setStatus("Не удалось подготовить Google-вход.", "is-error");
-      authEls.googleNote.textContent = "Не удалось подготовить Google-вход.";
-      authState.googleLoading = false;
-      renderGoogleButton();
-    });
+    signInWithGoogle().catch(console.error);
   });
 
   authEls.googleButton.appendChild(button);
@@ -234,121 +303,6 @@ function renderGoogleButton() {
   if (!authEls.googleNote.textContent.trim()) {
     authEls.googleNote.textContent = "Google-вход готов.";
   }
-}
-
-function clearGooglePopupPoller() {
-  if (authState.googlePopupPoller) {
-    window.clearInterval(authState.googlePopupPoller);
-    authState.googlePopupPoller = 0;
-  }
-}
-
-function cleanupGooglePopup(note = "") {
-  clearGooglePopupPoller();
-  authState.googlePopup = null;
-  authState.googleLoading = false;
-  renderGoogleButton();
-  if (note) authEls.googleNote.textContent = note;
-}
-
-function openGooglePopup(url) {
-  const width = 520;
-  const height = 720;
-  const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
-  const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
-  return window.open(
-    url,
-    GOOGLE_POPUP_NAME,
-    `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-  );
-}
-
-async function resolveGoogleAuthUri() {
-  const data = await postJson("/api/identity/accounts:createAuthUri", {
-    providerId: "google.com",
-    continueUri: window.location.origin
-  });
-  if (!data.authUri) {
-    throw new Error("GOOGLE_AUTH_URI_MISSING");
-  }
-  return data.authUri;
-}
-
-async function startGoogleSignIn() {
-  if (authState.googleLoading) return;
-
-  authState.googleLoading = true;
-  renderGoogleButton();
-  setStatus("");
-  authEls.googleNote.textContent = "Открываем окно Google…";
-
-  try {
-    const authUri = await resolveGoogleAuthUri();
-    const popup = openGooglePopup(authUri);
-
-    if (!popup) {
-      cleanupGooglePopup("Браузер заблокировал всплывающее окно. Разрешите popup для этого сайта.");
-      return;
-    }
-
-    authState.googlePopup = popup;
-    authEls.googleNote.textContent = "Продолжите вход в новом окне Google.";
-    clearGooglePopupPoller();
-    authState.googlePopupPoller = window.setInterval(() => {
-      if (authState.googlePopup && authState.googlePopup.closed) {
-        cleanupGooglePopup("Окно Google было закрыто до завершения входа.");
-      }
-    }, 500);
-  } catch (error) {
-    console.error(error);
-    cleanupGooglePopup("Не удалось подготовить Google-вход.");
-    setStatus(mapAuthError(error), "is-error");
-  }
-}
-
-async function handleGooglePopupResult(payload) {
-  clearGooglePopupPoller();
-  if (authState.googlePopup && !authState.googlePopup.closed) {
-    authState.googlePopup.close();
-  }
-  authState.googlePopup = null;
-
-  if (payload?.error) {
-    authState.googleLoading = false;
-    renderGoogleButton();
-    authEls.googleNote.textContent =
-      payload.error === "access_denied" ? "Вход через Google отменён." : "Google вернул ошибку авторизации.";
-    setStatus("Не удалось выполнить вход через Google.", "is-error");
-    return;
-  }
-
-  if (!payload?.id_token) {
-    authState.googleLoading = false;
-    renderGoogleButton();
-    authEls.googleNote.textContent = "Google не вернул токен входа.";
-    setStatus("Не удалось выполнить вход через Google.", "is-error");
-    return;
-  }
-
-  try {
-    setStatus("Выполняем вход через Google…");
-    await exchangeGoogleIdToken(payload.id_token);
-  } catch (error) {
-    console.error(error);
-    setStatus(mapAuthError(error), "is-error");
-    authEls.googleNote.textContent = "Не удалось завершить вход через Google.";
-  } finally {
-    authState.googleLoading = false;
-    renderGoogleButton();
-  }
-}
-
-function bindGoogleMessages() {
-  window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin) return;
-    if (event.data?.type !== GOOGLE_POPUP_MESSAGE_TYPE) return;
-    handleGooglePopupResult(event.data.payload || {}).catch(console.error);
-  });
 }
 
 function bindAuthEvents() {
@@ -409,7 +363,6 @@ function bindAuthEvents() {
 }
 
 async function initAuth() {
-  bindGoogleMessages();
   bindAuthEvents();
   setAuthTab("login");
   authState.session = readSession();
@@ -421,7 +374,7 @@ async function initAuth() {
   }
 
   renderAuthState();
-  authEls.googleNote.textContent = "Google-вход готов.";
+  authEls.googleNote.textContent = "Google-вход через Firebase popup.";
   renderGoogleButton();
 }
 
