@@ -1,5 +1,5 @@
 ﻿const API_BASE = "/api/anilibria";
-const MEDIA_PROXY_BASE = "/api/anilibria-media";
+const MEDIA_PROXY_BASE = "/api/anilibria-stream";
 const ORIGIN_BASE = "https://anilibria.top";
 const SITE_URL = "https://color-manga-cloud.vercel.app";
 
@@ -108,6 +108,7 @@ const state = {
   releaseOpenAlias: "",
   releaseOpenPromise: null,
   playerSelectionToken: "",
+  hlsRecoveryTried: false,
   installPromptEvent: null
 };
 
@@ -1951,6 +1952,7 @@ function destroyPlayer() {
     state.hls.destroy();
     state.hls = null;
   }
+  state.hlsRecoveryTried = false;
   els.player.pause();
   els.player.removeAttribute("src");
   els.player.load();
@@ -1996,8 +1998,7 @@ function buildQualityOptions(episode) {
 
 function proxiedMediaUrl(url) {
   const normalized = url.startsWith("//") ? `https:${url}` : url;
-  const parsed = new URL(normalized);
-  return `${MEDIA_PROXY_BASE}${parsed.pathname}${parsed.search}`;
+  return `${MEDIA_PROXY_BASE}?url=${encodeURIComponent(normalized)}`;
 }
 
 async function loadManifestBlob(manifestUrl) {
@@ -2005,22 +2006,15 @@ async function loadManifestBlob(manifestUrl) {
   let text = cached && Date.now() - cached.time < DETAIL_TTL ? cached.text : "";
 
   if (!text) {
-    let response = await fetch(manifestUrl, { cache: "no-store" }).catch(() => null);
-    if (!response || !response.ok) {
-      const proxiedUrl = proxiedMediaUrl(manifestUrl);
-      response = await fetch(proxiedUrl, { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error(`Manifest request failed: ${response.status}`);
-      }
-      text = await response.text();
-      manifestCache.set(manifestUrl, { time: Date.now(), text, proxied: true });
-    } else {
-      text = await response.text();
-      manifestCache.set(manifestUrl, { time: Date.now(), text, proxied: false });
+    const proxiedUrl = proxiedMediaUrl(manifestUrl);
+    const response = await fetch(proxiedUrl, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Manifest request failed: ${response.status}`);
     }
+    text = await response.text();
+    manifestCache.set(manifestUrl, { time: Date.now(), text });
   }
 
-  const manifestMeta = manifestCache.get(manifestUrl);
   const blob = new Blob(
     [
       text
@@ -2029,7 +2023,7 @@ async function loadManifestBlob(manifestUrl) {
           if (!line || line.startsWith("#")) return line;
           try {
             const absolute = new URL(line, manifestUrl).toString();
-            return manifestMeta?.proxied ? `${window.location.origin}${proxiedMediaUrl(absolute)}` : absolute;
+            return `${window.location.origin}${proxiedMediaUrl(absolute)}`;
           } catch {
             return line;
           }
@@ -2084,6 +2078,7 @@ async function attachPlayer(manifestUrl) {
   } catch {}
 
   if (HlsLib && HlsLib.isSupported()) {
+    state.hlsRecoveryTried = false;
     state.hls = new HlsLib({
       enableWorker: true,
       lowLatencyMode: false,
@@ -2094,6 +2089,20 @@ async function attachPlayer(manifestUrl) {
       manifestLoadingTimeOut: 9000,
       fragLoadingTimeOut: 12000,
       startLevel: -1
+    });
+    state.hls.on(HlsLib.Events.ERROR, (_, data) => {
+      if (!data?.fatal) return;
+      console.error("HLS fatal error", data);
+      if (data.type === HlsLib.ErrorTypes.NETWORK_ERROR && !state.hlsRecoveryTried) {
+        state.hlsRecoveryTried = true;
+        els.playerNote.textContent = "Поток не отвечает. Перезагружаем соединение…";
+        try {
+          state.hls.startLoad();
+          return;
+        } catch {}
+      }
+      destroyPlayer();
+      els.playerNote.textContent = "Не удалось загрузить поток. Попробуйте другую серию или обновите страницу.";
     });
     state.hls.loadSource(blobUrl);
     state.hls.attachMedia(els.player);
@@ -2389,7 +2398,7 @@ async function selectEpisode(episode, options = {}) {
     return;
   }
 
-  els.playerNote.textContent = `Плеер запускает поток напрямую с видеохоста. Стартовое качество: ${selected.label}. При необходимости переключите его вручную.`;
+  els.playerNote.textContent = `Плеер подготавливает поток через ваш домен. Стартовое качество: ${selected.label}. При необходимости переключите его вручную.`;
 
   await afterNextPaint();
   if (state.playerSelectionToken !== selectionToken || state.currentEpisode?.id !== episode.id) return;
@@ -2579,7 +2588,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=33", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=34", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v33";
+const CACHE_VERSION = "v34";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -9,7 +9,7 @@ const APP_SHELL = [
   "/style.css?v=22",
   "/firebase-config.js?v=2",
   "/cloud-sync.js?v=11",
-  "/app.js?v=26",
+  "/app.js?v=27",
   "/auth.js?v=15",
   "/watch-features.js?v=15",
   "/manifest.webmanifest?v=11",
@@ -35,7 +35,11 @@ function isShellAsset(url) {
 }
 
 function isApiRequest(url) {
-  return url.origin === self.location.origin && url.pathname.startsWith("/api/anilibria");
+  return url.origin === self.location.origin && /^\/api\/anilibria(?:\/|$)/.test(url.pathname);
+}
+
+function isMediaStreamRequest(url) {
+  return url.origin === self.location.origin && /^\/api\/anilibria-stream(?:\/|$)/.test(url.pathname);
 }
 
 function isManifestRequest(url) {
@@ -153,6 +157,11 @@ self.addEventListener("fetch", (event) => {
       return;
     }
     event.respondWith(staleWhileRevalidate(event.request, API_CACHE));
+    return;
+  }
+
+  if (isMediaStreamRequest(url)) {
+    event.respondWith(fetch(event.request));
     return;
   }
 
