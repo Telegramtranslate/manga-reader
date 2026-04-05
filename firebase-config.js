@@ -18,6 +18,27 @@
     }
   }
 
+  function shouldUseSameOriginAuthDomain(locationObject = window.location) {
+    const hostname = String(locationObject?.hostname || "").trim().toLowerCase();
+    const protocol = String(locationObject?.protocol || "").trim().toLowerCase();
+    if (!hostname || protocol === "file:") return false;
+    return !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(hostname);
+  }
+
+  function normalizeFirebaseConfig(config) {
+    const next = { ...DEFAULT_FIREBASE_CONFIG, ...(config || {}) };
+    const configuredAuthDomain = String(next.authDomain || "").trim().toLowerCase();
+    const currentHostname = String(window.location?.hostname || "").trim().toLowerCase();
+
+    // On production we proxy Firebase auth helpers through the current host,
+    // so Google sign-in no longer exposes the raw firebaseapp.com helper domain.
+    if (currentHostname && shouldUseSameOriginAuthDomain() && /(?:firebaseapp\.com|web\.app)$/i.test(configuredAuthDomain)) {
+      next.authDomain = currentHostname;
+    }
+
+    return next;
+  }
+
   const runtimeFirebaseConfig =
     window.ANIMECLOUD_FIREBASE_CONFIG_JSON ||
     window.__ANIMECLOUD_ENV__?.VITE_FIREBASE_CONFIG ||
@@ -25,7 +46,7 @@
     window.ANIMECLOUD_FIREBASE_CONFIG ||
     null;
 
-  const FIREBASE_CONFIG = parseRuntimeJson(runtimeFirebaseConfig, DEFAULT_FIREBASE_CONFIG);
+  const FIREBASE_CONFIG = normalizeFirebaseConfig(parseRuntimeJson(runtimeFirebaseConfig, DEFAULT_FIREBASE_CONFIG));
 
   const APP_CHECK_SITE_KEY =
     window.ANIMECLOUD_APP_CHECK_KEY ||
@@ -39,6 +60,8 @@
   let recaptchaPromise = null;
 
   window.ANIMECLOUD_FIREBASE_CONFIG = FIREBASE_CONFIG;
+  window.ANIMECLOUD_FIREBASE_HELPER_HOST = DEFAULT_FIREBASE_CONFIG.authDomain;
+  window.ANIMECLOUD_FIREBASE_HELPER_ORIGIN = `https://${DEFAULT_FIREBASE_CONFIG.authDomain}`;
   window.ANIMECLOUD_FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   window.ANIMECLOUD_APP_CHECK_KEY = window.ANIMECLOUD_APP_CHECK_KEY || APP_CHECK_SITE_KEY;
   window.ANIMECLOUD_ENABLE_APP_CHECK = window.ANIMECLOUD_ENABLE_APP_CHECK === true || APP_CHECK_ENABLED;

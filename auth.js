@@ -194,12 +194,14 @@
         {
           browserLocalPersistence,
           createUserWithEmailAndPassword,
+          getRedirectResult,
           getAuth,
           GoogleAuthProvider,
           onAuthStateChanged,
           setPersistence,
           signInWithEmailAndPassword,
           signInWithPopup,
+          signInWithRedirect,
           signOut
         }
       ] = await Promise.all([
@@ -222,10 +224,12 @@
       return {
         auth,
         createUserWithEmailAndPassword,
+        getRedirectResult,
         GoogleAuthProvider,
         onAuthStateChanged,
         signInWithEmailAndPassword,
         signInWithPopup,
+        signInWithRedirect,
         signOut
       };
     })().catch((error) => {
@@ -291,6 +295,14 @@
     });
   }
 
+  function createGoogleProvider(GoogleAuthProvider) {
+    const provider = new GoogleAuthProvider();
+    provider.addScope("email");
+    provider.addScope("profile");
+    provider.setCustomParameters({ prompt: "select_account" });
+    return provider;
+  }
+
   function mapAuthError(error) {
     const code = error?.code || error?.message || error?.error?.message || "";
     const map = {
@@ -312,7 +324,7 @@
       "auth/too-many-requests": "Слишком много попыток. Повторите позже.",
       "auth/invalid-email": "Некорректный email.",
       "auth/weak-password": "Пароль слишком простой. Используйте минимум 6 символов.",
-      "auth/popup-closed-by-user": "Окно Google было закрыто до завершения входа.",
+      "auth/popup-closed-by-user": "Popup-вход был прерван. Если вы не закрывали окно, сайт переключит вход на безопасный redirect-режим.",
       "auth/popup-blocked": "Браузер заблокировал окно Google. Разрешите popup для этого сайта.",
       "auth/cancelled-popup-request": "Предыдущий запрос входа был прерван.",
       "auth/unauthorized-domain": "Этот домен не добавлен в разрешённые домены Firebase Auth.",
@@ -370,9 +382,7 @@
 
     try {
       const { auth, GoogleAuthProvider, signInWithPopup } = await getFirebaseContext();
-      const provider = new GoogleAuthProvider();
-      provider.addScope("email");
-      provider.addScope("profile");
+      const provider = createGoogleProvider(GoogleAuthProvider);
 
       const result = await signInWithPopup(auth, provider);
       await applyFirebaseUserSession(result.user);
@@ -381,6 +391,19 @@
       closeAuthModal();
       window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
     } catch (error) {
+      const code = String(error?.code || error?.message || "");
+      if (code === "auth/popup-closed-by-user" || code === "auth/internal-error") {
+        if (authEls.googleNote) authEls.googleNote.textContent = "Popup-вход недоступен. Перенаправляем на защищённый вход AnimeCloud…";
+        setStatus("Перенаправляем на Google через AnimeCloud…");
+        try {
+          const { auth, GoogleAuthProvider, signInWithRedirect } = await getFirebaseContext();
+          const provider = createGoogleProvider(GoogleAuthProvider);
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectError) {
+          console.error(redirectError);
+        }
+      }
       console.error(error);
       if (authEls.googleNote) authEls.googleNote.textContent = "Не удалось выполнить вход через Google.";
       setStatus(mapAuthError(error), "is-error");
@@ -471,7 +494,7 @@
     bindAuthEvents();
     setAuthTab("login");
     writeSession(readSession(), { broadcast: true });
-    if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход через Firebase popup.";
+    if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход через AnimeCloud.";
     renderGoogleButton();
 
     scheduleIdle(() => {
@@ -481,6 +504,17 @@
           setStatus("Не удалось инициализировать авторизацию.", "is-error");
         }
       });
+    });
+
+    scheduleIdle(async () => {
+      try {
+        const { auth, getRedirectResult } = await getFirebaseContext();
+        await getRedirectResult(auth);
+      } catch (error) {
+        if (error?.code) {
+          setStatus(mapAuthError(error), "is-error");
+        }
+      }
     });
   }
 
