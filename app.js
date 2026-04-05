@@ -657,22 +657,34 @@ function scheduleChunkAppend(target, nodes) {
   const token = `${Date.now()}-${Math.random()}`;
   target.dataset.renderToken = token;
   let index = 0;
+  const preferLightBatches =
+    shouldPreferFastStart() || window.matchMedia?.("(max-width: 860px)")?.matches;
+  const batchSize = preferLightBatches ? 4 : RENDER_BATCH_SIZE;
+
+  const queueNextBatch = () => {
+    if (target.dataset.renderToken !== token || index >= nodes.length) return;
+    if (preferLightBatches && "requestIdleCallback" in window) {
+      requestIdleCallback(() => requestAnimationFrame(appendBatch), { timeout: 180 });
+      return;
+    }
+    requestAnimationFrame(appendBatch);
+  };
 
   const appendBatch = () => {
     if (target.dataset.renderToken !== token) return;
     const fragment = document.createDocumentFragment();
-    const end = Math.min(index + RENDER_BATCH_SIZE, nodes.length);
+    const end = Math.min(index + batchSize, nodes.length);
     while (index < end) {
       fragment.appendChild(nodes[index]);
       index += 1;
     }
     target.appendChild(fragment);
     if (index < nodes.length) {
-      requestAnimationFrame(appendBatch);
+      queueNextBatch();
     }
   };
 
-  requestAnimationFrame(appendBatch);
+  queueNextBatch();
 }
 
 function createTag(text) {
@@ -965,6 +977,7 @@ function setupInfiniteScroll() {
     state.infiniteObserver.disconnect();
   }
   if (!("IntersectionObserver" in window)) return;
+  if (shouldPreferFastStart() || window.matchMedia?.("(max-width: 860px)")?.matches) return;
 
   const buttons = [els.catalogMoreBtn, els.ongoingMoreBtn, els.topMoreBtn].filter(Boolean);
   state.infiniteObserver = new IntersectionObserver(
@@ -1331,10 +1344,10 @@ function renderHero(release) {
   renderHeroPoster();
 
   const meta = [
-    `${release.type} вЂў ${release.year}`,
+    `${release.type} • ${release.year}`,
     release.season,
-    `${release.episodesTotal || "?"} СЌРї.`,
-    release.publishDay ? `Р’С‹С…РѕРґРёС‚: ${release.publishDay}` : "",
+    `${release.episodesTotal || "?"} эп.`,
+    release.publishDay ? `Выходит: ${release.publishDay}` : "",
     release.age
   ].filter(Boolean);
 
@@ -1498,19 +1511,19 @@ async function loadHome(force = false) {
     state.homeLoaded = true;
 
     renderHero(state.featured);
-    updateGrid(els.latestGrid, state.latest, "РЎРІРµР¶РёРµ СЂРµР»РёР·С‹ РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅС‹.");
-    updateGrid(els.recommendedGrid, state.recommended, "РџРѕРґР±РѕСЂРєР° РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅР°.");
-    updateGrid(els.popularGrid, state.popular, "РџРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹ РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅС‹.");
+    updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
+    updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
+    updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
     renderContinueWatchingSections();
     updateStats();
     startHeroCarousel();
   } catch (error) {
     console.error("loadHome failed", error);
     state.homeLoaded = false;
-    renderHeroFallback("РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РіР»Р°РІРЅСѓСЋ РІРёС‚СЂРёРЅСѓ.");
-    replaceWithErrorState(els.latestGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїРѕСЃР»РµРґРЅРёРµ СЂРµР»РёР·С‹.", () => loadHome(true).catch(console.error));
-    replaceWithErrorState(els.recommendedGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЂРµРєРѕРјРµРЅРґР°С†РёРё.", () => loadHome(true).catch(console.error));
-    replaceWithErrorState(els.popularGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹.", () => loadHome(true).catch(console.error));
+    renderHeroFallback("Не удалось загрузить главную витрину.");
+    replaceWithErrorState(els.latestGrid, "Не удалось загрузить последние релизы.", () => loadHome(true).catch(console.error));
+    replaceWithErrorState(els.recommendedGrid, "Не удалось загрузить рекомендации.", () => loadHome(true).catch(console.error));
+    replaceWithErrorState(els.popularGrid, "Не удалось загрузить популярные релизы.", () => loadHome(true).catch(console.error));
     renderContinueWatchingSections();
     updateStats();
     throw error;
@@ -1539,7 +1552,7 @@ async function loadCatalog(options = {}) {
     state.catalogItems = [];
     state.catalogPage = 0;
     state.catalogHasMore = false;
-    els.catalogSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј РєР°С‚Р°Р»РѕРівЂ¦";
+    els.catalogSummary.textContent = "Загружаем каталог…";
     renderSkeletonGrid(els.catalogGrid, 8);
   }
 
@@ -1560,11 +1573,11 @@ async function loadCatalog(options = {}) {
     if (hasFilters) {
       refreshCatalogView(pagination);
     } else {
-      els.catalogSummary.textContent = `${formatNumber(state.catalogTotal)} С‚Р°Р№С‚Р»РѕРІ. РЎС‚СЂР°РЅРёС†Р° ${state.catalogPage} РёР· ${pagination.total_pages || 1}.`;
+      els.catalogSummary.textContent = `${formatNumber(state.catalogTotal)} тайтлов. Страница ${state.catalogPage} из ${pagination.total_pages || 1}.`;
       if (reset) {
-        updateGrid(els.catalogGrid, state.catalogItems, "РљР°С‚Р°Р»РѕРі РїСѓСЃС‚.");
+        updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
       } else {
-        updateGrid(els.catalogGrid, releases, "РљР°С‚Р°Р»РѕРі РїСѓСЃС‚.", {
+        updateGrid(els.catalogGrid, releases, "Каталог пуст.", {
           append: true,
           offset: state.catalogItems.length - releases.length
         });
@@ -1579,8 +1592,8 @@ async function loadCatalog(options = {}) {
     console.error("loadCatalog failed", error);
     els.catalogMoreBtn.hidden = true;
     els.catalogMoreBtn.disabled = false;
-    els.catalogSummary.textContent = "РљР°С‚Р°Р»РѕРі РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.";
-    replaceWithErrorState(els.catalogGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РєР°С‚Р°Р»РѕРі.", () => loadCatalog({ reset: true }).catch(console.error));
+    els.catalogSummary.textContent = "Каталог временно недоступен.";
+    replaceWithErrorState(els.catalogGrid, "Не удалось загрузить каталог.", () => loadCatalog({ reset: true }).catch(console.error));
     throw error;
   }
 }
@@ -1594,7 +1607,7 @@ async function loadOngoing(options = {}) {
     state.ongoingItems = [];
     state.ongoingPage = 0;
     state.ongoingHasMore = false;
-    els.ongoingSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј РѕРЅРіРѕРёРЅРіРёвЂ¦";
+    els.ongoingSummary.textContent = "Загружаем онгоинги…";
     renderSkeletonGrid(els.ongoingGrid, 8);
   }
 
@@ -1615,11 +1628,11 @@ async function loadOngoing(options = {}) {
     state.ongoingHasMore = state.ongoingPage < (pagination.total_pages || 1);
     state.ongoingLoaded = true;
 
-    els.ongoingSummary.textContent = `${formatNumber(state.ongoingTotal)} Р°РєС‚РёРІРЅС‹С… СЂРµР»РёР·РѕРІ. РЎС‚СЂР°РЅРёС†Р° ${state.ongoingPage} РёР· ${pagination.total_pages || 1}.`;
+    els.ongoingSummary.textContent = `${formatNumber(state.ongoingTotal)} активных релизов. Страница ${state.ongoingPage} из ${pagination.total_pages || 1}.`;
     if (reset) {
-      updateGrid(els.ongoingGrid, state.ongoingItems, "РћРЅРіРѕРёРЅРіРё РЅРµ РЅР°Р№РґРµРЅС‹.");
+      updateGrid(els.ongoingGrid, state.ongoingItems, "Онгоинги не найдены.");
     } else {
-      updateGrid(els.ongoingGrid, releases, "РћРЅРіРѕРёРЅРіРё РЅРµ РЅР°Р№РґРµРЅС‹.", {
+      updateGrid(els.ongoingGrid, releases, "Онгоинги не найдены.", {
         append: true,
         offset: state.ongoingItems.length - releases.length
       });
@@ -1633,8 +1646,8 @@ async function loadOngoing(options = {}) {
     console.error("loadOngoing failed", error);
     els.ongoingMoreBtn.hidden = true;
     els.ongoingMoreBtn.disabled = false;
-    els.ongoingSummary.textContent = "Р Р°Р·РґРµР» РѕРЅРіРѕРёРЅРіРѕРІ РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.";
-    replaceWithErrorState(els.ongoingGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РѕРЅРіРѕРёРЅРіРё.", () => loadOngoing({ reset: true }).catch(console.error));
+    els.ongoingSummary.textContent = "Раздел онгоингов временно недоступен.";
+    replaceWithErrorState(els.ongoingGrid, "Не удалось загрузить онгоинги.", () => loadOngoing({ reset: true }).catch(console.error));
     throw error;
   }
 }
@@ -1647,7 +1660,7 @@ async function loadTop(options = {}) {
     state.topItems = [];
     state.topPage = 0;
     state.topHasMore = false;
-    els.topSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј С‚РѕРї РєР°С‚Р°Р»РѕРіР°вЂ¦";
+    els.topSummary.textContent = "Загружаем топ каталога…";
     renderSkeletonGrid(els.topGrid, 8);
   }
 
@@ -1668,11 +1681,11 @@ async function loadTop(options = {}) {
     state.topHasMore = state.topPage < (pagination.total_pages || 1);
     state.topLoaded = true;
 
-    els.topSummary.textContent = `${formatNumber(state.topTotal)} СЂРµР»РёР·РѕРІ РІ СЂРµР№С‚РёРЅРіРµ. РЎС‚СЂР°РЅРёС†Р° ${state.topPage} РёР· ${pagination.total_pages || 1}.`;
+    els.topSummary.textContent = `${formatNumber(state.topTotal)} релизов в рейтинге. Страница ${state.topPage} из ${pagination.total_pages || 1}.`;
     if (reset) {
-      updateGrid(els.topGrid, state.topItems, "РўРѕРї РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅ.");
+      updateGrid(els.topGrid, state.topItems, "Топ пока не заполнен.");
     } else {
-      updateGrid(els.topGrid, releases, "РўРѕРї РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅ.", {
+      updateGrid(els.topGrid, releases, "Топ пока не заполнен.", {
         append: true,
         offset: state.topItems.length - releases.length
       });
@@ -1686,8 +1699,8 @@ async function loadTop(options = {}) {
     console.error("loadTop failed", error);
     els.topMoreBtn.hidden = true;
     els.topMoreBtn.disabled = false;
-    els.topSummary.textContent = "РўРѕРї РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.";
-    replaceWithErrorState(els.topGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ С‚РѕРї.", () => loadTop({ reset: true }).catch(console.error));
+    els.topSummary.textContent = "Топ временно недоступен.";
+    replaceWithErrorState(els.topGrid, "Не удалось загрузить топ.", () => loadTop({ reset: true }).catch(console.error));
     throw error;
   }
 }
@@ -1695,14 +1708,14 @@ async function loadTop(options = {}) {
 async function loadSchedule() {
   try {
     state.scheduleLoaded = true;
-    els.scheduleGrid.replaceChildren(createEmptyState("Р—Р°РіСЂСѓР¶Р°РµРј СЂР°СЃРїРёСЃР°РЅРёРµвЂ¦"));
+    els.scheduleGrid.replaceChildren(createEmptyState("Загружаем расписание…"));
     const payload = await fetchJson("/anime/schedule/week", null, { ttl: 60000 });
     state.scheduleItems = buildReleases(payload);
     renderSchedule();
   } catch (error) {
     console.error("loadSchedule failed", error);
     state.scheduleLoaded = false;
-    replaceWithErrorState(els.scheduleGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЂР°СЃРїРёСЃР°РЅРёРµ.", () => loadSchedule().catch(console.error));
+    replaceWithErrorState(els.scheduleGrid, "Не удалось загрузить расписание.", () => loadSchedule().catch(console.error));
     throw error;
   }
 }
@@ -2534,7 +2547,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=28", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=29", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {

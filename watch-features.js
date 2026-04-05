@@ -529,7 +529,7 @@ function handlePlayerPause() {
 function handlePlayerEnded() {
   saveProgress(true);
   if (watchState.settings.autoplayNext) {
-    playNextEpisode();
+    requestAnimationFrame(() => playNextEpisode());
   }
 }
 

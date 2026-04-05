@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v28";
+const CACHE_VERSION = "v29";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,11 +6,12 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=19",
-  "/cloud-sync.js?v=6",
-  "/app.js?v=21",
-  "/auth.js?v=12",
-  "/watch-features.js?v=10",
+  "/style.css?v=20",
+  "/firebase-config.js?v=1",
+  "/cloud-sync.js?v=7",
+  "/app.js?v=22",
+  "/auth.js?v=13",
+  "/watch-features.js?v=11",
   "/manifest.webmanifest?v=11",
   "/robots.txt",
   "/sitemap.xml",
@@ -35,6 +36,10 @@ function isShellAsset(url) {
 
 function isApiRequest(url) {
   return url.origin === self.location.origin && url.pathname.startsWith("/api/anilibria");
+}
+
+function isScheduleRequest(url) {
+  return url.origin === self.location.origin && url.pathname === "/api/anilibria/anime/schedule/week";
 }
 
 function isPosterRequest(request, url) {
@@ -66,6 +71,34 @@ async function staleWhileRevalidate(request, cacheName, cacheKey = request) {
   const network = await networkPromise;
   if (network) return network;
   throw new Error("Network unavailable");
+}
+
+async function cacheFirst(request, cacheName, cacheKey = request) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
+  const response = await fetch(request);
+  if (canCache(response)) {
+    cache.put(cacheKey, response.clone()).catch(() => {});
+  }
+  return response;
+}
+
+async function networkFirst(request, cacheName, cacheKey = request) {
+  const cache = await caches.open(cacheName);
+
+  try {
+    const response = await fetch(request);
+    if (canCache(response)) {
+      cache.put(cacheKey, response.clone()).catch(() => {});
+    }
+    return response;
+  } catch {
+    const cached = await cache.match(cacheKey);
+    if (cached) return cached;
+    throw new Error("Network unavailable");
+  }
 }
 
 self.addEventListener("install", (event) => {
@@ -107,12 +140,16 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (isApiRequest(url)) {
+    if (isScheduleRequest(url)) {
+      event.respondWith(networkFirst(event.request, API_CACHE));
+      return;
+    }
     event.respondWith(staleWhileRevalidate(event.request, API_CACHE));
     return;
   }
 
   if (isPosterRequest(event.request, url)) {
-    event.respondWith(staleWhileRevalidate(event.request, IMAGE_CACHE));
+    event.respondWith(cacheFirst(event.request, IMAGE_CACHE));
     return;
   }
 

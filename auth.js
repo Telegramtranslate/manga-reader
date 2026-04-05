@@ -1,6 +1,6 @@
-(function () {
+﻿(function () {
   const AUTH_STORAGE_KEY = "animecloud_auth_v1";
-  const FIREBASE_CONFIG = {
+  const FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || {
     apiKey: "AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY",
     authDomain: "oauth-489621.firebaseapp.com",
     projectId: "oauth-489621",
@@ -8,14 +8,14 @@
     messagingSenderId: "263581962151",
     appId: "1:263581962151:web:41538be2d5bae44d037082"
   };
-  const FIREBASE_SDK_VERSION = "10.12.5";
+  const FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   const AUTH_APP_CHECK_SITE_KEY =
-    document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
     window.ANIMECLOUD_APP_CHECK_KEY ||
+    document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
     "";
   const AUTH_APP_CHECK_ENABLED =
-    document.querySelector('meta[name="firebase-app-check-enabled"]')?.content === "true" ||
-    window.ANIMECLOUD_ENABLE_APP_CHECK === true;
+    window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
+    document.querySelector('meta[name="firebase-app-check-enabled"]')?.content === "true";
   const ADMIN_EMAILS = new Set(["serikovmaksim94@gmail.com"]);
 
   const authEls = {
@@ -160,6 +160,10 @@
     if (!AUTH_APP_CHECK_ENABLED || !AUTH_APP_CHECK_SITE_KEY) return null;
     if (globalThis.__animeCloudAppCheckPromise) {
       return globalThis.__animeCloudAppCheckPromise;
+    }
+
+    if (typeof window.animeCloudLoadRecaptchaEnterprise === "function") {
+      await window.animeCloudLoadRecaptchaEnterprise().catch(() => null);
     }
 
     globalThis.__animeCloudAppCheckPromise = import(
@@ -489,3 +493,5 @@
     writeSession(readSession(), { broadcast: true });
   });
 })();
+
+
