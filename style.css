@@ -1394,6 +1394,27 @@ button {
   background: rgba(12, 17, 29, 0.72);
 }
 
+.error-state {
+  display: grid;
+  place-items: center;
+  gap: 14px;
+  min-height: 190px;
+  padding: 22px;
+  text-align: center;
+  border: 1px solid rgba(243, 156, 18, 0.18);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top, rgba(243, 156, 18, 0.12), transparent 38%),
+    rgba(15, 15, 15, 0.92);
+}
+
+.error-state p {
+  margin: 0;
+  max-width: 26rem;
+  color: #d3c6b7;
+  line-height: 1.55;
+}
+
 .auth-slot {
   display: flex;
   align-items: stretch;
@@ -2275,6 +2296,34 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: #151515;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+.hero-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(243, 156, 18, 0.22), transparent 28%),
+    linear-gradient(180deg, rgba(23, 23, 23, 0.95), rgba(13, 13, 13, 0.98));
+  z-index: 2;
+}
+
+.hero-placeholder__logo {
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  color: #fff7ea;
+}
+
+.hero-placeholder p {
+  margin: 0;
+  max-width: 18rem;
+  color: #cfc3b3;
+  line-height: 1.5;
 }
 
 .hero-poster,

@@ -1,4 +1,4 @@
-const API_BASE = "/api/anilibria";
+﻿const API_BASE = "/api/anilibria";
 const MEDIA_PROXY_BASE = "/api/anilibria-media";
 const ORIGIN_BASE = "https://anilibria.top";
 const SITE_URL = "https://color-manga-cloud.vercel.app";
@@ -40,6 +40,8 @@ const VIEW_SEO = {
 
 const CACHE_TTL = 120000;
 const DETAIL_TTL = 300000;
+const API_RETRY_ATTEMPTS = 3;
+const API_RETRY_BASE_DELAY = 350;
 const GRID_PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE = 260;
 const RENDER_BATCH_SIZE = 8;
@@ -213,6 +215,7 @@ const els = {
 };
 
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -425,26 +428,69 @@ async function fetchJson(path, params, options = {}) {
     return requestCache.get(url);
   }
 
-  const promise = fetch(url, { cache: "no-store", signal: options.signal })
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+  const promise = (async () => {
+    let lastError = null;
+    const attempts = Math.max(1, Number(options.retries || API_RETRY_ATTEMPTS));
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        const response = await fetch(url, { cache: "no-store", signal: options.signal });
+        const rawText = await response.text();
+
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status} ${path}`);
+        }
+
+        if (!rawText) {
+          throw new Error(`API request returned empty body: ${path}`);
+        }
+
+        const data = JSON.parse(rawText);
+        if (data == null) {
+          throw new Error(`API request returned invalid payload: ${path}`);
+        }
+
+        if (ttl > 0) {
+          responseCache.set(url, { time: Date.now(), data });
+        }
+        return data;
+      } catch (error) {
+        lastError = error;
+        if (error?.name === "AbortError") {
+          throw error;
+        }
+        if (attempt < attempts) {
+          await sleep(API_RETRY_BASE_DELAY * attempt);
+          continue;
+        }
       }
-      const data = await response.json();
-      if (ttl > 0) {
-        responseCache.set(url, { time: Date.now(), data });
-      }
-      return data;
-    })
-    .finally(() => requestCache.delete(url));
+    }
+
+    if (cached?.data) {
+      return cached.data;
+    }
+
+    throw lastError || new Error(`API request failed: ${path}`);
+  })().finally(() => requestCache.delete(url));
 
   requestCache.set(url, promise);
   return promise;
 }
 
-const extractList = (payload) => (Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : []);
+const extractList = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.list)) return payload.list;
+  if (Array.isArray(payload?.items)) return payload.items;
+  return [];
+};
 const extractPagination = (payload) =>
-  payload?.meta?.pagination || { current_page: 1, total_pages: 1, total: extractList(payload).length };
+  payload?.meta?.pagination ||
+  payload?.pagination || {
+    current_page: Number(payload?.page || 1),
+    total_pages: Number(payload?.total_pages || 1),
+    total: Number(payload?.total || extractList(payload).length)
+  };
 const posterSource = (poster) =>
   absoluteUrl(
     poster?.optimized?.src ||
@@ -580,6 +626,31 @@ function createEmptyState(message) {
   node.className = "empty-state";
   node.textContent = message;
   return node;
+}
+
+function createErrorState(message, onRetry) {
+  const node = document.createElement("div");
+  node.className = "error-state";
+
+  const text = document.createElement("p");
+  text.textContent = message;
+  node.appendChild(text);
+
+  if (typeof onRetry === "function") {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ghost-btn";
+    button.textContent = "Повторить";
+    button.addEventListener("click", onRetry);
+    node.appendChild(button);
+  }
+
+  return node;
+}
+
+function replaceWithErrorState(target, message, onRetry) {
+  if (!target) return;
+  target.replaceChildren(createErrorState(message, onRetry));
 }
 
 function scheduleChunkAppend(target, nodes) {
@@ -832,6 +903,61 @@ function syncHeroOpenLink() {
   if (state.featured && els.heroOpenBtn) {
     els.heroOpenBtn.dataset.alias = state.featured.alias;
   }
+}
+
+function renderHeroFallback(message = "Загружаем лучшие релизы...") {
+  if (els.heroTitle) els.heroTitle.textContent = "AnimeCloud";
+  if (els.heroDescription) {
+    els.heroDescription.textContent =
+      "Русская озвучка, быстрый каталог, расписание, рекомендации и удобный мобильный просмотр.";
+  }
+  if (els.heroMeta) {
+    els.heroMeta.replaceChildren(
+      createMetaPill("Каталог аниме"),
+      createMetaPill("Русская озвучка"),
+      createMetaPill("Быстрый старт")
+    );
+  }
+  if (els.heroPoster) {
+    els.heroPoster.hidden = true;
+    els.heroPoster.removeAttribute("src");
+    els.heroPoster.alt = "AnimeCloud";
+  }
+  if (els.heroOpenBtn) {
+    els.heroOpenBtn.disabled = true;
+    els.heroOpenBtn.dataset.alias = "";
+  }
+  if (els.heroDots) {
+    els.heroDots.innerHTML = "";
+  }
+  const fallback = document.getElementById("hero-fallback");
+  const fallbackText = document.getElementById("hero-fallback-text");
+  if (fallbackText) fallbackText.textContent = message;
+  if (fallback) fallback.hidden = false;
+}
+
+function renderHeroPoster() {
+  if (els.heroPoster) {
+    els.heroPoster.hidden = false;
+  }
+  if (els.heroOpenBtn) {
+    els.heroOpenBtn.disabled = false;
+  }
+  const fallback = document.getElementById("hero-fallback");
+  if (fallback) {
+    fallback.hidden = true;
+  }
+}
+
+function getHeroCandidates() {
+  return uniqueReleases([
+    ...(state.latest || []),
+    ...(state.recommended || []),
+    ...(state.popular || []),
+    ...(state.catalogItems || []),
+    ...(state.ongoingItems || []),
+    ...(state.topItems || [])
+  ].filter(Boolean));
 }
 
 function setupInfiniteScroll() {
@@ -1197,13 +1323,18 @@ function startHeroCarousel() {
 }
 
 function renderHero(release) {
-  if (!release) return;
+  if (!release) {
+    renderHeroFallback();
+    return;
+  }
+
+  renderHeroPoster();
 
   const meta = [
-    `${release.type} • ${release.year}`,
+    `${release.type} вЂў ${release.year}`,
     release.season,
-    `${release.episodesTotal || "?"} эп.`,
-    release.publishDay ? `Выходит: ${release.publishDay}` : "",
+    `${release.episodesTotal || "?"} СЌРї.`,
+    release.publishDay ? `Р’С‹С…РѕРґРёС‚: ${release.publishDay}` : "",
     release.age
   ].filter(Boolean);
 
@@ -1223,10 +1354,10 @@ function applyAdminHero(releases) {
 }
 
 function updateStats() {
-  els.latestCount.textContent = formatNumber(state.latest.length);
-  els.catalogCount.textContent = formatNumber(state.catalogTotal);
-  els.ongoingCount.textContent = formatNumber(state.ongoingTotal);
-  els.topCount.textContent = formatNumber(state.popular.length || state.topItems.length);
+  els.latestCount.textContent = formatNumber(state.latest.length || state.recommended.length || state.popular.length);
+  els.catalogCount.textContent = formatNumber(state.catalogTotal || state.catalogItems.length || getHeroCandidates().length);
+  els.ongoingCount.textContent = formatNumber(state.ongoingTotal || state.ongoingItems.length);
+  els.topCount.textContent = formatNumber(state.topTotal || state.popular.length || state.topItems.length);
 }
 
 function syncHomeChrome(view) {
@@ -1344,38 +1475,46 @@ async function loadHome(force = false) {
   renderSkeletonGrid(els.recommendedGrid, 6);
   renderSkeletonGrid(els.popularGrid, 6);
 
-  const [latestPayload, recommendedPayload, popularPayload] = await Promise.all([
-    fetchJson("/anime/releases/latest", { limit: 12 }, { ttl: 60000 }),
-    fetchJson("/anime/releases/recommended", { limit: 12 }, { ttl: 60000 }),
-    fetchJson("/anime/catalog/releases", { page: 1, limit: 12, "f[sorting]": "RATING_DESC" }, { ttl: 120000 })
-  ]);
+  try {
+    const [latestPayload, recommendedPayload, popularPayload] = await Promise.all([
+      fetchJson("/anime/releases/latest", { limit: 12 }, { ttl: 60000 }),
+      fetchJson("/anime/releases/recommended", { limit: 12 }, { ttl: 60000 }),
+      fetchJson("/anime/catalog/releases", { page: 1, limit: 12, "f[sorting]": "RATING_DESC" }, { ttl: 120000 })
+    ]);
 
-  state.latest = buildReleases(latestPayload);
-  state.recommended = buildReleases(recommendedPayload);
-  state.popular = buildReleases(popularPayload);
+    state.latest = buildReleases(latestPayload);
+    state.recommended = buildReleases(recommendedPayload);
+    state.popular = buildReleases(popularPayload);
 
-  registerGenres(state.latest);
-  registerGenres(state.recommended);
-  registerGenres(state.popular);
+    registerGenres(state.latest);
+    registerGenres(state.recommended);
+    registerGenres(state.popular);
 
-  const featuredPool = uniqueReleases([...state.latest, ...state.recommended, ...state.popular]);
-  state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
-  state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
-  state.heroCarouselIndex = Math.max(
-    0,
-    state.heroPool.findIndex((item) => item.alias === state.featured?.alias)
-  );
+    const featuredPool = getHeroCandidates();
+    state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
+    state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
+    state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
+    state.catalogTotal = extractPagination(popularPayload).total || state.catalogTotal;
+    state.homeLoaded = true;
 
-  state.catalogTotal = extractPagination(popularPayload).total || state.catalogTotal;
-  state.homeLoaded = true;
-
-  renderHero(state.featured);
-  updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
-  updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
-  updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
-  renderContinueWatchingSections();
-  updateStats();
-  startHeroCarousel();
+    renderHero(state.featured);
+    updateGrid(els.latestGrid, state.latest, "РЎРІРµР¶РёРµ СЂРµР»РёР·С‹ РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅС‹.");
+    updateGrid(els.recommendedGrid, state.recommended, "РџРѕРґР±РѕСЂРєР° РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅР°.");
+    updateGrid(els.popularGrid, state.popular, "РџРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹ РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅС‹.");
+    renderContinueWatchingSections();
+    updateStats();
+    startHeroCarousel();
+  } catch (error) {
+    console.error("loadHome failed", error);
+    state.homeLoaded = false;
+    renderHeroFallback("РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РіР»Р°РІРЅСѓСЋ РІРёС‚СЂРёРЅСѓ.");
+    replaceWithErrorState(els.latestGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїРѕСЃР»РµРґРЅРёРµ СЂРµР»РёР·С‹.", () => loadHome(true).catch(console.error));
+    replaceWithErrorState(els.recommendedGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЂРµРєРѕРјРµРЅРґР°С†РёРё.", () => loadHome(true).catch(console.error));
+    replaceWithErrorState(els.popularGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹.", () => loadHome(true).catch(console.error));
+    renderContinueWatchingSections();
+    updateStats();
+    throw error;
+  }
 }
 
 function buildCatalogParams(page, extra = {}) {
@@ -1400,43 +1539,50 @@ async function loadCatalog(options = {}) {
     state.catalogItems = [];
     state.catalogPage = 0;
     state.catalogHasMore = false;
-    els.catalogSummary.textContent = "Загружаем каталог…";
+    els.catalogSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј РєР°С‚Р°Р»РѕРівЂ¦";
     renderSkeletonGrid(els.catalogGrid, 8);
   }
 
-  els.catalogMoreBtn.disabled = true;
-  const payload = await fetchJson("/anime/catalog/releases", buildCatalogParams(nextPage), { ttl: 120000 });
-  const releases = buildReleases(payload);
-  const pagination = extractPagination(payload);
+  try {
+    els.catalogMoreBtn.disabled = true;
+    const payload = await fetchJson("/anime/catalog/releases", buildCatalogParams(nextPage), { ttl: 120000 });
+    const releases = buildReleases(payload);
+    const pagination = extractPagination(payload);
 
-  registerGenres(releases);
-  state.catalogItems = reset ? releases : state.catalogItems.concat(releases);
-  state.catalogPage = pagination.current_page || nextPage;
-  state.catalogTotal = pagination.total || state.catalogItems.length;
-  state.catalogHasMore = state.catalogPage < (pagination.total_pages || 1);
-  state.catalogLoaded = true;
+    registerGenres(releases);
+    state.catalogItems = reset ? releases : state.catalogItems.concat(releases);
+    state.catalogPage = pagination.current_page || nextPage;
+    state.catalogTotal = pagination.total || state.catalogItems.length;
+    state.catalogHasMore = state.catalogPage < (pagination.total_pages || 1);
+    state.catalogLoaded = true;
 
-  const hasFilters = Boolean(state.catalogGenre || state.catalogGenres.length);
-  if (hasFilters) {
-    refreshCatalogView(pagination);
-  } else {
-    els.catalogSummary.textContent = `${formatNumber(state.catalogTotal)} тайтлов. Страница ${state.catalogPage} из ${
-      pagination.total_pages || 1
-    }.`;
-    if (reset) {
-      updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
+    const hasFilters = Boolean(state.catalogGenre || state.catalogGenres.length);
+    if (hasFilters) {
+      refreshCatalogView(pagination);
     } else {
-      updateGrid(els.catalogGrid, releases, "Каталог пуст.", {
-        append: true,
-        offset: state.catalogItems.length - releases.length
-      });
+      els.catalogSummary.textContent = `${formatNumber(state.catalogTotal)} С‚Р°Р№С‚Р»РѕРІ. РЎС‚СЂР°РЅРёС†Р° ${state.catalogPage} РёР· ${pagination.total_pages || 1}.`;
+      if (reset) {
+        updateGrid(els.catalogGrid, state.catalogItems, "РљР°С‚Р°Р»РѕРі РїСѓСЃС‚.");
+      } else {
+        updateGrid(els.catalogGrid, releases, "РљР°С‚Р°Р»РѕРі РїСѓСЃС‚.", {
+          append: true,
+          offset: state.catalogItems.length - releases.length
+        });
+      }
     }
-  }
 
-  els.catalogMoreBtn.hidden = !state.catalogHasMore;
-  els.catalogMoreBtn.disabled = !state.catalogHasMore;
-  updateStats();
-  setupInfiniteScroll();
+    els.catalogMoreBtn.hidden = !state.catalogHasMore;
+    els.catalogMoreBtn.disabled = !state.catalogHasMore;
+    updateStats();
+    setupInfiniteScroll();
+  } catch (error) {
+    console.error("loadCatalog failed", error);
+    els.catalogMoreBtn.hidden = true;
+    els.catalogMoreBtn.disabled = false;
+    els.catalogSummary.textContent = "РљР°С‚Р°Р»РѕРі РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.";
+    replaceWithErrorState(els.catalogGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РєР°С‚Р°Р»РѕРі.", () => loadCatalog({ reset: true }).catch(console.error));
+    throw error;
+  }
 }
 
 async function loadOngoing(options = {}) {
@@ -1448,44 +1594,50 @@ async function loadOngoing(options = {}) {
     state.ongoingItems = [];
     state.ongoingPage = 0;
     state.ongoingHasMore = false;
-    els.ongoingSummary.textContent = "Загружаем онгоинги…";
+    els.ongoingSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј РѕРЅРіРѕРёРЅРіРёвЂ¦";
     renderSkeletonGrid(els.ongoingGrid, 8);
   }
 
-  els.ongoingMoreBtn.disabled = true;
-  const payload = await fetchJson(
-    "/anime/catalog/releases",
-    buildCatalogParams(nextPage, { "f[publish_statuses]": "IS_ONGOING" }),
-    { ttl: 120000 }
-  );
-  const releases = buildReleases(payload);
-  const pagination = extractPagination(payload);
+  try {
+    els.ongoingMoreBtn.disabled = true;
+    const payload = await fetchJson(
+      "/anime/catalog/releases",
+      buildCatalogParams(nextPage, { "f[publish_statuses]": "IS_ONGOING" }),
+      { ttl: 120000 }
+    );
+    const releases = buildReleases(payload);
+    const pagination = extractPagination(payload);
 
-  registerGenres(releases);
-  state.ongoingItems = reset ? releases : state.ongoingItems.concat(releases);
-  state.ongoingPage = pagination.current_page || nextPage;
-  state.ongoingTotal = pagination.total || state.ongoingItems.length;
-  state.ongoingHasMore = state.ongoingPage < (pagination.total_pages || 1);
-  state.ongoingLoaded = true;
+    registerGenres(releases);
+    state.ongoingItems = reset ? releases : state.ongoingItems.concat(releases);
+    state.ongoingPage = pagination.current_page || nextPage;
+    state.ongoingTotal = pagination.total || state.ongoingItems.length;
+    state.ongoingHasMore = state.ongoingPage < (pagination.total_pages || 1);
+    state.ongoingLoaded = true;
 
-  els.ongoingSummary.textContent = `${formatNumber(state.ongoingTotal)} активных релизов. Страница ${state.ongoingPage} из ${
-    pagination.total_pages || 1
-  }.`;
-  if (reset) {
-    updateGrid(els.ongoingGrid, state.ongoingItems, "Онгоинги не найдены.");
-  } else {
-    updateGrid(els.ongoingGrid, releases, "Онгоинги не найдены.", {
-      append: true,
-      offset: state.ongoingItems.length - releases.length
-    });
+    els.ongoingSummary.textContent = `${formatNumber(state.ongoingTotal)} Р°РєС‚РёРІРЅС‹С… СЂРµР»РёР·РѕРІ. РЎС‚СЂР°РЅРёС†Р° ${state.ongoingPage} РёР· ${pagination.total_pages || 1}.`;
+    if (reset) {
+      updateGrid(els.ongoingGrid, state.ongoingItems, "РћРЅРіРѕРёРЅРіРё РЅРµ РЅР°Р№РґРµРЅС‹.");
+    } else {
+      updateGrid(els.ongoingGrid, releases, "РћРЅРіРѕРёРЅРіРё РЅРµ РЅР°Р№РґРµРЅС‹.", {
+        append: true,
+        offset: state.ongoingItems.length - releases.length
+      });
+    }
+
+    els.ongoingMoreBtn.hidden = !state.ongoingHasMore;
+    els.ongoingMoreBtn.disabled = !state.ongoingHasMore;
+    updateStats();
+    setupInfiniteScroll();
+  } catch (error) {
+    console.error("loadOngoing failed", error);
+    els.ongoingMoreBtn.hidden = true;
+    els.ongoingMoreBtn.disabled = false;
+    els.ongoingSummary.textContent = "Р Р°Р·РґРµР» РѕРЅРіРѕРёРЅРіРѕРІ РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.";
+    replaceWithErrorState(els.ongoingGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РѕРЅРіРѕРёРЅРіРё.", () => loadOngoing({ reset: true }).catch(console.error));
+    throw error;
   }
-
-  els.ongoingMoreBtn.hidden = !state.ongoingHasMore;
-  els.ongoingMoreBtn.disabled = !state.ongoingHasMore;
-  updateStats();
-  setupInfiniteScroll();
 }
-
 async function loadTop(options = {}) {
   await loadReferences();
   const reset = Boolean(options.reset);
@@ -1495,50 +1647,64 @@ async function loadTop(options = {}) {
     state.topItems = [];
     state.topPage = 0;
     state.topHasMore = false;
-    els.topSummary.textContent = "Загружаем топ каталога…";
+    els.topSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј С‚РѕРї РєР°С‚Р°Р»РѕРіР°вЂ¦";
     renderSkeletonGrid(els.topGrid, 8);
   }
 
-  els.topMoreBtn.disabled = true;
-  const payload = await fetchJson(
-    "/anime/catalog/releases",
-    { page: nextPage, limit: GRID_PAGE_SIZE, "f[sorting]": "RATING_DESC" },
-    { ttl: 120000 }
-  );
-  const releases = buildReleases(payload);
-  const pagination = extractPagination(payload);
+  try {
+    els.topMoreBtn.disabled = true;
+    const payload = await fetchJson(
+      "/anime/catalog/releases",
+      { page: nextPage, limit: GRID_PAGE_SIZE, "f[sorting]": "RATING_DESC" },
+      { ttl: 120000 }
+    );
+    const releases = buildReleases(payload);
+    const pagination = extractPagination(payload);
 
-  registerGenres(releases);
-  state.topItems = reset ? releases : state.topItems.concat(releases);
-  state.topPage = pagination.current_page || nextPage;
-  state.topTotal = pagination.total || state.topItems.length;
-  state.topHasMore = state.topPage < (pagination.total_pages || 1);
-  state.topLoaded = true;
+    registerGenres(releases);
+    state.topItems = reset ? releases : state.topItems.concat(releases);
+    state.topPage = pagination.current_page || nextPage;
+    state.topTotal = pagination.total || state.topItems.length;
+    state.topHasMore = state.topPage < (pagination.total_pages || 1);
+    state.topLoaded = true;
 
-  els.topSummary.textContent = `${formatNumber(state.topTotal)} релизов в рейтинге. Страница ${state.topPage} из ${
-    pagination.total_pages || 1
-  }.`;
-  if (reset) {
-    updateGrid(els.topGrid, state.topItems, "Топ пока не заполнен.");
-  } else {
-    updateGrid(els.topGrid, releases, "Топ пока не заполнен.", {
-      append: true,
-      offset: state.topItems.length - releases.length
-    });
+    els.topSummary.textContent = `${formatNumber(state.topTotal)} СЂРµР»РёР·РѕРІ РІ СЂРµР№С‚РёРЅРіРµ. РЎС‚СЂР°РЅРёС†Р° ${state.topPage} РёР· ${pagination.total_pages || 1}.`;
+    if (reset) {
+      updateGrid(els.topGrid, state.topItems, "РўРѕРї РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅ.");
+    } else {
+      updateGrid(els.topGrid, releases, "РўРѕРї РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅ.", {
+        append: true,
+        offset: state.topItems.length - releases.length
+      });
+    }
+
+    els.topMoreBtn.hidden = !state.topHasMore;
+    els.topMoreBtn.disabled = !state.topHasMore;
+    updateStats();
+    setupInfiniteScroll();
+  } catch (error) {
+    console.error("loadTop failed", error);
+    els.topMoreBtn.hidden = true;
+    els.topMoreBtn.disabled = false;
+    els.topSummary.textContent = "РўРѕРї РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.";
+    replaceWithErrorState(els.topGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ С‚РѕРї.", () => loadTop({ reset: true }).catch(console.error));
+    throw error;
   }
-
-  els.topMoreBtn.hidden = !state.topHasMore;
-  els.topMoreBtn.disabled = !state.topHasMore;
-  updateStats();
-  setupInfiniteScroll();
 }
 
 async function loadSchedule() {
-  state.scheduleLoaded = true;
-  els.scheduleGrid.replaceChildren(createEmptyState("Загружаем расписание…"));
-  const payload = await fetchJson("/anime/schedule/week", null, { ttl: 60000 });
-  state.scheduleItems = buildReleases(payload);
-  renderSchedule();
+  try {
+    state.scheduleLoaded = true;
+    els.scheduleGrid.replaceChildren(createEmptyState("Р—Р°РіСЂСѓР¶Р°РµРј СЂР°СЃРїРёСЃР°РЅРёРµвЂ¦"));
+    const payload = await fetchJson("/anime/schedule/week", null, { ttl: 60000 });
+    state.scheduleItems = buildReleases(payload);
+    renderSchedule();
+  } catch (error) {
+    console.error("loadSchedule failed", error);
+    state.scheduleLoaded = false;
+    replaceWithErrorState(els.scheduleGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЂР°СЃРїРёСЃР°РЅРёРµ.", () => loadSchedule().catch(console.error));
+    throw error;
+  }
 }
 
 function renderSchedule() {
@@ -2344,9 +2510,13 @@ async function refreshAll() {
     state.searchAbort = null;
   }
 
-  await loadReferences(true);
-  await loadHome(true);
-  await ensureViewLoaded(state.currentView);
+  try {
+    await loadReferences(true);
+    await loadHome(true);
+    await ensureViewLoaded(state.currentView);
+  } catch (error) {
+    console.error("refreshAll failed", error);
+  }
 }
 
 async function clearSiteRuntimeCaches() {
@@ -2364,7 +2534,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=27", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=28", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
