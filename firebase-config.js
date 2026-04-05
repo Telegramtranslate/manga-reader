@@ -25,14 +25,26 @@
     return !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(hostname);
   }
 
+  function isCustomAuthDomainEnabled() {
+    return (
+      window.ANIMECLOUD_USE_CUSTOM_AUTH_DOMAIN === true ||
+      document.querySelector('meta[name="firebase-custom-auth-domain"]')?.content === "true"
+    );
+  }
+
   function normalizeFirebaseConfig(config) {
     const next = { ...DEFAULT_FIREBASE_CONFIG, ...(config || {}) };
     const configuredAuthDomain = String(next.authDomain || "").trim().toLowerCase();
     const currentHostname = String(window.location?.hostname || "").trim().toLowerCase();
 
-    // On production we proxy Firebase auth helpers through the current host,
-    // so Google sign-in no longer exposes the raw firebaseapp.com helper domain.
-    if (currentHostname && shouldUseSameOriginAuthDomain() && /(?:firebaseapp\.com|web\.app)$/i.test(configuredAuthDomain)) {
+    // Custom auth domain mode is opt-in. It requires Google/Firebase OAuth
+    // console configuration for https://<your-domain>/__/auth/handler.
+    if (
+      isCustomAuthDomainEnabled() &&
+      currentHostname &&
+      shouldUseSameOriginAuthDomain() &&
+      /(?:firebaseapp\.com|web\.app)$/i.test(configuredAuthDomain)
+    ) {
       next.authDomain = currentHostname;
     }
 
@@ -62,6 +74,7 @@
   window.ANIMECLOUD_FIREBASE_CONFIG = FIREBASE_CONFIG;
   window.ANIMECLOUD_FIREBASE_HELPER_HOST = DEFAULT_FIREBASE_CONFIG.authDomain;
   window.ANIMECLOUD_FIREBASE_HELPER_ORIGIN = `https://${DEFAULT_FIREBASE_CONFIG.authDomain}`;
+  window.ANIMECLOUD_USE_CUSTOM_AUTH_DOMAIN = isCustomAuthDomainEnabled();
   window.ANIMECLOUD_FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   window.ANIMECLOUD_APP_CHECK_KEY = window.ANIMECLOUD_APP_CHECK_KEY || APP_CHECK_SITE_KEY;
   window.ANIMECLOUD_ENABLE_APP_CHECK = window.ANIMECLOUD_ENABLE_APP_CHECK === true || APP_CHECK_ENABLED;
