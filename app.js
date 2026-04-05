@@ -110,7 +110,8 @@ const state = {
   playerSelectionToken: "",
   hlsRecoveryTried: false,
   playerStartupTimer: null,
-  installPromptEvent: null
+  installPromptEvent: null,
+  progressUiFrame: 0
 };
 
 const els = {
@@ -725,6 +726,48 @@ function scheduleChunkAppend(target, nodes) {
   queueNextBatch();
 }
 
+function scheduleChunkRender(target, items, createNode, options = {}) {
+  const token = `${Date.now()}-${Math.random()}`;
+  target.dataset.renderToken = token;
+  let index = 0;
+  const preferLightBatches =
+    options.preferLightBatches ??
+    (shouldPreferFastStart() || window.matchMedia?.("(max-width: 860px)")?.matches);
+  const batchSize = Math.max(1, options.batchSize || (preferLightBatches ? 3 : RENDER_BATCH_SIZE));
+
+  const queueNextBatch = () => {
+    if (target.dataset.renderToken !== token || index >= items.length) return;
+    if (preferLightBatches && "requestIdleCallback" in window) {
+      requestIdleCallback(() => requestAnimationFrame(appendBatch), { timeout: 180 });
+      return;
+    }
+    requestAnimationFrame(appendBatch);
+  };
+
+  const appendBatch = () => {
+    if (target.dataset.renderToken !== token) return;
+    const fragment = document.createDocumentFragment();
+    const end = Math.min(index + batchSize, items.length);
+    while (index < end) {
+      const node = createNode(items[index], index);
+      if (node) {
+        fragment.appendChild(node);
+      }
+      index += 1;
+    }
+    target.appendChild(fragment);
+    if (index < items.length) {
+      queueNextBatch();
+      return;
+    }
+    if (typeof options.onComplete === "function" && target.dataset.renderToken === token) {
+      options.onComplete();
+    }
+  };
+
+  queueNextBatch();
+}
+
 function createTag(text) {
   const node = document.createElement("span");
   node.className = "tag";
@@ -921,6 +964,26 @@ function renderContinueWatchingSections() {
 
   updateGrid(els.continueGrid, releases, "Продолжение просмотра пока пусто.");
   updateGrid(els.profileProgressGrid, releases, "Продолжение просмотра пока пусто.");
+}
+
+function scheduleProgressUiRefresh() {
+  if (state.progressUiFrame) {
+    cancelAnimationFrame(state.progressUiFrame);
+  }
+
+  state.progressUiFrame = requestAnimationFrame(() => {
+    state.progressUiFrame = 0;
+
+    if (state.currentView === "home" || state.currentView === "profile") {
+      renderContinueWatchingSections();
+    }
+    if (state.currentAnime) {
+      decorateEpisodeProgress(state.currentAnime);
+    }
+    if (state.currentView === "profile") {
+      renderProfile();
+    }
+  });
 }
 
 function decorateEpisodeProgress(release) {
@@ -1931,10 +1994,7 @@ function updateGrid(target, releases, emptyMessage, options = {}) {
     return;
   }
 
-  scheduleChunkAppend(
-    target,
-    releases.map((release, index) => createAnimeCard(release, offset + index))
-  );
+  scheduleChunkRender(target, releases, (release, index) => createAnimeCard(release, offset + index));
 }
 
 function openDrawer() {
@@ -2161,93 +2221,92 @@ function buildSourceList(release) {
   return sources;
 }
 
-function buildSourceNodes(release) {
-  return buildSourceList(release).map((source) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.dataset.sourceId = source.id;
-    button.className = `source-btn${state.currentSource === source.id ? " is-active" : ""}`;
-    button.innerHTML = `<strong>${escapeHtml(source.title)}</strong><small>${escapeHtml(source.note)}</small>`;
-    button.addEventListener("click", () => switchSource(source.id));
-    return button;
-  });
+function createSourceNode(source) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.sourceId = source.id;
+  button.className = `source-btn${state.currentSource === source.id ? " is-active" : ""}`;
+  button.innerHTML = `<strong>${escapeHtml(source.title)}</strong><small>${escapeHtml(source.note)}</small>`;
+  button.addEventListener("click", () => switchSource(source.id));
+  return button;
 }
 
-function buildEpisodeNodes(release) {
-  return (release?.episodes || []).map((episode) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `episode-btn${state.currentEpisode?.id === episode.id ? " is-active" : ""}`;
-    button.dataset.episodeId = episode.id || "";
-    button.dataset.ordinal = String(episode.ordinal || "");
-    button.innerHTML = `<strong>${escapeHtml(`${episode.ordinal} серия`)}</strong><span>${escapeHtml(
-      episode.name || "Без названия"
-    )}</span><small>${escapeHtml(formatEpisodeDuration(episode.duration) || "Длительность не указана")}</small>`;
-    button.addEventListener("click", () => selectEpisode(episode).catch(console.error));
-    return button;
-  });
+function createEpisodeNode(episode) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `episode-btn${state.currentEpisode?.id === episode.id ? " is-active" : ""}`;
+  button.dataset.episodeId = episode.id || "";
+  button.dataset.ordinal = String(episode.ordinal || "");
+  button.innerHTML = `<strong>${escapeHtml(`${episode.ordinal} серия`)}</strong><span>${escapeHtml(
+    episode.name || "Без названия"
+  )}</span><small>${escapeHtml(formatEpisodeDuration(episode.duration) || "Длительность не указана")}</small>`;
+  button.addEventListener("click", () => selectEpisode(episode).catch(console.error));
+  return button;
 }
 
-function buildVoiceNodes(release) {
-  return (release?.voices || []).map((name) => {
-    const pill = document.createElement("div");
-    pill.className = "voice-pill";
-    pill.innerHTML = `<strong>${escapeHtml(name)}</strong><small>озвучка</small>`;
-    return pill;
-  });
+function createVoiceNode(name) {
+  const pill = document.createElement("div");
+  pill.className = "voice-pill";
+  pill.innerHTML = `<strong>${escapeHtml(name)}</strong><small>озвучка</small>`;
+  return pill;
 }
 
-function buildCrewNodes(release) {
-  return (release?.crew || []).map((member) => {
-    const pill = document.createElement("div");
-    pill.className = "crew-pill";
-    pill.innerHTML = `<strong>${escapeHtml(member.name)}</strong><small>${escapeHtml(member.role)}</small>`;
-    return pill;
-  });
+function createCrewNode(member) {
+  const pill = document.createElement("div");
+  pill.className = "crew-pill";
+  pill.innerHTML = `<strong>${escapeHtml(member.name)}</strong><small>${escapeHtml(member.role)}</small>`;
+  return pill;
 }
 
 function renderSourceSwitch(release) {
   if (!els.sourceSwitch) return;
   els.sourceSwitch.innerHTML = "";
-  scheduleChunkAppend(els.sourceSwitch, buildSourceNodes(release));
+  const sources = buildSourceList(release);
+  if (!sources.length) {
+    els.sourceSwitch.appendChild(createEmptyState("Источники пока недоступны."));
+    return;
+  }
+  scheduleChunkRender(els.sourceSwitch, sources, createSourceNode, { batchSize: 2 });
 }
 
 function renderEpisodes(release) {
   if (!els.episodesList) return;
-  const nodes = buildEpisodeNodes(release);
   els.episodesList.innerHTML = "";
-  if (!nodes.length) {
+  const episodes = release?.episodes || [];
+  if (!episodes.length) {
     els.episodesList.appendChild(createEmptyState("У этого релиза пока нет опубликованных серий."));
     return;
   }
-  scheduleChunkAppend(els.episodesList, nodes);
-  requestAnimationFrame(() => {
-    if (state.currentAnime?.alias === release.alias) {
-      decorateEpisodeProgress(release);
+  scheduleChunkRender(els.episodesList, episodes, createEpisodeNode, {
+    batchSize: shouldPreferFastStart() ? 4 : 10,
+    onComplete: () => {
+      if (state.currentAnime?.alias === release.alias) {
+        decorateEpisodeProgress(release);
+      }
     }
   });
 }
 
 function renderVoices(release) {
   if (!els.voiceList) return;
-  const nodes = buildVoiceNodes(release);
   els.voiceList.innerHTML = "";
-  if (!nodes.length) {
+  const voices = release?.voices || [];
+  if (!voices.length) {
     els.voiceList.appendChild(createEmptyState("Команда озвучки не указана."));
     return;
   }
-  scheduleChunkAppend(els.voiceList, nodes);
+  scheduleChunkRender(els.voiceList, voices, createVoiceNode, { batchSize: 6 });
 }
 
 function renderCrew(release) {
   if (!els.crewList) return;
-  const nodes = buildCrewNodes(release);
   els.crewList.innerHTML = "";
-  if (!nodes.length) {
+  const crew = release?.crew || [];
+  if (!crew.length) {
     els.crewList.appendChild(createEmptyState("Команда релиза не указана."));
     return;
   }
-  scheduleChunkAppend(els.crewList, nodes);
+  scheduleChunkRender(els.crewList, crew, createCrewNode, { batchSize: 6 });
 }
 
 function renderDetailLoadingState() {
@@ -2511,8 +2570,12 @@ async function openRelease(alias, options = {}) {
       state.currentQuality = "auto";
       state.currentSource = "anilibria";
       state.playerSelectionToken = "";
-      renderDetails(preview, { deferHeavy: true });
       openDrawer();
+      requestAnimationFrame(() => {
+        if (state.currentAnime?.alias === preview.alias) {
+          renderDetails(preview, { deferHeavy: true });
+        }
+      });
       if (updateHistory) {
         navigateTo(getAnimePath(alias));
       }
@@ -2527,8 +2590,12 @@ async function openRelease(alias, options = {}) {
     state.currentSource = "anilibria";
     state.playerSelectionToken = "";
 
-    renderDetails(release, { deferHeavy: true });
     openDrawer();
+    requestAnimationFrame(() => {
+      if (state.currentAnime?.alias === release.alias) {
+        renderDetails(release, { deferHeavy: true });
+      }
+    });
 
     if (updateHistory) {
       navigateTo(getAnimePath(alias));
@@ -2620,7 +2687,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=39", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=40", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -2834,13 +2901,7 @@ function bindEvents() {
 
   window.addEventListener("animecloud:profile-request", () => setView("profile"));
   window.addEventListener("animecloud:progress-updated", () => {
-    renderContinueWatchingSections();
-    if (state.currentAnime) {
-      decorateEpisodeProgress(state.currentAnime);
-    }
-    if (state.currentView === "profile") {
-      renderProfile();
-    }
+    scheduleProgressUiRefresh();
   });
 
   document.addEventListener("keydown", (event) => {

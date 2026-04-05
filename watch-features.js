@@ -39,7 +39,8 @@ const watchState = {
     autoplayNext: true,
     theme: "dark"
   },
-  lastCommentSubmitAt: 0
+  lastCommentSubmitAt: 0,
+  commentsRenderToken: ""
 };
 
 function isPermissionDeniedError(error) {
@@ -159,11 +160,13 @@ async function saveProgressMap(map, options = {}) {
     });
   }
 
-  window.dispatchEvent(
-    new CustomEvent("animecloud:progress-updated", {
-      detail: { alias: watchState.release?.alias || "" }
-    })
-  );
+  if (options.broadcast !== false) {
+    window.dispatchEvent(
+      new CustomEvent("animecloud:progress-updated", {
+        detail: { alias: watchState.release?.alias || "" }
+      })
+    );
+  }
 
   return cloudWritePromise || true;
 }
@@ -317,6 +320,98 @@ function renderDubBox() {
     "Дополнительные озвучки доступны во внешнем плеере, если конкретный источник действительно их отдаёт.";
 }
 
+function currentDisplayName() {
+  const user = getAuthUserSafe();
+  return user?.displayName || user?.email?.split("@")[0] || "\u0413\u043e\u0441\u0442\u044c";
+}
+
+function renderCommentUser() {
+  if (!watchEls.commentUser) return;
+  const user = getAuthUserSafe();
+  watchEls.commentUser.textContent = user?.localId
+    ? `\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0438\u0440\u0443\u0435\u0442\u0435 \u043a\u0430\u043a ${currentDisplayName()}`
+    : "\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0438\u0440\u0443\u0435\u0442\u0435 \u043a\u0430\u043a \u0433\u043e\u0441\u0442\u044c";
+}
+
+function renderComments() {
+  renderCommentUser();
+
+  if (!watchState.release?.alias) {
+    watchEls.commentsList.innerHTML = "";
+    watchEls.commentsSummary.textContent =
+      "\u041e\u0442\u043a\u0440\u043e\u0439\u0442\u0435 \u0442\u0430\u0439\u0442\u043b, \u0447\u0442\u043e\u0431\u044b \u0443\u0432\u0438\u0434\u0435\u0442\u044c \u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0438.";
+    return;
+  }
+
+  const comments = getCommentsForCurrentRelease();
+  watchEls.commentsSummary.textContent = comments.length
+    ? `\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0435\u0432: ${comments.length}. \u041d\u043e\u0432\u044b\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f \u043f\u0440\u0438\u0445\u043e\u0434\u044f\u0442 \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c \u0432\u0440\u0435\u043c\u0435\u043d\u0438.`
+    : "\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0435\u0432 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442. \u0411\u0443\u0434\u044c\u0442\u0435 \u043f\u0435\u0440\u0432\u044b\u043c.";
+
+  watchEls.commentsList.innerHTML = "";
+  if (!comments.length) return;
+
+  const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  watchState.commentsRenderToken = token;
+  let index = 0;
+  const batchSize = window.matchMedia?.("(max-width: 860px)")?.matches ? 4 : 10;
+
+  const queueNextBatch = () => {
+    if (watchState.commentsRenderToken !== token || index >= comments.length) return;
+    requestAnimationFrame(appendBatch);
+  };
+
+  const appendBatch = () => {
+    if (watchState.commentsRenderToken !== token) return;
+    const fragment = document.createDocumentFragment();
+    const end = Math.min(index + batchSize, comments.length);
+    while (index < end) {
+      const comment = comments[index];
+      const article = document.createElement("article");
+      article.className = "comment-item";
+
+      const author = document.createElement("strong");
+      author.textContent = escapeText(comment.author) || "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c";
+      article.appendChild(author);
+
+      const meta = document.createElement("small");
+      const time = Number(comment.createdAt || 0);
+      meta.textContent = time ? new Date(time).toLocaleString("ru-RU") : "\u0422\u043e\u043b\u044c\u043a\u043e \u0447\u0442\u043e";
+      article.appendChild(meta);
+
+      const body = document.createElement("p");
+      body.textContent = escapeText(comment.body);
+      article.appendChild(body);
+
+      fragment.appendChild(article);
+      index += 1;
+    }
+    watchEls.commentsList.appendChild(fragment);
+    if (index < comments.length) {
+      queueNextBatch();
+    }
+  };
+
+  queueNextBatch();
+}
+
+function renderResumeBox() {
+  if (!watchEls.resumeBox) return;
+  const progress = getCurrentProgress();
+  watchState.pendingResume = progress;
+
+  if (!progress) {
+    watchEls.resumeBox.hidden = true;
+    watchEls.resumeText.textContent = "\u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441 \u043f\u043e\u043a\u0430 \u043d\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d.";
+    return;
+  }
+
+  watchEls.resumeBox.hidden = false;
+  watchEls.resumeText.textContent = `\u041e\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u043b\u0438\u0441\u044c \u043d\u0430 ${progress.episodeLabel || "\u0441\u0435\u0440\u0438\u0438"} \u2022 ${formatClock(
+    progress.time
+  )}${progress.duration ? ` \u0438\u0437 ${formatClock(progress.duration)}` : ""}`;
+}
+
 function getNextEpisode() {
   if (!watchState.release?.episodes?.length || !watchState.episode?.id) return null;
   const currentIndex = watchState.release.episodes.findIndex((episode) => episode.id === watchState.episode.id);
@@ -387,9 +482,11 @@ async function saveProgress(force = false) {
     updatedAt: now
   };
 
-  await saveProgressMap(map);
-  renderResumeBox();
-  renderNextEpisodeButton();
+  await saveProgressMap(map, { broadcast: force });
+  if (force) {
+    renderResumeBox();
+    renderNextEpisodeButton();
+  }
   return true;
 }
 

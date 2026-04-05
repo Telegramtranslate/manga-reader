@@ -1130,6 +1130,9 @@ button {
   height: 100%;
   overflow: auto;
   padding: 28px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
+  contain: layout paint style;
 }
 
 .detail-hero {
@@ -1316,6 +1319,9 @@ button {
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(16, 23, 38, 0.92);
+  content-visibility: auto;
+  contain: layout paint style;
+  contain-intrinsic-size: 120px;
 }
 
 .comment-meta {
@@ -1359,6 +1365,9 @@ button {
   border-radius: 16px;
   background: rgba(15, 23, 39, 0.9);
   color: var(--text);
+  content-visibility: auto;
+  contain: layout paint style;
+  contain-intrinsic-size: 86px;
 }
 
 .episode-btn strong,
@@ -1427,6 +1436,9 @@ button {
 .voice-pill,
 .crew-pill {
   min-height: 48px;
+  content-visibility: auto;
+  contain: layout paint style;
+  contain-intrinsic-size: 60px;
 }
 
 .empty-state {
@@ -2105,9 +2117,10 @@ body {
 .auth-modal__panel {
   border-color: var(--line);
   background: linear-gradient(180deg, rgba(22, 22, 22, 0.98), rgba(14, 14, 14, 0.98));
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  contain: layout paint style;
 }
 
 .topbar {
@@ -2503,7 +2516,8 @@ body {
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: linear-gradient(180deg, rgba(28, 28, 28, 0.98), rgba(17, 17, 17, 0.98));
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  contain: layout paint style;
 }
 
 .anime-card__poster-wrap {
