@@ -109,6 +109,7 @@ const state = {
   releaseOpenPromise: null,
   playerSelectionToken: "",
   hlsRecoveryTried: false,
+  playerStartupTimer: null,
   installPromptEvent: null
 };
 
@@ -219,6 +220,11 @@ const els = {
 
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function isPermissionDeniedError(error) {
+  const code = String(error?.code || error?.message || "").toLowerCase();
+  return code.includes("permission-denied") || code.includes("insufficient permissions");
+}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -1213,7 +1219,11 @@ async function hydrateCloudSessionData(session = state.authUser) {
     }
     window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { hydrated: true } }));
   } catch (error) {
-    console.error(error);
+    if (!isPermissionDeniedError(error)) {
+      console.error(error);
+    }
+    renderProfile();
+    renderFavoriteButton();
   }
 }
 
@@ -1948,6 +1958,10 @@ function closeDrawer(options = {}) {
 }
 
 function destroyPlayer() {
+  if (state.playerStartupTimer) {
+    clearTimeout(state.playerStartupTimer);
+    state.playerStartupTimer = null;
+  }
   if (state.hls) {
     state.hls.destroy();
     state.hls = null;
@@ -2001,39 +2015,49 @@ function proxiedMediaUrl(url) {
   return `${MEDIA_PROXY_BASE}?url=${encodeURIComponent(normalized)}`;
 }
 
-async function loadManifestBlob(manifestUrl) {
-  const cached = manifestCache.get(manifestUrl);
-  let text = cached && Date.now() - cached.time < DETAIL_TTL ? cached.text : "";
+function getPlayableManifestUrl(manifestUrl) {
+  const normalized = manifestUrl.startsWith("//") ? `https:${manifestUrl}` : manifestUrl;
+  const proxiedUrl = `${window.location.origin}${proxiedMediaUrl(normalized)}`;
+  manifestCache.set(normalized, { time: Date.now(), text: proxiedUrl });
+  return proxiedUrl;
+}
 
-  if (!text) {
-    const proxiedUrl = proxiedMediaUrl(manifestUrl);
-    const response = await fetch(proxiedUrl, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error(`Manifest request failed: ${response.status}`);
-    }
-    text = await response.text();
-    manifestCache.set(manifestUrl, { time: Date.now(), text });
+function clearPlayerStartupTimer() {
+  if (!state.playerStartupTimer) return;
+  clearTimeout(state.playerStartupTimer);
+  state.playerStartupTimer = null;
+}
+
+function syncPlayerReadyState() {
+  clearPlayerStartupTimer();
+  if (state.currentSource === "anilibria" && !els.player.hidden) {
+    els.playerNote.textContent = "Поток подключён.";
   }
+}
 
-  const blob = new Blob(
-    [
-      text
-        .split("\n")
-        .map((line) => {
-          if (!line || line.startsWith("#")) return line;
-          try {
-            const absolute = new URL(line, manifestUrl).toString();
-            return `${window.location.origin}${proxiedMediaUrl(absolute)}`;
-          } catch {
-            return line;
-          }
-        })
-        .join("\n")
-    ],
-    { type: "application/vnd.apple.mpegurl" }
-  );
+function armPlayerStartupTimer(selectionToken, episode, qualityKey) {
+  clearPlayerStartupTimer();
+  const timeoutMs = shouldPreferFastStart() ? 10000 : 15000;
 
-  return URL.createObjectURL(blob);
+  state.playerStartupTimer = setTimeout(() => {
+    if (state.playerSelectionToken !== selectionToken) return;
+    if (state.currentSource !== "anilibria") return;
+    if (state.currentEpisode?.id !== episode?.id) return;
+    if (els.player.readyState >= 2 || Number(els.player.currentTime || 0) > 0) {
+      clearPlayerStartupTimer();
+      return;
+    }
+
+    if (qualityKey !== "480" && episode?.hls_480 && state.currentQuality !== "480") {
+      els.playerNote.textContent = "Поток долго стартует. Переключаемся на 480p…";
+      state.currentQuality = "480";
+      selectEpisode(episode, { preserveSource: true, forceReload: true }).catch(console.error);
+      return;
+    }
+
+    destroyPlayer();
+    els.playerNote.textContent = "Поток не загрузился. Попробуйте 480p, другую серию или обновите страницу.";
+  }, timeoutMs);
 }
 
 async function ensureHlsLibrary() {
@@ -2069,8 +2093,7 @@ async function attachPlayer(manifestUrl) {
   stopExternalPlayer();
   showVideoSurface();
 
-  const blobUrl = await loadManifestBlob(manifestUrl);
-  state.manifestBlobUrl = blobUrl;
+  const playableManifestUrl = getPlayableManifestUrl(manifestUrl);
 
   let HlsLib = null;
   try {
@@ -2088,7 +2111,14 @@ async function attachPlayer(manifestUrl) {
       maxMaxBufferLength: 18,
       manifestLoadingTimeOut: 9000,
       fragLoadingTimeOut: 12000,
+      manifestLoadingMaxRetry: 1,
+      fragLoadingMaxRetry: 1,
       startLevel: -1
+    });
+    state.hls.on(HlsLib.Events.MANIFEST_PARSED, () => {
+      if (!els.player.hidden) {
+        els.playerNote.textContent = "Буферизуем поток…";
+      }
     });
     state.hls.on(HlsLib.Events.ERROR, (_, data) => {
       if (!data?.fatal) return;
@@ -2097,19 +2127,19 @@ async function attachPlayer(manifestUrl) {
         state.hlsRecoveryTried = true;
         els.playerNote.textContent = "Поток не отвечает. Перезагружаем соединение…";
         try {
-          state.hls.startLoad();
+          state.hls.startLoad(-1);
           return;
         } catch {}
       }
       destroyPlayer();
       els.playerNote.textContent = "Не удалось загрузить поток. Попробуйте другую серию или обновите страницу.";
     });
-    state.hls.loadSource(blobUrl);
+    state.hls.loadSource(playableManifestUrl);
     state.hls.attachMedia(els.player);
     return;
   }
 
-  els.player.src = blobUrl;
+  els.player.src = playableManifestUrl;
 }
 
 function buildSourceList(release) {
@@ -2406,11 +2436,13 @@ async function selectEpisode(episode, options = {}) {
   try {
     await attachPlayer(selected.url);
     if (state.playerSelectionToken === selectionToken && state.currentEpisode?.id === episode.id) {
+      armPlayerStartupTimer(selectionToken, episode, selected.key);
       els.player.play().catch(() => {});
     }
   } catch (error) {
     console.error(error);
     if (state.playerSelectionToken === selectionToken) {
+      clearPlayerStartupTimer();
       els.playerNote.textContent = "Не удалось загрузить поток. Попробуйте другое качество или другую серию.";
     }
   }
@@ -2588,7 +2620,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=34", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=36", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -2790,7 +2822,7 @@ function bindEvents() {
     loadFavorites();
     renderProfile();
     renderFavoriteButton();
-    if (state.authUser?.localId) {
+    if (state.authUser?.localId && event.detail?.ready) {
       hydrateCloudSessionData(state.authUser).catch(console.error);
     } else {
       renderContinueWatchingSections();
@@ -2826,6 +2858,22 @@ function bindEvents() {
   window.addEventListener("appinstalled", () => {
     state.installPromptEvent = null;
     syncInstallButton();
+  });
+
+  els.player?.addEventListener("loadedmetadata", syncPlayerReadyState);
+  els.player?.addEventListener("loadeddata", syncPlayerReadyState);
+  els.player?.addEventListener("canplay", syncPlayerReadyState);
+  els.player?.addEventListener("playing", syncPlayerReadyState);
+  els.player?.addEventListener("waiting", () => {
+    if (state.currentSource === "anilibria" && !els.player.hidden && els.player.readyState < 2) {
+      els.playerNote.textContent = "Буферизуем поток…";
+    }
+  });
+  els.player?.addEventListener("error", () => {
+    clearPlayerStartupTimer();
+    if (state.currentSource === "anilibria") {
+      els.playerNote.textContent = "Не удалось воспроизвести видео. Попробуйте 480p или другую серию.";
+    }
   });
 }
 

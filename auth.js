@@ -39,7 +39,8 @@
   const authState = {
     tab: "login",
     session: null,
-    googleLoading: false
+    googleLoading: false,
+    ready: false
   };
 
   const firebaseState = {
@@ -51,7 +52,7 @@
   };
 
   function dispatchAuthState(user) {
-    window.dispatchEvent(new CustomEvent("animecloud:auth", { detail: { user } }));
+    window.dispatchEvent(new CustomEvent("animecloud:auth", { detail: { user, ready: authState.ready } }));
   }
 
   function decorateSession(session) {
@@ -246,6 +247,7 @@
         auth,
         async (user) => {
           try {
+            authState.ready = true;
             await applyFirebaseUserSession(user);
           } catch (error) {
             console.error(error);
@@ -254,6 +256,7 @@
         },
         (error) => {
           console.error(error);
+          authState.ready = true;
           writeSession(null);
         }
       );

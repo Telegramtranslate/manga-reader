@@ -42,6 +42,11 @@ const watchState = {
   lastCommentSubmitAt: 0
 };
 
+function isPermissionDeniedError(error) {
+  const code = String(error?.code || error?.message || "").toLowerCase();
+  return code.includes("permission-denied") || code.includes("insufficient permissions");
+}
+
 function shouldPersistWatchDataLocally() {
   return !getAuthUserSafe()?.localId;
 }
@@ -447,10 +452,13 @@ async function hydrateWatchPersistence() {
       watchState.commentsMap = {};
       watchState.settings = normalizeSettings(settings || payload?.settings || {});
     } catch (error) {
-      console.error(error);
-      watchState.progressMap = {};
-      watchState.commentsMap = {};
-      watchState.settings = normalizeSettings({});
+      if (!isPermissionDeniedError(error)) {
+        console.error(error);
+      }
+      readSettings();
+      watchState.progressMap = readJson(WATCH_FEATURES_PROGRESS_KEY, {});
+      watchState.commentsMap = readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {});
+      await hydrateLocalCachesFromIndexedDb();
     }
   } else {
     readSettings();
@@ -684,7 +692,11 @@ function bindFeatureEvents() {
     stopRealtimeComments();
   });
 
-  window.addEventListener("animecloud:auth", async () => {
+  window.addEventListener("animecloud:auth", async (event) => {
+    if (getAuthUserSafe()?.localId && !event.detail?.ready) {
+      renderCommentUser();
+      return;
+    }
     await hydrateWatchPersistence();
     renderCommentUser();
     renderComments();

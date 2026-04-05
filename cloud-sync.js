@@ -44,6 +44,11 @@ function sanitizeStoredSession(session) {
   return rest;
 }
 
+function isPermissionDeniedError(error) {
+  const code = String(error?.code || error?.message || "").toLowerCase();
+  return code.includes("permission-denied") || code.includes("insufficient permissions");
+}
+
 async function ensureFirebaseAppCheck(app) {
   if (!CLOUD_APP_CHECK_ENABLED || !CLOUD_APP_CHECK_SITE_KEY) return null;
   if (globalThis.__animeCloudAppCheckPromise) {
@@ -500,10 +505,20 @@ function subscribeDoc(pathParts, fallback, callback) {
           const next = snapshot.exists() ? snapshot.data() : fallback;
           callback(next);
         },
-        (error) => console.error(error)
+        (error) => {
+          if (!isPermissionDeniedError(error)) {
+            console.error(error);
+          }
+          callback(fallback);
+        }
       );
     })
-    .catch((error) => console.error(error));
+    .catch((error) => {
+      if (!isPermissionDeniedError(error)) {
+        console.error(error);
+      }
+      callback(fallback);
+    });
 
   return () => {
     active = false;
@@ -535,7 +550,9 @@ async function migrateGuestCommentsToCloud(session, guestCommentsMap = {}) {
       } catch (error) {
         if (!remaining[alias]) remaining[alias] = [];
         remaining[alias].push(item);
-        console.error(error);
+        if (!isPermissionDeniedError(error)) {
+          console.error(error);
+        }
       }
     }
   }
@@ -798,7 +815,11 @@ function subscribeComments(alias, callback) {
     .then((items) => {
       if (active) callback(items);
     })
-    .catch((error) => console.error(error));
+    .catch((error) => {
+      if (!isPermissionDeniedError(error)) {
+        console.error(error);
+      }
+    });
 
   getCloudContext()
     .then(({ db, collection, query, onSnapshot, orderBy, limit }) => {
@@ -828,10 +849,18 @@ function subscribeComments(alias, callback) {
           await cloudWriteJson(CLOUD_COMMENTS_KEY, localMap, { session: null });
           callback(localMap[alias]);
         },
-        (error) => console.error(error)
+        (error) => {
+          if (!isPermissionDeniedError(error)) {
+            console.error(error);
+          }
+        }
       );
     })
-    .catch((error) => console.error(error));
+    .catch((error) => {
+      if (!isPermissionDeniedError(error)) {
+        console.error(error);
+      }
+    });
 
   cloudState.commentsUnsubscribers.set(alias, stop);
   return stop;
