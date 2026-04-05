@@ -1137,6 +1137,25 @@ function uniqueReleases(list) {
   });
 }
 
+function findCachedReleaseByAlias(alias) {
+  if (!alias) return null;
+
+  const pools = [
+    state.currentAnime,
+    state.featured,
+    ...state.latest,
+    ...state.recommended,
+    ...state.popular,
+    ...state.catalogItems,
+    ...state.ongoingItems,
+    ...state.topItems,
+    ...state.searchResults,
+    ...state.favorites
+  ];
+
+  return pools.find((release) => release?.alias === alias) || null;
+}
+
 function renderHeroDots() {
   if (!els.heroDots) return;
   els.heroDots.innerHTML = "";
@@ -1373,6 +1392,7 @@ function buildCatalogParams(page, extra = {}) {
 }
 
 async function loadCatalog(options = {}) {
+  await loadReferences();
   const reset = Boolean(options.reset);
   const nextPage = reset ? 1 : state.catalogPage + 1;
 
@@ -1420,6 +1440,7 @@ async function loadCatalog(options = {}) {
 }
 
 async function loadOngoing(options = {}) {
+  await loadReferences();
   const reset = Boolean(options.reset);
   const nextPage = reset ? 1 : state.ongoingPage + 1;
 
@@ -1466,6 +1487,7 @@ async function loadOngoing(options = {}) {
 }
 
 async function loadTop(options = {}) {
+  await loadReferences();
   const reset = Boolean(options.reset);
   const nextPage = reset ? 1 : state.topPage + 1;
 
@@ -2230,6 +2252,20 @@ async function openRelease(alias, options = {}) {
 
   state.releaseOpenAlias = alias;
   state.releaseOpenPromise = (async () => {
+    const preview = findCachedReleaseByAlias(alias);
+    if (preview && !els.drawer?.classList.contains("is-open")) {
+      state.currentAnime = preview;
+      state.currentEpisode = null;
+      state.currentQuality = "auto";
+      state.currentSource = "anilibria";
+      state.playerSelectionToken = "";
+      renderDetails(preview, { deferHeavy: true });
+      openDrawer();
+      if (updateHistory) {
+        navigateTo(getAnimePath(alias));
+      }
+    }
+
     const payload = await fetchJson(`/anime/releases/${encodeURIComponent(alias)}`, null, { ttl: DETAIL_TTL });
     const release = buildRelease(payload);
 
@@ -2328,7 +2364,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=26", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=27", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -2573,13 +2609,29 @@ async function init() {
   renderSearchEmpty();
 
   try {
-    await loadReferences();
-    await loadHome();
-    updateStats();
+    const initialRoute = routeFromLocation();
+    const initialView = initialRoute.type === "view" ? initialRoute.view || "home" : "home";
+    const shouldLoadHomeNow = initialRoute.type === "anime" || initialView === "home";
+
+    if (shouldLoadHomeNow) {
+      await loadHome();
+      updateStats();
+    }
+
     handleRoute();
+
     safeIdle(() => {
-      loadSchedule().catch(() => {});
-      loadTop({ reset: true }).catch(() => {});
+      if (!shouldLoadHomeNow) {
+        loadHome()
+          .then(() => updateStats())
+          .catch(() => {});
+      }
+      if (!state.scheduleLoaded && initialView !== "schedule") {
+        loadSchedule().catch(() => {});
+      }
+      if (!state.topLoaded && initialView !== "top") {
+        loadTop({ reset: true }).catch(() => {});
+      }
     });
   } catch (error) {
     console.error(error);

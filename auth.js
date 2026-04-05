@@ -51,6 +51,7 @@
 
   const firebaseState = {
     contextPromise: null,
+    bootstrapPromise: null,
     auth: null,
     signOut: null,
     unsubscribe: null
@@ -127,6 +128,14 @@
   }
 
   window.getAuthUser = getAuthUser;
+
+  function scheduleIdle(callback) {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(callback, { timeout: 1800 });
+      return;
+    }
+    setTimeout(callback, 220);
+  }
 
   function normalizeFirebaseUser(user, idToken, providerId = "") {
     const primaryProvider =
@@ -226,6 +235,36 @@
     });
 
     return firebaseState.contextPromise;
+  }
+
+  async function bootstrapAuthObserver() {
+    if (firebaseState.bootstrapPromise) return firebaseState.bootstrapPromise;
+
+    firebaseState.bootstrapPromise = (async () => {
+      const { auth, onAuthStateChanged } = await getFirebaseContext();
+      if (firebaseState.unsubscribe) return;
+
+      firebaseState.unsubscribe = onAuthStateChanged(
+        auth,
+        async (user) => {
+          try {
+            await applyFirebaseUserSession(user);
+          } catch (error) {
+            console.error(error);
+            writeSession(null);
+          }
+        },
+        (error) => {
+          console.error(error);
+          writeSession(null);
+        }
+      );
+    })().catch((error) => {
+      firebaseState.bootstrapPromise = null;
+      throw error;
+    });
+
+    return firebaseState.bootstrapPromise;
   }
 
   async function applyFirebaseUserSession(user) {
@@ -430,48 +469,18 @@
   async function initAuth() {
     bindAuthEvents();
     setAuthTab("login");
-    renderAuthState();
+    writeSession(readSession(), { broadcast: true });
     if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход через Firebase popup.";
     renderGoogleButton();
 
-    try {
-      const { auth, onAuthStateChanged } = await getFirebaseContext();
-
-      await new Promise((resolve) => {
-        if (firebaseState.unsubscribe) firebaseState.unsubscribe();
-
-        let initialResolved = false;
-        firebaseState.unsubscribe = onAuthStateChanged(
-          auth,
-          async (user) => {
-            try {
-              await applyFirebaseUserSession(user);
-            } catch (error) {
-              console.error(error);
-              writeSession(null);
-            } finally {
-              if (!initialResolved) {
-                initialResolved = true;
-                resolve();
-              }
-            }
-          },
-          (error) => {
-            console.error(error);
-            writeSession(null);
-            if (!initialResolved) {
-              initialResolved = true;
-              resolve();
-            }
-          }
-        );
+    scheduleIdle(() => {
+      bootstrapAuthObserver().catch((error) => {
+        console.error(error);
+        if (!authState.session) {
+          setStatus("Не удалось инициализировать авторизацию.", "is-error");
+        }
       });
-    } catch (error) {
-      console.error(error);
-      const fallbackSession = readSession();
-      writeSession(fallbackSession, { broadcast: true });
-      setStatus("Не удалось инициализировать авторизацию.", "is-error");
-    }
+    });
   }
 
   initAuth().catch((error) => {
