@@ -2620,7 +2620,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=36", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=37", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {

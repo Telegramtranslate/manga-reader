@@ -317,7 +317,8 @@
       "auth/cancelled-popup-request": "Предыдущий запрос входа был прерван.",
       "auth/unauthorized-domain": "Этот домен не добавлен в разрешённые домены Firebase Auth.",
       "auth/operation-not-allowed": "Google-вход не включён в настройках Firebase Auth.",
-      "auth/network-request-failed": "Сеть недоступна. Проверьте подключение и повторите попытку."
+      "auth/network-request-failed": "Сеть недоступна. Проверьте подключение и повторите попытку.",
+      "auth/internal-error": "Google-вход был заблокирован политикой безопасности сайта или настройками Google. Обновите страницу и попробуйте снова."
     };
     return map[code] || "Не удалось выполнить авторизацию.";
   }
