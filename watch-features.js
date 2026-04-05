@@ -3,6 +3,7 @@ const WATCH_FEATURES_COMMENTS_STORAGE_KEY = "animecloud_comments_v1";
 const WATCH_SETTINGS_KEY = "animecloud_settings_v1";
 const WATCH_PROGRESS_MIN_INTERVAL = 15000;
 const WATCH_PROGRESS_MIN_DELTA = 15;
+const WATCH_COMMENT_MIN_INTERVAL = 10000;
 
 const watchEls = {
   player: document.getElementById("anime-player"),
@@ -19,7 +20,8 @@ const watchEls = {
   commentUser: document.getElementById("comment-user"),
   commentsSummary: document.getElementById("comments-summary"),
   commentsList: document.getElementById("comments-list"),
-  autoplayToggle: document.getElementById("settings-autoplay-next")
+  autoplayToggle: document.getElementById("settings-autoplay-next"),
+  themeToggle: document.getElementById("settings-theme")
 };
 
 const watchState = {
@@ -34,8 +36,10 @@ const watchState = {
   realtimeCommentsStop: null,
   realtimeProgressStop: null,
   settings: {
-    autoplayNext: true
-  }
+    autoplayNext: true,
+    theme: "dark"
+  },
+  lastCommentSubmitAt: 0
 };
 
 function shouldPersistWatchDataLocally() {
@@ -72,44 +76,82 @@ function getAuthUserSafe() {
   }
 }
 
-function readSettings() {
-  const next = {
-    autoplayNext: true,
-    ...(readJson(WATCH_SETTINGS_KEY, {}) || {})
-  };
-  watchState.settings = next;
-  if (watchEls.autoplayToggle) {
-    watchEls.autoplayToggle.checked = Boolean(next.autoplayNext);
+function getSystemTheme() {
+  try {
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  } catch {
+    return "dark";
   }
+}
+
+function normalizeTheme(theme) {
+  if (theme === "light" || theme === "dark") return theme;
+  return getSystemTheme();
+}
+
+function normalizeSettings(settings = {}) {
+  return {
+    autoplayNext: settings.autoplayNext !== false,
+    theme: normalizeTheme(settings.theme)
+  };
+}
+
+function applyTheme(theme) {
+  const nextTheme = normalizeTheme(theme);
+  document.documentElement.setAttribute("data-theme", nextTheme);
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) {
+    themeMeta.setAttribute("content", nextTheme === "light" ? "#f4efe8" : "#070b14");
+  }
+  return nextTheme;
+}
+
+function syncSettingsControls() {
+  if (watchEls.autoplayToggle) {
+    watchEls.autoplayToggle.checked = Boolean(watchState.settings.autoplayNext);
+  }
+  if (watchEls.themeToggle) {
+    watchEls.themeToggle.checked = watchState.settings.theme !== "light";
+  }
+}
+
+function readSettings() {
+  const next = normalizeSettings(readJson(WATCH_SETTINGS_KEY, {}) || {});
+  watchState.settings = next;
+  syncSettingsControls();
+  applyTheme(next.theme);
   return next;
 }
 
 function saveSettings(patch = {}) {
-  watchState.settings = {
+  watchState.settings = normalizeSettings({
     ...watchState.settings,
     ...patch
-  };
+  });
   writeJson(WATCH_SETTINGS_KEY, watchState.settings);
   const user = getAuthUserSafe();
   if (user?.localId && window.animeCloudSync?.saveSettings) {
     window.animeCloudSync.saveSettings(user, watchState.settings).catch(console.error);
   }
-  if (watchEls.autoplayToggle) {
-    watchEls.autoplayToggle.checked = Boolean(watchState.settings.autoplayNext);
-  }
+  syncSettingsControls();
+  applyTheme(watchState.settings.theme);
 }
 
 function getProgressMap() {
   return watchState.progressMap;
 }
 
-function saveProgressMap(map, options = {}) {
+async function saveProgressMap(map, options = {}) {
   watchState.progressMap = map || {};
   writeJson(WATCH_FEATURES_PROGRESS_KEY, watchState.progressMap);
 
   const user = options.user || getAuthUserSafe();
+  let cloudWritePromise = null;
   if (!options.skipCloud && user?.localId && window.animeCloudSync?.saveProgress) {
-    window.animeCloudSync.saveProgress(user, watchState.progressMap).catch(console.error);
+    cloudWritePromise = window.animeCloudSync.saveProgress(user, watchState.progressMap).catch((error) => {
+      console.error(error);
+      return false;
+    });
   }
 
   window.dispatchEvent(
@@ -117,6 +159,8 @@ function saveProgressMap(map, options = {}) {
       detail: { alias: watchState.release?.alias || "" }
     })
   );
+
+  return cloudWritePromise || true;
 }
 
 function getCommentsMap() {
@@ -288,12 +332,12 @@ function clearCurrentProgress() {
   if (!watchState.release?.alias) return;
   const map = { ...getProgressMap() };
   delete map[watchState.release.alias];
-  saveProgressMap(map);
+  void saveProgressMap(map);
   renderResumeBox();
 }
 
 function clearAllProgress() {
-  saveProgressMap({});
+  void saveProgressMap({});
   watchState.pendingResume = null;
   renderResumeBox();
 }
@@ -303,10 +347,10 @@ function clearAllComments() {
   renderComments();
 }
 
-function saveProgress(force = false) {
-  if (!watchState.release?.alias || !watchState.episode?.id) return;
-  if (watchState.sourceId !== "anilibria") return;
-  if (watchEls.player.hidden) return;
+async function saveProgress(force = false) {
+  if (!watchState.release?.alias || !watchState.episode?.id) return false;
+  if (watchState.sourceId !== "anilibria") return false;
+  if (watchEls.player.hidden) return false;
 
   const now = Date.now();
   const currentTime = Number(watchEls.player.currentTime || 0);
@@ -317,9 +361,9 @@ function saveProgress(force = false) {
     now - watchState.lastProgressSave < WATCH_PROGRESS_MIN_INTERVAL &&
     Math.abs(currentTime - Number(watchState.lastProgressPosition || 0)) < WATCH_PROGRESS_MIN_DELTA
   ) {
-    return;
+    return false;
   }
-  if (!force && currentTime < 5) return;
+  if (!force && currentTime < 5) return false;
 
   watchState.lastProgressSave = now;
   watchState.lastProgressPosition = currentTime;
@@ -338,9 +382,10 @@ function saveProgress(force = false) {
     updatedAt: now
   };
 
-  saveProgressMap(map);
+  await saveProgressMap(map);
   renderResumeBox();
   renderNextEpisodeButton();
+  return true;
 }
 
 function applyPendingResume() {
@@ -400,15 +445,12 @@ async function hydrateWatchPersistence() {
 
       watchState.progressMap = payload?.progress || {};
       watchState.commentsMap = {};
-      watchState.settings = {
-        autoplayNext: true,
-        ...(settings || payload?.settings || {})
-      };
+      watchState.settings = normalizeSettings(settings || payload?.settings || {});
     } catch (error) {
       console.error(error);
       watchState.progressMap = {};
       watchState.commentsMap = {};
-      watchState.settings = { autoplayNext: true };
+      watchState.settings = normalizeSettings({});
     }
   } else {
     readSettings();
@@ -417,9 +459,8 @@ async function hydrateWatchPersistence() {
     await hydrateLocalCachesFromIndexedDb();
   }
 
-  if (watchEls.autoplayToggle) {
-    watchEls.autoplayToggle.checked = Boolean(watchState.settings.autoplayNext);
-  }
+  syncSettingsControls();
+  applyTheme(watchState.settings.theme);
 }
 
 function handleCommentSubmit(event) {
@@ -429,6 +470,18 @@ function handleCommentSubmit(event) {
 
   const body = escapeText(watchEls.commentInput.value);
   if (!body) return;
+
+  const now = Date.now();
+  if (now - watchState.lastCommentSubmitAt < WATCH_COMMENT_MIN_INTERVAL) {
+    const secondsLeft = Math.max(1, Math.ceil((WATCH_COMMENT_MIN_INTERVAL - (now - watchState.lastCommentSubmitAt)) / 1000));
+    watchEls.commentInput.setCustomValidity(`Подождите ${secondsLeft} сек. перед следующим комментарием.`);
+    watchEls.commentInput.reportValidity();
+    setTimeout(() => watchEls.commentInput.setCustomValidity(""), 50);
+    return;
+  }
+
+  watchEls.commentInput.setCustomValidity("");
+  watchState.lastCommentSubmitAt = now;
 
   const user = getAuthUserSafe();
   const map = { ...getCommentsMap() };
@@ -515,19 +568,23 @@ function playNextEpisode() {
 }
 
 function handlePlayerTimeupdate() {
-  saveProgress(false);
+  void saveProgress(false);
 }
 
 function handlePlayerSeeked() {
-  saveProgress(true);
+  void saveProgress(true);
 }
 
 function handlePlayerPause() {
-  saveProgress(true);
+  void saveProgress(true);
 }
 
-function handlePlayerEnded() {
-  saveProgress(true);
+async function handlePlayerEnded() {
+  try {
+    await saveProgress(true);
+  } catch (error) {
+    console.error(error);
+  }
   if (watchState.settings.autoplayNext) {
     requestAnimationFrame(() => playNextEpisode());
   }
@@ -535,7 +592,31 @@ function handlePlayerEnded() {
 
 function handleVisibilityChange() {
   if (document.visibilityState === "hidden") {
-    saveProgress(true);
+    void saveProgress(true);
+  }
+}
+
+function handlePlayerKeyboard(event) {
+  if (!watchEls.player || watchEls.player.hidden) return;
+  const activeTag = String(document.activeElement?.tagName || "").toUpperCase();
+  const isTypingTarget =
+    activeTag === "INPUT" ||
+    activeTag === "TEXTAREA" ||
+    document.activeElement?.isContentEditable;
+
+  if (event.key === " " && !isTypingTarget) {
+    event.preventDefault();
+    if (watchEls.player.paused) {
+      watchEls.player.play().catch(() => {});
+    } else {
+      watchEls.player.pause();
+    }
+    return;
+  }
+
+  if (event.key === "ArrowRight" && !isTypingTarget) {
+    event.preventDefault();
+    playNextEpisode();
   }
 }
 
@@ -546,7 +627,10 @@ function bindPlayerTracking() {
   watchEls.player.addEventListener("loadedmetadata", applyPendingResume);
   watchEls.player.addEventListener("ended", handlePlayerEnded);
   document.addEventListener("visibilitychange", handleVisibilityChange);
-  window.addEventListener("beforeunload", () => saveProgress(true));
+  document.addEventListener("keydown", handlePlayerKeyboard);
+  window.addEventListener("beforeunload", () => {
+    void saveProgress(true);
+  });
 }
 
 function bindFeatureEvents() {
@@ -561,6 +645,11 @@ function bindFeatureEvents() {
   if (watchEls.autoplayToggle) {
     watchEls.autoplayToggle.addEventListener("change", (event) => {
       saveSettings({ autoplayNext: Boolean(event.target.checked) });
+    });
+  }
+  if (watchEls.themeToggle) {
+    watchEls.themeToggle.addEventListener("change", (event) => {
+      saveSettings({ theme: event.target.checked ? "dark" : "light" });
     });
   }
 
@@ -641,7 +730,7 @@ window.animeCloudWatchState = {
     return watchState.commentsMap || {};
   },
   getSettings() {
-    return watchState.settings || { autoplayNext: true };
+    return watchState.settings || normalizeSettings({});
   }
 };
 

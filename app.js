@@ -107,7 +107,8 @@ const state = {
   detailRenderToken: "",
   releaseOpenAlias: "",
   releaseOpenPromise: null,
-  playerSelectionToken: ""
+  playerSelectionToken: "",
+  installPromptEvent: null
 };
 
 const els = {
@@ -116,6 +117,7 @@ const els = {
   panels: [...document.querySelectorAll("[data-view-panel]")],
   brandBtn: document.getElementById("brand-btn"),
   refreshBtn: document.getElementById("refresh-btn"),
+  installBtn: document.getElementById("install-btn"),
   searchInput: document.getElementById("search-input"),
   heroCard: document.getElementById("hero-card"),
   heroTitle: document.getElementById("hero-title"),
@@ -224,6 +226,35 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function isStandaloneDisplayMode() {
+  try {
+    return window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator.standalone === true;
+  } catch {
+    return false;
+  }
+}
+
+function syncInstallButton() {
+  if (!els.installBtn) return;
+  els.installBtn.hidden = !state.installPromptEvent || isStandaloneDisplayMode();
+}
+
+async function handleInstallClick() {
+  if (!state.installPromptEvent) return;
+  const deferredPrompt = state.installPromptEvent;
+  state.installPromptEvent = null;
+  syncInstallButton();
+
+  try {
+    await deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+  } catch (error) {
+    console.error(error);
+  } finally {
+    syncInstallButton();
+  }
 }
 
 function absoluteUrl(path) {
@@ -1237,6 +1268,7 @@ function renderProfile() {
   if (!els.favoritesGrid) return;
   const user = state.authUser;
   const admin = isAdminUser();
+  syncInstallButton();
 
   if (els.profileAvatar) els.profileAvatar.src = user?.photoUrl || "/mc-icon-192.png?v=4";
   if (els.profileName) els.profileName.textContent = user?.displayName || user?.email?.split("@")[0] || "Гость";
@@ -2547,7 +2579,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=29", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=33", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -2680,6 +2712,9 @@ function bindEvents() {
   els.refreshBtn?.addEventListener("click", () => refreshAll().catch(console.error));
   els.heroOpenBtn?.addEventListener("click", () => state.featured && openRelease(state.featured.alias).catch(console.error));
   els.heroRandomBtn?.addEventListener("click", pickRandomRelease);
+  els.installBtn?.addEventListener("click", () => {
+    handleInstallClick().catch(console.error);
+  });
   els.catalogMoreBtn?.addEventListener("click", () => loadCatalog({ reset: false }).catch(console.error));
   els.ongoingMoreBtn?.addEventListener("click", () => loadOngoing({ reset: false }).catch(console.error));
   els.topMoreBtn?.addEventListener("click", () => loadTop({ reset: false }).catch(console.error));
@@ -2772,6 +2807,17 @@ function bindEvents() {
       closeDrawer();
     }
   });
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    state.installPromptEvent = event;
+    syncInstallButton();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    state.installPromptEvent = null;
+    syncInstallButton();
+  });
 }
 
 async function init() {
@@ -2790,6 +2836,7 @@ async function init() {
   renderProfile();
   renderFavoriteButton();
   renderSearchEmpty();
+  syncInstallButton();
 
   try {
     const initialRoute = routeFromLocation();

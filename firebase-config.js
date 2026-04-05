@@ -1,5 +1,5 @@
 (function () {
-  const FIREBASE_CONFIG = {
+  const DEFAULT_FIREBASE_CONFIG = {
     apiKey: "AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY",
     authDomain: "oauth-489621.firebaseapp.com",
     projectId: "oauth-489621",
@@ -8,9 +8,29 @@
     appId: "1:263581962151:web:41538be2d5bae44d037082"
   };
 
+  function parseRuntimeJson(value, fallback) {
+    if (!value) return fallback;
+    if (typeof value === "object") return value;
+    try {
+      return JSON.parse(String(value));
+    } catch {
+      return fallback;
+    }
+  }
+
+  const runtimeFirebaseConfig =
+    window.ANIMECLOUD_FIREBASE_CONFIG_JSON ||
+    window.__ANIMECLOUD_ENV__?.VITE_FIREBASE_CONFIG ||
+    document.querySelector('meta[name="firebase-config"]')?.content ||
+    window.ANIMECLOUD_FIREBASE_CONFIG ||
+    null;
+
+  const FIREBASE_CONFIG = parseRuntimeJson(runtimeFirebaseConfig, DEFAULT_FIREBASE_CONFIG);
+
   const APP_CHECK_SITE_KEY =
-    document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
     window.ANIMECLOUD_APP_CHECK_KEY ||
+    window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_KEY ||
+    document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
     "";
   const APP_CHECK_ENABLED =
     document.querySelector('meta[name="firebase-app-check-enabled"]')?.content === "true" ||
@@ -18,7 +38,7 @@
 
   let recaptchaPromise = null;
 
-  window.ANIMECLOUD_FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || FIREBASE_CONFIG;
+  window.ANIMECLOUD_FIREBASE_CONFIG = FIREBASE_CONFIG;
   window.ANIMECLOUD_FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   window.ANIMECLOUD_APP_CHECK_KEY = window.ANIMECLOUD_APP_CHECK_KEY || APP_CHECK_SITE_KEY;
   window.ANIMECLOUD_ENABLE_APP_CHECK = window.ANIMECLOUD_ENABLE_APP_CHECK === true || APP_CHECK_ENABLED;

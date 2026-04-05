@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.gstatic.com https://www.google.com https://accounts.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://anilibria.top https://cache.libria.fun https://www.google.com https://www.gstatic.com; media-src 'self' blob: https://cache.libria.fun https://anilibria.top; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://anilibria.top https://cache.libria.fun; frame-src 'self' https://www.youtube.com https://player.vimeo.com https://kodik.info https://*.kodik.biz; worker-src 'self' blob:; font-src 'self' data: https:; manifest-src 'self'; form-action 'self' https://accounts.google.com; frame-ancestors 'self'; upgrade-insecure-requests"
+  >
   <meta name="theme-color" content="#070b14">
   <meta name="firebase-app-check-key" content="6Lf186YsAAAAAKBHEUg6qywGQgONrhC2AIaKzQDS">
   <meta name="mobile-web-app-capable" content="yes">
@@ -27,12 +31,15 @@
   <title>AnimeCloud — аниме с русской озвучкой</title>
   <link rel="manifest" href="/manifest.webmanifest?v=11">
   <link rel="icon" href="/mc-icon-192.png?v=4" sizes="192x192">
+  <link rel="apple-touch-icon" href="/mc-icon-192.png?v=4">
+  <link rel="preload" href="/style.css?v=22" as="style">
+  <link rel="preload" href="/app.js?v=26" as="script">
   <link rel="preconnect" href="https://anilibria.top">
   <link rel="preconnect" href="https://cache.libria.fun">
   <link rel="preconnect" href="https://accounts.google.com">
   <link rel="preconnect" href="https://www.google.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="/style.css?v=20">
+  <link rel="stylesheet" href="/style.css?v=22">
   <script id="structured-data" type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -95,6 +102,7 @@
           </label>
 
           <button class="ghost-btn" type="button" id="refresh-btn">Обновить</button>
+          <button class="ghost-btn" type="button" id="install-btn" hidden>Установить</button>
 
           <div class="auth-slot">
             <button class="ghost-btn auth-open-btn" type="button" id="auth-open-btn">Войти</button>
@@ -394,6 +402,13 @@
                 <span>
                   <strong>Автовоспроизведение следующей серии</strong>
                   <small>После завершения текущего эпизода сайт автоматически откроет следующий.</small>
+                </span>
+              </label>
+              <label class="settings-toggle">
+                <input id="settings-theme" type="checkbox" checked>
+                <span>
+                  <strong>Тёмная тема</strong>
+                  <small>Переключение между светлой и тёмной темой.</small>
                 </span>
               </label>
             </section>
@@ -716,10 +731,10 @@
     </article>
   </template>
 
-  <script src="/firebase-config.js?v=1" defer></script>
-  <script src="/cloud-sync.js?v=7" defer></script>
-  <script src="/app.js?v=22" defer></script>
-  <script src="/auth.js?v=13" defer></script>
-  <script src="/watch-features.js?v=11" defer></script>
+  <script src="/firebase-config.js?v=2" defer></script>
+  <script src="/cloud-sync.js?v=11" defer></script>
+  <script src="/app.js?v=26" defer></script>
+  <script src="/auth.js?v=15" defer></script>
+  <script src="/watch-features.js?v=15" defer></script>
 </body>
 </html>

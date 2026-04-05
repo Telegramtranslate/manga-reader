@@ -1,11 +1,4 @@
-const CLOUD_FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || {
-  apiKey: "AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY",
-  authDomain: "oauth-489621.firebaseapp.com",
-  projectId: "oauth-489621",
-  storageBucket: "oauth-489621.firebasestorage.app",
-  messagingSenderId: "263581962151",
-  appId: "1:263581962151:web:41538be2d5bae44d037082"
-};
+const CLOUD_FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || null;
 
 const CLOUD_FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
 const CLOUD_AUTH_STORAGE_KEY = "animecloud_auth_v1";
@@ -17,7 +10,7 @@ const CLOUD_SETTINGS_KEY = "animecloud_settings_v1";
 const CLOUD_FAVORITES_LIMIT = 120;
 const CLOUD_COMMENTS_LIMIT = 200;
 const CLOUD_DB_NAME = "animecloud-db";
-const CLOUD_DB_VERSION = 1;
+const CLOUD_DB_VERSION = 2;
 const CLOUD_KV_STORE = "kv";
 const CLOUD_PENDING_STORE = "pending";
 const SYNC_TAG = "animecloud-sync";
@@ -32,10 +25,24 @@ const CLOUD_APP_CHECK_ENABLED =
 const cloudState = {
   contextPromise: null,
   dbPromise: null,
+  hydrationPromises: new Map(),
   progressUnsubscribe: null,
   commentsUnsubscribers: new Map(),
   syncRegistrationPromise: null
 };
+
+function defaultCloudSettings() {
+  return {
+    autoplayNext: true,
+    theme: "dark"
+  };
+}
+
+function sanitizeStoredSession(session) {
+  if (!session || typeof session !== "object") return null;
+  const { idToken, refreshToken, expiresAt, isAdmin, role, ...rest } = session;
+  return rest;
+}
 
 async function ensureFirebaseAppCheck(app) {
   if (!CLOUD_APP_CHECK_ENABLED || !CLOUD_APP_CHECK_SITE_KEY) return null;
@@ -103,7 +110,12 @@ function cloudWriteJsonSync(key, value, options = {}) {
 }
 
 function cloudReadSession() {
-  return cloudReadJsonSync(CLOUD_AUTH_STORAGE_KEY, null, { forceLocal: true });
+  const raw = cloudReadJsonSync(CLOUD_AUTH_STORAGE_KEY, null, { forceLocal: true });
+  const sanitized = sanitizeStoredSession(raw);
+  if (raw && sanitized && !isSameJson(raw, sanitized)) {
+    cloudWriteJsonSync(CLOUD_AUTH_STORAGE_KEY, sanitized, { forceLocal: true });
+  }
+  return sanitized;
 }
 
 function cloudFavoriteKey(session) {
@@ -172,6 +184,12 @@ function openCloudDatabase() {
 
     request.onupgradeneeded = () => {
       const db = request.result;
+      const expectedStores = new Set([CLOUD_KV_STORE, CLOUD_PENDING_STORE]);
+      Array.from(db.objectStoreNames).forEach((name) => {
+        if (!expectedStores.has(name)) {
+          db.deleteObjectStore(name);
+        }
+      });
       if (!db.objectStoreNames.contains(CLOUD_KV_STORE)) {
         db.createObjectStore(CLOUD_KV_STORE);
       }
@@ -314,6 +332,10 @@ async function getCloudContext() {
       limit
     } = firestoreModule;
 
+    if (!CLOUD_FIREBASE_CONFIG) {
+      throw new Error("AnimeCloud Firebase config is missing");
+    }
+
     const app = getApps().length ? getApp() : initializeApp(CLOUD_FIREBASE_CONFIG);
 
     await ensureFirebaseAppCheck(app);
@@ -363,6 +385,32 @@ function normalizeCommentData(id, data = {}) {
     body: String(data.body || "").trim(),
     createdAt: normalizeTimestampValue(data.createdAt)
   };
+}
+
+function normalizeCommentClientId(alias, comment, index = 0) {
+  const raw =
+    String(comment?.clientId || comment?.id || "").trim() ||
+    `${alias}-${normalizeTimestampValue(comment?.createdAt) || 0}-${index}-${String(comment?.body || "").slice(0, 48)}`;
+
+  return raw
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 120) || `comment-${Date.now()}-${index}`;
+}
+
+function buildCommentDocumentId(session, alias, comment, index = 0) {
+  const clientId = normalizeCommentClientId(alias, comment, index);
+  return `${String(session?.localId || "guest").slice(0, 48)}-${clientId}`.slice(0, 180);
+}
+
+function normalizeCommentAuthorForCloud(comment, session) {
+  const author = String(comment?.author || "").trim();
+  const lowered = author.toLowerCase();
+  if (!author || lowered === "\u0433\u043e\u0441\u0442\u044c" || lowered === "\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c") {
+    return String(session?.displayName || session?.email?.split("@")[0] || "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c").trim();
+  }
+  return author;
 }
 
 async function readLegacyComments(alias) {
@@ -463,14 +511,44 @@ function subscribeDoc(pathParts, fallback, callback) {
   };
 }
 
-async function hydrateSessionData(session = cloudReadSession()) {
+async function migrateGuestCommentsToCloud(session, guestCommentsMap = {}) {
+  if (!session?.localId) return guestCommentsMap || {};
+
+  const remaining = {};
+  for (const [alias, items] of Object.entries(guestCommentsMap || {})) {
+    if (!alias || !Array.isArray(items) || !items.length) continue;
+
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index];
+      if (!item?.body) continue;
+
+      try {
+        await addComment(
+          alias,
+          {
+            ...item,
+            id: normalizeCommentClientId(alias, item, index),
+            author: normalizeCommentAuthorForCloud(item, session)
+          },
+          session
+        );
+      } catch (error) {
+        if (!remaining[alias]) remaining[alias] = [];
+        remaining[alias].push(item);
+        console.error(error);
+      }
+    }
+  }
+
+  return remaining;
+}
+
+async function runHydrateSessionData(session = cloudReadSession()) {
   if (!session?.localId) {
     return {
       favorites: (await cloudReadJson(cloudGuestFavoriteKey(), [], { session: null })) || [],
       progress: (await cloudReadJson(CLOUD_PROGRESS_KEY, {}, { session: null })) || {},
-      settings: (await cloudReadJson(CLOUD_SETTINGS_KEY, { autoplayNext: true }, { session: null })) || {
-        autoplayNext: true
-      }
+      settings: (await cloudReadJson(CLOUD_SETTINGS_KEY, defaultCloudSettings(), { session: null })) || defaultCloudSettings()
     };
   }
 
@@ -478,23 +556,24 @@ async function hydrateSessionData(session = cloudReadSession()) {
   const localFavorites = await cloudReadJson(cloudFavoriteKey(session), [], { forceLocal: true });
   const guestFavorites = await cloudReadJson(cloudGuestFavoriteKey(), [], { forceLocal: true, session: null });
   const localProgress = await cloudReadJson(CLOUD_PROGRESS_KEY, {}, { forceLocal: true });
-  const localSettings = await cloudReadJson(CLOUD_SETTINGS_KEY, { autoplayNext: true }, { forceLocal: true });
+  const guestComments = await cloudReadJson(CLOUD_COMMENTS_KEY, {}, { forceLocal: true, session: null });
+  const localSettings = await cloudReadJson(CLOUD_SETTINGS_KEY, defaultCloudSettings(), { forceLocal: true });
 
   const [cloudFavoritesDoc, cloudProgressDoc, cloudSettingsDoc] = await Promise.all([
     readCloudDoc(["users", uid, "private", "favorites"], { items: [] }),
     readCloudDoc(["users", uid, "private", "progress"], { items: {} }),
-    readCloudDoc(["users", uid, "private", "settings"], { item: { autoplayNext: true } })
+    readCloudDoc(["users", uid, "private", "settings"], { item: defaultCloudSettings() })
   ]);
 
   const mergedFavorites = mergeFavorites(cloudFavoritesDoc?.items || [], localFavorites, guestFavorites);
   const mergedProgress = mergeProgressMaps(cloudProgressDoc?.items || {}, localProgress);
   const mergedSettings = {
-    autoplayNext: true,
+    ...defaultCloudSettings(),
     ...(localSettings || {}),
     ...(cloudSettingsDoc?.item || {})
   };
 
-  await clearAccountLocalCaches(session);
+  const remainingGuestComments = await migrateGuestCommentsToCloud(session, guestComments);
 
   if (!isSameJson(cloudFavoritesDoc?.items || [], mergedFavorites)) {
     try {
@@ -516,7 +595,7 @@ async function hydrateSessionData(session = cloudReadSession()) {
     } catch {}
   }
 
-  if (!isSameJson(cloudSettingsDoc?.item || { autoplayNext: true }, mergedSettings)) {
+  if (!isSameJson(cloudSettingsDoc?.item || defaultCloudSettings(), mergedSettings)) {
     try {
       await writeCloudDocQueued(["users", uid, "private", "settings"], {
         uid,
@@ -526,7 +605,29 @@ async function hydrateSessionData(session = cloudReadSession()) {
     } catch {}
   }
 
+  await clearAccountLocalCaches(session);
+
+  if (Object.keys(remainingGuestComments).length) {
+    await cloudWriteJson(CLOUD_COMMENTS_KEY, remainingGuestComments, { forceLocal: true, session: null });
+  }
+
   return { favorites: mergedFavorites, progress: mergedProgress, settings: mergedSettings };
+}
+
+async function hydrateSessionData(session = cloudReadSession()) {
+  if (!session?.localId) {
+    return runHydrateSessionData(session);
+  }
+
+  const existingPromise = cloudState.hydrationPromises.get(session.localId);
+  if (existingPromise) return existingPromise;
+
+  const nextPromise = runHydrateSessionData(session).finally(() => {
+    cloudState.hydrationPromises.delete(session.localId);
+  });
+
+  cloudState.hydrationPromises.set(session.localId, nextPromise);
+  return nextPromise;
 }
 
 async function saveFavorites(session = cloudReadSession(), items = []) {
@@ -569,27 +670,25 @@ async function saveProgress(session = cloudReadSession(), map = {}) {
 
 async function loadSettings(session = cloudReadSession()) {
   if (!session?.localId) {
-    return (await cloudReadJson(CLOUD_SETTINGS_KEY, { autoplayNext: true }, { session: null })) || {
-      autoplayNext: true
-    };
+    return (await cloudReadJson(CLOUD_SETTINGS_KEY, defaultCloudSettings(), { session: null })) || defaultCloudSettings();
   }
 
   try {
     const docData = await readCloudDoc(["users", session.localId, "private", "settings"], {
-      item: { autoplayNext: true }
+      item: defaultCloudSettings()
     });
     return {
-      autoplayNext: true,
+      ...defaultCloudSettings(),
       ...(docData?.item || {})
     };
   } catch {
-    return { autoplayNext: true };
+    return defaultCloudSettings();
   }
 }
 
 async function saveSettings(session = cloudReadSession(), settings = {}) {
   const next = {
-    autoplayNext: true,
+    ...defaultCloudSettings(),
     ...(settings || {})
   };
 
@@ -655,17 +754,29 @@ async function addComment(alias, comment, session = cloudReadSession()) {
   const body = String(comment?.body || "").trim();
   if (!body) return false;
 
-  const author = String(comment?.author || session.displayName || session.email?.split("@")[0] || "Пользователь").trim();
-  const { db, collection, addDoc, serverTimestamp } = await getCloudContext();
+  const author = normalizeCommentAuthorForCloud(comment, session);
+  const clientId = normalizeCommentClientId(alias, comment);
+  const { db, collection, addDoc, doc, getDoc, serverTimestamp, setDoc } = await getCloudContext();
 
-  await addDoc(collection(db, "anime_comments", alias, "comments"), {
+  const payload = {
     alias,
     author,
-    clientId: String(comment?.id || "").trim(),
+    clientId,
     uid: session.localId,
     body,
     createdAt: serverTimestamp()
-  });
+  };
+
+  const documentId = buildCommentDocumentId(session, alias, comment);
+  if (documentId) {
+    const commentRef = doc(db, "anime_comments", alias, "comments", documentId);
+    const existing = await getDoc(commentRef);
+    if (existing.exists()) return true;
+    await setDoc(commentRef, payload);
+    return true;
+  }
+
+  await addDoc(collection(db, "anime_comments", alias, "comments"), payload);
 
   return true;
 }
@@ -767,6 +878,7 @@ function bootSyncListeners() {
   window.addEventListener("animecloud:auth", (event) => {
     const user = event.detail?.user || null;
     if (!user?.localId) {
+      cloudState.hydrationPromises.clear();
       cloudState.progressUnsubscribe?.();
       cloudState.progressUnsubscribe = null;
       return;

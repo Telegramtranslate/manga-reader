@@ -52,7 +52,11 @@
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), browsing-topics=()" }
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.gstatic.com https://www.google.com https://accounts.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://anilibria.top https://cache.libria.fun https://www.google.com https://www.gstatic.com; media-src 'self' blob: https://cache.libria.fun https://anilibria.top; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://anilibria.top https://cache.libria.fun; frame-src 'self' https://www.youtube.com https://player.vimeo.com https://kodik.info https://*.kodik.biz; worker-src 'self' blob:; font-src 'self' data: https:; manifest-src 'self'; form-action 'self' https://accounts.google.com; frame-ancestors 'self'; upgrade-insecure-requests"
+        }
       ]
     },
     {

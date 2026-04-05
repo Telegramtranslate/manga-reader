@@ -1,13 +1,6 @@
 ﻿(function () {
   const AUTH_STORAGE_KEY = "animecloud_auth_v1";
-  const FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || {
-    apiKey: "AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY",
-    authDomain: "oauth-489621.firebaseapp.com",
-    projectId: "oauth-489621",
-    storageBucket: "oauth-489621.firebasestorage.app",
-    messagingSenderId: "263581962151",
-    appId: "1:263581962151:web:41538be2d5bae44d037082"
-  };
+  const FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || null;
   const FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   const AUTH_APP_CHECK_SITE_KEY =
     window.ANIMECLOUD_APP_CHECK_KEY ||
@@ -63,7 +56,7 @@
 
   function decorateSession(session) {
     if (!session) return null;
-    const { isAdmin, role, ...rest } = session;
+    const { idToken, refreshToken, expiresAt, isAdmin, role, ...rest } = session;
     return rest;
   }
 
@@ -89,7 +82,7 @@
 
   function renderAuthState() {
     const session = authState.session;
-    const loggedIn = Boolean(session?.idToken);
+    const loggedIn = Boolean(session?.localId);
 
     if (authEls.openBtn) authEls.openBtn.hidden = loggedIn;
     if (authEls.userMenu) authEls.userMenu.hidden = !loggedIn;
@@ -137,7 +130,7 @@
     setTimeout(callback, 220);
   }
 
-  function normalizeFirebaseUser(user, idToken, providerId = "") {
+  function normalizeFirebaseUser(user, providerId = "") {
     const primaryProvider =
       providerId ||
       user?.providerData?.find((item) => item?.providerId && item.providerId !== "firebase")?.providerId ||
@@ -145,14 +138,11 @@
       "";
 
     return {
-      idToken,
-      refreshToken: user?.refreshToken || "",
       localId: user?.uid || "",
       email: user?.email || "",
       displayName: user?.displayName || "",
       photoUrl: user?.photoURL || "",
-      providerId: primaryProvider,
-      expiresAt: Number(user?.stsTokenManager?.expirationTime || Date.now() + 55 * 60 * 1000)
+      providerId: primaryProvider
     };
   }
 
@@ -216,6 +206,10 @@
         import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`)
       ]);
 
+      if (!FIREBASE_CONFIG) {
+        throw new Error("AnimeCloud Firebase config is missing");
+      }
+
       const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
       await ensureFirebaseAppCheck(app);
       const auth = getAuth(app);
@@ -277,8 +271,7 @@
       return null;
     }
 
-    const idToken = await user.getIdToken().catch(() => "");
-    return writeSession(normalizeFirebaseUser(user, idToken));
+    return writeSession(normalizeFirebaseUser(user));
   }
 
   function setStatus(message, type = "") {

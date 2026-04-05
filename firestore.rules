@@ -44,8 +44,19 @@ service cloud.firestore {
         request.resource.data.keys().hasAll(['uid', 'email', 'item', 'updatedAt']) &&
         request.resource.data.keys().hasOnly(['uid', 'email', 'item', 'updatedAt']) &&
         request.resource.data.item is map &&
-        request.resource.data.item.keys().hasOnly(['autoplayNext']) &&
-        request.resource.data.item.autoplayNext is bool;
+        request.resource.data.item.keys().hasAll(['autoplayNext']) &&
+        request.resource.data.item.keys().hasOnly(['autoplayNext', 'theme']) &&
+        request.resource.data.item.autoplayNext is bool &&
+        (
+          !request.resource.data.item.keys().hasAny(['theme']) ||
+          (
+            request.resource.data.item.theme is string &&
+            (
+              request.resource.data.item.theme == 'dark' ||
+              request.resource.data.item.theme == 'light'
+            )
+          )
+        );
     }
 
     function adminEmail() {

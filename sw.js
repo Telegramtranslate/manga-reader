@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v29";
+const CACHE_VERSION = "v33";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,12 +6,12 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=20",
-  "/firebase-config.js?v=1",
-  "/cloud-sync.js?v=7",
-  "/app.js?v=22",
-  "/auth.js?v=13",
-  "/watch-features.js?v=11",
+  "/style.css?v=22",
+  "/firebase-config.js?v=2",
+  "/cloud-sync.js?v=11",
+  "/app.js?v=26",
+  "/auth.js?v=15",
+  "/watch-features.js?v=15",
   "/manifest.webmanifest?v=11",
   "/robots.txt",
   "/sitemap.xml",
@@ -36,6 +36,14 @@ function isShellAsset(url) {
 
 function isApiRequest(url) {
   return url.origin === self.location.origin && url.pathname.startsWith("/api/anilibria");
+}
+
+function isManifestRequest(url) {
+  return url.origin === self.location.origin && url.pathname === "/manifest.webmanifest";
+}
+
+function isIconRequest(url) {
+  return url.origin === self.location.origin && url.pathname.includes("/mc-icon-");
 }
 
 function isScheduleRequest(url) {
@@ -145,6 +153,16 @@ self.addEventListener("fetch", (event) => {
       return;
     }
     event.respondWith(staleWhileRevalidate(event.request, API_CACHE));
+    return;
+  }
+
+  if (isManifestRequest(url)) {
+    event.respondWith(cacheFirst(event.request, SHELL_CACHE));
+    return;
+  }
+
+  if (isIconRequest(url)) {
+    event.respondWith(cacheFirst(event.request, SHELL_CACHE));
     return;
   }
 
