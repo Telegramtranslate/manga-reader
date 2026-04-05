@@ -32,7 +32,7 @@
   <link rel="preconnect" href="https://accounts.google.com">
   <link rel="preconnect" href="https://www.google.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="/style.css?v=17">
+  <link rel="stylesheet" href="/style.css?v=18">
   <script src="https://www.google.com/recaptcha/enterprise.js?render=6Lf186YsAAAAAKBHEUg6qywGQgONrhC2AIaKzQDS" async defer></script>
   <script id="structured-data" type="application/ld+json">
     {
@@ -131,58 +131,58 @@
     </header>
 
     <main class="layout">
-      <section class="hero-card" id="hero-card">
-        <div class="hero-copy">
-          <div class="section-kicker">Русская озвучка</div>
-          <h1 id="hero-title">Загружаем лучшие релизы</h1>
-          <p id="hero-description">
-            Последние серии, топовые тайтлы, удобный каталог и мобильный интерфейс без тяжёлого мусора.
-          </p>
-          <div class="meta-row" id="hero-meta"></div>
-          <div class="hero-actions">
-            <button class="primary-btn" type="button" id="hero-open-btn">Открыть релиз</button>
-            <button class="ghost-btn" type="button" id="hero-random-btn">Случайный тайтл</button>
+      <section class="view is-active home-view" data-view-panel="home">
+        <section class="hero-card hero-card--home" id="hero-card">
+          <div class="hero-copy">
+            <div class="section-kicker">Русская озвучка</div>
+            <h1 id="hero-title">Загружаем лучшие релизы</h1>
+            <p id="hero-description">
+              Последние серии, топовые тайтлы, удобный каталог и мобильный интерфейс без тяжёлого мусора.
+            </p>
+            <div class="meta-row" id="hero-meta"></div>
+            <div class="hero-actions">
+              <button class="primary-btn" type="button" id="hero-open-btn">Открыть релиз</button>
+              <button class="ghost-btn" type="button" id="hero-random-btn">Случайный тайтл</button>
+            </div>
           </div>
-        </div>
 
-        <div class="hero-media">
-          <div class="hero-poster-frame">
-            <img
-              id="hero-poster"
-              class="hero-poster"
-              src="/mc-icon-512.png?v=4"
-              alt="Постер выбранного аниме"
-              width="800"
-              height="1200"
-              loading="eager"
-              decoding="async"
-              fetchpriority="high"
-            >
+          <div class="hero-media">
+            <div class="hero-poster-frame">
+              <img
+                id="hero-poster"
+                class="hero-poster"
+                src="/mc-icon-512.png?v=4"
+                alt="Постер выбранного аниме"
+                width="800"
+                height="1200"
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+              >
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="stats-row" aria-label="Статистика каталога">
-        <div class="stat-card">
-          <span id="latest-count">0</span>
-          <small>последних релизов</small>
-        </div>
-        <div class="stat-card">
-          <span id="catalog-count">0</span>
-          <small>тайтлов в каталоге</small>
-        </div>
-        <div class="stat-card">
-          <span id="ongoing-count">0</span>
-          <small>онгоингов</small>
-        </div>
-        <div class="stat-card">
-          <span id="top-count">0</span>
-          <small>в топ-подборке</small>
-        </div>
-      </section>
+        <section class="stats-row stats-row--home" aria-label="Статистика каталога">
+          <div class="stat-card">
+            <span id="latest-count">0</span>
+            <small>последних релизов</small>
+          </div>
+          <div class="stat-card">
+            <span id="catalog-count">0</span>
+            <small>тайтлов в каталоге</small>
+          </div>
+          <div class="stat-card">
+            <span id="ongoing-count">0</span>
+            <small>онгоингов</small>
+          </div>
+          <div class="stat-card">
+            <span id="top-count">0</span>
+            <small>в топ-подборке</small>
+          </div>
+        </section>
 
-      <section class="view is-active" data-view-panel="home">
-        <div class="section-shell" id="continue-shell">
+        <div class="section-shell section-shell--rail home-shell home-shell--continue" id="continue-shell">
           <div class="section-head">
             <div>
               <div class="section-kicker">Продолжить</div>
@@ -193,10 +193,10 @@
             </div>
             <div class="genre-chip-row" id="catalog-genre-chips" aria-label="Быстрый фильтр по жанрам"></div>
           </div>
-          <div class="anime-grid" id="continue-grid"></div>
+          <div class="anime-grid anime-grid--rail" id="continue-grid"></div>
         </div>
 
-        <div class="section-shell">
+        <div class="section-shell home-shell home-shell--latest" id="latest-shell">
           <div class="section-head">
             <div>
               <div class="section-kicker">Лента</div>
@@ -204,10 +204,10 @@
               <p class="section-summary">Свежие серии и обновления, которые сейчас выходят быстрее всего.</p>
             </div>
           </div>
-          <div class="anime-grid" id="latest-grid"></div>
+          <div class="anime-grid anime-grid--poster" id="latest-grid"></div>
         </div>
 
-        <div class="section-shell">
+        <div class="section-shell home-shell home-shell--recommended" id="recommended-shell">
           <div class="section-head">
             <div>
               <div class="section-kicker">Подборка</div>
@@ -215,10 +215,10 @@
               <p class="section-summary">Рекомендации для вечернего просмотра без перегруженного интерфейса.</p>
             </div>
           </div>
-          <div class="anime-grid" id="recommended-grid"></div>
+          <div class="anime-grid anime-grid--poster" id="recommended-grid"></div>
         </div>
 
-        <div class="section-shell">
+        <div class="section-shell section-shell--rail home-shell home-shell--popular" id="popular-shell">
           <div class="section-head">
             <div>
               <div class="section-kicker">Топ</div>
@@ -226,7 +226,7 @@
               <p class="section-summary">Самые заметные релизы по активности и рейтингу в каталоге.</p>
             </div>
           </div>
-          <div class="anime-grid" id="popular-grid"></div>
+          <div class="anime-grid anime-grid--rail" id="popular-grid"></div>
         </div>
       </section>
 
@@ -700,7 +700,7 @@
     <article class="anime-card">
         <a class="anime-card__action" href="/">
         <div class="anime-card__poster-wrap">
-          <img class="anime-card__poster" alt="" width="640" height="640">
+          <img class="anime-card__poster" alt="" width="720" height="1020">
           <span class="anime-card__age"></span>
           <span class="anime-card__status"></span>
         </div>
