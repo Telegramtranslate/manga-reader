@@ -16,6 +16,44 @@ function isAllowedMediaUrl(rawUrl) {
   }
 }
 
+function resolveProxyOrigin(req) {
+  const forwardedProto = readQueryValue(req.headers["x-forwarded-proto"]);
+  const forwardedHost = readQueryValue(req.headers["x-forwarded-host"]);
+  const protocol = forwardedProto || (req.connection?.encrypted ? "https" : "http");
+  const host = forwardedHost || req.headers.host || "localhost";
+  return `${protocol}://${host}`;
+}
+
+function isManifestResponse(target, upstream) {
+  const contentType = String(upstream.headers.get("content-type") || "").toLowerCase();
+  return /\.m3u8(?:$|\?)/i.test(target) || contentType.includes("mpegurl");
+}
+
+function buildProxyUrl(proxyOrigin, rawUrl) {
+  return `${proxyOrigin}/api/anilibria-stream?url=${encodeURIComponent(rawUrl)}`;
+}
+
+function rewriteManifestLine(line, baseUrl, proxyOrigin) {
+  if (!line) return line;
+  if (line.startsWith("#")) {
+    return line.replace(/URI="([^"]+)"/g, (match, uri) => {
+      try {
+        const absolute = new URL(uri, baseUrl).toString();
+        return `URI="${buildProxyUrl(proxyOrigin, absolute)}"`;
+      } catch {
+        return match;
+      }
+    });
+  }
+
+  try {
+    const absolute = new URL(line, baseUrl).toString();
+    return buildProxyUrl(proxyOrigin, absolute);
+  } catch {
+    return line;
+  }
+}
+
 module.exports = async (req, res) => {
   const target = readQueryValue(req.query?.url);
   if (!target || !isAllowedMediaUrl(target)) {
@@ -48,6 +86,21 @@ module.exports = async (req, res) => {
     res.statusCode = upstream.status;
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("X-AnimeCloud-Proxy", "anilibria-stream");
+
+    if (isManifestResponse(target, upstream) && req.method !== "HEAD") {
+      const proxyOrigin = resolveProxyOrigin(req);
+      const text = await upstream.text();
+      const rewritten = text
+        .split(/\r?\n/)
+        .map((line) => rewriteManifestLine(line, target, proxyOrigin))
+        .join("\n");
+
+      res.setHeader("Content-Type", "application/vnd.apple.mpegurl; charset=utf-8");
+      res.setHeader("Cache-Control", upstream.headers.get("cache-control") || "public, max-age=60");
+      res.setHeader("Content-Length", Buffer.byteLength(rewritten, "utf8"));
+      res.end(rewritten);
+      return;
+    }
 
     [
       "content-type",
