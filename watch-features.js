@@ -300,7 +300,11 @@ function renderResumeBox() {
 function renderDubBox() {
   if (!watchEls.dubBox) return;
 
-  if (!watchState.release?.externalPlayer) {
+  const externalSources = Array.isArray(watchState.release?.sourceItems)
+    ? watchState.release.sourceItems.filter((source) => source.provider !== "anilibria")
+    : [];
+
+  if (!watchState.release?.externalPlayer && !externalSources.length) {
     watchEls.dubBox.hidden = true;
     watchEls.dubList.innerHTML = "";
     return;
@@ -309,7 +313,11 @@ function renderDubBox() {
   watchEls.dubBox.hidden = false;
   watchEls.dubList.innerHTML = "";
 
-  ["AniDub", "DEEP", "Studio Band", "AniStar", "Dream Cast"].forEach((name) => {
+  const labels = externalSources.length
+    ? externalSources.map((source) => source.title || source.note).filter(Boolean)
+    : ["AniDub", "DEEP", "Studio Band", "AniStar", "Dream Cast"];
+
+  labels.forEach((name) => {
     const item = document.createElement("span");
     item.className = "chip";
     item.textContent = name;
@@ -317,7 +325,7 @@ function renderDubBox() {
   });
 
   watchEls.dubNote.textContent =
-    "Дополнительные озвучки доступны во внешнем плеере, если конкретный источник действительно их отдаёт.";
+    "Дополнительные озвучки и источники доступны во внешнем встроенном плеере, если конкретный провайдер их действительно отдаёт.";
 }
 
 function currentDisplayName() {
@@ -412,10 +420,37 @@ function renderResumeBox() {
   )}${progress.duration ? ` \u0438\u0437 ${formatClock(progress.duration)}` : ""}`;
 }
 
+function getSourceEpisodesForWatch(release, sourceId) {
+  if (Array.isArray(release?.sourceItems)) {
+    const source =
+      release.sourceItems.find((item) => item.id === sourceId) ||
+      release.sourceItems.find((item) => item.provider === "anilibria") ||
+      release.sourceItems[0];
+    if (Array.isArray(source?.episodes) && source.episodes.length) {
+      return source.episodes;
+    }
+  }
+
+  return Array.isArray(release?.episodes) ? release.episodes : [];
+}
+
+function getDefaultWatchSourceId(release) {
+  if (!Array.isArray(release?.sourceItems) || !release.sourceItems.length) {
+    return "anilibria";
+  }
+
+  return (
+    release.sourceItems.find((item) => item.provider === "anilibria")?.id ||
+    release.sourceItems[0].id ||
+    "anilibria"
+  );
+}
+
 function getNextEpisode() {
-  if (!watchState.release?.episodes?.length || !watchState.episode?.id) return null;
-  const currentIndex = watchState.release.episodes.findIndex((episode) => episode.id === watchState.episode.id);
-  return currentIndex >= 0 ? watchState.release.episodes[currentIndex + 1] || null : null;
+  const episodes = getSourceEpisodesForWatch(watchState.release, watchState.sourceId);
+  if (!episodes.length || !watchState.episode?.id) return null;
+  const currentIndex = episodes.findIndex((episode) => episode.id === watchState.episode.id);
+  return currentIndex >= 0 ? episodes[currentIndex + 1] || null : null;
 }
 
 function renderNextEpisodeButton() {
@@ -761,7 +796,7 @@ function bindFeatureEvents() {
   window.addEventListener("animecloud:release-opened", (event) => {
     watchState.release = event.detail?.release || null;
     watchState.episode = null;
-    watchState.sourceId = "anilibria";
+    watchState.sourceId = getDefaultWatchSourceId(watchState.release);
     watchState.pendingResume = getCurrentProgress();
     bindRealtimeComments(watchState.release?.alias || "");
     renderDubBox();

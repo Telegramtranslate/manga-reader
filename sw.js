@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v44";
+const CACHE_VERSION = "v45";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -10,9 +10,9 @@ const APP_SHELL = [
   "/api/runtime-config.js?v=2",
   "/firebase-config.js?v=5",
   "/cloud-sync.js?v=12",
-  "/app.js?v=34",
+  "/app.js?v=35",
   "/auth.js?v=18",
-  "/watch-features.js?v=17",
+  "/watch-features.js?v=18",
   "/manifest.webmanifest?v=11",
   "/robots.txt",
   "/sitemap.xml",
@@ -36,7 +36,7 @@ function isShellAsset(url) {
 }
 
 function isApiRequest(url) {
-  return url.origin === self.location.origin && /^\/api\/anilibria(?:\/|$)/.test(url.pathname);
+  return url.origin === self.location.origin && /^\/api\/(?:anilibria|kodik)(?:\/|$)/.test(url.pathname);
 }
 
 function isMediaStreamRequest(url) {
@@ -63,7 +63,9 @@ function isPosterRequest(request, url) {
   return (
     request.destination === "image" &&
     (url.origin === self.location.origin ||
-      /(?:anilibria\.top|libria\.fun|jsdelivr\.net)$/i.test(url.hostname))
+      /(?:anilibria\.top|libria\.fun|jsdelivr\.net|kodik\.biz|kodik\.info|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
+        url.hostname
+      ))
   );
 }
 

@@ -1,5 +1,6 @@
 ﻿(function () {
   const AUTH_STORAGE_KEY = "animecloud_auth_v1";
+  const AUTH_REDIRECT_PENDING_KEY = "animecloud_google_redirect_pending_v1";
   const FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || null;
   const FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   const AUTH_APP_CHECK_SITE_KEY =

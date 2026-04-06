@@ -7,7 +7,14 @@ function isAllowedImageUrl(rawUrl) {
     const url = new URL(rawUrl);
     return (
       url.protocol === "https:" &&
-      (url.hostname === "anilibria.top" || /(^|\.)anilibria\.top$/i.test(url.hostname) || /(^|\.)libria\.fun$/i.test(url.hostname))
+      (url.hostname === "anilibria.top" ||
+        /(^|\.)anilibria\.top$/i.test(url.hostname) ||
+        /(^|\.)libria\.fun$/i.test(url.hostname) ||
+        /(^|\.)kodik\.biz$/i.test(url.hostname) ||
+        /(^|\.)kodik\.info$/i.test(url.hostname) ||
+        /(^|\.)shikimori\.one$/i.test(url.hostname) ||
+        /(^|\.)shikimori\.me$/i.test(url.hostname) ||
+        /(^|\.)shikimori\.org$/i.test(url.hostname))
     );
   } catch {
     return false;
