@@ -1,6 +1,6 @@
 const SITE_URL = "https://color-manga-cloud.vercel.app";
 const API_URL = "https://anilibria.top/api/v1/anime/catalog/releases";
-const PAGE_LIMIT = 100;
+const PAGE_LIMIT = 50;
 const MAX_RELEASES = 5000;
 
 function xmlEscape(value) {
