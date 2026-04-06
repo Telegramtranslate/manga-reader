@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v40";
+const CACHE_VERSION = "v42";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,10 +6,11 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=23",
-  "/firebase-config.js?v=4",
+  "/style.css?v=24",
+  "/api/runtime-config.js?v=1",
+  "/firebase-config.js?v=5",
   "/cloud-sync.js?v=12",
-  "/app.js?v=32",
+  "/app.js?v=33",
   "/auth.js?v=18",
   "/watch-features.js?v=17",
   "/manifest.webmanifest?v=11",
@@ -44,6 +45,10 @@ function isMediaStreamRequest(url) {
 
 function isManifestRequest(url) {
   return url.origin === self.location.origin && url.pathname === "/manifest.webmanifest";
+}
+
+function isRuntimeConfigRequest(url) {
+  return url.origin === self.location.origin && url.pathname === "/api/runtime-config.js";
 }
 
 function isIconRequest(url) {
@@ -167,6 +172,11 @@ self.addEventListener("fetch", (event) => {
 
   if (isManifestRequest(url)) {
     event.respondWith(cacheFirst(event.request, SHELL_CACHE));
+    return;
+  }
+
+  if (isRuntimeConfigRequest(url)) {
+    event.respondWith(networkFirst(event.request, SHELL_CACHE));
     return;
   }
 

@@ -1,5 +1,6 @@
 ﻿const API_BASE = "/api/anilibria";
 const MEDIA_PROXY_BASE = "/api/anilibria-stream";
+const IMAGE_PROXY_BASE = "/api/anilibria-image";
 const ORIGIN_BASE = "https://anilibria.top";
 const SITE_URL = "https://color-manga-cloud.vercel.app";
 
@@ -113,7 +114,8 @@ const state = {
   hlsRecoveryTried: false,
   playerStartupTimer: null,
   installPromptEvent: null,
-  progressUiFrame: 0
+  progressUiFrame: 0,
+  shareFeedbackTimer: 0
 };
 
 const els = {
@@ -272,6 +274,19 @@ function absoluteUrl(path) {
   if (/^https?:\/\//i.test(path)) return path;
   if (path.startsWith("//")) return `https:${path}`;
   return `${ORIGIN_BASE}${path}`;
+}
+
+function proxiedImageUrl(path) {
+  const absolute = absoluteUrl(path);
+  if (!absolute || absolute.startsWith("/")) return absolute;
+  try {
+    const url = new URL(absolute, window.location.origin);
+    if (url.origin === window.location.origin) return url.toString();
+    if (!/(?:anilibria\.top|libria\.fun)$/i.test(url.hostname)) return absolute;
+    return `${IMAGE_PROXY_BASE}?url=${encodeURIComponent(url.toString())}`;
+  } catch {
+    return absolute;
+  }
 }
 
 function normalizeExternalPlayer(url) {
@@ -535,7 +550,7 @@ const extractPagination = (payload) =>
     total: Number(payload?.total || extractList(payload).length)
   };
 const posterSource = (poster) =>
-  absoluteUrl(
+  proxiedImageUrl(
     poster?.optimized?.src ||
       poster?.src ||
       poster?.optimized?.preview ||
@@ -544,16 +559,25 @@ const posterSource = (poster) =>
       poster?.thumbnail
   );
 const cardPosterSource = (poster) =>
-  absoluteUrl(
-    poster?.optimized?.src ||
-      poster?.src ||
+  proxiedImageUrl(
+    poster?.optimized?.thumbnail ||
+      poster?.thumbnail ||
       poster?.optimized?.preview ||
       poster?.preview ||
+      poster?.optimized?.src ||
+      poster?.src
+  );
+const heroPosterSource = (poster) =>
+  proxiedImageUrl(
+    poster?.optimized?.preview ||
+      poster?.preview ||
       poster?.optimized?.thumbnail ||
-      poster?.thumbnail
+      poster?.thumbnail ||
+      poster?.optimized?.src ||
+      poster?.src
   );
 const thumbSource = (poster) =>
-  absoluteUrl(
+  proxiedImageUrl(
     poster?.optimized?.thumbnail ||
       poster?.thumbnail ||
       poster?.optimized?.preview ||
@@ -602,6 +626,7 @@ function buildRelease(item) {
     publishDayValue: source.publish_day?.value || 0,
     description: source.description || "Описание пока не заполнено.",
     poster: posterSource(source.poster),
+    heroPoster: heroPosterSource(source.poster),
     cardPoster: cardPosterSource(source.poster),
     thumb: thumbSource(source.poster),
     genres,
@@ -815,24 +840,6 @@ function releaseViewportLocks() {
 }
 
 function relocateInjectedControls() {
-  if (els.homePanel && els.heroCard && els.homePanel.firstElementChild !== els.heroCard) {
-    els.homePanel.insertAdjacentElement("afterbegin", els.heroCard);
-  }
-
-  if (els.homePanel && els.statsRow && els.heroCard?.nextElementSibling !== els.statsRow) {
-    els.heroCard?.insertAdjacentElement("afterend", els.statsRow);
-  }
-
-  const heroActions = document.querySelector(".hero-actions");
-  if (heroActions && els.heroDots && els.heroDots.previousElementSibling !== heroActions) {
-    heroActions.insertAdjacentElement("afterend", els.heroDots);
-  }
-
-  const detailActions = document.querySelector(".detail-actions");
-  if (detailActions && els.detailListActions && els.detailListActions.previousElementSibling !== detailActions) {
-    detailActions.insertAdjacentElement("afterend", els.detailListActions);
-  }
-
   const resumeActions = document.querySelector(".resume-actions");
   if (resumeActions && els.nextEpisodeBtn && els.nextEpisodeBtn.parentElement !== resumeActions) {
     resumeActions.appendChild(els.nextEpisodeBtn);
@@ -921,6 +928,13 @@ function progressPercent(progress) {
   return Math.max(0, Math.min(100, Math.round((time / duration) * 100)));
 }
 
+function progressHeadline(progress) {
+  const percent = progressPercent(progress);
+  if (percent >= 99) return "Почти досмотрено";
+  if (percent >= 75) return "Финальные минуты";
+  return progress.episodeLabel || "Продолжить просмотр";
+}
+
 function createSkeletonCard() {
   const article = document.createElement("article");
   article.className = "anime-card anime-card--skeleton";
@@ -946,13 +960,43 @@ function decorateCardProgress(node, release) {
   const body = node.querySelector(".anime-card__body");
   if (!body || body.querySelector(".anime-card__progress")) return node;
 
+  const percent = progressPercent(progress);
   const progressNode = document.createElement("div");
   progressNode.className = "anime-card__progress";
-  progressNode.innerHTML = `<div class="anime-card__progress-bar"><span style="width:${progressPercent(
-    progress
-  )}%"></span></div><div class="anime-card__progress-meta">${escapeHtml(
-    progress.episodeLabel || "Продолжить просмотр"
-  )} • ${escapeHtml(formatClock(progress.time || 0))}</div>`;
+  progressNode.setAttribute(
+    "aria-label",
+    `${progressHeadline(progress)}. ${percent}% просмотра. ${formatClock(progress.time || 0)}${
+      progress.duration ? ` из ${formatClock(progress.duration)}` : ""
+    }.`
+  );
+
+  const topRow = document.createElement("div");
+  topRow.className = "anime-card__progress-top";
+
+  const label = document.createElement("span");
+  label.className = "anime-card__progress-label";
+  label.textContent = progressHeadline(progress);
+
+  const value = document.createElement("span");
+  value.className = "anime-card__progress-value";
+  value.textContent = `${percent}%`;
+
+  topRow.append(label, value);
+
+  const bar = document.createElement("div");
+  bar.className = "anime-card__progress-bar";
+
+  const fill = document.createElement("span");
+  fill.style.width = `${percent}%`;
+  bar.appendChild(fill);
+
+  const meta = document.createElement("div");
+  meta.className = "anime-card__progress-meta";
+  meta.textContent = `${progress.episodeLabel || "Продолжить просмотр"} • ${formatClock(progress.time || 0)}${
+    progress.duration ? ` из ${formatClock(progress.duration)}` : ""
+  }`;
+
+  progressNode.append(topRow, bar, meta);
   body.appendChild(progressNode);
   return node;
 }
@@ -1038,6 +1082,8 @@ function renderHeroFallback(message = "Загружаем лучшие рели�
   if (els.heroPoster) {
     els.heroPoster.hidden = true;
     els.heroPoster.removeAttribute("src");
+    els.heroPoster.removeAttribute("srcset");
+    els.heroPoster.removeAttribute("sizes");
     els.heroPoster.alt = "AnimeCloud";
   }
   if (els.heroOpenBtn) {
@@ -1464,8 +1510,10 @@ function renderHero(release) {
   els.heroTitle.textContent = release.title;
   els.heroDescription.textContent = release.description;
   els.heroMeta.replaceChildren(...meta.map(createMetaPill));
-  els.heroPoster.src = release.poster;
+  els.heroPoster.src = release.heroPoster || release.poster;
   els.heroPoster.alt = release.title;
+  els.heroPoster.srcset = `${release.heroPoster || release.poster} 1x, ${release.poster} 2x`;
+  els.heroPoster.sizes = "(max-width: 860px) min(200px, 100vw), 320px";
   renderHeroDots();
   syncHeroOpenLink();
 }
@@ -1620,13 +1668,15 @@ async function loadHome(force = false) {
     state.catalogTotal = extractPagination(popularPayload).total || state.catalogTotal;
     state.homeLoaded = true;
 
-    renderHero(state.featured);
-    updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
-    updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
-    updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
     renderContinueWatchingSections();
     updateStats();
-    startHeroCarousel();
+    renderHero(state.featured);
+    requestAnimationFrame(() => {
+      updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
+      updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
+      updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
+      startHeroCarousel();
+    });
   } catch (error) {
     console.error("loadHome failed", error);
     state.homeLoaded = false;
@@ -1942,6 +1992,12 @@ function createAnimeCard(release, index) {
   const node = els.cardTemplate.content.firstElementChild.cloneNode(true);
   const action = node.querySelector(".anime-card__action");
   const poster = node.querySelector(".anime-card__poster");
+  const cardSrc = release.thumb || release.cardPoster || release.poster;
+  const card2x = release.cardPoster || release.poster || cardSrc;
+  const shouldPrioritize =
+    (state.currentView === "catalog" || state.currentView === "ongoing" || state.currentView === "top") &&
+    index < 2 &&
+    !shouldPreferFastStart();
 
   node.querySelector(".anime-card__age").textContent = release.age;
   node.querySelector(".anime-card__status").textContent = release.statusLabel;
@@ -1950,13 +2006,13 @@ function createAnimeCard(release, index) {
     .filter(Boolean)
     .join(" • ");
 
-  poster.src = release.cardPoster;
+  poster.src = cardSrc;
   poster.alt = release.title;
-  poster.loading = index < 4 ? "eager" : "lazy";
+  poster.loading = shouldPrioritize ? "eager" : "lazy";
   poster.decoding = "async";
-  poster.fetchPriority = index < 2 ? "high" : "auto";
-  poster.srcset = `${release.cardPoster} 1x, ${release.poster} 2x`;
-  poster.sizes = "(max-width: 560px) 44vw, (max-width: 920px) 30vw, 220px";
+  poster.fetchPriority = shouldPrioritize ? "high" : "low";
+  poster.srcset = `${cardSrc} 1x, ${card2x} 2x`;
+  poster.sizes = "(max-width: 420px) 44vw, (max-width: 860px) 40vw, (max-width: 1180px) 180px, 165px";
 
   const tags = node.querySelector(".anime-card__tags");
   const values = release.genres.slice(0, 2);
@@ -2004,11 +2060,13 @@ function updateGrid(target, releases, emptyMessage, options = {}) {
 function openDrawer() {
   els.drawer.classList.add("is-open");
   els.drawer.setAttribute("aria-hidden", "false");
+  els.drawer.inert = false;
 }
 
 function closeDrawer(options = {}) {
   els.drawer.classList.remove("is-open");
   els.drawer.setAttribute("aria-hidden", "true");
+  els.drawer.inert = true;
   destroyPlayer();
   stopExternalPlayer();
 
@@ -2691,7 +2749,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=40", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=42", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -2750,23 +2808,85 @@ function handleRoute() {
   setView(known ? nextView : "home", { updateHistory: false });
 }
 
-function handleShareClick() {
+function setShareButtonFeedback(label, timeout = 1600) {
+  const button = els.detailShareBtn;
+  if (!button) return;
+  button.textContent = label;
+  if (state.shareFeedbackTimer) {
+    clearTimeout(state.shareFeedbackTimer);
+  }
+  state.shareFeedbackTimer = setTimeout(() => {
+    button.textContent = "Поделиться";
+    state.shareFeedbackTimer = 0;
+  }, timeout);
+}
+
+async function copyTextFallback(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return true;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  textarea.style.pointerEvents = "none";
+  document.body.appendChild(textarea);
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+  let success = false;
+  try {
+    success = document.execCommand("copy");
+  } catch {
+    success = false;
+  } finally {
+    textarea.remove();
+  }
+  if (!success) {
+    window.prompt("Скопируйте ссылку на тайтл", value);
+  }
+  return success;
+}
+
+async function handleShareClick() {
   if (!state.currentAnime) return;
   const button = els.detailShareBtn;
   const url = `${location.origin}${getAnimePath(state.currentAnime.alias)}`;
-  navigator.clipboard
-    .writeText(url)
-    .then(() => {
-      button.textContent = "Ссылка скопирована";
-    })
-    .catch(() => {
-      button.textContent = "Не удалось скопировать";
-    })
-    .finally(() => {
-      setTimeout(() => {
-        button.textContent = "Скопировать ссылку";
-      }, 1400);
-    });
+  const shareData = {
+    title: `${state.currentAnime.title} — AnimeCloud`,
+    text: `Смотрите ${state.currentAnime.title} в AnimeCloud`,
+    url
+  };
+
+  if (button) button.disabled = true;
+
+  try {
+    if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+      await navigator.share(shareData);
+      setShareButtonFeedback("Ссылка отправлена");
+      return;
+    }
+
+    await copyTextFallback(url);
+    setShareButtonFeedback("Ссылка скопирована");
+  } catch (error) {
+    const code = String(error?.name || error?.code || "").toLowerCase();
+    if (code.includes("abort")) {
+      setShareButtonFeedback("Поделиться", 400);
+      return;
+    }
+
+    try {
+      await copyTextFallback(url);
+      setShareButtonFeedback("Ссылка скопирована");
+    } catch {
+      setShareButtonFeedback("Не удалось поделиться");
+    }
+  } finally {
+    if (button) button.disabled = false;
+  }
 }
 
 function bindListButtons() {

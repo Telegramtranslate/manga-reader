@@ -812,6 +812,28 @@ button {
   margin-top: 14px;
 }
 
+.anime-card__progress-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.anime-card__progress-label {
+  color: var(--text-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.anime-card__progress-value {
+  color: var(--accent-2);
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .anime-card__progress-bar {
   height: 6px;
   border-radius: 999px;
@@ -2310,7 +2332,7 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(250px, 34%);
   gap: 24px;
-  min-height: 280px;
+  min-height: 360px;
   padding: 24px;
   border-radius: 28px;
   background:
@@ -2329,6 +2351,7 @@ body {
   flex-direction: column;
   justify-content: center;
   gap: 4px;
+  min-height: 288px;
 }
 
 .hero-copy h1 {
@@ -2415,17 +2438,37 @@ body {
 .hero-dots {
   justify-content: flex-start;
   margin-top: 2px;
+  min-height: 32px;
 }
 
 .hero-dot {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 999px;
+  background: transparent;
+  border: 0;
+}
+
+.hero-dot::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 9px;
   height: 9px;
   border-radius: 999px;
+  transform: translate(-50%, -50%);
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid transparent;
 }
 
 .hero-dot.is-active {
+  width: 40px;
+}
+
+.hero-dot.is-active::before {
   width: 30px;
   background: linear-gradient(90deg, #f39c12, #ffbf47);
   border-color: rgba(255, 191, 71, 0.28);
@@ -2436,6 +2479,8 @@ body {
   gap: 12px;
   padding: 14px;
   border-radius: 24px;
+  min-height: 232px;
+  align-content: start;
 }
 
 .stat-card {
@@ -2457,6 +2502,26 @@ body {
 
 .home-view {
   gap: 22px;
+}
+
+.home-shell--latest,
+.home-shell--recommended {
+  min-height: 760px;
+}
+
+.home-shell--popular,
+.home-shell--continue {
+  min-height: 520px;
+}
+
+.home-shell--latest .anime-grid,
+.home-shell--recommended .anime-grid {
+  min-height: 540px;
+}
+
+.home-shell--popular .anime-grid,
+.home-shell--continue .anime-grid {
+  min-height: 360px;
 }
 
 .section-shell {
@@ -2505,6 +2570,7 @@ body {
   gap: 16px;
   content-visibility: auto;
   contain: layout style paint;
+  contain-intrinsic-size: 520px;
 }
 
 .anime-grid--poster {
@@ -2589,6 +2655,10 @@ body {
 
 .anime-card__progress {
   margin-top: 12px;
+}
+
+.anime-card__progress-top {
+  margin-bottom: 6px;
 }
 
 .anime-card__progress-meta {
@@ -2842,6 +2912,10 @@ body {
     gap: 16px;
   }
 
+  .hero-copy {
+    min-height: 0;
+  }
+
   .hero-copy h1 {
     max-width: none;
     font-size: clamp(1.6rem, 8vw, 2.3rem);
@@ -2861,6 +2935,20 @@ body {
 
   .home-view {
     gap: 14px;
+  }
+
+  .home-shell--latest,
+  .home-shell--recommended,
+  .home-shell--popular,
+  .home-shell--continue {
+    min-height: 0;
+  }
+
+  .home-shell--latest .anime-grid,
+  .home-shell--recommended .anime-grid,
+  .home-shell--popular .anime-grid,
+  .home-shell--continue .anime-grid {
+    min-height: 0;
   }
 
   .section-shell,

@@ -6,14 +6,6 @@
       "destination": "https://anilibria.top/api/v1/:path*"
     },
     {
-      "source": "/api/identity/:path*",
-      "destination": "https://identitytoolkit.googleapis.com/v1/:path*?key=AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY"
-    },
-    {
-      "source": "/api/securetoken",
-      "destination": "https://securetoken.googleapis.com/v1/token?key=AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY"
-    },
-    {
       "source": "/__/auth/:path*",
       "destination": "https://oauth-489621.firebaseapp.com/__/auth/:path*"
     },

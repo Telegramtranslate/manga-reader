@@ -1,21 +1,17 @@
 (function () {
-  const DEFAULT_FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDSZh9ObtPBPRlNHgCAcA3a1u4pNXdvDgY",
-    authDomain: "oauth-489621.firebaseapp.com",
-    projectId: "oauth-489621",
-    storageBucket: "oauth-489621.firebasestorage.app",
-    messagingSenderId: "263581962151",
-    appId: "1:263581962151:web:41538be2d5bae44d037082"
-  };
-
-  function parseRuntimeJson(value, fallback) {
-    if (!value) return fallback;
+  function parseRuntimeJson(value) {
+    if (!value) return null;
     if (typeof value === "object") return value;
     try {
       return JSON.parse(String(value));
     } catch {
-      return fallback;
+      return null;
     }
+  }
+
+  function hasRequiredFirebaseFields(config) {
+    if (!config || typeof config !== "object") return false;
+    return ["apiKey", "authDomain", "projectId", "appId"].every((key) => String(config[key] || "").trim());
   }
 
   function shouldUseSameOriginAuthDomain(locationObject = window.location) {
@@ -26,19 +22,23 @@
   }
 
   function isCustomAuthDomainEnabled() {
+    const envFlag = String(window.__ANIMECLOUD_ENV__?.VITE_FIREBASE_CUSTOM_AUTH_DOMAIN || "").trim().toLowerCase();
     return (
       window.ANIMECLOUD_USE_CUSTOM_AUTH_DOMAIN === true ||
-      document.querySelector('meta[name="firebase-custom-auth-domain"]')?.content === "true"
+      document.querySelector('meta[name="firebase-custom-auth-domain"]')?.content === "true" ||
+      envFlag === "true"
     );
   }
 
   function normalizeFirebaseConfig(config) {
-    const next = { ...DEFAULT_FIREBASE_CONFIG, ...(config || {}) };
+    if (!hasRequiredFirebaseFields(config)) {
+      throw new Error("AnimeCloud Firebase config is missing or invalid");
+    }
+
+    const next = { ...config };
     const configuredAuthDomain = String(next.authDomain || "").trim().toLowerCase();
     const currentHostname = String(window.location?.hostname || "").trim().toLowerCase();
 
-    // Custom auth domain mode is opt-in. It requires Google/Firebase OAuth
-    // console configuration for https://<your-domain>/__/auth/handler.
     if (
       isCustomAuthDomainEnabled() &&
       currentHostname &&
@@ -58,7 +58,7 @@
     window.ANIMECLOUD_FIREBASE_CONFIG ||
     null;
 
-  const FIREBASE_CONFIG = normalizeFirebaseConfig(parseRuntimeJson(runtimeFirebaseConfig, DEFAULT_FIREBASE_CONFIG));
+  const FIREBASE_CONFIG = normalizeFirebaseConfig(parseRuntimeJson(runtimeFirebaseConfig));
 
   const APP_CHECK_SITE_KEY =
     window.ANIMECLOUD_APP_CHECK_KEY ||
@@ -70,10 +70,11 @@
     window.ANIMECLOUD_ENABLE_APP_CHECK === true;
 
   let recaptchaPromise = null;
+  const helperHost = String(FIREBASE_CONFIG.authDomain || "").trim();
 
   window.ANIMECLOUD_FIREBASE_CONFIG = FIREBASE_CONFIG;
-  window.ANIMECLOUD_FIREBASE_HELPER_HOST = DEFAULT_FIREBASE_CONFIG.authDomain;
-  window.ANIMECLOUD_FIREBASE_HELPER_ORIGIN = `https://${DEFAULT_FIREBASE_CONFIG.authDomain}`;
+  window.ANIMECLOUD_FIREBASE_HELPER_HOST = helperHost;
+  window.ANIMECLOUD_FIREBASE_HELPER_ORIGIN = helperHost ? `https://${helperHost}` : "";
   window.ANIMECLOUD_USE_CUSTOM_AUTH_DOMAIN = isCustomAuthDomainEnabled();
   window.ANIMECLOUD_FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   window.ANIMECLOUD_APP_CHECK_KEY = window.ANIMECLOUD_APP_CHECK_KEY || APP_CHECK_SITE_KEY;
