@@ -12,6 +12,7 @@ function isAllowedImageUrl(rawUrl) {
         /(^|\.)libria\.fun$/i.test(url.hostname) ||
         /(^|\.)kodik\.biz$/i.test(url.hostname) ||
         /(^|\.)kodik\.info$/i.test(url.hostname) ||
+        /(^|\.)shikimori\.io$/i.test(url.hostname) ||
         /(^|\.)shikimori\.one$/i.test(url.hostname) ||
         /(^|\.)shikimori\.me$/i.test(url.hostname) ||
         /(^|\.)shikimori\.org$/i.test(url.hostname))

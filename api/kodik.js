@@ -17,6 +17,17 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function emptyListPayload() {
+  return {
+    items: [],
+    pagination: {
+      current_page: 1,
+      total_pages: 1,
+      total: 0
+    }
+  };
+}
+
 function dedupeRawResults(items = []) {
   const seen = new Set();
   return items.filter((item) => {
@@ -179,8 +190,8 @@ async function fetchRelease(meta) {
 module.exports = async (req, res) => {
   const action = String(readValue(req.query?.action) || "discover").trim();
 
-  try {
-    if (action === "discover") {
+  if (action === "discover") {
+    try {
       const mode = String(readValue(req.query?.mode) || "catalog").trim();
       const page = toNumber(readValue(req.query?.page), 1);
       const limit = toNumber(readValue(req.query?.limit), 24);
@@ -188,12 +199,22 @@ module.exports = async (req, res) => {
       const payload = await fetchDiscoverPage(mode, page, limit, sort);
       sendJson(res, 200, payload);
       return;
+    } catch (error) {
+      sendJson(res, 200, {
+        ...emptyListPayload(),
+        unavailable: true,
+        error: "Kodik temporarily unavailable",
+        message: String(error?.message || error || "Unknown error")
+      });
+      return;
     }
+  }
 
-    if (action === "search") {
+  if (action === "search") {
+    try {
       const query = String(readValue(req.query?.query) || "").trim();
       if (!query) {
-        sendJson(res, 200, { items: [], pagination: { current_page: 1, total_pages: 1, total: 0 } });
+        sendJson(res, 200, emptyListPayload());
         return;
       }
 
@@ -204,25 +225,38 @@ module.exports = async (req, res) => {
         pagination: { current_page: 1, total_pages: 1, total: items.length }
       });
       return;
+    } catch (error) {
+      sendJson(res, 200, {
+        ...emptyListPayload(),
+        unavailable: true,
+        error: "Kodik temporarily unavailable",
+        message: String(error?.message || error || "Unknown error")
+      });
+      return;
     }
+  }
 
-    if (action === "release") {
+  if (action === "release") {
+    try {
       const meta = readMeta(req);
       const release = await fetchRelease(meta);
       if (!release) {
-        sendJson(res, 404, { error: "Kodik release not found" });
+        sendJson(res, 200, { item: null, notFound: true });
         return;
       }
 
       sendJson(res, 200, release);
       return;
+    } catch (error) {
+      sendJson(res, 200, {
+        item: null,
+        unavailable: true,
+        error: "Kodik temporarily unavailable",
+        message: String(error?.message || error || "Unknown error")
+      });
+      return;
     }
-
-    sendJson(res, 400, { error: "Unsupported action" });
-  } catch (error) {
-    sendJson(res, 502, {
-      error: "Kodik request failed",
-      message: String(error?.message || error || "Unknown error")
-    });
   }
+
+  sendJson(res, 400, { error: "Unsupported action" });
 };

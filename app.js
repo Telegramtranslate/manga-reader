@@ -741,7 +741,8 @@ function normalizePreparedRelease(item) {
       imdbId: String(item?.identifiers?.imdbId || ""),
       kodikId: String(item?.identifiers?.kodikId || "")
     },
-    kodikIdentity: String(item?.kodikIdentity || "")
+    kodikIdentity: String(item?.kodikIdentity || ""),
+    sourceItems
   };
 }
 
@@ -1145,6 +1146,11 @@ function fetchKodikRelease(release, options = {}) {
     ttl: options.ttl ?? DETAIL_TTL,
     retries: options.retries || 2,
     signal: options.signal
+  }).then((payload) => {
+    if (!payload || payload.notFound || payload.unavailable || payload.item === null) {
+      return null;
+    }
+    return payload;
   });
 }
 

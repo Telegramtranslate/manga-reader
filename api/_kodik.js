@@ -1,5 +1,9 @@
 const KODIK_API_ORIGIN = "https://kodik-api.com";
-const DEFAULT_KODIK_TOKEN = "==QO0ADM3kTZmRTNiRDNjFDM==QOxkDMzQjZ4ADZ4YzNhZTN";
+const DEFAULT_KODIK_TOKENS = [
+  "==QO0ADM3kTZmRTNiRDNjFDM==QOxkDMzQjZ4ADZ4YzNhZTN",
+  "==QNyE2NzIjM4ETM3MmNklDM==gY5EzNxIzY0gjZ1kDZkFDN",
+  "==wMjhDN5QzYkNjZyQmM2ETO==QYjZjYkRjNxMWZ3YTNidzN"
+];
 
 function readValue(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -24,6 +28,31 @@ function uniqueStrings(values = []) {
   });
 
   return result;
+}
+
+function isPlainKodikToken(value) {
+  return /^[a-f0-9]{32}$/i.test(String(value || "").trim());
+}
+
+function decodeEncryptedKodikToken(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (isPlainKodikToken(raw)) return raw;
+  if (raw.length < 4 || raw.length % 2 !== 0) return raw;
+
+  try {
+    const middle = raw.length / 2;
+    const left = raw.slice(0, middle).split("").reverse().join("");
+    const right = raw.slice(middle).split("").reverse().join("");
+    const decoded = Buffer.from(right, "base64").toString("utf8") + Buffer.from(left, "base64").toString("utf8");
+    return isPlainKodikToken(decoded) ? decoded : raw;
+  } catch {
+    return raw;
+  }
+}
+
+function getKodikTokenCandidates() {
+  return uniqueStrings([process.env.KODIK_TOKEN, ...DEFAULT_KODIK_TOKENS].map(decodeEncryptedKodikToken));
 }
 
 function normalizeText(value) {
@@ -55,7 +84,6 @@ function absoluteKodikUrl(rawUrl) {
 function mapTypeLabel(item) {
   const type = String(item?.type || "").trim();
   const animeKind = String(item?.material_data?.anime_kind || "").trim();
-
   const typeMap = {
     anime: "Фильм",
     "anime-serial": "ТВ сериал",
@@ -165,13 +193,13 @@ function choosePrimary(items) {
     items
       .slice()
       .sort((left, right) => {
-        const scoreLeft =
+        const leftScore =
           (left?.material_data ? 20 : 0) + (left?.translation?.type === "voice" ? 5 : 0) + (getEpisodesTotal(left) > 1 ? 3 : 0);
-        const scoreRight =
+        const rightScore =
           (right?.material_data ? 20 : 0) +
           (right?.translation?.type === "voice" ? 5 : 0) +
           (getEpisodesTotal(right) > 1 ? 3 : 0);
-        return scoreRight - scoreLeft;
+        return rightScore - leftScore;
       })[0] || items[0]
   );
 }
@@ -196,7 +224,6 @@ function buildPreviewRelease(groupItems) {
   const poster = getPosterUrl(primary);
   const voices = uniqueStrings(groupItems.map((item) => item?.translation?.title).filter(Boolean));
   const ongoing = isOngoing(primary);
-  const type = mapTypeLabel(primary);
   const year = primary?.year || primary?.material_data?.year || "-";
 
   return {
@@ -207,7 +234,7 @@ function buildPreviewRelease(groupItems) {
     originalTitle: String(primary?.title_orig || primary?.material_data?.title_en || ""),
     alternateTitles: getTitleVariants(primary),
     year,
-    type,
+    type: mapTypeLabel(primary),
     typeValue: String(primary?.type || ""),
     season: "",
     age: getAgeLabel(primary),
@@ -291,21 +318,20 @@ function extractEpisodes(item, sourceId) {
       } else if (seasonLink) {
         const ordinal = toNumber(item?.last_episode || item?.episodes_count, 0);
         const dedupeKey = `${seasonOrdinal}:${ordinal}:${seasonLink}`;
+        if (seen.has(dedupeKey)) return;
 
-        if (!seen.has(dedupeKey)) {
-          seen.add(dedupeKey);
-          results.push({
-            id: `${sourceId}:${seasonOrdinal || 1}:${ordinal || 0}`,
-            ordinal,
-            seasonOrdinal,
-            name: ordinal ? `${ordinal} серия` : "Фильм",
-            duration: 0,
-            externalUrl: seasonLink,
-            previewUrl: "",
-            provider: "kodik",
-            sourceId
-          });
-        }
+        seen.add(dedupeKey);
+        results.push({
+          id: `${sourceId}:${seasonOrdinal || 1}:${ordinal || 0}`,
+          ordinal,
+          seasonOrdinal,
+          name: ordinal ? `${ordinal} серия` : "Фильм",
+          duration: 0,
+          externalUrl: seasonLink,
+          previewUrl: "",
+          provider: "kodik",
+          sourceId
+        });
       }
     });
   }
@@ -335,11 +361,11 @@ function buildSourceFromTranslation(groupItems) {
   const primary = choosePrimary(groupItems);
   const translationId = String(primary?.translation?.id || primary?.id || "default");
   const sourceId = `kodik:${translationId}`;
-  const episodes = groupItems.flatMap((item) => extractEpisodes(item, sourceId));
+  const extractedEpisodes = groupItems.flatMap((item) => extractEpisodes(item, sourceId));
   const dedupedEpisodes = [];
   const seenEpisodes = new Set();
 
-  episodes.forEach((episode) => {
+  extractedEpisodes.forEach((episode) => {
     const key = `${episode.ordinal || 0}:${episode.externalUrl}`;
     if (seenEpisodes.has(key)) return;
     seenEpisodes.add(key);
@@ -388,51 +414,61 @@ function buildFullRelease(groupItems) {
 }
 
 async function postKodik(endpoint, payload = {}) {
-  const token = process.env.KODIK_TOKEN || DEFAULT_KODIK_TOKEN;
-  if (!token) {
+  const tokens = getKodikTokenCandidates();
+  if (!tokens.length) {
     throw new Error("Kodik token is missing");
   }
 
-  const body = new URLSearchParams();
-  body.set("token", token);
-  Object.entries(payload).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === "") return;
-    body.set(key, String(value));
-  });
+  let lastError = null;
 
-  const response = await fetch(`${KODIK_API_ORIGIN}/${endpoint}`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-      accept: "application/json, text/plain, */*",
-      "user-agent": "AnimeCloud/1.0 (+https://color-manga-cloud.vercel.app)"
-    },
-    body: body.toString(),
-    redirect: "follow"
-  });
+  for (const token of tokens) {
+    const body = new URLSearchParams();
+    body.set("token", token);
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === "") return;
+      body.set(key, String(value));
+    });
 
-  const rawText = await response.text();
-  let data = null;
+    try {
+      const response = await fetch(`${KODIK_API_ORIGIN}/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+          accept: "application/json, text/plain, */*",
+          "user-agent": "AnimeCloud/1.0 (+https://color-manga-cloud.vercel.app)"
+        },
+        body: body.toString(),
+        redirect: "follow"
+      });
 
-  try {
-    data = rawText ? JSON.parse(rawText) : null;
-  } catch {
-    data = null;
+      const rawText = await response.text();
+      let data = null;
+
+      try {
+        data = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        data = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Kodik API request failed: ${response.status}`);
+      }
+
+      if (!data || typeof data !== "object") {
+        throw new Error("Kodik API returned invalid payload");
+      }
+
+      if (data.error) {
+        throw new Error(String(data.error));
+      }
+
+      return data;
+    } catch (error) {
+      lastError = error;
+    }
   }
 
-  if (!response.ok) {
-    throw new Error(`Kodik API request failed: ${response.status}`);
-  }
-
-  if (!data || typeof data !== "object") {
-    throw new Error("Kodik API returned invalid payload");
-  }
-
-  if (data.error) {
-    throw new Error(String(data.error));
-  }
-
-  return data;
+  throw lastError || new Error("Kodik API request failed");
 }
 
 function filterAnimeResults(items = []) {
@@ -523,7 +559,7 @@ function payloadFromPageUrl(rawUrl) {
 
 module.exports = {
   KODIK_API_ORIGIN,
-  DEFAULT_KODIK_TOKEN,
+  DEFAULT_KODIK_TOKENS,
   readValue,
   toNumber,
   uniqueStrings,
