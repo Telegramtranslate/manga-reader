@@ -30,11 +30,13 @@ const VIEW_SEO = {
   },
   search: {
     title: "Поиск аниме с русской озвучкой - AnimeCloud",
-    description: "Поиск аниме по названию, формату и жанрам в каталоге AnimeCloud."
+    description: "Поиск аниме по названию, формату и жанрам в каталоге AnimeCloud.",
+    robots: "noindex,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
   },
   profile: {
     title: "Профиль зрителя - AnimeCloud",
-    description: "Профиль, списки, комментарии и история просмотра в AnimeCloud."
+    description: "Профиль, списки, комментарии и история просмотра в AnimeCloud.",
+    robots: "noindex,nofollow,noarchive"
   }
 };
 
@@ -369,12 +371,13 @@ function buildStructuredData(page) {
   });
 }
 
-function applySeo({ title, description, path, image, type = "website", structuredData }) {
+function applySeo({ title, description, path, image, type = "website", structuredData, robots }) {
   const canonical = siteUrl(path || "/");
   document.title = title || DEFAULT_SEO_TITLE;
   if (els.metaDescription) els.metaDescription.content = description || DEFAULT_SEO_DESCRIPTION;
   if (els.metaRobots) {
-    els.metaRobots.content = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
+    els.metaRobots.content =
+      robots || "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
   }
   if (els.canonicalLink) els.canonicalLink.href = canonical;
   if (els.ogType) els.ogType.content = type;
@@ -409,6 +412,7 @@ function updateViewSeo(view) {
     title: seo.title,
     description: seo.description,
     path: getViewPath(view),
+    robots: seo.robots,
     structuredData: buildStructuredData({
       "@type": "CollectionPage",
       name: seo.title,

@@ -1707,6 +1707,14 @@ button {
   padding: 0 22px 26px;
 }
 
+body > .seo-footer:not(.seo-footer--clean) {
+  display: none;
+}
+
+.seo-footer--clean {
+  display: block;
+}
+
 .seo-footer__inner {
   display: flex;
   flex-wrap: wrap;
