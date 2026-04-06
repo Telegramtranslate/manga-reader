@@ -2367,6 +2367,11 @@ body {
   max-width: 64ch;
   margin-top: 8px;
   color: #cfc5b7;
+  min-height: 7.8em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
 }
 
 .meta-row,
@@ -3140,6 +3145,11 @@ body {
   .detail-copy p,
   .section-summary {
     line-height: 1.5;
+  }
+
+  .hero-copy p {
+    min-height: 6em;
+    -webkit-line-clamp: 4;
   }
 }
 

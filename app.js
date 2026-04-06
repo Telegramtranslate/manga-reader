@@ -560,12 +560,21 @@ const posterSource = (poster) =>
   );
 const cardPosterSource = (poster) =>
   proxiedImageUrl(
-    poster?.optimized?.thumbnail ||
-      poster?.thumbnail ||
-      poster?.optimized?.preview ||
+    poster?.optimized?.preview ||
       poster?.preview ||
       poster?.optimized?.src ||
-      poster?.src
+      poster?.src ||
+      poster?.optimized?.thumbnail ||
+      poster?.thumbnail
+  );
+const cardPosterDirectSource = (poster) =>
+  absoluteUrl(
+    poster?.optimized?.preview ||
+      poster?.preview ||
+      poster?.optimized?.src ||
+      poster?.src ||
+      poster?.optimized?.thumbnail ||
+      poster?.thumbnail
   );
 const heroPosterSource = (poster) =>
   proxiedImageUrl(
@@ -578,12 +587,30 @@ const heroPosterSource = (poster) =>
   );
 const thumbSource = (poster) =>
   proxiedImageUrl(
-    poster?.optimized?.thumbnail ||
-      poster?.thumbnail ||
-      poster?.optimized?.preview ||
+    poster?.optimized?.preview ||
       poster?.preview ||
       poster?.optimized?.src ||
-      poster?.src
+      poster?.src ||
+      poster?.optimized?.thumbnail ||
+      poster?.thumbnail
+  );
+const heroPosterDirectSource = (poster) =>
+  absoluteUrl(
+    poster?.optimized?.preview ||
+      poster?.preview ||
+      poster?.optimized?.src ||
+      poster?.src ||
+      poster?.optimized?.thumbnail ||
+      poster?.thumbnail
+  );
+const thumbDirectSource = (poster) =>
+  absoluteUrl(
+    poster?.optimized?.preview ||
+      poster?.preview ||
+      poster?.optimized?.src ||
+      poster?.src ||
+      poster?.optimized?.thumbnail ||
+      poster?.thumbnail
   );
 
 function buildRelease(item) {
@@ -626,9 +653,20 @@ function buildRelease(item) {
     publishDayValue: source.publish_day?.value || 0,
     description: source.description || "Описание пока не заполнено.",
     poster: posterSource(source.poster),
+    posterDirect: absoluteUrl(
+      source.poster?.optimized?.src ||
+        source.poster?.src ||
+        source.poster?.optimized?.preview ||
+        source.poster?.preview ||
+        source.poster?.optimized?.thumbnail ||
+        source.poster?.thumbnail
+    ),
     heroPoster: heroPosterSource(source.poster),
+    heroPosterDirect: heroPosterDirectSource(source.poster),
     cardPoster: cardPosterSource(source.poster),
+    cardPosterDirect: cardPosterDirectSource(source.poster),
     thumb: thumbSource(source.poster),
+    thumbDirect: thumbDirectSource(source.poster),
     genres,
     episodesTotal: source.episodes_total || episodes.length || 0,
     averageDuration: source.average_duration_of_episode || 0,
@@ -1514,6 +1552,13 @@ function renderHero(release) {
   els.heroPoster.alt = release.title;
   els.heroPoster.srcset = `${release.heroPoster || release.poster} 1x, ${release.poster} 2x`;
   els.heroPoster.sizes = "(max-width: 860px) min(200px, 100vw), 320px";
+  els.heroPoster.onerror = () => {
+    if (els.heroPoster.dataset.fallbackApplied === "1") return;
+    els.heroPoster.dataset.fallbackApplied = "1";
+    els.heroPoster.src = release.heroPosterDirect || release.posterDirect || "/mc-icon-512.png?v=4";
+    els.heroPoster.srcset = "";
+  };
+  delete els.heroPoster.dataset.fallbackApplied;
   renderHeroDots();
   syncHeroOpenLink();
 }
@@ -1992,8 +2037,9 @@ function createAnimeCard(release, index) {
   const node = els.cardTemplate.content.firstElementChild.cloneNode(true);
   const action = node.querySelector(".anime-card__action");
   const poster = node.querySelector(".anime-card__poster");
-  const cardSrc = release.thumb || release.cardPoster || release.poster;
-  const card2x = release.cardPoster || release.poster || cardSrc;
+  const cardSrc = release.cardPoster || release.thumb || release.poster;
+  const card2x = release.poster || release.cardPoster || cardSrc;
+  const cardFallback = release.cardPosterDirect || release.thumbDirect || release.posterDirect || "/mc-icon-192.png?v=4";
   const shouldPrioritize =
     (state.currentView === "catalog" || state.currentView === "ongoing" || state.currentView === "top") &&
     index < 2 &&
@@ -2013,6 +2059,12 @@ function createAnimeCard(release, index) {
   poster.fetchPriority = shouldPrioritize ? "high" : "low";
   poster.srcset = `${cardSrc} 1x, ${card2x} 2x`;
   poster.sizes = "(max-width: 420px) 44vw, (max-width: 860px) 40vw, (max-width: 1180px) 180px, 165px";
+  poster.onerror = () => {
+    if (poster.dataset.fallbackApplied === "1") return;
+    poster.dataset.fallbackApplied = "1";
+    poster.src = cardFallback;
+    poster.srcset = "";
+  };
 
   const tags = node.querySelector(".anime-card__tags");
   const values = release.genres.slice(0, 2);
@@ -2749,7 +2801,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=42", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=44", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
