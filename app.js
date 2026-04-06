@@ -78,6 +78,7 @@ const state = {
   searchTimer: null,
   searchAbort: null,
   searchQuery: "",
+  latestTotal: 0,
   catalogPage: 0,
   catalogTotal: 0,
   catalogHasMore: false,
@@ -285,8 +286,15 @@ function proxiedImageUrl(path) {
     const url = new URL(absolute, window.location.origin);
     if (url.origin === window.location.origin) return url.toString();
     if (
-      !/(?:anilibria\.top|libria\.fun|kodik\.biz|kodik\.info|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
-        url.hostname
+      !(
+        /(^|\.)anilibria\.top$/i.test(url.hostname) ||
+        /(^|\.)libria\.fun$/i.test(url.hostname) ||
+        /(^|\.)kodik\.biz$/i.test(url.hostname) ||
+        /(^|\.)kodik\.info$/i.test(url.hostname) ||
+        /(^|\.)shikimori\.io$/i.test(url.hostname) ||
+        /(^|\.)shikimori\.one$/i.test(url.hostname) ||
+        /(^|\.)shikimori\.me$/i.test(url.hostname) ||
+        /(^|\.)shikimori\.org$/i.test(url.hostname)
       )
     ) {
       return absolute;
@@ -2031,7 +2039,7 @@ function applyAdminHero(releases) {
 }
 
 function updateStats() {
-  els.latestCount.textContent = formatNumber(state.latest.length || state.recommended.length || state.popular.length);
+  els.latestCount.textContent = formatNumber(state.latestTotal || state.latest.length || state.recommended.length || state.popular.length);
   els.catalogCount.textContent = formatNumber(state.catalogTotal || state.catalogItems.length || getHeroCandidates().length);
   els.ongoingCount.textContent = formatNumber(state.ongoingTotal || state.ongoingItems.length);
   els.topCount.textContent = formatNumber(state.topTotal || state.popular.length || state.topItems.length);
@@ -2153,10 +2161,12 @@ async function loadHome(force = false) {
   renderSkeletonGrid(els.popularGrid, 6);
 
   try {
-    const [latestPayload, recommendedPayload, popularPayload, kodikLatestPayload, kodikTopPayload] = await Promise.all([
+    const [latestPayload, recommendedPayload, popularPayload, latestCountPayload, ongoingCountPayload, kodikLatestPayload, kodikTopPayload] = await Promise.all([
       fetchJson("/anime/releases/latest", { limit: 12 }, { ttl: 60000 }),
       fetchJson("/anime/releases/recommended", { limit: 12 }, { ttl: 60000 }),
       fetchJson("/anime/catalog/releases", { page: 1, limit: 12, "f[sorting]": "RATING_DESC" }, { ttl: 120000 }),
+      fetchJson("/anime/catalog/releases", { page: 1, limit: 1, "f[sorting]": "FRESH_AT_DESC" }, { ttl: 120000 }),
+      fetchJson("/anime/catalog/releases", { page: 1, limit: 1, "f[publish_statuses]": "IS_ONGOING" }, { ttl: 120000 }),
       fetchKodikDiscover("latest", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] })),
       fetchKodikDiscover("top", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] }))
     ]);
@@ -2169,12 +2179,15 @@ async function loadHome(force = false) {
     registerGenres(state.recommended);
     registerGenres(state.popular);
 
-    const featuredPool = getHeroCandidates();
-    state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
-    state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
-    state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
-    state.catalogTotal = extractPagination(popularPayload).total || state.catalogTotal;
-    state.homeLoaded = true;
+      const featuredPool = getHeroCandidates();
+      state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
+      state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
+      state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
+      state.latestTotal = Math.max(extractPagination(latestCountPayload).total || 0, state.latest.length);
+      state.catalogTotal = Math.max(extractPagination(popularPayload).total || 0, state.catalogTotal, state.popular.length);
+      state.ongoingTotal = Math.max(extractPagination(ongoingCountPayload).total || 0, state.ongoingTotal, state.ongoingItems.length);
+      state.topTotal = Math.max(extractPagination(popularPayload).total || 0, state.topTotal, state.popular.length);
+      state.homeLoaded = true;
 
     renderContinueWatchingSections();
     updateStats();
@@ -2441,6 +2454,37 @@ function renderSearchEmpty() {
   els.searchSummary.textContent = "Введите название сверху, чтобы найти релиз.";
 }
 
+function searchLocalReleases(query) {
+  const normalizedQuery = normalizeComparableText(query);
+  if (!normalizedQuery) return [];
+
+  const localPool = uniqueReleases([
+    state.currentAnime,
+    state.featured,
+    ...state.latest,
+    ...state.recommended,
+    ...state.popular,
+    ...state.catalogItems,
+    ...state.ongoingItems,
+    ...state.topItems,
+    ...state.favorites
+  ].filter(Boolean));
+
+  return localPool.filter((release) => {
+    const titleMatch = getReleaseTitleVariants(release).some((title) => title.includes(normalizedQuery));
+    if (titleMatch) return true;
+
+    const genreMatch = uniqueStrings(Array.isArray(release?.genres) ? release.genres : [])
+      .map(normalizeComparableText)
+      .some((genre) => genre.includes(normalizedQuery));
+    if (genreMatch) return true;
+
+    return uniqueStrings(Array.isArray(release?.voices) ? release.voices : [])
+      .map(normalizeComparableText)
+      .some((voice) => voice.includes(normalizedQuery));
+  });
+}
+
 async function runSearch(query) {
   const cleanQuery = query.trim();
   state.searchQuery = cleanQuery;
@@ -2463,13 +2507,17 @@ async function runSearch(query) {
   renderSkeletonGrid(els.searchGrid, 8);
 
   try {
+    const localResults = searchLocalReleases(cleanQuery);
     const [payload, kodikPayload] = await Promise.all([
       fetchJson("/app/search/releases", { query: cleanQuery }, { ttl: 60000, signal: controller.signal }),
       fetchKodikSearch(cleanQuery, { ttl: 60000, signal: controller.signal }).catch(() => ({ items: [] }))
     ]);
     if (controller.signal.aborted) return;
 
-    state.searchResults = mergeReleaseCollections(buildReleases(payload), buildReleases(kodikPayload)).slice(0, 48);
+    state.searchResults = mergeReleaseCollections(
+      mergeReleaseCollections(localResults, buildReleases(payload)),
+      buildReleases(kodikPayload)
+    ).slice(0, 48);
     els.searchSummary.textContent = state.searchResults.length
       ? `Найдено ${formatNumber(state.searchResults.length)} релизов по запросу «${cleanQuery}».`
       : `По запросу «${cleanQuery}» ничего не найдено.`;

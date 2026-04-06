@@ -160,6 +160,17 @@ function getEpisodesTotal(item) {
   );
 }
 
+function getEpisodeRange(episodes = []) {
+  if (!Array.isArray(episodes) || !episodes.length) {
+    return { first: 0, last: 0 };
+  }
+
+  return {
+    first: toNumber(episodes[0]?.ordinal, 0),
+    last: toNumber(episodes[episodes.length - 1]?.ordinal, 0)
+  };
+}
+
 function getTitleVariants(item) {
   return uniqueStrings([
     item?.title,
@@ -182,6 +193,67 @@ function buildIdentity(item) {
 
   const fallback = `${normalizeText(item?.title || item?.material_data?.anime_title || "release")}:${item?.year || ""}`;
   return `title:${fallback}`;
+}
+
+function hasMovieKeywords(values = []) {
+  return values.some((value) => /\b(movie|film|фильм|полнометраж|ova|special|спецвыпуск)\b/i.test(String(value || "")));
+}
+
+function isMovieItem(item) {
+  const animeKind = String(item?.material_data?.anime_kind || "").toLowerCase();
+  const type = String(item?.type || "").toLowerCase();
+  return animeKind === "movie" || type === "anime";
+}
+
+function isSerialItem(item) {
+  const animeKind = String(item?.material_data?.anime_kind || "").toLowerCase();
+  const type = String(item?.type || "").toLowerCase();
+  return ["tv", "tv13", "tv24", "tv48", "ona", "ova", "special"].includes(animeKind) || type.includes("serial");
+}
+
+function titleMatchScore(requested, candidate) {
+  if (!requested || !candidate) return 0;
+  if (candidate === requested) return 80;
+  if (candidate.startsWith(requested) || requested.startsWith(candidate)) return 52;
+  if (candidate.includes(requested) || requested.includes(candidate)) return 30;
+  return 0;
+}
+
+function scoreGroupMatch(groupItems, meta = {}) {
+  const primary = choosePrimary(groupItems);
+  const requestTitles = uniqueStrings([meta.title, meta.originalTitle, ...(meta.alternateTitles || [])]).map(normalizeText);
+  const candidateTitles = uniqueStrings(groupItems.flatMap((item) => getTitleVariants(item))).map(normalizeText);
+  const requestYear = toNumber(meta.year, 0);
+  const episodesTotal = getEpisodesTotal(primary);
+
+  let score = 0;
+
+  if (meta.identity && groupItems.some((item) => buildIdentity(item) === meta.identity)) {
+    score += 140;
+  }
+
+  requestTitles.forEach((requested) => {
+    candidateTitles.forEach((candidate) => {
+      score = Math.max(score, titleMatchScore(requested, candidate));
+    });
+  });
+
+  if (requestYear) {
+    const itemYear = toNumber(primary?.year || primary?.material_data?.year, 0);
+    if (itemYear === requestYear) score += 28;
+    else if (itemYear && Math.abs(itemYear - requestYear) === 1) score += 10;
+    else if (itemYear) score -= 18;
+  }
+
+  if (isSerialItem(primary)) score += 12;
+  if (episodesTotal > 3) score += 12;
+  if (episodesTotal > 12) score += 8;
+
+  const requestHasMovieKeywords = hasMovieKeywords(requestTitles);
+  if (!requestHasMovieKeywords && isMovieItem(primary)) score -= 18;
+  if (requestHasMovieKeywords && isMovieItem(primary)) score += 10;
+
+  return score;
 }
 
 function buildAlias(identity) {
@@ -375,18 +447,52 @@ function buildSourceFromTranslation(groupItems) {
   const translationTitle = String(primary?.translation?.title || "Озвучка");
   const translationType = String(primary?.translation?.type || "voice");
   const episodesCount = Math.max(dedupedEpisodes.length, getEpisodesTotal(primary));
+  const { first, last } = getEpisodeRange(dedupedEpisodes);
+  const typeLabel = translationType === "subtitles" ? "субтитры" : "озвучка";
+  const rangeLabel =
+    first > 0 && last >= first
+      ? first === 1 && (!episodesCount || last >= episodesCount)
+        ? `${episodesCount || dedupedEpisodes.length} эп.`
+        : `${first}-${last} эп.`
+      : `${episodesCount || "?"} эп.`;
 
   return {
     id: sourceId,
     provider: "kodik",
     kind: dedupedEpisodes.length ? "iframe-episodes" : "iframe",
     title: `Kodik · ${translationTitle}`,
-    note: `${episodesCount || "?"} эп. · ${translationType === "subtitles" ? "субтитры" : "озвучка"}`,
+    note: `${rangeLabel} · ${typeLabel}`,
     voices: [translationTitle],
     translationId,
     externalUrl: absoluteKodikUrl(primary?.link),
     episodes: dedupedEpisodes
   };
+}
+
+function sortSourceItems(sourceItems = []) {
+  return sourceItems.slice().sort((left, right) => {
+    const leftRange = getEpisodeRange(left?.episodes || []);
+    const rightRange = getEpisodeRange(right?.episodes || []);
+    const leftStartsAtOne = leftRange.first <= 1 ? 1 : 0;
+    const rightStartsAtOne = rightRange.first <= 1 ? 1 : 0;
+    if (leftStartsAtOne !== rightStartsAtOne) {
+      return rightStartsAtOne - leftStartsAtOne;
+    }
+
+    const leftEpisodes = Array.isArray(left?.episodes) ? left.episodes.length : 0;
+    const rightEpisodes = Array.isArray(right?.episodes) ? right.episodes.length : 0;
+    if (leftEpisodes !== rightEpisodes) {
+      return rightEpisodes - leftEpisodes;
+    }
+
+    const leftSubtitle = /субтитр/i.test(`${left?.title || ""} ${left?.note || ""}`);
+    const rightSubtitle = /субтитр/i.test(`${right?.title || ""} ${right?.note || ""}`);
+    if (leftSubtitle !== rightSubtitle) {
+      return leftSubtitle ? 1 : -1;
+    }
+
+    return String(left?.title || "").localeCompare(String(right?.title || ""), "ru");
+  });
 }
 
 function buildFullRelease(groupItems) {
@@ -401,7 +507,7 @@ function buildFullRelease(groupItems) {
     translationGroups.get(key).push(item);
   });
 
-  const sourceItems = Array.from(translationGroups.values()).map(buildSourceFromTranslation);
+  const sourceItems = sortSourceItems(Array.from(translationGroups.values()).map(buildSourceFromTranslation));
   const firstSource = sourceItems[0] || null;
 
   return {
@@ -508,7 +614,20 @@ function findBestPreviewMatch(items = [], meta = {}) {
   const candidates = matched.length ? matched : groups;
 
   if (!candidates.length) return null;
-  return buildFullRelease(candidates[0]);
+  const bestGroup =
+    candidates
+      .slice()
+      .sort((left, right) => {
+        const scoreDiff = scoreGroupMatch(right, meta) - scoreGroupMatch(left, meta);
+        if (scoreDiff !== 0) return scoreDiff;
+
+        const episodeDiff = getEpisodesTotal(choosePrimary(right)) - getEpisodesTotal(choosePrimary(left));
+        if (episodeDiff !== 0) return episodeDiff;
+
+        return toNumber(choosePrimary(right)?.year, 0) - toNumber(choosePrimary(left)?.year, 0);
+      })[0] || candidates[0];
+
+  return buildFullRelease(bestGroup);
 }
 
 function buildDiscoverPayload(mode, limit, page, sort) {
