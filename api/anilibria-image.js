@@ -10,6 +10,7 @@ function isAllowedImageUrl(rawUrl) {
       (url.hostname === "anilibria.top" ||
         /(^|\.)anilibria\.top$/i.test(url.hostname) ||
         /(^|\.)libria\.fun$/i.test(url.hostname) ||
+        /(^|\.)kp\.yandex\.net$/i.test(url.hostname) ||
         /(^|\.)kodik\.biz$/i.test(url.hostname) ||
         /(^|\.)kodik\.info$/i.test(url.hostname) ||
         /(^|\.)shikimori\.io$/i.test(url.hostname) ||

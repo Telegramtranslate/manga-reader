@@ -290,6 +290,7 @@ function proxiedImageUrl(path) {
       !(
         /(^|\.)anilibria\.top$/i.test(url.hostname) ||
         /(^|\.)libria\.fun$/i.test(url.hostname) ||
+        /(^|\.)kp\.yandex\.net$/i.test(url.hostname) ||
         /(^|\.)kodik\.biz$/i.test(url.hostname) ||
         /(^|\.)kodik\.info$/i.test(url.hostname) ||
         /(^|\.)shikimori\.io$/i.test(url.hostname) ||
@@ -2048,7 +2049,12 @@ function updateStats() {
 
 async function loadContentStats(force = false) {
   try {
-    const stats = await fetchJson("/content-stats.json", null, { ttl: force ? 0 : CONTENT_STATS_TTL, retries: 1 });
+    let stats = null;
+    try {
+      stats = await fetchJson("/api/content-stats", null, { ttl: force ? 0 : CONTENT_STATS_TTL, retries: 1 });
+    } catch {
+      stats = await fetchJson("/content-stats.json", null, { ttl: force ? 0 : CONTENT_STATS_TTL, retries: 1 });
+    }
     state.latestTotal = Math.max(Number(stats?.latestTotal || 0), state.latestTotal || 0);
     state.catalogTotal = Math.max(Number(stats?.catalogTotal || 0), state.catalogTotal || 0);
     state.ongoingTotal = Math.max(Number(stats?.ongoingTotal || 0), state.ongoingTotal || 0);
@@ -3396,7 +3402,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=49", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=50", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
