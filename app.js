@@ -277,7 +277,7 @@ async function handleInstallClick() {
 }
 
 function absoluteUrl(path) {
-  if (!path) return "/mc-icon-512.png?v=4";
+  if (!path) return "/mc-icon-512.png?v=5";
   if (/^https?:\/\//i.test(path)) return path;
   if (path.startsWith("//")) return `https:${path}`;
   return `${ORIGIN_BASE}${path}`;
@@ -421,10 +421,10 @@ function applySeo({ title, description, path, image, type = "website", structure
   if (els.ogTitle) els.ogTitle.content = title || DEFAULT_SEO_TITLE;
   if (els.ogDescription) els.ogDescription.content = description || DEFAULT_SEO_DESCRIPTION;
   if (els.ogUrl) els.ogUrl.content = canonical;
-  if (els.ogImage) els.ogImage.content = image || siteUrl("/mc-icon-512.png?v=4");
+  if (els.ogImage) els.ogImage.content = image || siteUrl("/mc-icon-512.png?v=5");
   if (els.twitterTitle) els.twitterTitle.content = title || DEFAULT_SEO_TITLE;
   if (els.twitterDescription) els.twitterDescription.content = description || DEFAULT_SEO_DESCRIPTION;
-  if (els.twitterImage) els.twitterImage.content = image || siteUrl("/mc-icon-512.png?v=4");
+  if (els.twitterImage) els.twitterImage.content = image || siteUrl("/mc-icon-512.png?v=5");
   if (els.structuredData) {
     els.structuredData.textContent =
       structuredData ||
@@ -476,14 +476,14 @@ function updateReleaseSeo(release) {
     title: `${release.title} - смотреть онлайн с русской озвучкой | AnimeCloud`,
     description,
     path,
-    image: release.poster || siteUrl("/mc-icon-512.png?v=4"),
+    image: release.poster || siteUrl("/mc-icon-512.png?v=5"),
     type: "video.other",
     structuredData: buildStructuredData({
       "@type": "TVSeries",
       name: release.title,
       url: siteUrl(path),
       description,
-      image: release.poster || siteUrl("/mc-icon-512.png?v=4"),
+    image: release.poster || siteUrl("/mc-icon-512.png?v=5"),
       genre: release.genres || [],
       inLanguage: "ru",
       numberOfEpisodes: release.episodesTotal || undefined,
@@ -1417,9 +1417,9 @@ function buildProgressRelease(progress) {
     age: "",
     statusLabel: "Продолжить",
     publishDay: "",
-    poster: progress.poster || "/mc-icon-512.png?v=4",
-    cardPoster: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=4",
-    thumb: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=4",
+      poster: progress.poster || "/mc-icon-512.png?v=5",
+      cardPoster: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=5",
+      thumb: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=5",
     genres: [],
     episodesTotal: progress.episodeOrdinal || 0,
     __progress: progress
@@ -1924,7 +1924,7 @@ function renderProfile() {
   const admin = isAdminUser();
   syncInstallButton();
 
-  if (els.profileAvatar) els.profileAvatar.src = user?.photoUrl || "/mc-icon-192.png?v=4";
+  if (els.profileAvatar) els.profileAvatar.src = user?.photoUrl || "/mc-icon-192.png?v=5";
   if (els.profileName) els.profileName.textContent = user?.displayName || user?.email?.split("@")[0] || "Гость";
   if (els.profileRoleBadge) els.profileRoleBadge.hidden = !admin;
   if (els.profileEmail) els.profileEmail.textContent = user?.email || "Вход не выполнен";
@@ -2047,7 +2047,7 @@ function renderHero(release) {
   els.heroPoster.onerror = () => {
     if (els.heroPoster.dataset.fallbackApplied === "1") return;
     els.heroPoster.dataset.fallbackApplied = "1";
-    els.heroPoster.src = release.heroPosterDirect || release.posterDirect || "/mc-icon-512.png?v=4";
+  els.heroPoster.src = release.heroPosterDirect || release.posterDirect || "/mc-icon-512.png?v=5";
     els.heroPoster.srcset = "";
   };
   delete els.heroPoster.dataset.fallbackApplied;
@@ -2643,7 +2643,7 @@ function createAnimeCard(release, index) {
   const poster = node.querySelector(".anime-card__poster");
   const cardSrc = release.cardPoster || release.thumb || release.poster;
   const card2x = release.poster || release.cardPoster || cardSrc;
-  const cardFallback = release.cardPosterDirect || release.thumbDirect || release.posterDirect || "/mc-icon-192.png?v=4";
+  const cardFallback = release.cardPosterDirect || release.thumbDirect || release.posterDirect || "/mc-icon-192.png?v=5";
   const shouldPrioritize =
     (state.currentView === "catalog" || state.currentView === "ongoing" || state.currentView === "top") &&
     index < 2 &&

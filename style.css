@@ -2189,12 +2189,12 @@ body {
   height: 40px;
   border-radius: 14px;
   background:
-    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.2), transparent 20%),
-    linear-gradient(180deg, #f7ad34, #d66e16);
+    radial-gradient(circle at 32% 26%, rgba(255, 243, 210, 0.82), rgba(255, 215, 132, 0.18) 34%, transparent 58%),
+    linear-gradient(180deg, #f8ba41 0%, #ef9920 58%, #d97612 100%);
   color: #17110a;
   font-weight: 900;
   font-size: 1.3rem;
-  box-shadow: 0 14px 30px rgba(243, 156, 18, 0.28);
+  box-shadow: 0 14px 30px rgba(230, 144, 22, 0.28);
 }
 
 .brand-sub {
