@@ -2080,6 +2080,9 @@ async function loadContentStats(force = false) {
     state.catalogTotal = Math.max(Number(stats?.catalogTotal || 0), state.catalogTotal || 0);
     state.ongoingTotal = Math.max(Number(stats?.ongoingTotal || 0), state.ongoingTotal || 0);
     state.topTotal = Math.max(Number(stats?.topTotal || 0), state.topTotal || 0);
+    state.catalogTotalPages = Math.max(state.catalogTotalPages || 0, Math.ceil(Number(stats?.catalogTotal || 0) / GRID_PAGE_SIZE));
+    state.ongoingTotalPages = Math.max(state.ongoingTotalPages || 0, Math.ceil(Number(stats?.ongoingTotal || 0) / GRID_PAGE_SIZE));
+    state.topTotalPages = Math.max(state.topTotalPages || 0, Math.ceil(Number(stats?.topTotal || 0) / GRID_PAGE_SIZE));
     updateStats();
     if (state.catalogLoaded) refreshCatalogView();
     if (state.ongoingLoaded) refreshOngoingSummary();
@@ -2228,27 +2231,29 @@ async function loadHome(force = false) {
       state.latestTotal = Math.max(state.latestTotal || 0, extractPagination(latestCountPayload).total || 0, state.latest.length);
       state.catalogTotal = Math.max(
         extractPagination(popularPayload).total || 0,
-        extractPagination(kodikTopPayload).total || 0,
         state.catalogTotal,
         state.popular.length
       );
       state.catalogTotalPages = Math.max(
         state.catalogTotalPages || 0,
         extractPagination(popularPayload).total_pages || 0,
-        extractPagination(kodikTopPayload).total_pages || 0
+        Math.ceil((state.catalogTotal || state.popular.length) / GRID_PAGE_SIZE)
       );
       state.ongoingTotal = Math.max(extractPagination(ongoingCountPayload).total || 0, state.ongoingTotal, state.ongoingItems.length);
-      state.ongoingTotalPages = Math.max(state.ongoingTotalPages || 0, extractPagination(ongoingCountPayload).total_pages || 0);
+      state.ongoingTotalPages = Math.max(
+        state.ongoingTotalPages || 0,
+        extractPagination(ongoingCountPayload).total_pages || 0,
+        Math.ceil((state.ongoingTotal || state.ongoingItems.length) / GRID_PAGE_SIZE)
+      );
       state.topTotal = Math.max(
         extractPagination(popularPayload).total || 0,
-        extractPagination(kodikTopPayload).total || 0,
         state.topTotal,
         state.popular.length
       );
       state.topTotalPages = Math.max(
         state.topTotalPages || 0,
         extractPagination(popularPayload).total_pages || 0,
-        extractPagination(kodikTopPayload).total_pages || 0
+        Math.ceil((state.topTotal || state.popular.length) / GRID_PAGE_SIZE)
       );
       state.homeLoaded = true;
 
@@ -2320,8 +2325,13 @@ async function loadCatalog(options = {}) {
     registerGenres(releases);
     state.catalogItems = reset ? releases : mergeReleaseCollections(state.catalogItems, releases);
     state.catalogPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
-    state.catalogTotal = Math.max(state.catalogTotal || 0, pagination.total || 0, kodikPagination.total || 0, state.catalogItems.length);
-    state.catalogTotalPages = Math.max(state.catalogTotalPages || 0, pagination.total_pages || 0, kodikPagination.total_pages || 0);
+    state.catalogTotal = Math.max(state.catalogTotal || 0, pagination.total || 0, state.catalogItems.length);
+    state.catalogTotalPages = Math.max(
+      state.catalogTotalPages || 0,
+      pagination.total_pages || 0,
+      Math.ceil((state.catalogTotal || state.catalogItems.length) / GRID_PAGE_SIZE),
+      kodikPagination.current_page || 0
+    );
     state.catalogHasMore = state.catalogPage < (state.catalogTotalPages || 1);
     state.catalogLoaded = true;
 
@@ -2378,8 +2388,13 @@ async function loadOngoing(options = {}) {
     registerGenres(releases);
     state.ongoingItems = reset ? releases : mergeReleaseCollections(state.ongoingItems, releases);
     state.ongoingPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
-    state.ongoingTotal = Math.max(state.ongoingTotal || 0, pagination.total || 0, kodikPagination.total || 0, state.ongoingItems.length);
-    state.ongoingTotalPages = Math.max(state.ongoingTotalPages || 0, pagination.total_pages || 0, kodikPagination.total_pages || 0);
+    state.ongoingTotal = Math.max(state.ongoingTotal || 0, pagination.total || 0, state.ongoingItems.length);
+    state.ongoingTotalPages = Math.max(
+      state.ongoingTotalPages || 0,
+      pagination.total_pages || 0,
+      Math.ceil((state.ongoingTotal || state.ongoingItems.length) / GRID_PAGE_SIZE),
+      kodikPagination.current_page || 0
+    );
     state.ongoingHasMore = state.ongoingPage < (state.ongoingTotalPages || 1);
     state.ongoingLoaded = true;
 
@@ -2428,8 +2443,13 @@ async function loadTop(options = {}) {
     registerGenres(releases);
     state.topItems = reset ? releases : mergeReleaseCollections(state.topItems, releases);
     state.topPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
-    state.topTotal = Math.max(state.topTotal || 0, pagination.total || 0, kodikPagination.total || 0, state.topItems.length);
-    state.topTotalPages = Math.max(state.topTotalPages || 0, pagination.total_pages || 0, kodikPagination.total_pages || 0);
+    state.topTotal = Math.max(state.topTotal || 0, pagination.total || 0, state.topItems.length);
+    state.topTotalPages = Math.max(
+      state.topTotalPages || 0,
+      pagination.total_pages || 0,
+      Math.ceil((state.topTotal || state.topItems.length) / GRID_PAGE_SIZE),
+      kodikPagination.current_page || 0
+    );
     state.topHasMore = state.topPage < (state.topTotalPages || 1);
     state.topLoaded = true;
 
@@ -3458,7 +3478,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=51", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js?v=52", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
