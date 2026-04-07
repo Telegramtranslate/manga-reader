@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-04-07T00:00:09.275Z",
+  "latestTotal": 10578,
+  "catalogTotal": 10578,
+  "ongoingTotal": 160,
+  "topTotal": 10578,
+  "sources": {
+    "anilibriaCatalog": 1856,
+    "anilibriaOngoing": 49,
+    "kodikCatalog": 8723,
+    "kodikOngoing": 111
+  }
+}

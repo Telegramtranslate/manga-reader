@@ -49,6 +49,7 @@ const API_RETRY_BASE_DELAY = 350;
 const GRID_PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE = 260;
 const RENDER_BATCH_SIZE = 8;
+const CONTENT_STATS_TTL = 12 * 60 * 60 * 1000;
 const FAVORITES_STORAGE_PREFIX = "animecloud_favorites";
 const WATCH_PROGRESS_KEY = "animecloud_watch_progress_v1";
 const ADMIN_HERO_STORAGE_KEY = "animecloud_admin_featured_alias";
@@ -2045,6 +2046,17 @@ function updateStats() {
   els.topCount.textContent = formatNumber(state.topTotal || state.popular.length || state.topItems.length);
 }
 
+async function loadContentStats(force = false) {
+  try {
+    const stats = await fetchJson("/content-stats.json", null, { ttl: force ? 0 : CONTENT_STATS_TTL, retries: 1 });
+    state.latestTotal = Math.max(Number(stats?.latestTotal || 0), state.latestTotal || 0);
+    state.catalogTotal = Math.max(Number(stats?.catalogTotal || 0), state.catalogTotal || 0);
+    state.ongoingTotal = Math.max(Number(stats?.ongoingTotal || 0), state.ongoingTotal || 0);
+    state.topTotal = Math.max(Number(stats?.topTotal || 0), state.topTotal || 0);
+    updateStats();
+  } catch {}
+}
+
 function syncHomeChrome(view) {
   const visible = view === "home";
   if (els.heroCard) els.heroCard.hidden = !visible;
@@ -2183,7 +2195,7 @@ async function loadHome(force = false) {
       state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
       state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
       state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
-      state.latestTotal = Math.max(extractPagination(latestCountPayload).total || 0, state.latest.length);
+      state.latestTotal = Math.max(state.latestTotal || 0, extractPagination(latestCountPayload).total || 0, state.latest.length);
       state.catalogTotal = Math.max(extractPagination(popularPayload).total || 0, state.catalogTotal, state.popular.length);
       state.ongoingTotal = Math.max(extractPagination(ongoingCountPayload).total || 0, state.ongoingTotal, state.ongoingItems.length);
       state.topTotal = Math.max(extractPagination(popularPayload).total || 0, state.topTotal, state.popular.length);
@@ -3361,6 +3373,7 @@ async function refreshAll() {
 
   try {
     await loadReferences(true);
+    await loadContentStats(true);
     await loadHome(true);
     await ensureViewLoaded(state.currentView);
   } catch (error) {
@@ -3383,7 +3396,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=44", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=49", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -3720,6 +3733,7 @@ async function init() {
     const shouldLoadHomeNow = initialRoute.type === "anime" || initialView === "home";
 
     if (shouldLoadHomeNow) {
+      await loadContentStats();
       await loadHome();
       updateStats();
     }
@@ -3731,6 +3745,7 @@ async function init() {
         loadHome()
           .then(() => updateStats())
           .catch(() => {});
+        loadContentStats().catch(() => {});
       }
       if (!state.scheduleLoaded && initialView !== "schedule") {
         loadSchedule().catch(() => {});
