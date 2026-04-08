@@ -747,6 +747,8 @@ function normalizePreparedRelease(item) {
     statusLabel: item?.statusLabel || "Доступно",
     publishDay: item?.publishDay || "",
     publishDayValue: Number(item?.publishDayValue || 0),
+    sortFreshAt: Number(item?.sortFreshAt || 0),
+    sortRating: Number(item?.sortRating || item?.favorites || 0),
     description: item?.description || "Описание пока не заполнено.",
     poster: proxiedImageUrl(posterDirect),
     posterDirect,
@@ -879,6 +881,10 @@ function buildRelease(item) {
     statusLabel: source.is_ongoing || source.is_in_production ? "Онгоинг" : "Завершен",
     publishDay: source.publish_day?.description || "",
     publishDayValue: source.publish_day?.value || 0,
+    sortFreshAt: Date.parse(
+      source.fresh_at || source.updated_at || source.created_at || source.first_published_at || ""
+    ) || 0,
+    sortRating: Number(source.added_in_users_favorites || 0),
     description: source.description || "Описание пока не заполнено.",
     posterDirect: absoluteUrl(
       source.poster?.optimized?.src ||
@@ -1141,6 +1147,13 @@ function mergeReleaseEntries(primary, extra) {
         : addon.description || base.description,
     genres: normalizeGenreList([...(base.genres || []), ...(addon.genres || [])]),
     favorites: Math.max(Number(base.favorites || 0), Number(addon.favorites || 0)),
+    sortFreshAt: Math.max(Number(base.sortFreshAt || 0), Number(addon.sortFreshAt || 0)),
+    sortRating: Math.max(
+      Number(base.sortRating || 0),
+      Number(addon.sortRating || 0),
+      Number(base.favorites || 0),
+      Number(addon.favorites || 0)
+    ),
     voices: uniqueStrings([...(base.voices || []), ...(addon.voices || [])]),
     crew: [...(base.crew || []), ...(addon.crew || [])].filter((member, index, list) => {
       const key = `${member.name}:${member.role}`;
@@ -1180,12 +1193,50 @@ function mergeReleaseCollections(primaryList = [], extraList = []) {
   return uniqueReleases(merged);
 }
 
-function mapKodikSort(value) {
+function getCatalogSortConfig(value) {
   const sorting = String(value || "").toUpperCase();
-  if (sorting.includes("RATING")) return "shikimori_rating";
-  if (sorting.includes("YEAR")) return "year";
-  if (sorting.includes("NAME")) return "title";
-  return "updated_at";
+  const direction = sorting.includes("ASC") ? "asc" : "desc";
+  if (sorting.includes("RATING")) return { field: "rating", direction };
+  if (sorting.includes("YEAR")) return { field: "year", direction };
+  if (sorting.includes("NAME")) return { field: "title", direction };
+  return { field: "fresh", direction };
+}
+
+function getKodikSortConfig(value) {
+  const { field, direction } = getCatalogSortConfig(value);
+  if (field === "rating") return { sort: "shikimori_rating", order: direction };
+  if (field === "year") return { sort: "year", order: direction };
+  if (field === "title") return { sort: "title", order: direction };
+  return { sort: "updated_at", order: direction };
+}
+
+function compareCatalogReleases(left, right, sorting = state.catalogSort) {
+  const { field, direction } = getCatalogSortConfig(sorting);
+  const multiplier = direction === "asc" ? 1 : -1;
+  const leftTitle = String(left?.title || "").trim();
+  const rightTitle = String(right?.title || "").trim();
+
+  if (field === "title") {
+    return multiplier * leftTitle.localeCompare(rightTitle, "ru");
+  }
+
+  const readNumericValue = (release) => {
+    if (field === "rating") return Number(release?.sortRating || release?.favorites || 0);
+    if (field === "year") return getReleaseYearValue(release);
+    return Number(release?.sortFreshAt || 0) || getReleaseYearValue(release);
+  };
+
+  const diff = readNumericValue(left) - readNumericValue(right);
+  if (diff !== 0) return multiplier * diff;
+
+  const secondaryYearDiff = getReleaseYearValue(left) - getReleaseYearValue(right);
+  if (secondaryYearDiff !== 0) return multiplier * secondaryYearDiff;
+
+  return leftTitle.localeCompare(rightTitle, "ru");
+}
+
+function sortCatalogReleases(list, sorting = state.catalogSort) {
+  return [...(Array.isArray(list) ? list : [])].sort((left, right) => compareCatalogReleases(left, right, sorting));
 }
 
 function fetchKodikDiscover(mode, page, limit, options = {}) {
@@ -1197,6 +1248,7 @@ function fetchKodikDiscover(mode, page, limit, options = {}) {
       page,
       limit,
       sort: options.sort || "",
+      order: options.order || "",
       genres: normalizeGenreList(options.genres || []).join("||")
     },
     {
@@ -1223,7 +1275,7 @@ async function fetchAniLibriaGenreMatches(genres, options = {}) {
 
     const payload = await fetchJson(
       "/anime/catalog/releases",
-      { page, limit, "f[sorting]": "FRESH_AT_DESC" },
+      { page, limit, "f[sorting]": options.sort || state.catalogSort || "FRESH_AT_DESC" },
       { ttl: options.ttl ?? 60000, retries: 1, signal: options.signal }
     );
     const pageItems = buildReleases(payload).filter((release) => releaseMatchesGenres(release, normalizedGenres, "some"));
@@ -1233,7 +1285,7 @@ async function fetchAniLibriaGenreMatches(genres, options = {}) {
     if (collected.length >= maxItems || page >= (pagination.total_pages || page)) break;
   }
 
-  return uniqueReleases(collected).slice(0, maxItems);
+  return sortCatalogReleases(uniqueReleases(collected).slice(0, maxItems), options.sort || state.catalogSort);
 }
 
 function fetchKodikSearch(query, options = {}) {
@@ -2490,10 +2542,11 @@ async function loadCatalog(options = {}) {
                 ttl: 120000,
                 maxPages: 24,
                 limit: GRID_PAGE_SIZE,
-                maxItems: 480
+                maxItems: 480,
+                sort: state.catalogSort
               });
               state.catalogFilterKey = filterKey;
-              state.catalogFilterPool = filteredPool.filter(matchesCatalogType);
+              state.catalogFilterPool = sortCatalogReleases(filteredPool.filter(matchesCatalogType), state.catalogSort);
             }
 
             const startIndex = (nextPage - 1) * GRID_PAGE_SIZE;
@@ -2519,14 +2572,14 @@ async function loadCatalog(options = {}) {
       shouldMergeKodik
         ? fetchKodikDiscover("catalog", nextPage, GRID_PAGE_SIZE, {
             ttl: 120000,
-            sort: mapKodikSort(state.catalogSort),
+            ...getKodikSortConfig(state.catalogSort),
             genres: activeGenres
           }).catch(() => ({ items: [] }))
         : Promise.resolve({ items: [] })
     ]);
     const pagination = aniResult.pagination || {};
     const kodikPagination = extractPagination(kodikPayload);
-    const releases = mergeReleaseCollections(aniResult.items, buildReleases(kodikPayload));
+    const releases = sortCatalogReleases(mergeReleaseCollections(aniResult.items, buildReleases(kodikPayload)), state.catalogSort);
     const appendedReleases = reset
       ? releases
       : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
@@ -3757,7 +3810,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=57", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js?v=58", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {

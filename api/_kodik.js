@@ -351,6 +351,20 @@ function buildPreviewRelease(groupItems) {
   const voices = uniqueStrings(groupItems.map((item) => item?.translation?.title).filter(Boolean));
   const ongoing = isOngoing(primary);
   const year = primary?.year || primary?.material_data?.year || "-";
+  const ratingValue = Math.max(
+    toNumber(primary?.material_data?.shikimori_rating, 0),
+    toNumber(primary?.material_data?.kinopoisk_rating, 0),
+    toNumber(primary?.material_data?.imdb_rating, 0),
+    0
+  );
+  const freshAtValue =
+    Date.parse(
+      primary?.updated_at ||
+        primary?.created_at ||
+        primary?.material_data?.released_at ||
+        primary?.material_data?.premiere_world ||
+        ""
+    ) || 0;
 
   return {
     provider: "kodik",
@@ -369,6 +383,8 @@ function buildPreviewRelease(groupItems) {
     statusLabel: ongoing ? "Онгоинг" : "Есть в Kodik",
     publishDay: "",
     publishDayValue: 0,
+    sortFreshAt: freshAtValue,
+    sortRating: ratingValue,
     description: getDescription(primary),
     poster,
     posterDirect: poster,
@@ -684,7 +700,7 @@ function findBestPreviewMatch(items = [], meta = {}) {
   return buildFullRelease(bestGroup);
 }
 
-function buildDiscoverPayload(mode, limit, page, sort, genres = []) {
+function buildDiscoverPayload(mode, limit, page, sort, order, genres = []) {
   const safeLimit = Math.max(12, Math.min(100, limit));
   const payload = {
     limit: safeLimit,
@@ -705,7 +721,7 @@ function buildDiscoverPayload(mode, limit, page, sort, genres = []) {
       break;
     case "catalog":
       payload.sort = sort || "updated_at";
-      payload.order = "desc";
+      payload.order = String(order || "desc").toLowerCase() === "asc" ? "asc" : "desc";
       break;
     case "latest":
     default:
