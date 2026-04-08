@@ -169,7 +169,7 @@ function mapTypeLabel(item) {
   return typeMap[type] || "Kodik";
 }
 
-function getPosterUrl(item) {
+function getPosterCandidates(item) {
   const candidates = [
     item?.material_data?.poster_url,
     item?.screenshots?.[0],
@@ -179,7 +179,12 @@ function getPosterUrl(item) {
     .map(absoluteKodikUrl)
     .filter(Boolean);
 
-  return candidates.find((url) => !/shikimori\./i.test(url)) || candidates[0] || "";
+  const preferred = candidates.filter((url) => !/shikimori\./i.test(url));
+  return preferred.length ? [...preferred, ...candidates.filter((url) => /shikimori\./i.test(url))] : candidates;
+}
+
+function getPosterUrl(item) {
+  return getPosterCandidates(item)[0] || "";
 }
 
 function getDescription(item) {
@@ -353,6 +358,7 @@ function buildPreviewRelease(groupItems) {
   const primary = choosePrimary(groupItems);
   const identity = buildIdentity(primary);
   const poster = getPosterUrl(primary);
+  const posterSources = getPosterCandidates(primary);
   const voices = uniqueStrings(groupItems.map((item) => item?.translation?.title).filter(Boolean));
   const ongoing = isOngoing(primary);
   const year = primary?.year || primary?.material_data?.year || "-";
@@ -391,6 +397,7 @@ function buildPreviewRelease(groupItems) {
     sortFreshAt: freshAtValue,
     sortRating: ratingValue,
     description: getDescription(primary),
+    posterSources,
     poster,
     posterDirect: poster,
     heroPoster: poster,

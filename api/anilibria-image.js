@@ -49,6 +49,7 @@ module.exports = async (req, res) => {
       res.statusCode = 307;
       res.setHeader("Location", target);
       res.setHeader("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=86400");
+      res.end();
       return;
     }
 

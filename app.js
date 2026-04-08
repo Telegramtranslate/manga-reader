@@ -714,7 +714,17 @@ function normalizePreparedSource(source) {
 }
 
 function normalizePreparedRelease(item) {
-  const posterDirect = absoluteUrl(item?.posterDirect || item?.poster || item?.heroPoster || item?.cardPoster || item?.thumb);
+  const posterSources = uniqueStrings([
+    ...(Array.isArray(item?.posterSources) ? item.posterSources : []),
+    item?.posterDirect,
+    item?.poster,
+    item?.heroPoster,
+    item?.cardPoster,
+    item?.thumb
+  ]
+    .map(absoluteUrl)
+    .filter(Boolean));
+  const posterDirect = posterSources[0] || "";
   const heroPosterDirect = absoluteUrl(item?.heroPosterDirect || item?.heroPoster || posterDirect);
   const cardPosterDirect = absoluteUrl(item?.cardPosterDirect || item?.cardPoster || posterDirect);
   const thumbDirect = absoluteUrl(item?.thumbDirect || item?.thumb || cardPosterDirect);
@@ -752,6 +762,9 @@ function normalizePreparedRelease(item) {
     sortFreshAt: Number(item?.sortFreshAt || 0),
     sortRating: Number(item?.sortRating || item?.favorites || 0),
     description: item?.description || "Описание пока не заполнено.",
+    posterSources,
+    posterCandidateQueue: uniqueStrings(posterSources.map((url) => proxiedImageUrl(url)).filter(Boolean)),
+    posterDirectQueue: posterSources,
     poster: proxiedImageUrl(posterDirect),
     posterDirect,
     heroPoster: proxiedImageUrl(heroPosterDirect),
@@ -1147,6 +1160,7 @@ function mergeReleaseEntries(primary, extra) {
       base.description && base.description !== "Описание пока не заполнено."
         ? base.description
         : addon.description || base.description,
+    posterSources: uniqueStrings([...(base.posterSources || []), ...(addon.posterSources || [])]),
     genres: normalizeGenreList([...(base.genres || []), ...(addon.genres || [])]),
     favorites: Math.max(Number(base.favorites || 0), Number(addon.favorites || 0)),
     sortFreshAt: Math.max(Number(base.sortFreshAt || 0), Number(addon.sortFreshAt || 0)),
@@ -2997,12 +3011,7 @@ function createAnimeCard(release, index) {
   poster.fetchPriority = shouldPrioritize ? "high" : "low";
   poster.srcset = `${cardSrc} 1x, ${card2x} 2x`;
   poster.sizes = "(max-width: 420px) 44vw, (max-width: 860px) 40vw, (max-width: 1180px) 180px, 165px";
-  poster.onerror = () => {
-    if (poster.dataset.fallbackApplied === "1") return;
-    poster.dataset.fallbackApplied = "1";
-    poster.src = cardFallback;
-    poster.srcset = "";
-  };
+  bindPosterFallback(poster, release, { initialSrc: cardSrc, placeholder: cardFallback });
 
   const tags = node.querySelector(".anime-card__tags");
   const values = release.genres.slice(0, 2);
@@ -3045,6 +3054,32 @@ function updateGrid(target, releases, emptyMessage, options = {}) {
   }
 
   scheduleChunkRender(target, releases, (release, index) => createAnimeCard(release, offset + index));
+}
+
+function bindPosterFallback(image, release, options = {}) {
+  if (!image || !release) return;
+  const initialSrc = String(options.initialSrc || image.currentSrc || image.src || "").trim();
+  const queue = uniqueStrings([
+    ...(Array.isArray(release.posterCandidateQueue) ? release.posterCandidateQueue : []),
+    ...(Array.isArray(release.posterDirectQueue) ? release.posterDirectQueue : []),
+    release.cardPosterDirect,
+    release.thumbDirect,
+    release.posterDirect,
+    options.placeholder || "/mc-icon-192.png?v=5"
+  ]).filter((src) => src && src !== initialSrc);
+
+  image.dataset.fallbackIndex = "0";
+  image.onerror = () => {
+    const index = Number(image.dataset.fallbackIndex || "0");
+    const nextSrc = queue[index];
+    if (!nextSrc) {
+      image.onerror = null;
+      return;
+    }
+    image.dataset.fallbackIndex = String(index + 1);
+    image.src = nextSrc;
+    image.srcset = "";
+  };
 }
 
 function openDrawer() {
@@ -3436,6 +3471,10 @@ function renderDetailShell(release) {
     els.detailPoster.loading = "eager";
     els.detailPoster.decoding = "async";
     els.detailPoster.fetchPriority = "high";
+    bindPosterFallback(els.detailPoster, release, {
+      initialSrc: release.poster,
+      placeholder: "/mc-icon-512.png?v=5"
+    });
   }
   if (els.detailTitle) els.detailTitle.textContent = release.title;
   if (els.detailDescription) els.detailDescription.textContent = release.description;
@@ -3834,7 +3873,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=59", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js?v=60", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
