@@ -901,8 +901,19 @@ button {
 
 .load-more-wrap {
   display: flex;
+  align-items: center;
   justify-content: center;
+  min-height: 52px;
   margin-top: 22px;
+}
+
+.load-more-wrap .ghost-btn {
+  min-width: 170px;
+}
+
+.load-more-wrap .ghost-btn.is-loading {
+  opacity: 0.82;
+  pointer-events: none;
 }
 
 .profile-cards {

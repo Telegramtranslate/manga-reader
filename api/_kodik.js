@@ -26,6 +26,9 @@ const GENRE_LABEL_ALIASES = new Map([
   ["drama", "Драма"],
   ["fantasy", "Фэнтези"],
   ["romance", "Романтика"],
+  ["исекай", "Исэкай"],
+  ["исэкай", "Исэкай"],
+  ["isekai", "Исэкай"],
   ["cgdct", "Милые девочки"],
   ["cute girls doing cute things", "Милые девочки"],
   ["science fiction", "Фантастика"],
@@ -167,6 +170,20 @@ function mapTypeLabel(item) {
   }
 
   return typeMap[type] || "Kodik";
+}
+
+function mapCatalogTypeValue(item) {
+  const animeKind = String(item?.material_data?.anime_kind || "").trim().toLowerCase();
+  const type = String(item?.type || "").trim().toLowerCase();
+
+  if (["tv", "tv13", "tv24", "tv48"].includes(animeKind)) return "TV";
+  if (animeKind === "movie") return "MOVIE";
+  if (animeKind === "ova") return "OVA";
+  if (animeKind === "ona") return "ONA";
+  if (animeKind === "special") return "SPECIAL";
+  if (type === "anime") return "MOVIE";
+  if (type.includes("serial")) return "TV";
+  return "";
 }
 
 function getPosterCandidates(item) {
@@ -386,7 +403,7 @@ function buildPreviewRelease(groupItems) {
     alternateTitles: getTitleVariants(primary),
     year,
     type: mapTypeLabel(primary),
-    typeValue: String(primary?.type || ""),
+    typeValue: mapCatalogTypeValue(primary),
     season: "",
     age: getAgeLabel(primary),
     ageValue: "",
@@ -712,11 +729,14 @@ function findBestPreviewMatch(items = [], meta = {}) {
   return buildFullRelease(bestGroup);
 }
 
-function buildDiscoverPayload(mode, limit, page, sort, order, genres = []) {
+function buildDiscoverPayload(mode, limit, page, sort, order, genres = [], animeKinds = [], mediaTypes = []) {
   const safeLimit = Math.max(12, Math.min(100, limit));
+  const normalizedMediaTypes = uniqueStrings(Array.isArray(mediaTypes) ? mediaTypes : [mediaTypes])
+    .map((value) => String(value || "").trim().toLowerCase())
+    .filter(Boolean);
   const payload = {
     limit: safeLimit,
-    types: "anime,anime-serial",
+    types: normalizedMediaTypes.length ? normalizedMediaTypes.join(",") : "anime,anime-serial",
     with_material_data: "true",
     not_blocked_for_me: "true"
   };
@@ -745,6 +765,13 @@ function buildDiscoverPayload(mode, limit, page, sort, order, genres = []) {
   const normalizedGenres = normalizeGenreList(Array.isArray(genres) ? genres : [genres]);
   if (normalizedGenres.length) {
     payload.anime_genres = normalizedGenres.join(",");
+  }
+
+  const normalizedAnimeKinds = uniqueStrings(Array.isArray(animeKinds) ? animeKinds : [animeKinds])
+    .map((value) => String(value || "").trim().toLowerCase())
+    .filter(Boolean);
+  if (normalizedAnimeKinds.length) {
+    payload.anime_kind = normalizedAnimeKinds.join(",");
   }
 
   payload.__page = Math.max(1, page);

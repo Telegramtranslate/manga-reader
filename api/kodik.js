@@ -44,11 +44,14 @@ function dedupeRawResults(items = []) {
   });
 }
 
-async function fetchDiscoverPage(mode, page, limit, sort, order, genres = []) {
+async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], animeKinds = [], mediaTypes = []) {
   const safePage = Math.max(1, toNumber(page, 1));
   const safeLimit = Math.max(12, Math.min(100, toNumber(limit, 24)));
 
-  let response = await postKodik("list", buildDiscoverPayload(mode, safeLimit, 1, sort, order, genres));
+  let response = await postKodik(
+    "list",
+    buildDiscoverPayload(mode, safeLimit, 1, sort, order, genres, animeKinds, mediaTypes)
+  );
 
   for (let currentPage = 2; currentPage <= safePage; currentPage += 1) {
     if (!response?.next_page) {
@@ -201,7 +204,15 @@ module.exports = async (req, res) => {
         .split("||")
         .map((item) => item.trim())
         .filter(Boolean);
-      const payload = await fetchDiscoverPage(mode, page, limit, sort, order, genres);
+      const animeKinds = String(readValue(req.query?.animeKinds) || "")
+        .split("||")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const mediaTypes = String(readValue(req.query?.mediaTypes) || "")
+        .split("||")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const payload = await fetchDiscoverPage(mode, page, limit, sort, order, genres, animeKinds, mediaTypes);
       sendJson(res, 200, payload);
       return;
     } catch (error) {

@@ -259,6 +259,9 @@ const GENRE_LABEL_ALIASES = new Map([
   ["drama", "Драма"],
   ["fantasy", "Фэнтези"],
   ["romance", "Романтика"],
+  ["исекай", "Исэкай"],
+  ["исэкай", "Исэкай"],
+  ["isekai", "Исэкай"],
   ["cgdct", "Милые девочки"],
   ["cute girls doing cute things", "Милые девочки"],
   ["science fiction", "Фантастика"],
@@ -1256,6 +1259,9 @@ function sortCatalogReleases(list, sorting = state.catalogSort) {
 }
 
 function fetchKodikDiscover(mode, page, limit, options = {}) {
+  const genres = Array.isArray(options.genres) ? options.genres : [options.genres].filter(Boolean);
+  const animeKinds = Array.isArray(options.animeKinds) ? options.animeKinds : [options.animeKinds].filter(Boolean);
+  const mediaTypes = Array.isArray(options.mediaTypes) ? options.mediaTypes : [options.mediaTypes].filter(Boolean);
   return fetchJson(
     KODIK_API_BASE,
     {
@@ -1265,7 +1271,9 @@ function fetchKodikDiscover(mode, page, limit, options = {}) {
       limit,
       sort: options.sort || "",
       order: options.order || "",
-      genres: normalizeGenreList(options.genres || []).join("||")
+      genres: normalizeGenreList(genres).join("||"),
+      animeKinds: uniqueStrings(animeKinds).join("||"),
+      mediaTypes: uniqueStrings(mediaTypes).join("||")
     },
     {
       ttl: options.ttl ?? 120000,
@@ -1289,11 +1297,20 @@ async function fetchAniLibriaGenreMatches(genres, options = {}) {
       throw new DOMException("Search aborted", "AbortError");
     }
 
-    const payload = await fetchJson(
-      "/anime/catalog/releases",
-      { page, limit, "f[sorting]": options.sort || state.catalogSort || "FRESH_AT_DESC" },
-      { ttl: options.ttl ?? 60000, retries: 1, signal: options.signal }
-    );
+    const params = {
+      page,
+      limit,
+      "f[sorting]": options.sort || state.catalogSort || "FRESH_AT_DESC"
+    };
+    if (options.type) {
+      params["f[types]"] = options.type;
+    }
+
+    const payload = await fetchJson("/anime/catalog/releases", params, {
+      ttl: options.ttl ?? 60000,
+      retries: 1,
+      signal: options.signal
+    });
     const pageItems = buildReleases(payload).filter((release) => releaseMatchesGenres(release, normalizedGenres, "some"));
     collected.push(...pageItems);
 
@@ -1875,6 +1892,7 @@ function setupInfiniteScroll() {
   const triggerLoadMore = (button) => {
     if (!button || button.hidden || button.disabled || button.dataset.autoLoading === "1") return;
     button.dataset.autoLoading = "1";
+    setLoadMoreButtonLoading(button, true);
 
     const action =
       button === els.catalogMoreBtn
@@ -1893,6 +1911,7 @@ function setupInfiniteScroll() {
     Promise.resolve(action())
       .catch(console.error)
       .finally(() => {
+        setLoadMoreButtonLoading(button, false);
         delete button.dataset.autoLoading;
       });
   };
@@ -1958,6 +1977,7 @@ function renderGenreChips() {
 
 function getFilteredCatalogItems() {
   return state.catalogItems.filter((release) => {
+    if (!releaseMatchesCatalogTypeSelection(release, state.catalogType)) return false;
     if (state.catalogGenre && !releaseMatchesGenres(release, [state.catalogGenre])) return false;
     if (state.catalogGenres.length && !releaseMatchesGenres(release, state.catalogGenres)) return false;
     return true;
@@ -2292,17 +2312,15 @@ function renderHero(release) {
   els.heroTitle.textContent = release.title;
   els.heroDescription.textContent = release.description;
   els.heroMeta.replaceChildren(...meta.map(createMetaPill));
-  els.heroPoster.src = release.heroPoster || release.poster;
+  const heroPosterSrc = release.heroPoster || release.poster || "/mc-icon-512.png?v=5";
+  els.heroPoster.src = heroPosterSrc;
   els.heroPoster.alt = release.title;
-  els.heroPoster.srcset = `${release.heroPoster || release.poster} 1x, ${release.poster} 2x`;
+  els.heroPoster.srcset = `${heroPosterSrc} 1x, ${release.poster || heroPosterSrc} 2x`;
   els.heroPoster.sizes = "(max-width: 860px) min(200px, 100vw), 320px";
-  els.heroPoster.onerror = () => {
-    if (els.heroPoster.dataset.fallbackApplied === "1") return;
-    els.heroPoster.dataset.fallbackApplied = "1";
-  els.heroPoster.src = release.heroPosterDirect || release.posterDirect || "/mc-icon-512.png?v=5";
-    els.heroPoster.srcset = "";
-  };
-  delete els.heroPoster.dataset.fallbackApplied;
+  bindPosterFallback(els.heroPoster, release, {
+    initialSrc: heroPosterSrc,
+    placeholder: "/mc-icon-512.png?v=5"
+  });
   renderHeroDots();
   syncHeroOpenLink();
 }
@@ -2561,6 +2579,47 @@ function buildCatalogParams(page, extra = {}) {
   return params;
 }
 
+function getKodikCatalogTypeConfig(value) {
+  const normalized = String(value || "").trim().toUpperCase();
+  if (!normalized) {
+    return { enabled: true, animeKinds: [], mediaTypes: [] };
+  }
+
+  switch (normalized) {
+    case "TV":
+      return { enabled: true, animeKinds: ["tv", "tv13", "tv24", "tv48"], mediaTypes: ["anime-serial"] };
+    case "ONA":
+      return { enabled: true, animeKinds: ["ona"], mediaTypes: ["anime-serial"] };
+    case "WEB":
+      return { enabled: true, animeKinds: ["tv", "tv13", "tv24", "tv48", "ona"], mediaTypes: ["anime-serial"] };
+    case "OVA":
+      return { enabled: true, animeKinds: ["ova"], mediaTypes: ["anime-serial"] };
+    case "OAD":
+      return { enabled: true, animeKinds: ["ova", "special"], mediaTypes: ["anime-serial"] };
+    case "MOVIE":
+      return { enabled: true, animeKinds: ["movie"], mediaTypes: ["anime"] };
+    case "SPECIAL":
+      return { enabled: true, animeKinds: ["special"], mediaTypes: ["anime", "anime-serial"] };
+    default:
+      return { enabled: false, animeKinds: [], mediaTypes: [] };
+  }
+}
+
+function releaseMatchesCatalogTypeSelection(release, catalogType = state.catalogType) {
+  const normalized = String(catalogType || "").trim().toUpperCase();
+  if (!normalized) return true;
+
+  const value = String(release?.typeValue || "").trim().toUpperCase();
+  if (!value) return false;
+  if (value === normalized) return true;
+
+  if (release?.provider !== "kodik") return false;
+  if (normalized === "WEB") return ["TV", "ONA"].includes(value);
+  if (normalized === "OAD") return ["OVA", "SPECIAL"].includes(value);
+  if (normalized === "SPECIAL") return ["OAD", "SPECIAL"].includes(value);
+  return false;
+}
+
 async function loadCatalog(options = {}) {
   await loadReferences();
   const reset = Boolean(options.reset);
@@ -2585,25 +2644,32 @@ async function loadCatalog(options = {}) {
     els.catalogMoreBtn.disabled = true;
     const activeGenres = normalizeGenreList([state.catalogGenre, ...state.catalogGenres].filter(Boolean));
     const hasGenreFilters = activeGenres.length > 0;
-    const shouldMergeKodik = !state.catalogType;
+    const kodikTypeConfig = getKodikCatalogTypeConfig(state.catalogType);
+    const shouldMergeKodik = kodikTypeConfig.enabled;
     const filterKey = JSON.stringify({
       sort: state.catalogSort,
       type: state.catalogType || "",
       genres: activeGenres
     });
     const matchesCatalogType = (release) =>
-      !state.catalogType || String(release?.typeValue || "") === String(state.catalogType);
+      releaseMatchesCatalogTypeSelection(release, state.catalogType);
 
     const [aniResult, kodikPayload] = await Promise.all([
       hasGenreFilters
         ? (async () => {
-            if (state.catalogFilterKey !== filterKey || !state.catalogFilterPool.length) {
+            const requiredPoolSize = nextPage * GRID_PAGE_SIZE + GRID_PAGE_SIZE * 8;
+            if (
+              state.catalogFilterKey !== filterKey ||
+              !state.catalogFilterPool.length ||
+              state.catalogFilterPool.length < requiredPoolSize
+            ) {
               const filteredPool = await fetchAniLibriaGenreMatches(activeGenres, {
                 ttl: 120000,
-                maxPages: 24,
+                maxPages: Math.max(24, Math.ceil(requiredPoolSize / GRID_PAGE_SIZE) * 4),
                 limit: GRID_PAGE_SIZE,
-                maxItems: 480,
-                sort: state.catalogSort
+                maxItems: Math.max(480, requiredPoolSize),
+                sort: state.catalogSort,
+                type: state.catalogType
               });
               state.catalogFilterKey = filterKey;
               state.catalogFilterPool = sortCatalogReleases(filteredPool.filter(matchesCatalogType), state.catalogSort);
@@ -2633,7 +2699,9 @@ async function loadCatalog(options = {}) {
         ? fetchKodikDiscover("catalog", nextPage, GRID_PAGE_SIZE, {
             ttl: 120000,
             ...getKodikSortConfig(state.catalogSort),
-            genres: activeGenres
+            genres: activeGenres,
+            animeKinds: kodikTypeConfig.animeKinds,
+            mediaTypes: kodikTypeConfig.mediaTypes
           }).catch(() => ({ items: [] }))
         : Promise.resolve({ items: [] })
     ]);
@@ -3925,7 +3993,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=61", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js?v=62", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -4079,12 +4147,30 @@ function bindListButtons() {
   });
 }
 
+function setLoadMoreButtonLoading(button, loading) {
+  if (!button) return;
+  if (!button.dataset.labelDefault) {
+    button.dataset.labelDefault = button.textContent.trim() || "Показать ещё";
+  }
+
+  button.classList.toggle("is-loading", loading);
+  button.setAttribute("aria-busy", loading ? "true" : "false");
+  button.textContent = loading ? "Загружаем ещё…" : button.dataset.labelDefault;
+}
+
 function bindLoadMoreButton(button, action) {
   if (!button) return;
-  button.addEventListener("click", (event) => {
+  button.addEventListener("click", async (event) => {
     event.preventDefault();
     button.blur?.();
-    action().catch(console.error);
+    setLoadMoreButtonLoading(button, true);
+    try {
+      await action();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadMoreButtonLoading(button, false);
+    }
   });
 }
 
