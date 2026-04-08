@@ -82,6 +82,7 @@ const state = {
   searchAbort: null,
   searchQuery: "",
   latestTotal: 0,
+  catalogMergedTotal: 0,
   catalogPage: 0,
   catalogTotal: 0,
   catalogTotalPages: 0,
@@ -90,10 +91,12 @@ const state = {
   catalogType: "",
   catalogGenre: "",
   catalogGenres: [],
+  ongoingMergedTotal: 0,
   ongoingPage: 0,
   ongoingTotal: 0,
   ongoingTotalPages: 0,
   ongoingHasMore: false,
+  topMergedTotal: 0,
   topPage: 0,
   topTotal: 0,
   topTotalPages: 0,
@@ -1861,7 +1864,7 @@ function refreshCatalogView(pagination = null) {
   if (els.catalogSummary) {
     els.catalogSummary.textContent = labels.length
       ? `Фильтр по жанрам: ${labels.join(", ")}. Загружено ${formatNumber(items.length)} релизов.`
-      : `${formatNumber(state.catalogTotal || state.catalogItems.length)} тайтлов в полной базе AnimeCloud.${pageLabel}`;
+      : `${formatNumber(state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length)} тайтлов в полной базе AnimeCloud.${pageLabel}`;
   }
 
   updateGrid(
@@ -1876,7 +1879,9 @@ function refreshOngoingSummary(pagination = null) {
   const currentPage = pagination?.current_page || state.ongoingPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.ongoingTotalPages || 0, currentPage ? 1 : 0);
   const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
-  els.ongoingSummary.textContent = `${formatNumber(state.ongoingTotal || state.ongoingItems.length)} активных релизов.${pageLabel}`;
+  els.ongoingSummary.textContent = `${formatNumber(
+    state.ongoingMergedTotal || state.ongoingTotal || state.ongoingItems.length
+  )} активных релизов.${pageLabel}`;
 }
 
 function refreshTopSummary(pagination = null) {
@@ -1884,7 +1889,9 @@ function refreshTopSummary(pagination = null) {
   const currentPage = pagination?.current_page || state.topPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.topTotalPages || 0, currentPage ? 1 : 0);
   const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
-  els.topSummary.textContent = `${formatNumber(state.topTotal || state.topItems.length)} релизов в рейтинге.${pageLabel}`;
+  els.topSummary.textContent = `${formatNumber(
+    state.topMergedTotal || state.topTotal || state.topItems.length
+  )} релизов в рейтинге.${pageLabel}`;
 }
 
 function isAdminUser() {
@@ -2197,9 +2204,11 @@ function applyAdminHero(releases) {
 
 function updateStats() {
   els.latestCount.textContent = formatNumber(state.latestTotal || state.latest.length || state.recommended.length || state.popular.length);
-  els.catalogCount.textContent = formatNumber(state.catalogTotal || state.catalogItems.length || getHeroCandidates().length);
-  els.ongoingCount.textContent = formatNumber(state.ongoingTotal || state.ongoingItems.length);
-  els.topCount.textContent = formatNumber(state.topTotal || state.popular.length || state.topItems.length);
+  els.catalogCount.textContent = formatNumber(
+    state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length || getHeroCandidates().length
+  );
+  els.ongoingCount.textContent = formatNumber(state.ongoingMergedTotal || state.ongoingTotal || state.ongoingItems.length);
+  els.topCount.textContent = formatNumber(state.topMergedTotal || state.topTotal || state.popular.length || state.topItems.length);
 }
 
 async function loadContentStats(force = false) {
@@ -2210,13 +2219,16 @@ async function loadContentStats(force = false) {
     } catch {
       stats = await fetchJson("/content-stats.json", null, { ttl: force ? 0 : CONTENT_STATS_TTL, retries: 1 });
     }
+    state.catalogMergedTotal = Math.max(Number(stats?.catalogTotal || 0), state.catalogMergedTotal || 0);
+    state.ongoingMergedTotal = Math.max(Number(stats?.ongoingTotal || 0), state.ongoingMergedTotal || 0);
+    state.topMergedTotal = Math.max(Number(stats?.topTotal || 0), state.topMergedTotal || 0);
     state.latestTotal = Math.max(Number(stats?.latestTotal || 0), state.latestTotal || 0);
-    state.catalogTotal = Math.max(Number(stats?.catalogTotal || 0), state.catalogTotal || 0);
-    state.ongoingTotal = Math.max(Number(stats?.ongoingTotal || 0), state.ongoingTotal || 0);
-    state.topTotal = Math.max(Number(stats?.topTotal || 0), state.topTotal || 0);
-    state.catalogTotalPages = Math.max(state.catalogTotalPages || 0, Math.ceil(Number(stats?.catalogTotal || 0) / GRID_PAGE_SIZE));
-    state.ongoingTotalPages = Math.max(state.ongoingTotalPages || 0, Math.ceil(Number(stats?.ongoingTotal || 0) / GRID_PAGE_SIZE));
-    state.topTotalPages = Math.max(state.topTotalPages || 0, Math.ceil(Number(stats?.topTotal || 0) / GRID_PAGE_SIZE));
+    state.catalogTotal = Math.max(state.catalogMergedTotal || 0, state.catalogTotal || 0);
+    state.ongoingTotal = Math.max(state.ongoingMergedTotal || 0, state.ongoingTotal || 0);
+    state.topTotal = Math.max(state.topMergedTotal || 0, state.topTotal || 0);
+    state.catalogTotalPages = Math.max(state.catalogTotalPages || 0, Math.ceil((state.catalogMergedTotal || 0) / GRID_PAGE_SIZE));
+    state.ongoingTotalPages = Math.max(state.ongoingTotalPages || 0, Math.ceil((state.ongoingMergedTotal || 0) / GRID_PAGE_SIZE));
+    state.topTotalPages = Math.max(state.topTotalPages || 0, Math.ceil((state.topMergedTotal || 0) / GRID_PAGE_SIZE));
     updateStats();
     if (state.catalogLoaded) {
       if (state.catalogGenre || state.catalogGenres.length) {
@@ -2226,7 +2238,7 @@ async function loadContentStats(force = false) {
         const totalPages = Math.max(state.catalogTotalPages || 0, currentPage ? 1 : 0);
         const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
         els.catalogSummary.textContent = `${formatNumber(
-          state.catalogTotal || state.catalogItems.length
+          state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
         )} тайтлов в полной базе AnimeCloud.${pageLabel}`;
       }
     }
@@ -2445,11 +2457,12 @@ async function loadCatalog(options = {}) {
   const existingAliases = new Set(state.catalogItems.map((release) => release.alias).filter(Boolean));
   const previousCatalogCount = reset ? 0 : state.catalogItems.length;
   const previousFilteredCount = reset ? 0 : getFilteredCatalogItems().length;
+  const mergedCatalogTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.catalogTotal || 0));
 
   if (reset) {
     state.catalogItems = [];
     state.catalogPage = 0;
-    state.catalogTotal = 0;
+    state.catalogTotal = mergedCatalogTotal;
     state.catalogTotalPages = 0;
     state.catalogHasMore = false;
     els.catalogSummary.textContent = "Загружаем каталог…";
@@ -2523,13 +2536,15 @@ async function loadCatalog(options = {}) {
     state.catalogPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
     state.catalogTotal = hasGenreFilters
       ? Math.max(state.catalogItems.length, pagination.total || 0)
-      : Math.max(state.catalogTotal || 0, pagination.total || 0, state.catalogItems.length);
-    state.catalogTotalPages = Math.max(
-      pagination.total_pages || 0,
-      kodikPagination.total_pages || 0,
-      Math.ceil((state.catalogTotal || state.catalogItems.length) / GRID_PAGE_SIZE),
-      state.catalogPage ? 1 : 0
-    );
+      : Math.max(mergedCatalogTotal || 0, state.catalogItems.length);
+    state.catalogTotalPages = hasGenreFilters
+      ? Math.max(
+          pagination.total_pages || 0,
+          kodikPagination.total_pages || 0,
+          Math.ceil((state.catalogTotal || state.catalogItems.length) / GRID_PAGE_SIZE),
+          state.catalogPage ? 1 : 0
+        )
+      : Math.max(Math.ceil((Math.max(mergedCatalogTotal || 0, state.catalogItems.length) || 0) / GRID_PAGE_SIZE), state.catalogPage ? 1 : 0);
     state.catalogHasMore = state.catalogPage < (state.catalogTotalPages || 1);
     state.catalogLoaded = true;
 
@@ -2556,7 +2571,7 @@ async function loadCatalog(options = {}) {
       }
     } else {
       els.catalogSummary.textContent = `${formatNumber(
-        state.catalogTotal
+        state.catalogMergedTotal || state.catalogTotal
       )} тайтлов в полной базе AnimeCloud. Страница ${state.catalogPage} из ${
         state.catalogTotalPages || 1
       }.`;
@@ -2590,10 +2605,12 @@ async function loadOngoing(options = {}) {
   const nextPage = reset ? 1 : state.ongoingPage + 1;
   const existingAliases = new Set(state.ongoingItems.map((release) => release.alias).filter(Boolean));
   const previousCount = reset ? 0 : state.ongoingItems.length;
+  const mergedOngoingTotal = Math.max(Number(state.ongoingMergedTotal || 0), Number(state.ongoingTotal || 0));
 
   if (reset) {
     state.ongoingItems = [];
     state.ongoingPage = 0;
+    state.ongoingTotal = mergedOngoingTotal;
     state.ongoingTotalPages = 0;
     state.ongoingHasMore = false;
     els.ongoingSummary.textContent = "Загружаем онгоинги…";
@@ -2618,12 +2635,10 @@ async function loadOngoing(options = {}) {
     registerGenres(releases);
     state.ongoingItems = reset ? releases : mergeReleaseCollections(state.ongoingItems, releases);
     state.ongoingPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
-    state.ongoingTotal = Math.max(state.ongoingTotal || 0, pagination.total || 0, state.ongoingItems.length);
+    state.ongoingTotal = Math.max(mergedOngoingTotal || 0, state.ongoingItems.length);
     state.ongoingTotalPages = Math.max(
-      state.ongoingTotalPages || 0,
-      pagination.total_pages || 0,
-      Math.ceil((state.ongoingTotal || state.ongoingItems.length) / GRID_PAGE_SIZE),
-      kodikPagination.current_page || 0
+      Math.ceil((Math.max(mergedOngoingTotal || 0, state.ongoingItems.length) || 0) / GRID_PAGE_SIZE),
+      state.ongoingPage ? 1 : 0
     );
     state.ongoingHasMore = state.ongoingPage < (state.ongoingTotalPages || 1);
     state.ongoingLoaded = true;
@@ -2657,10 +2672,12 @@ async function loadTop(options = {}) {
   const nextPage = reset ? 1 : state.topPage + 1;
   const existingAliases = new Set(state.topItems.map((release) => release.alias).filter(Boolean));
   const previousCount = reset ? 0 : state.topItems.length;
+  const mergedTopTotal = Math.max(Number(state.topMergedTotal || 0), Number(state.topTotal || 0));
 
   if (reset) {
     state.topItems = [];
     state.topPage = 0;
+    state.topTotal = mergedTopTotal;
     state.topTotalPages = 0;
     state.topHasMore = false;
     els.topSummary.textContent = "Загружаем топ каталога…";
@@ -2685,12 +2702,10 @@ async function loadTop(options = {}) {
     registerGenres(releases);
     state.topItems = reset ? releases : mergeReleaseCollections(state.topItems, releases);
     state.topPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
-    state.topTotal = Math.max(state.topTotal || 0, pagination.total || 0, state.topItems.length);
+    state.topTotal = Math.max(mergedTopTotal || 0, state.topItems.length);
     state.topTotalPages = Math.max(
-      state.topTotalPages || 0,
-      pagination.total_pages || 0,
-      Math.ceil((state.topTotal || state.topItems.length) / GRID_PAGE_SIZE),
-      kodikPagination.current_page || 0
+      Math.ceil((Math.max(mergedTopTotal || 0, state.topItems.length) || 0) / GRID_PAGE_SIZE),
+      state.topPage ? 1 : 0
     );
     state.topHasMore = state.topPage < (state.topTotalPages || 1);
     state.topLoaded = true;
@@ -3742,7 +3757,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=56", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js?v=57", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
