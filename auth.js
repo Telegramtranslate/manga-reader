@@ -340,7 +340,8 @@
   function openAuthModal() {
     if (!authEls.modal) return;
     authEls.modal.hidden = false;
-    document.body.style.overflow = "hidden";
+    document.body.classList.add("is-viewport-locked");
+    document.documentElement.classList.add("is-viewport-locked");
     setStatus("");
     renderGoogleButton();
   }
@@ -348,7 +349,8 @@
   function closeAuthModal() {
     if (!authEls.modal) return;
     authEls.modal.hidden = true;
-    document.body.style.overflow = "";
+    document.body.classList.remove("is-viewport-locked");
+    document.documentElement.classList.remove("is-viewport-locked");
     setStatus("");
   }
 

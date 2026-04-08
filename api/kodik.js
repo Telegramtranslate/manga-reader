@@ -44,11 +44,11 @@ function dedupeRawResults(items = []) {
   });
 }
 
-async function fetchDiscoverPage(mode, page, limit, sort) {
+async function fetchDiscoverPage(mode, page, limit, sort, genres = []) {
   const safePage = Math.max(1, toNumber(page, 1));
   const safeLimit = Math.max(12, Math.min(100, toNumber(limit, 24)));
 
-  let response = await postKodik("list", buildDiscoverPayload(mode, safeLimit, 1, sort));
+  let response = await postKodik("list", buildDiscoverPayload(mode, safeLimit, 1, sort, genres));
 
   for (let currentPage = 2; currentPage <= safePage; currentPage += 1) {
     if (!response?.next_page) {
@@ -196,7 +196,11 @@ module.exports = async (req, res) => {
       const page = toNumber(readValue(req.query?.page), 1);
       const limit = toNumber(readValue(req.query?.limit), 24);
       const sort = String(readValue(req.query?.sort) || "").trim();
-      const payload = await fetchDiscoverPage(mode, page, limit, sort);
+      const genres = String(readValue(req.query?.genres) || "")
+        .split("||")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const payload = await fetchDiscoverPage(mode, page, limit, sort, genres);
       sendJson(res, 200, payload);
       return;
     } catch (error) {

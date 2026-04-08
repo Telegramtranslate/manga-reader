@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v52";
+const CACHE_VERSION = "v54";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,18 +6,18 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=25",
-  "/api/runtime-config.js?v=2",
+  "/style.css?v=27",
+  "/api/runtime-config.js?v=3",
   "/firebase-config.js?v=5",
   "/cloud-sync.js?v=12",
-  "/app.js?v=42",
+  "/app.js?v=44",
   "/auth.js?v=18",
   "/watch-features.js?v=19",
-  "/manifest.webmanifest?v=11",
+  "/manifest.webmanifest?v=12",
   "/robots.txt",
   "/sitemap.xml",
-  "/mc-icon-192.png?v=4",
-  "/mc-icon-512.png?v=4"
+  "/mc-icon-192.png?v=5",
+  "/mc-icon-512.png?v=5"
 ];
 
 function canCache(response) {

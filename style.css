@@ -62,6 +62,11 @@ html {
   scroll-behavior: smooth;
 }
 
+html.is-viewport-locked,
+body.is-viewport-locked {
+  overflow: hidden;
+}
+
 html::-webkit-scrollbar,
 body::-webkit-scrollbar,
 .drawer-scroll::-webkit-scrollbar {
@@ -835,18 +840,31 @@ button {
 }
 
 .anime-card__progress-bar {
+  display: block;
+  width: 100%;
   height: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.08);
 }
 
-.anime-card__progress-bar span {
-  display: block;
-  height: 100%;
+.anime-card__progress-bar::-webkit-progress-bar {
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.anime-card__progress-bar::-webkit-progress-value {
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, inline-size 0.3s ease;
+}
+
+.anime-card__progress-bar::-moz-progress-bar {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
 }
 
 .anime-card__progress-meta {
@@ -1418,24 +1436,46 @@ button {
 }
 
 .episode-progress {
+  display: block;
+  width: 100%;
   margin-top: 10px;
   height: 5px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.08);
 }
 
-.episode-progress span {
-  display: block;
-  height: 100%;
+.episode-progress::-webkit-progress-bar {
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.episode-progress::-webkit-progress-value {
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, inline-size 0.3s ease;
+}
+
+.episode-progress::-moz-progress-bar {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
 
 .episode-progress-meta {
   margin-top: 8px;
   color: var(--muted-strong) !important;
+}
+
+.copy-buffer {
+  position: fixed;
+  inset: 0 auto auto 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .voice-list,
@@ -3171,5 +3211,135 @@ body {
 
   .hero-copy h1 {
     font-size: clamp(1.42rem, 7.4vw, 2rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .top-controls,
+  .top-actions {
+    gap: 10px;
+  }
+
+  .search-box {
+    padding: 10px 12px;
+  }
+
+  .search-box__label {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+  }
+
+  .section-shell,
+  .stats-row {
+    padding: 14px;
+  }
+
+  .section-head {
+    gap: 12px;
+  }
+
+  .section-summary,
+  .brand-sub {
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .stat-card {
+    padding: 12px 10px;
+    border-radius: 16px;
+  }
+
+  .stat-card span {
+    font-size: 1.5rem;
+  }
+
+  .drawer-panel {
+    top: 6px;
+    right: 6px;
+    bottom: 6px;
+    width: calc(100% - 12px);
+    border-radius: 22px;
+  }
+
+  .drawer-scroll {
+    padding: 14px;
+  }
+
+  .drawer-close,
+  .auth-modal__close {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .detail-hero {
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .detail-poster {
+    width: min(176px, 46vw);
+    max-width: none;
+    aspect-ratio: 1 / 1;
+    border-radius: 22px;
+    justify-self: center;
+    object-position: center 22%;
+  }
+
+  .player-pane,
+  .side-card,
+  .resume-box,
+  .dub-box,
+  .comments-card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .player-toolbar h3 {
+    font-size: 1.18rem;
+  }
+
+  .player-surface {
+    margin-top: 14px;
+    border-radius: 16px;
+  }
+
+  .voice-pill,
+  .crew-pill {
+    min-height: 44px;
+    padding: 9px 11px;
+  }
+
+  .episode-btn {
+    padding: 11px 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar,
+  .hero-card,
+  .section-shell,
+  .stats-row {
+    padding: 12px;
+  }
+
+  .detail-poster {
+    width: min(160px, 50vw);
+    border-radius: 20px;
+  }
+
+  .player-pane,
+  .side-card,
+  .resume-box,
+  .dub-box,
+  .comments-card {
+    padding: 12px;
   }
 }

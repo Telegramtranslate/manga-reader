@@ -4,6 +4,35 @@ const DEFAULT_KODIK_TOKENS = [
   "==QNyE2NzIjM4ETM3MmNklDM==gY5EzNxIzY0gjZ1kDZkFDN",
   "==wMjhDN5QzYkNjZyQmM2ETO==QYjZjYkRjNxMWZ3YTNidzN"
 ];
+const GENRE_LABEL_ALIASES = new Map([
+  ["сенен", "Сёнен"],
+  ["сёнен", "Сёнен"],
+  ["седзе", "Сёдзё"],
+  ["сёдзё", "Сёдзё"],
+  ["сенен ай", "Сёнен-ай"],
+  ["сёнен ай", "Сёнен-ай"],
+  ["седзе ай", "Сёдзё-ай"],
+  ["сёдзё ай", "Сёдзё-ай"],
+  ["сэйнэн", "Сэйнэн"],
+  ["сейнен", "Сэйнэн"],
+  ["сеинен", "Сэйнэн"],
+  ["дзесей", "Дзёсэй"],
+  ["дзёсэй", "Дзёсэй"],
+  ["джосей", "Дзёсэй"],
+  ["экшн", "Экшен"],
+  ["action", "Экшен"],
+  ["adventure", "Приключения"],
+  ["comedy", "Комедия"],
+  ["drama", "Драма"],
+  ["fantasy", "Фэнтези"],
+  ["romance", "Романтика"],
+  ["science fiction", "Фантастика"],
+  ["sci fi", "Фантастика"],
+  ["slice of life", "Повседневность"],
+  ["sports", "Спорт"],
+  ["supernatural", "Сверхъестественное"],
+  ["thriller", "Триллер"]
+]);
 
 function readValue(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -64,6 +93,31 @@ function normalizeText(value) {
     .replace(/[^a-z0-9\u0400-\u04ff]+/g, " ")
     .trim()
     .replace(/\s+/g, " ");
+}
+
+function normalizeGenreKey(value) {
+  return normalizeText(value).replace(/-/g, " ");
+}
+
+function normalizeGenreLabel(value) {
+  const raw = String(value || "").trim().replace(/\s+/g, " ");
+  if (!raw) return "";
+  const key = normalizeGenreKey(raw);
+  if (!key) return "";
+  return GENRE_LABEL_ALIASES.get(key) || raw;
+}
+
+function normalizeGenreList(values = []) {
+  const map = new Map();
+
+  values.forEach((value) => {
+    const label = normalizeGenreLabel(value);
+    const key = normalizeGenreKey(label);
+    if (!key || map.has(key)) return;
+    map.set(key, label);
+  });
+
+  return [...map.values()];
 }
 
 function splitOtherTitles(value) {
@@ -140,7 +194,7 @@ function getAgeLabel(item) {
 }
 
 function getGenres(item) {
-  return uniqueStrings([
+  return normalizeGenreList([
     ...(Array.isArray(item?.material_data?.anime_genres) ? item.material_data.anime_genres : []),
     ...(Array.isArray(item?.material_data?.genres) ? item.material_data.genres : []),
     ...(Array.isArray(item?.material_data?.all_genres) ? item.material_data.all_genres : [])
@@ -630,7 +684,7 @@ function findBestPreviewMatch(items = [], meta = {}) {
   return buildFullRelease(bestGroup);
 }
 
-function buildDiscoverPayload(mode, limit, page, sort) {
+function buildDiscoverPayload(mode, limit, page, sort, genres = []) {
   const safeLimit = Math.max(12, Math.min(100, limit));
   const payload = {
     limit: safeLimit,
@@ -658,6 +712,11 @@ function buildDiscoverPayload(mode, limit, page, sort) {
       payload.sort = "updated_at";
       payload.order = "desc";
       break;
+  }
+
+  const normalizedGenres = normalizeGenreList(Array.isArray(genres) ? genres : [genres]);
+  if (normalizedGenres.length) {
+    payload.anime_genres = normalizedGenres.join(",");
   }
 
   payload.__page = Math.max(1, page);

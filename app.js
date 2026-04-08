@@ -232,6 +232,35 @@ const els = {
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const uniqueStrings = (values = []) => [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
+const GENRE_LABEL_ALIASES = new Map([
+  ["сенен", "Сёнен"],
+  ["сёнен", "Сёнен"],
+  ["седзе", "Сёдзё"],
+  ["сёдзё", "Сёдзё"],
+  ["сенен ай", "Сёнен-ай"],
+  ["сёнен ай", "Сёнен-ай"],
+  ["седзе ай", "Сёдзё-ай"],
+  ["сёдзё ай", "Сёдзё-ай"],
+  ["сэйнэн", "Сэйнэн"],
+  ["сейнен", "Сэйнэн"],
+  ["сеинен", "Сэйнэн"],
+  ["дзесей", "Дзёсэй"],
+  ["дзёсэй", "Дзёсэй"],
+  ["джосей", "Дзёсэй"],
+  ["экшн", "Экшен"],
+  ["action", "Экшен"],
+  ["adventure", "Приключения"],
+  ["comedy", "Комедия"],
+  ["drama", "Драма"],
+  ["fantasy", "Фэнтези"],
+  ["romance", "Романтика"],
+  ["science fiction", "Фантастика"],
+  ["sci fi", "Фантастика"],
+  ["slice of life", "Повседневность"],
+  ["sports", "Спорт"],
+  ["supernatural", "Сверхъестественное"],
+  ["thriller", "Триллер"]
+]);
 
 function isPermissionDeniedError(error) {
   const code = String(error?.code || error?.message || "").toLowerCase();
@@ -722,7 +751,7 @@ function normalizePreparedRelease(item) {
     cardPosterDirect,
     thumb: proxiedImageUrl(thumbDirect),
     thumbDirect,
-    genres: uniqueStrings(Array.isArray(item?.genres) ? item.genres : []),
+    genres: normalizeGenreList(Array.isArray(item?.genres) ? item.genres : []),
     episodesTotal: Number(item?.episodesTotal || episodes.length || 0),
     averageDuration: Number(item?.averageDuration || 0),
     favorites: Number(item?.favorites || 0),
@@ -918,6 +947,87 @@ function normalizeComparableText(value) {
     .replace(/\s+/g, " ");
 }
 
+function normalizeGenreKey(value) {
+  return normalizeComparableText(value).replace(/-/g, " ");
+}
+
+function normalizeGenreLabel(value) {
+  const raw = String(value || "").trim().replace(/\s+/g, " ");
+  if (!raw) return "";
+
+  const key = normalizeGenreKey(raw);
+  if (!key) return "";
+  if (GENRE_LABEL_ALIASES.has(key)) return GENRE_LABEL_ALIASES.get(key);
+
+  if (/^[a-z]/i.test(raw)) {
+    return raw
+      .split(" ")
+      .map((part) => (part ? `${part.charAt(0).toUpperCase()}${part.slice(1).toLowerCase()}` : ""))
+      .join(" ");
+  }
+
+  return `${raw.charAt(0).toUpperCase()}${raw.slice(1)}`;
+}
+
+function normalizeGenreList(values = []) {
+  const map = new Map();
+
+  values.forEach((value) => {
+    const label = normalizeGenreLabel(value);
+    const key = normalizeGenreKey(label);
+    if (!key) return;
+
+    if (!map.has(key)) {
+      map.set(key, label);
+      return;
+    }
+
+    const current = map.get(key);
+    if (!current) {
+      map.set(key, label);
+      return;
+    }
+
+    if (!current.includes("ё") && label.includes("ё")) {
+      map.set(key, label);
+      return;
+    }
+
+    if (current === current.toUpperCase() && label !== label.toUpperCase()) {
+      map.set(key, label);
+    }
+  });
+
+  return [...map.values()];
+}
+
+function getReleaseGenreKeys(release) {
+  return new Set(normalizeGenreList(Array.isArray(release?.genres) ? release.genres : []).map(normalizeGenreKey));
+}
+
+function releaseMatchesGenres(release, genres = [], mode = "every") {
+  const releaseGenreKeys = getReleaseGenreKeys(release);
+  const targetKeys = normalizeGenreList(Array.isArray(genres) ? genres : [genres]).map(normalizeGenreKey);
+  if (!targetKeys.length) return true;
+  if (!releaseGenreKeys.size) return false;
+  if (mode === "some") return targetKeys.some((key) => releaseGenreKeys.has(key));
+  return targetKeys.every((key) => releaseGenreKeys.has(key));
+}
+
+function findMatchingGenres(query) {
+  const queryKey = normalizeGenreKey(query);
+  if (!queryKey) return [];
+
+  const matches = state.genreOptions.filter((genre) => {
+    const genreKey = normalizeGenreKey(genre);
+    return genreKey && (genreKey.includes(queryKey) || queryKey.includes(genreKey));
+  });
+
+  if (matches.length) return matches;
+  if (GENRE_LABEL_ALIASES.has(queryKey)) return [GENRE_LABEL_ALIASES.get(queryKey)];
+  return [];
+}
+
 function getReleaseYearValue(release) {
   const year = Number(release?.year || 0);
   return Number.isFinite(year) ? year : 0;
@@ -1024,7 +1134,7 @@ function mergeReleaseEntries(primary, extra) {
       base.description && base.description !== "Описание пока не заполнено."
         ? base.description
         : addon.description || base.description,
-    genres: uniqueStrings([...(base.genres || []), ...(addon.genres || [])]),
+    genres: normalizeGenreList([...(base.genres || []), ...(addon.genres || [])]),
     favorites: Math.max(Number(base.favorites || 0), Number(addon.favorites || 0)),
     voices: uniqueStrings([...(base.voices || []), ...(addon.voices || [])]),
     crew: [...(base.crew || []), ...(addon.crew || [])].filter((member, index, list) => {
@@ -1081,7 +1191,8 @@ function fetchKodikDiscover(mode, page, limit, options = {}) {
       mode,
       page,
       limit,
-      sort: options.sort || ""
+      sort: options.sort || "",
+      genres: normalizeGenreList(options.genres || []).join("||")
     },
     {
       ttl: options.ttl ?? 120000,
@@ -1089,6 +1200,34 @@ function fetchKodikDiscover(mode, page, limit, options = {}) {
       signal: options.signal
     }
   );
+}
+
+async function fetchAniLibriaGenreMatches(genres, options = {}) {
+  const normalizedGenres = normalizeGenreList(Array.isArray(genres) ? genres : [genres]);
+  if (!normalizedGenres.length) return [];
+
+  const collected = [];
+  const maxPages = Math.max(1, Number(options.maxPages || 8));
+  const limit = Math.max(12, Math.min(48, Number(options.limit || 24)));
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    if (options.signal?.aborted) {
+      throw new DOMException("Search aborted", "AbortError");
+    }
+
+    const payload = await fetchJson(
+      "/anime/catalog/releases",
+      { page, limit, "f[sorting]": "FRESH_AT_DESC" },
+      { ttl: options.ttl ?? 60000, retries: 1, signal: options.signal }
+    );
+    const pageItems = buildReleases(payload).filter((release) => releaseMatchesGenres(release, normalizedGenres, "some"));
+    collected.push(...pageItems);
+
+    const pagination = extractPagination(payload);
+    if (collected.length >= 48 || page >= (pagination.total_pages || page)) break;
+  }
+
+  return uniqueReleases(collected).slice(0, 48);
 }
 
 function fetchKodikSearch(query, options = {}) {
@@ -1347,8 +1486,8 @@ function afterNextPaint() {
 function releaseViewportLocks() {
   const authModal = document.getElementById("auth-modal");
   if (authModal && !authModal.hidden) return;
-  document.body.style.overflow = "";
-  document.documentElement.style.overflow = "";
+  document.body.classList.remove("is-viewport-locked");
+  document.documentElement.classList.remove("is-viewport-locked");
 }
 
 function relocateInjectedControls() {
@@ -1495,12 +1634,10 @@ function decorateCardProgress(node, release) {
 
   topRow.append(label, value);
 
-  const bar = document.createElement("div");
+  const bar = document.createElement("progress");
   bar.className = "anime-card__progress-bar";
-
-  const fill = document.createElement("span");
-  fill.style.width = `${percent}%`;
-  bar.appendChild(fill);
+  bar.max = 100;
+  bar.value = percent;
 
   const meta = document.createElement("div");
   meta.className = "anime-card__progress-meta";
@@ -1557,9 +1694,10 @@ function decorateEpisodeProgress(release) {
     button.classList.add("has-progress");
 
     if (!button.querySelector(".episode-progress")) {
-      const bar = document.createElement("div");
+      const bar = document.createElement("progress");
       bar.className = "episode-progress";
-      bar.innerHTML = `<span style="width:${progressPercent(progress)}%"></span>`;
+      bar.max = 100;
+      bar.value = progressPercent(progress);
       button.appendChild(bar);
     }
 
@@ -1660,15 +1798,10 @@ function setupInfiniteScroll() {
 }
 
 function registerGenres(releases) {
-  const next = new Set(state.genreOptions);
-  (releases || []).forEach((release) => {
-    (release.genres || []).forEach((genre) => {
-      const label = String(genre || "").trim();
-      if (label) next.add(label);
-    });
-  });
-
-  const sorted = [...next].sort((left, right) => left.localeCompare(right, "ru"));
+  const sorted = normalizeGenreList([
+    ...state.genreOptions,
+    ...(releases || []).flatMap((release) => release.genres || [])
+  ]).sort((left, right) => left.localeCompare(right, "ru"));
   if (
     sorted.length === state.genreOptions.length &&
     sorted.every((value, index) => value === state.genreOptions[index])
@@ -1707,9 +1840,8 @@ function renderGenreChips() {
 
 function getFilteredCatalogItems() {
   return state.catalogItems.filter((release) => {
-    const genres = release.genres || [];
-    if (state.catalogGenre && !genres.includes(state.catalogGenre)) return false;
-    if (state.catalogGenres.length && !state.catalogGenres.every((genre) => genres.includes(genre))) return false;
+    if (state.catalogGenre && !releaseMatchesGenres(release, [state.catalogGenre])) return false;
+    if (state.catalogGenres.length && !releaseMatchesGenres(release, state.catalogGenres)) return false;
     return true;
   });
 }
@@ -1727,7 +1859,7 @@ function refreshCatalogView(pagination = null) {
       ? `Фильтр по жанрам: ${labels.join(", ")}. Показано ${formatNumber(items.length)} из ${formatNumber(
           state.catalogItems.length
         )} загруженных тайтлов.${pageLabel}`
-      : `${formatNumber(state.catalogTotal || state.catalogItems.length)} тайтлов в каталоге.${pageLabel}`;
+      : `${formatNumber(state.catalogTotal || state.catalogItems.length)} тайтлов в полной базе AnimeCloud.${pageLabel}`;
   }
 
   updateGrid(
@@ -2084,7 +2216,18 @@ async function loadContentStats(force = false) {
     state.ongoingTotalPages = Math.max(state.ongoingTotalPages || 0, Math.ceil(Number(stats?.ongoingTotal || 0) / GRID_PAGE_SIZE));
     state.topTotalPages = Math.max(state.topTotalPages || 0, Math.ceil(Number(stats?.topTotal || 0) / GRID_PAGE_SIZE));
     updateStats();
-    if (state.catalogLoaded) refreshCatalogView();
+    if (state.catalogLoaded) {
+      if (state.catalogGenre || state.catalogGenres.length) {
+        refreshCatalogView();
+      } else if (els.catalogSummary) {
+        const currentPage = state.catalogPage || 0;
+        const totalPages = Math.max(state.catalogTotalPages || 0, currentPage ? 1 : 0);
+        const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
+        els.catalogSummary.textContent = `${formatNumber(
+          state.catalogTotal || state.catalogItems.length
+        )} тайтлов в полной базе AnimeCloud.${pageLabel}`;
+      }
+    }
     if (state.ongoingLoaded) refreshOngoingSummary();
     if (state.topLoaded) refreshTopSummary();
   } catch {}
@@ -2098,6 +2241,7 @@ function syncHomeChrome(view) {
 
 function setView(view, options = {}) {
   releaseViewportLocks();
+  const previousView = state.currentView;
 
   if (els.drawer?.classList.contains("is-open")) {
     closeDrawer({ updateHistory: false });
@@ -2133,7 +2277,7 @@ function setView(view, options = {}) {
   }
 
   updateViewSeo(view);
-  if (view === "search") {
+  if (view === "search" && previousView !== "search" && options.focusSearch !== false) {
     safeIdle(() => els.searchInput?.focus());
   }
   if (view === "profile") {
@@ -2296,6 +2440,9 @@ async function loadCatalog(options = {}) {
   await loadReferences();
   const reset = Boolean(options.reset);
   const nextPage = reset ? 1 : state.catalogPage + 1;
+  const existingAliases = new Set(state.catalogItems.map((release) => release.alias).filter(Boolean));
+  const previousCatalogCount = reset ? 0 : state.catalogItems.length;
+  const previousFilteredCount = reset ? 0 : getFilteredCatalogItems().length;
 
   if (reset) {
     state.catalogItems = [];
@@ -2308,19 +2455,24 @@ async function loadCatalog(options = {}) {
 
   try {
     els.catalogMoreBtn.disabled = true;
-    const shouldMergeKodik = !state.catalogType && !state.catalogGenre && !state.catalogGenres.length;
+    const activeGenres = normalizeGenreList([state.catalogGenre, ...state.catalogGenres].filter(Boolean));
+    const shouldMergeKodik = !state.catalogType;
     const [payload, kodikPayload] = await Promise.all([
       fetchJson("/anime/catalog/releases", buildCatalogParams(nextPage), { ttl: 120000 }),
       shouldMergeKodik
         ? fetchKodikDiscover("catalog", nextPage, GRID_PAGE_SIZE, {
             ttl: 120000,
-            sort: mapKodikSort(state.catalogSort)
+            sort: mapKodikSort(state.catalogSort),
+            genres: activeGenres
           }).catch(() => ({ items: [] }))
         : Promise.resolve({ items: [] })
     ]);
     const releases = mergeReleaseCollections(buildReleases(payload), buildReleases(kodikPayload));
     const pagination = extractPagination(payload);
     const kodikPagination = extractPagination(kodikPayload);
+    const appendedReleases = reset
+      ? releases
+      : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
 
     registerGenres(releases);
     state.catalogItems = reset ? releases : mergeReleaseCollections(state.catalogItems, releases);
@@ -2337,12 +2489,43 @@ async function loadCatalog(options = {}) {
 
     const hasFilters = Boolean(state.catalogGenre || state.catalogGenres.length);
     if (hasFilters) {
-      refreshCatalogView(pagination);
+      const filteredAppended = appendedReleases.filter((release) =>
+        releaseMatchesGenres(release, [state.catalogGenre, ...state.catalogGenres].filter(Boolean))
+      );
+      const filteredItems = getFilteredCatalogItems();
+      const currentPage = pagination.current_page || state.catalogPage || 0;
+      const totalPages = Math.max(pagination.total_pages || 0, state.catalogTotalPages || 0, currentPage ? 1 : 0);
+      const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
+      const labels = [...new Set([state.catalogGenre, ...state.catalogGenres].filter(Boolean))];
+
+      if (els.catalogSummary) {
+        els.catalogSummary.textContent = `Фильтр по жанрам: ${labels.join(", ")}. Показано ${formatNumber(
+          filteredItems.length
+        )} из ${formatNumber(state.catalogItems.length)} загруженных тайтлов.${pageLabel}`;
+      }
+
+      if (!reset && filteredAppended.length && filteredItems.length === previousFilteredCount + filteredAppended.length) {
+        updateGrid(els.catalogGrid, filteredAppended, "По выбранным жанрам пока ничего не найдено.", {
+          append: true,
+          offset: previousFilteredCount
+        });
+      } else {
+        refreshCatalogView(pagination);
+      }
     } else {
-      els.catalogSummary.textContent = `${formatNumber(state.catalogTotal)} тайтлов. Страница ${state.catalogPage} из ${
+      els.catalogSummary.textContent = `${formatNumber(
+        state.catalogTotal
+      )} тайтлов в полной базе AnimeCloud. Страница ${state.catalogPage} из ${
         state.catalogTotalPages || 1
       }.`;
-      updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
+      if (reset) {
+        updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
+      } else if (appendedReleases.length) {
+        updateGrid(els.catalogGrid, appendedReleases, "Каталог пуст.", {
+          append: true,
+          offset: previousCatalogCount
+        });
+      }
     }
 
     els.catalogMoreBtn.hidden = !state.catalogHasMore;
@@ -2363,6 +2546,8 @@ async function loadOngoing(options = {}) {
   await loadReferences();
   const reset = Boolean(options.reset);
   const nextPage = reset ? 1 : state.ongoingPage + 1;
+  const existingAliases = new Set(state.ongoingItems.map((release) => release.alias).filter(Boolean));
+  const previousCount = reset ? 0 : state.ongoingItems.length;
 
   if (reset) {
     state.ongoingItems = [];
@@ -2384,6 +2569,9 @@ async function loadOngoing(options = {}) {
     const releases = mergeReleaseCollections(buildReleases(payload), buildReleases(kodikPayload));
     const pagination = extractPagination(payload);
     const kodikPagination = extractPagination(kodikPayload);
+    const appendedReleases = reset
+      ? releases
+      : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
 
     registerGenres(releases);
     state.ongoingItems = reset ? releases : mergeReleaseCollections(state.ongoingItems, releases);
@@ -2399,7 +2587,14 @@ async function loadOngoing(options = {}) {
     state.ongoingLoaded = true;
 
     refreshOngoingSummary();
-    updateGrid(els.ongoingGrid, state.ongoingItems, "Онгоинги не найдены.");
+    if (reset) {
+      updateGrid(els.ongoingGrid, state.ongoingItems, "Онгоинги не найдены.");
+    } else if (appendedReleases.length) {
+      updateGrid(els.ongoingGrid, appendedReleases, "Онгоинги не найдены.", {
+        append: true,
+        offset: previousCount
+      });
+    }
 
     els.ongoingMoreBtn.hidden = !state.ongoingHasMore;
     els.ongoingMoreBtn.disabled = !state.ongoingHasMore;
@@ -2418,6 +2613,8 @@ async function loadTop(options = {}) {
   await loadReferences();
   const reset = Boolean(options.reset);
   const nextPage = reset ? 1 : state.topPage + 1;
+  const existingAliases = new Set(state.topItems.map((release) => release.alias).filter(Boolean));
+  const previousCount = reset ? 0 : state.topItems.length;
 
   if (reset) {
     state.topItems = [];
@@ -2439,6 +2636,9 @@ async function loadTop(options = {}) {
     const releases = mergeReleaseCollections(buildReleases(payload), buildReleases(kodikPayload));
     const pagination = extractPagination(payload);
     const kodikPagination = extractPagination(kodikPayload);
+    const appendedReleases = reset
+      ? releases
+      : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
 
     registerGenres(releases);
     state.topItems = reset ? releases : mergeReleaseCollections(state.topItems, releases);
@@ -2454,7 +2654,14 @@ async function loadTop(options = {}) {
     state.topLoaded = true;
 
     refreshTopSummary();
-    updateGrid(els.topGrid, state.topItems, "Топ пока не заполнен.");
+    if (reset) {
+      updateGrid(els.topGrid, state.topItems, "Топ пока не заполнен.");
+    } else if (appendedReleases.length) {
+      updateGrid(els.topGrid, appendedReleases, "Топ пока не заполнен.", {
+        append: true,
+        offset: previousCount
+      });
+    }
 
     els.topMoreBtn.hidden = !state.topHasMore;
     els.topMoreBtn.disabled = !state.topHasMore;
@@ -2568,8 +2775,8 @@ function searchLocalReleases(query) {
     const titleMatch = getReleaseTitleVariants(release).some((title) => title.includes(normalizedQuery));
     if (titleMatch) return true;
 
-    const genreMatch = uniqueStrings(Array.isArray(release?.genres) ? release.genres : [])
-      .map(normalizeComparableText)
+    const genreMatch = normalizeGenreList(Array.isArray(release?.genres) ? release.genres : [])
+      .map(normalizeGenreKey)
       .some((genre) => genre.includes(normalizedQuery));
     if (genreMatch) return true;
 
@@ -2602,15 +2809,30 @@ async function runSearch(query) {
 
   try {
     const localResults = searchLocalReleases(cleanQuery);
-    const [payload, kodikPayload] = await Promise.all([
+    const matchedGenres = findMatchingGenres(cleanQuery).slice(0, 3);
+    const [payload, kodikPayload, kodikGenrePayload, aniGenreResults] = await Promise.all([
       fetchJson("/app/search/releases", { query: cleanQuery }, { ttl: 60000, signal: controller.signal }),
-      fetchKodikSearch(cleanQuery, { ttl: 60000, signal: controller.signal }).catch(() => ({ items: [] }))
+      fetchKodikSearch(cleanQuery, { ttl: 60000, signal: controller.signal }).catch(() => ({ items: [] })),
+      matchedGenres.length
+        ? fetchKodikDiscover("catalog", 1, 48, {
+            ttl: 60000,
+            signal: controller.signal,
+            genres: matchedGenres,
+            sort: "updated_at"
+          }).catch(() => ({ items: [] }))
+        : Promise.resolve({ items: [] }),
+      matchedGenres.length
+        ? fetchAniLibriaGenreMatches(matchedGenres, { ttl: 60000, signal: controller.signal }).catch(() => [])
+        : Promise.resolve([])
     ]);
     if (controller.signal.aborted) return;
 
     state.searchResults = mergeReleaseCollections(
-      mergeReleaseCollections(localResults, buildReleases(payload)),
-      buildReleases(kodikPayload)
+      mergeReleaseCollections(
+        mergeReleaseCollections(localResults, buildReleases(payload)),
+        buildReleases(kodikPayload)
+      ),
+      mergeReleaseCollections(buildReleases(kodikGenrePayload), aniGenreResults)
     ).slice(0, 48);
     els.searchSummary.textContent = state.searchResults.length
       ? `Найдено ${formatNumber(state.searchResults.length)} релизов по запросу «${cleanQuery}».`
@@ -3478,7 +3700,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=52", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js?v=54", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -3559,9 +3781,7 @@ async function copyTextFallback(value) {
   const textarea = document.createElement("textarea");
   textarea.value = value;
   textarea.setAttribute("readonly", "true");
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  textarea.style.pointerEvents = "none";
+  textarea.className = "copy-buffer";
   document.body.appendChild(textarea);
   textarea.select();
   textarea.setSelectionRange(0, textarea.value.length);
