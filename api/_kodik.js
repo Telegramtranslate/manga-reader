@@ -26,6 +26,8 @@ const GENRE_LABEL_ALIASES = new Map([
   ["drama", "Драма"],
   ["fantasy", "Фэнтези"],
   ["romance", "Романтика"],
+  ["cgdct", "Милые девочки"],
+  ["cute girls doing cute things", "Милые девочки"],
   ["science fiction", "Фантастика"],
   ["sci fi", "Фантастика"],
   ["slice of life", "Повседневность"],
@@ -168,13 +170,16 @@ function mapTypeLabel(item) {
 }
 
 function getPosterUrl(item) {
-  return absoluteKodikUrl(
-    item?.material_data?.anime_poster_url ||
-      item?.material_data?.poster_url ||
-      item?.screenshots?.[0] ||
-      item?.material_data?.screenshots?.[0] ||
-      ""
-  );
+  const candidates = [
+    item?.material_data?.poster_url,
+    item?.screenshots?.[0],
+    item?.material_data?.screenshots?.[0],
+    item?.material_data?.anime_poster_url
+  ]
+    .map(absoluteKodikUrl)
+    .filter(Boolean);
+
+  return candidates.find((url) => !/shikimori\./i.test(url)) || candidates[0] || "";
 }
 
 function getDescription(item) {

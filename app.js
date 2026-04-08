@@ -259,6 +259,8 @@ const GENRE_LABEL_ALIASES = new Map([
   ["drama", "Драма"],
   ["fantasy", "Фэнтези"],
   ["romance", "Романтика"],
+  ["cgdct", "Милые девочки"],
+  ["cute girls doing cute things", "Милые девочки"],
   ["science fiction", "Фантастика"],
   ["sci fi", "Фантастика"],
   ["slice of life", "Повседневность"],
@@ -2962,7 +2964,7 @@ async function runSearch(query) {
 
 const prefetchRelease = (alias) => {
   const preview = findCachedReleaseByAlias(alias);
-  if (preview?.provider === "kodik" && !preview.providerSet?.includes("anilibria")) {
+  if ((preview?.provider === "kodik" && !preview.providerSet?.includes("anilibria")) || String(alias || "").startsWith("kodik-")) {
     return fetchKodikRelease(preview, { ttl: DETAIL_TTL }).catch(() => {});
   }
 
@@ -3107,6 +3109,21 @@ function showExternalSurface(url) {
   els.externalPlayer.src = url;
 }
 
+function fallbackToEmbeddedSource(message) {
+  if (!state.currentAnime) return false;
+  const fallbackSource = getReleaseSources(state.currentAnime).find((source) => source.kind === "iframe" && source.externalUrl);
+  if (!fallbackSource?.externalUrl) return false;
+
+  state.currentSource = fallbackSource.id;
+  syncRenderedSourceState();
+  renderEpisodes(state.currentAnime);
+  els.qualitySwitch.innerHTML = "";
+  els.playerTitle.textContent = fallbackSource.title;
+  els.playerNote.textContent = message || "Поток не ответил. Открыли встроенный внешний плеер.";
+  showExternalSurface(fallbackSource.externalUrl);
+  return true;
+}
+
 function buildQualityOptions(episode) {
   const options = [
     { key: "1080", label: "1080p", url: episode.hls_1080 },
@@ -3242,6 +3259,13 @@ async function attachPlayer(manifestUrl) {
         } catch {}
       }
       destroyPlayer();
+      if (
+        fallbackToEmbeddedSource(
+          "Поток AniLibria не ответил. Открыли встроенный внешний плеер с альтернативным источником."
+        )
+      ) {
+        return;
+      }
       els.playerNote.textContent = "Не удалось загрузить поток. Попробуйте другую серию или обновите страницу.";
     });
     state.hls.loadSource(playableManifestUrl);
@@ -3810,7 +3834,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=58", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js?v=59", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
