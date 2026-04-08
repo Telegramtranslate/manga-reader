@@ -32,7 +32,7 @@
 
   function normalizeFirebaseConfig(config) {
     if (!hasRequiredFirebaseFields(config)) {
-      throw new Error("AnimeCloud Firebase config is missing or invalid");
+      return null;
     }
 
     const next = { ...config };
@@ -70,9 +70,11 @@
     window.ANIMECLOUD_ENABLE_APP_CHECK === true;
 
   let recaptchaPromise = null;
-  const helperHost = String(FIREBASE_CONFIG.authDomain || "").trim();
+  const helperHost = String(FIREBASE_CONFIG?.authDomain || "").trim();
 
   window.ANIMECLOUD_FIREBASE_CONFIG = FIREBASE_CONFIG;
+  window.ANIMECLOUD_FIREBASE_DISABLED = !FIREBASE_CONFIG;
+  window.ANIMECLOUD_FIREBASE_ERROR = FIREBASE_CONFIG ? "" : "Firebase config missing or invalid";
   window.ANIMECLOUD_FIREBASE_HELPER_HOST = helperHost;
   window.ANIMECLOUD_FIREBASE_HELPER_ORIGIN = helperHost ? `https://${helperHost}` : "";
   window.ANIMECLOUD_USE_CUSTOM_AUTH_DOMAIN = isCustomAuthDomainEnabled();
@@ -81,7 +83,7 @@
   window.ANIMECLOUD_ENABLE_APP_CHECK = window.ANIMECLOUD_ENABLE_APP_CHECK === true || APP_CHECK_ENABLED;
 
   window.animeCloudLoadRecaptchaEnterprise = function animeCloudLoadRecaptchaEnterprise() {
-    if (!window.ANIMECLOUD_ENABLE_APP_CHECK || !window.ANIMECLOUD_APP_CHECK_KEY) {
+    if (window.ANIMECLOUD_FIREBASE_DISABLED || !window.ANIMECLOUD_ENABLE_APP_CHECK || !window.ANIMECLOUD_APP_CHECK_KEY) {
       return Promise.resolve(null);
     }
 

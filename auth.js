@@ -2,6 +2,7 @@
   const AUTH_STORAGE_KEY = "animecloud_auth_v1";
   const AUTH_REDIRECT_PENDING_KEY = "animecloud_google_redirect_pending_v1";
   const FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || null;
+  const FIREBASE_DISABLED = window.ANIMECLOUD_FIREBASE_DISABLED === true || !FIREBASE_CONFIG;
   const FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   const AUTH_APP_CHECK_SITE_KEY =
     window.ANIMECLOUD_APP_CHECK_KEY ||
@@ -187,6 +188,7 @@
   }
 
   async function getFirebaseContext() {
+    if (FIREBASE_DISABLED) return null;
     if (firebaseState.contextPromise) return firebaseState.contextPromise;
 
     firebaseState.contextPromise = (async () => {
@@ -209,10 +211,6 @@
         import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`),
         import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`)
       ]);
-
-      if (!FIREBASE_CONFIG) {
-        throw new Error("AnimeCloud Firebase config is missing");
-      }
 
       const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
       await ensureFirebaseAppCheck(app);
@@ -245,7 +243,13 @@
     if (firebaseState.bootstrapPromise) return firebaseState.bootstrapPromise;
 
     firebaseState.bootstrapPromise = (async () => {
-      const { auth, onAuthStateChanged } = await getFirebaseContext();
+      const context = await getFirebaseContext();
+      if (!context) {
+        authState.ready = true;
+        writeSession(null);
+        return;
+      }
+      const { auth, onAuthStateChanged } = context;
       if (firebaseState.unsubscribe) return;
 
       firebaseState.unsubscribe = onAuthStateChanged(
@@ -365,13 +369,17 @@
   }
 
   async function signInWithEmail(email, password) {
-    const { auth, signInWithEmailAndPassword } = await getFirebaseContext();
+    const context = await getFirebaseContext();
+    if (!context) throw new Error("Авторизация временно недоступна.");
+    const { auth, signInWithEmailAndPassword } = context;
     const result = await signInWithEmailAndPassword(auth, email, password);
     await applyFirebaseUserSession(result.user);
   }
 
   async function signUpWithEmail(email, password) {
-    const { auth, createUserWithEmailAndPassword } = await getFirebaseContext();
+    const context = await getFirebaseContext();
+    if (!context) throw new Error("Авторизация временно недоступна.");
+    const { auth, createUserWithEmailAndPassword } = context;
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await applyFirebaseUserSession(result.user);
   }
@@ -385,7 +393,9 @@
     if (authEls.googleNote) authEls.googleNote.textContent = "Открываем вход через Google…";
 
     try {
-      const { auth, GoogleAuthProvider, signInWithPopup } = await getFirebaseContext();
+      const context = await getFirebaseContext();
+      if (!context) throw new Error("Авторизация временно недоступна.");
+      const { auth, GoogleAuthProvider, signInWithPopup } = context;
       const provider = createGoogleProvider(GoogleAuthProvider);
 
       const result = await signInWithPopup(auth, provider);
@@ -400,7 +410,9 @@
         if (authEls.googleNote) authEls.googleNote.textContent = "Popup-вход недоступен. Перенаправляем на защищённый вход AnimeCloud…";
         setStatus("Перенаправляем на Google через AnimeCloud…");
         try {
-          const { auth, GoogleAuthProvider, signInWithRedirect } = await getFirebaseContext();
+          const context = await getFirebaseContext();
+          if (!context) throw new Error("Авторизация временно недоступна.");
+          const { auth, GoogleAuthProvider, signInWithRedirect } = context;
           const provider = createGoogleProvider(GoogleAuthProvider);
           await signInWithRedirect(auth, provider);
           return;
@@ -424,8 +436,8 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = "primary-btn google-auth-launch";
-    button.textContent = authState.googleLoading ? "Подождите…" : "Войти через Google";
-    button.disabled = authState.googleLoading;
+    button.textContent = FIREBASE_DISABLED ? "Вход временно недоступен" : authState.googleLoading ? "Подождите…" : "Войти через Google";
+    button.disabled = authState.googleLoading || FIREBASE_DISABLED;
     button.addEventListener("click", () => {
       signInWithGoogle().catch(console.error);
     });
@@ -497,6 +509,17 @@
   async function initAuth() {
     bindAuthEvents();
     setAuthTab("login");
+    if (FIREBASE_DISABLED) {
+      writeSession(null, { broadcast: true });
+      setFormDisabled(authEls.loginForm, true);
+      setFormDisabled(authEls.registerForm, true);
+      if (authEls.googleNote) authEls.googleNote.textContent = "Авторизация временно недоступна, пока не настроен Firebase config.";
+      renderGoogleButton();
+      authState.ready = true;
+      dispatchAuthState(null);
+      return;
+    }
+
     writeSession(readSession(), { broadcast: true });
     if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход через AnimeCloud.";
     renderGoogleButton();
