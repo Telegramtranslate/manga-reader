@@ -45,9 +45,9 @@ module.exports = async (req, res) => {
     });
 
     if (!upstream.ok) {
-      res.statusCode = upstream.status;
-      res.setHeader("Content-Type", "application/json; charset=utf-8");
-      res.end(JSON.stringify({ error: "Image proxy failed", status: upstream.status }));
+      res.statusCode = 307;
+      res.setHeader("Location", target);
+      res.setHeader("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=86400");
       return;
     }
 
@@ -68,13 +68,9 @@ module.exports = async (req, res) => {
     const arrayBuffer = await upstream.arrayBuffer();
     res.end(Buffer.from(arrayBuffer));
   } catch (error) {
-    res.statusCode = 502;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.end(
-      JSON.stringify({
-        error: "Image proxy failed",
-        message: String(error?.message || error || "Unknown error")
-      })
-    );
+    res.statusCode = 307;
+    res.setHeader("Location", target);
+    res.setHeader("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=86400");
+    res.end();
   }
 };
