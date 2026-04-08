@@ -1522,6 +1522,24 @@ function scheduleChunkRender(target, items, createNode, options = {}) {
   queueNextBatch();
 }
 
+function captureScrollAnchor() {
+  const doc = document.documentElement;
+  return {
+    distanceToBottom: Math.max(0, doc.scrollHeight - (window.scrollY + window.innerHeight))
+  };
+}
+
+function restoreScrollAnchor(anchor, attempts = 0) {
+  if (!anchor) return;
+  const doc = document.documentElement;
+  const targetTop = Math.max(0, doc.scrollHeight - window.innerHeight - anchor.distanceToBottom);
+  if (Math.abs(window.scrollY - targetTop) > 2) {
+    window.scrollTo(0, targetTop);
+  }
+  if (attempts >= 2) return;
+  requestAnimationFrame(() => restoreScrollAnchor(anchor, attempts + 1));
+}
+
 function createTag(text) {
   const node = document.createElement("span");
   node.className = "tag";
@@ -1854,13 +1872,38 @@ function setupInfiniteScroll() {
   if (!("IntersectionObserver" in window)) return;
   if (shouldPreferFastStart() || window.matchMedia?.("(max-width: 860px)")?.matches) return;
 
+  const triggerLoadMore = (button) => {
+    if (!button || button.hidden || button.disabled || button.dataset.autoLoading === "1") return;
+    button.dataset.autoLoading = "1";
+
+    const action =
+      button === els.catalogMoreBtn
+        ? () => loadCatalog({ reset: false })
+        : button === els.ongoingMoreBtn
+          ? () => loadOngoing({ reset: false })
+          : button === els.topMoreBtn
+            ? () => loadTop({ reset: false })
+            : null;
+
+    if (!action) {
+      delete button.dataset.autoLoading;
+      return;
+    }
+
+    Promise.resolve(action())
+      .catch(console.error)
+      .finally(() => {
+        delete button.dataset.autoLoading;
+      });
+  };
+
   const buttons = [els.catalogMoreBtn, els.ongoingMoreBtn, els.topMoreBtn].filter(Boolean);
   state.infiniteObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         const button = entry.target;
         if (!entry.isIntersecting || button.hidden || button.disabled) return;
-        button.click();
+        triggerLoadMore(button);
       });
     },
     {
@@ -2526,6 +2569,7 @@ async function loadCatalog(options = {}) {
   const previousCatalogCount = reset ? 0 : state.catalogItems.length;
   const previousFilteredCount = reset ? 0 : getFilteredCatalogItems().length;
   const mergedCatalogTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.catalogTotal || 0));
+  const scrollAnchor = !reset ? captureScrollAnchor() : null;
 
   if (reset) {
     state.catalogItems = [];
@@ -2633,7 +2677,8 @@ async function loadCatalog(options = {}) {
       if (!reset && filteredAppended.length && filteredItems.length === previousFilteredCount + filteredAppended.length) {
         updateGrid(els.catalogGrid, filteredAppended, "По выбранным жанрам пока ничего не найдено.", {
           append: true,
-          offset: previousFilteredCount
+          offset: previousFilteredCount,
+          onComplete: () => restoreScrollAnchor(scrollAnchor)
         });
       } else {
         refreshCatalogView(pagination);
@@ -2649,7 +2694,8 @@ async function loadCatalog(options = {}) {
       } else if (appendedReleases.length) {
         updateGrid(els.catalogGrid, appendedReleases, "Каталог пуст.", {
           append: true,
-          offset: previousCatalogCount
+          offset: previousCatalogCount,
+          onComplete: () => restoreScrollAnchor(scrollAnchor)
         });
       }
     }
@@ -2675,6 +2721,7 @@ async function loadOngoing(options = {}) {
   const existingAliases = new Set(state.ongoingItems.map((release) => release.alias).filter(Boolean));
   const previousCount = reset ? 0 : state.ongoingItems.length;
   const mergedOngoingTotal = Math.max(Number(state.ongoingMergedTotal || 0), Number(state.ongoingTotal || 0));
+  const scrollAnchor = !reset ? captureScrollAnchor() : null;
 
   if (reset) {
     state.ongoingItems = [];
@@ -2718,7 +2765,8 @@ async function loadOngoing(options = {}) {
     } else if (appendedReleases.length) {
       updateGrid(els.ongoingGrid, appendedReleases, "Онгоинги не найдены.", {
         append: true,
-        offset: previousCount
+        offset: previousCount,
+        onComplete: () => restoreScrollAnchor(scrollAnchor)
       });
     }
 
@@ -2742,6 +2790,7 @@ async function loadTop(options = {}) {
   const existingAliases = new Set(state.topItems.map((release) => release.alias).filter(Boolean));
   const previousCount = reset ? 0 : state.topItems.length;
   const mergedTopTotal = Math.max(Number(state.topMergedTotal || 0), Number(state.topTotal || 0));
+  const scrollAnchor = !reset ? captureScrollAnchor() : null;
 
   if (reset) {
     state.topItems = [];
@@ -2785,7 +2834,8 @@ async function loadTop(options = {}) {
     } else if (appendedReleases.length) {
       updateGrid(els.topGrid, appendedReleases, "Топ пока не заполнен.", {
         append: true,
-        offset: previousCount
+        offset: previousCount,
+        onComplete: () => restoreScrollAnchor(scrollAnchor)
       });
     }
 
@@ -3053,7 +3103,9 @@ function updateGrid(target, releases, emptyMessage, options = {}) {
     return;
   }
 
-  scheduleChunkRender(target, releases, (release, index) => createAnimeCard(release, offset + index));
+  scheduleChunkRender(target, releases, (release, index) => createAnimeCard(release, offset + index), {
+    onComplete: options.onComplete
+  });
 }
 
 function bindPosterFallback(image, release, options = {}) {
@@ -3873,7 +3925,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=60", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js?v=61", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -4027,6 +4079,15 @@ function bindListButtons() {
   });
 }
 
+function bindLoadMoreButton(button, action) {
+  if (!button) return;
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    button.blur?.();
+    action().catch(console.error);
+  });
+}
+
 function bindNavigationDelegates() {
   document.addEventListener("click", (event) => {
     const link = event.target.closest("a");
@@ -4069,9 +4130,9 @@ function bindEvents() {
   els.installBtn?.addEventListener("click", () => {
     handleInstallClick().catch(console.error);
   });
-  els.catalogMoreBtn?.addEventListener("click", () => loadCatalog({ reset: false }).catch(console.error));
-  els.ongoingMoreBtn?.addEventListener("click", () => loadOngoing({ reset: false }).catch(console.error));
-  els.topMoreBtn?.addEventListener("click", () => loadTop({ reset: false }).catch(console.error));
+  bindLoadMoreButton(els.catalogMoreBtn, () => loadCatalog({ reset: false }));
+  bindLoadMoreButton(els.ongoingMoreBtn, () => loadOngoing({ reset: false }));
+  bindLoadMoreButton(els.topMoreBtn, () => loadTop({ reset: false }));
 
   els.catalogSort?.addEventListener("change", () => {
     state.catalogSort = els.catalogSort.value;
