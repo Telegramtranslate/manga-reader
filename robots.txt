@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /api/anilibria-stream
-Sitemap: /sitemap.xml
+Sitemap: https://color-manga-cloud.vercel.app/sitemap.xml
