@@ -1,12 +1,13 @@
 const CLOUD_FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || null;
-
+const CLOUD_APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
+const CLOUD_STORAGE_KEYS = CLOUD_APP_CONSTANTS.STORAGE_KEYS || {};
 const CLOUD_FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
-const CLOUD_AUTH_STORAGE_KEY = "animecloud_auth_v1";
-const CLOUD_FAVORITES_PREFIX = "animecloud_favorites";
-const CLOUD_PROGRESS_KEY = "animecloud_watch_progress_v1";
-const CLOUD_COMMENTS_KEY = "animecloud_comments_v1";
-const CLOUD_LISTS_KEY = "animecloud_lists_v1";
-const CLOUD_SETTINGS_KEY = "animecloud_settings_v1";
+const CLOUD_AUTH_STORAGE_KEY = CLOUD_STORAGE_KEYS.auth || "animecloud_auth_v1";
+const CLOUD_FAVORITES_PREFIX = CLOUD_STORAGE_KEYS.favoritesPrefix || "animecloud_favorites";
+const CLOUD_PROGRESS_KEY = CLOUD_STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
+const CLOUD_COMMENTS_KEY = CLOUD_STORAGE_KEYS.comments || "animecloud_comments_v1";
+const CLOUD_LISTS_KEY = CLOUD_STORAGE_KEYS.lists || "animecloud_lists_v1";
+const CLOUD_SETTINGS_KEY = CLOUD_STORAGE_KEYS.settings || "animecloud_settings_v1";
 const CLOUD_FAVORITES_LIMIT = 120;
 const CLOUD_COMMENTS_LIMIT = 200;
 const CLOUD_DB_NAME = "animecloud-db";
@@ -40,7 +41,7 @@ function defaultCloudSettings() {
 
 function sanitizeStoredSession(session) {
   if (!session || typeof session !== "object") return null;
-  const { idToken, refreshToken, expiresAt, isAdmin, role, ...rest } = session;
+  const { idToken, refreshToken, expiresAt, ...rest } = session;
   return rest;
 }
 

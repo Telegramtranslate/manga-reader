@@ -11,7 +11,8 @@ module.exports = async (req, res) => {
   const payload = {
     VITE_FIREBASE_CONFIG: valid ? JSON.stringify(parsed) : "",
     VITE_APP_CHECK_KEY: process.env.VITE_APP_CHECK_KEY || "",
-    VITE_FIREBASE_CUSTOM_AUTH_DOMAIN: process.env.VITE_FIREBASE_CUSTOM_AUTH_DOMAIN || ""
+    VITE_FIREBASE_CUSTOM_AUTH_DOMAIN: process.env.VITE_FIREBASE_CUSTOM_AUTH_DOMAIN || "",
+    SITE_URL: process.env.SITE_URL || ""
   };
 
   res.statusCode = 200;

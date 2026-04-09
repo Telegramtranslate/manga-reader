@@ -3,13 +3,8 @@ const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "..");
 const OUTPUT_PATH = path.join(ROOT, "content-stats.json");
-const ANILIBRIA_BASE = "https://color-manga-cloud.vercel.app/api/anilibria/anime";
+const ANILIBRIA_BASE = "https://anilibria.top/api/v1/anime";
 const KODIK_BASE = "https://kodik-api.com";
-const DEFAULT_KODIK_TOKENS = [
-  "==QO0ADM3kTZmRTNiRDNjFDM==QOxkDMzQjZ4ADZ4YzNhZTN",
-  "==QNyE2NzIjM4ETM3MmNklDM==gY5EzNxIzY0gjZ1kDZkFDN",
-  "==wMjhDN5QzYkNjZyQmM2ETO==QYjZjYkRjNxMWZ3YTNidzN"
-];
 const ANILIBRIA_PAGE_LIMIT = 50;
 const KODIK_PAGE_LIMIT = 100;
 
@@ -62,7 +57,7 @@ function decryptToken(value) {
 }
 
 function getTokenCandidates() {
-  return uniqueStrings([process.env.KODIK_TOKEN, ...DEFAULT_KODIK_TOKENS].map(decryptToken));
+  return uniqueStrings([process.env.KODIK_TOKEN].map(decryptToken));
 }
 
 function primaryIdentityKey(entry) {
@@ -179,6 +174,9 @@ async function fetchAniLibriaKeys(extraParams = {}) {
 
 async function postKodik(payload) {
   const tokens = getTokenCandidates();
+  if (!tokens.length) {
+    throw new Error("KODIK_TOKEN environment variable is required to generate merged content stats");
+  }
   let lastError = null;
 
   for (const token of tokens) {

@@ -1,9 +1,7 @@
+const { DEFAULT_SITE_URL, normalizeSiteUrl } = require("./_site-url");
+
 const KODIK_API_ORIGIN = "https://kodik-api.com";
-const DEFAULT_KODIK_TOKENS = [
-  "==QO0ADM3kTZmRTNiRDNjFDM==QOxkDMzQjZ4ADZ4YzNhZTN",
-  "==QNyE2NzIjM4ETM3MmNklDM==gY5EzNxIzY0gjZ1kDZkFDN",
-  "==wMjhDN5QzYkNjZyQmM2ETO==QYjZjYkRjNxMWZ3YTNidzN"
-];
+const SITE_URL = normalizeSiteUrl(process.env.SITE_URL || DEFAULT_SITE_URL);
 const GENRE_LABEL_ALIASES = new Map([
   ["сенен", "Сёнен"],
   ["сёнен", "Сёнен"],
@@ -86,7 +84,7 @@ function decodeEncryptedKodikToken(value) {
 }
 
 function getKodikTokenCandidates() {
-  return uniqueStrings([process.env.KODIK_TOKEN, ...DEFAULT_KODIK_TOKENS].map(decodeEncryptedKodikToken));
+  return uniqueStrings([process.env.KODIK_TOKEN].map(decodeEncryptedKodikToken));
 }
 
 function normalizeText(value) {
@@ -640,7 +638,7 @@ async function postKodik(endpoint, payload = {}) {
         headers: {
           "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
           accept: "application/json, text/plain, */*",
-          "user-agent": "AnimeCloud/1.0 (+https://color-manga-cloud.vercel.app)"
+          "user-agent": `AnimeCloud/1.0 (+${SITE_URL})`
         },
         body: body.toString(),
         redirect: "follow"
@@ -792,7 +790,6 @@ function payloadFromPageUrl(rawUrl) {
 
 module.exports = {
   KODIK_API_ORIGIN,
-  DEFAULT_KODIK_TOKENS,
   readValue,
   toNumber,
   uniqueStrings,

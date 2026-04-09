@@ -1,7 +1,7 @@
 const fs = require("fs/promises");
 const path = require("path");
 
-const SITE_URL = "https://color-manga-cloud.vercel.app";
+const SITE_URL = String(process.env.SITE_URL || "https://color-manga-cloud.vercel.app").replace(/\/+$/, "");
 const API_URL = "https://anilibria.top/api/v1/anime/catalog/releases";
 const PAGE_LIMIT = 50;
 const OUTPUT_PATH = path.join(__dirname, "..", "sitemap-anime.xml");
@@ -49,7 +49,7 @@ async function fetchCatalogPage(page) {
   const response = await fetch(url.toString(), {
     headers: {
       accept: "application/json",
-      "user-agent": "AnimeCloudSitemap/1.0 (+https://color-manga-cloud.vercel.app)"
+      "user-agent": `AnimeCloudSitemap/1.0 (+${SITE_URL})`
     }
   });
 

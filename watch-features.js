@@ -1,6 +1,8 @@
-const WATCH_FEATURES_PROGRESS_KEY = "animecloud_watch_progress_v1";
-const WATCH_FEATURES_COMMENTS_STORAGE_KEY = "animecloud_comments_v1";
-const WATCH_SETTINGS_KEY = "animecloud_settings_v1";
+const WATCH_APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
+const WATCH_STORAGE_KEYS = WATCH_APP_CONSTANTS.STORAGE_KEYS || {};
+const WATCH_FEATURES_PROGRESS_KEY = WATCH_STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
+const WATCH_FEATURES_COMMENTS_STORAGE_KEY = WATCH_STORAGE_KEYS.comments || "animecloud_comments_v1";
+const WATCH_SETTINGS_KEY = WATCH_STORAGE_KEYS.settings || "animecloud_settings_v1";
 const WATCH_PROGRESS_MIN_INTERVAL = 15000;
 const WATCH_PROGRESS_MIN_DELTA = 15;
 const WATCH_COMMENT_MIN_INTERVAL = 10000;

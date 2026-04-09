@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://color-manga-cloud.vercel.app/</loc>
+    <loc>__SITE_URL__/</loc>
     <changefreq>hourly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://color-manga-cloud.vercel.app/catalog</loc>
+    <loc>__SITE_URL__/catalog</loc>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://color-manga-cloud.vercel.app/ongoing</loc>
+    <loc>__SITE_URL__/ongoing</loc>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://color-manga-cloud.vercel.app/top</loc>
+    <loc>__SITE_URL__/top</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://color-manga-cloud.vercel.app/schedule</loc>
+    <loc>__SITE_URL__/schedule</loc>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>

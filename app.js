@@ -3,7 +3,11 @@ const MEDIA_PROXY_BASE = "/api/anilibria-stream";
 const IMAGE_PROXY_BASE = "/api/anilibria-image";
 const KODIK_API_BASE = "/api/kodik";
 const ORIGIN_BASE = "https://anilibria.top";
-const SITE_URL = "https://color-manga-cloud.vercel.app";
+const APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
+const STORAGE_KEYS = APP_CONSTANTS.STORAGE_KEYS || {};
+const SITE_URL =
+  APP_CONSTANTS.SITE_URL ||
+  (typeof window !== "undefined" && window.location?.origin ? window.location.origin : "https://example.invalid");
 
 const DEFAULT_SEO_TITLE = "AnimeCloud - аниме с русской озвучкой";
 const DEFAULT_SEO_DESCRIPTION =
@@ -46,13 +50,14 @@ const CACHE_TTL = 120000;
 const DETAIL_TTL = 300000;
 const API_RETRY_ATTEMPTS = 3;
 const API_RETRY_BASE_DELAY = 350;
+const API_TIMEOUT_MS = 10000;
 const GRID_PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE = 260;
 const RENDER_BATCH_SIZE = 8;
 const CONTENT_STATS_TTL = 12 * 60 * 60 * 1000;
-const FAVORITES_STORAGE_PREFIX = "animecloud_favorites";
-const WATCH_PROGRESS_KEY = "animecloud_watch_progress_v1";
-const ADMIN_HERO_STORAGE_KEY = "animecloud_admin_featured_alias";
+const FAVORITES_STORAGE_PREFIX = STORAGE_KEYS.favoritesPrefix || "animecloud_favorites";
+const WATCH_PROGRESS_KEY = STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
+const ADMIN_HERO_STORAGE_KEY = STORAGE_KEYS.adminHero || "animecloud_admin_featured_alias";
 const FAVORITE_LIST_KEYS = ["watching", "planned", "completed", "paused"];
 
 const responseCache = new Map();
@@ -335,6 +340,7 @@ function proxiedImageUrl(path) {
         /(^|\.)kp\.yandex\.net$/i.test(url.hostname) ||
         /(^|\.)kodik\.biz$/i.test(url.hostname) ||
         /(^|\.)kodik\.info$/i.test(url.hostname) ||
+        /(^|\.)kodikres\.com$/i.test(url.hostname) ||
         /(^|\.)shikimori\.io$/i.test(url.hostname) ||
         /(^|\.)shikimori\.one$/i.test(url.hostname) ||
         /(^|\.)shikimori\.me$/i.test(url.hostname) ||
@@ -395,6 +401,7 @@ function getAnimePath(alias) {
 
 function routeFromLocation() {
   const pathname = normalizePath(location.pathname);
+  const query = new URLSearchParams(location.search).get("q")?.trim() || "";
   if (pathname.startsWith("/anime/")) {
     return { type: "anime", alias: decodeURIComponent(pathname.slice(7)), legacy: false };
   }
@@ -404,7 +411,8 @@ function routeFromLocation() {
     return {
       type: "view",
       view: pathname === "/" ? "home" : pathname.slice(1),
-      legacy: false
+      legacy: false,
+      query
     };
   }
 
@@ -413,16 +421,21 @@ function routeFromLocation() {
     return { type: "anime", alias: decodeURIComponent(rawHash.slice(6)), legacy: true };
   }
   if (rawHash) {
-    return { type: "view", view: rawHash, legacy: true };
+    return { type: "view", view: rawHash, legacy: true, query: "" };
   }
-  return { type: "view", view: "home", legacy: false };
+  return { type: "view", view: "home", legacy: false, query: "" };
 }
 
 function navigateTo(path, options = {}) {
-  const next = normalizePath(path);
-  if (normalizePath(location.pathname) === next) return;
+  const nextPath = normalizePath(path);
+  const nextUrl = new URL(nextPath, location.origin);
+  const search = String(options.search || "").replace(/^\?/, "").trim();
+  nextUrl.search = search ? `?${search}` : "";
+  const currentUrl = `${normalizePath(location.pathname)}${location.search}`;
+  const nextUrlValue = `${nextUrl.pathname}${nextUrl.search}`;
+  if (currentUrl === nextUrlValue) return;
   const method = options.replace ? "replaceState" : "pushState";
-  history[method]({}, "", next);
+  history[method]({}, "", nextUrlValue);
 }
 
 function truncateSeoText(text, max = 170) {
@@ -440,11 +453,48 @@ function buildStructuredData(page) {
         name: "AnimeCloud",
         url: siteUrl("/"),
         inLanguage: "ru",
-        description: DEFAULT_SEO_DESCRIPTION
+        description: DEFAULT_SEO_DESCRIPTION,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${siteUrl("/search")}?q={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        }
       },
       page
     ]
   });
+}
+
+function createFetchSignal(timeoutMs = API_TIMEOUT_MS, externalSignal = null) {
+  if (!timeoutMs && !externalSignal) {
+    return { signal: undefined, cleanup: () => {} };
+  }
+
+  const controller = new AbortController();
+  const cleanups = [];
+
+  if (timeoutMs > 0) {
+    const timer = setTimeout(() => controller.abort(new Error("Request timed out")), timeoutMs);
+    cleanups.push(() => clearTimeout(timer));
+  }
+
+  if (externalSignal) {
+    const abortFromExternal = () => controller.abort(externalSignal.reason);
+    if (externalSignal.aborted) {
+      abortFromExternal();
+    } else {
+      externalSignal.addEventListener("abort", abortFromExternal, { once: true });
+      cleanups.push(() => externalSignal.removeEventListener("abort", abortFromExternal));
+    }
+  }
+
+  return {
+    signal: controller.signal,
+    cleanup: () => cleanups.splice(0).forEach((fn) => fn())
+  };
 }
 
 function applySeo({ title, description, path, image, type = "website", structuredData, robots }) {
@@ -552,8 +602,9 @@ async function fetchJson(path, params, options = {}) {
     const attempts = Math.max(1, Number(options.retries || API_RETRY_ATTEMPTS));
 
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      const { signal, cleanup } = createFetchSignal(options.timeout ?? API_TIMEOUT_MS, options.signal);
       try {
-        const response = await fetch(url, { cache: "no-store", signal: options.signal });
+        const response = await fetch(url, { cache: "no-store", signal });
         const rawText = await response.text();
 
         if (!response.ok) {
@@ -582,6 +633,8 @@ async function fetchJson(path, params, options = {}) {
           await sleep(API_RETRY_BASE_DELAY * attempt);
           continue;
         }
+      } finally {
+        cleanup();
       }
     }
 
@@ -1539,24 +1592,6 @@ function scheduleChunkRender(target, items, createNode, options = {}) {
   queueNextBatch();
 }
 
-function captureScrollAnchor() {
-  const doc = document.documentElement;
-  return {
-    distanceToBottom: Math.max(0, doc.scrollHeight - (window.scrollY + window.innerHeight))
-  };
-}
-
-function restoreScrollAnchor(anchor, attempts = 0) {
-  if (!anchor) return;
-  const doc = document.documentElement;
-  const targetTop = Math.max(0, doc.scrollHeight - window.innerHeight - anchor.distanceToBottom);
-  if (Math.abs(window.scrollY - targetTop) > 2) {
-    window.scrollTo(0, targetTop);
-  }
-  if (attempts >= 2) return;
-  requestAnimationFrame(() => restoreScrollAnchor(anchor, attempts + 1));
-}
-
 function createTag(text) {
   const node = document.createElement("span");
   node.className = "tag";
@@ -2026,8 +2061,7 @@ function refreshTopSummary(pagination = null) {
 }
 
 function isAdminUser() {
-  const email = String(state.authUser?.email || "").trim().toLowerCase();
-  return email === "serikovmaksim94@gmail.com";
+  return state.authUser?.isAdmin === true;
 }
 
 function readAdminHeroAlias() {
@@ -2198,11 +2232,16 @@ function renderProfile() {
 
   if (els.profileAvatar) els.profileAvatar.src = user?.photoUrl || "/mc-icon-192.png?v=5";
   if (els.profileName) els.profileName.textContent = user?.displayName || user?.email?.split("@")[0] || "Гость";
-  if (els.profileRoleBadge) els.profileRoleBadge.hidden = !admin;
+  if (els.profileRoleBadge) {
+    els.profileRoleBadge.hidden = !admin;
+    if (admin) {
+      els.profileRoleBadge.textContent = String(user?.role || "Админ");
+    }
+  }
   if (els.profileEmail) els.profileEmail.textContent = user?.email || "Вход не выполнен";
   if (els.favoritesCount) els.favoritesCount.textContent = formatNumber(state.favorites.length);
   if (els.favoritesMode) {
-    els.favoritesMode.textContent = admin ? "Владелец" : user?.localId ? "Облако" : "Локально";
+    els.favoritesMode.textContent = admin ? String(user?.role || "Админ") : user?.localId ? "Облако" : "Локально";
   }
   if (els.profileSummary) {
     els.profileSummary.textContent = user?.localId
@@ -2416,7 +2455,11 @@ function setView(view, options = {}) {
   syncHomeChrome(view);
 
   if (options.updateHistory !== false) {
-    navigateTo(getViewPath(view), { replace: options.replaceHistory });
+    const search =
+      view === "search"
+        ? options.search ?? (state.searchQuery.trim() ? new URLSearchParams({ q: state.searchQuery.trim() }).toString() : "")
+        : "";
+    navigateTo(getViewPath(view), { replace: options.replaceHistory, search });
   }
 
   updateViewSeo(view);
@@ -2628,7 +2671,6 @@ async function loadCatalog(options = {}) {
   const previousCatalogCount = reset ? 0 : state.catalogItems.length;
   const previousFilteredCount = reset ? 0 : getFilteredCatalogItems().length;
   const mergedCatalogTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.catalogTotal || 0));
-  const scrollAnchor = !reset ? captureScrollAnchor() : null;
 
   if (reset) {
     state.catalogItems = [];
@@ -2745,8 +2787,7 @@ async function loadCatalog(options = {}) {
       if (!reset && filteredAppended.length && filteredItems.length === previousFilteredCount + filteredAppended.length) {
         updateGrid(els.catalogGrid, filteredAppended, "По выбранным жанрам пока ничего не найдено.", {
           append: true,
-          offset: previousFilteredCount,
-          onComplete: () => restoreScrollAnchor(scrollAnchor)
+          offset: previousFilteredCount
         });
       } else {
         refreshCatalogView(pagination);
@@ -2762,8 +2803,7 @@ async function loadCatalog(options = {}) {
       } else if (appendedReleases.length) {
         updateGrid(els.catalogGrid, appendedReleases, "Каталог пуст.", {
           append: true,
-          offset: previousCatalogCount,
-          onComplete: () => restoreScrollAnchor(scrollAnchor)
+          offset: previousCatalogCount
         });
       }
     }
@@ -2789,7 +2829,6 @@ async function loadOngoing(options = {}) {
   const existingAliases = new Set(state.ongoingItems.map((release) => release.alias).filter(Boolean));
   const previousCount = reset ? 0 : state.ongoingItems.length;
   const mergedOngoingTotal = Math.max(Number(state.ongoingMergedTotal || 0), Number(state.ongoingTotal || 0));
-  const scrollAnchor = !reset ? captureScrollAnchor() : null;
 
   if (reset) {
     state.ongoingItems = [];
@@ -2833,8 +2872,7 @@ async function loadOngoing(options = {}) {
     } else if (appendedReleases.length) {
       updateGrid(els.ongoingGrid, appendedReleases, "Онгоинги не найдены.", {
         append: true,
-        offset: previousCount,
-        onComplete: () => restoreScrollAnchor(scrollAnchor)
+        offset: previousCount
       });
     }
 
@@ -2858,7 +2896,6 @@ async function loadTop(options = {}) {
   const existingAliases = new Set(state.topItems.map((release) => release.alias).filter(Boolean));
   const previousCount = reset ? 0 : state.topItems.length;
   const mergedTopTotal = Math.max(Number(state.topMergedTotal || 0), Number(state.topTotal || 0));
-  const scrollAnchor = !reset ? captureScrollAnchor() : null;
 
   if (reset) {
     state.topItems = [];
@@ -2902,8 +2939,7 @@ async function loadTop(options = {}) {
     } else if (appendedReleases.length) {
       updateGrid(els.topGrid, appendedReleases, "Топ пока не заполнен.", {
         append: true,
-        offset: previousCount,
-        onComplete: () => restoreScrollAnchor(scrollAnchor)
+        offset: previousCount
       });
     }
 
@@ -3030,7 +3066,7 @@ function searchLocalReleases(query) {
   });
 }
 
-async function runSearch(query) {
+async function runSearch(query, options = {}) {
   const cleanQuery = query.trim();
   state.searchQuery = cleanQuery;
   if (state.searchAbort) {
@@ -3040,14 +3076,29 @@ async function runSearch(query) {
 
   if (!cleanQuery) {
     state.searchResults = [];
+    if (els.searchInput && els.searchInput.value) {
+      els.searchInput.value = "";
+    }
     renderSearchEmpty();
-    setView(state.previousView || "home");
+    setView(state.previousView || "home", {
+      updateHistory: options.updateHistory,
+      focusSearch: options.focusSearch
+    });
     return;
   }
 
   const controller = new AbortController();
   state.searchAbort = controller;
-  setView("search");
+  if (els.searchInput && els.searchInput.value !== cleanQuery) {
+    els.searchInput.value = cleanQuery;
+  }
+  setView("search", {
+    updateHistory: options.updateHistory,
+    focusSearch: options.focusSearch,
+    search: new URLSearchParams({ q: cleanQuery }).toString(),
+    replaceHistory:
+      options.replaceHistory ?? normalizePath(location.pathname) === "/search"
+  });
   els.searchSummary.textContent = "Ищем релизы…";
   renderSkeletonGrid(els.searchGrid, 8);
 
@@ -3620,7 +3671,7 @@ function renderDetailShell(release) {
     els.detailAdminPinBtn.hidden = !isAdminUser();
     if (isAdminUser()) {
       els.detailAdminPinBtn.textContent =
-        readAdminHeroAlias() === release.alias ? "Главный баннер выбран" : "Сделать главным баннером";
+        readAdminHeroAlias() === release.alias ? "Локальный баннер выбран" : "Закрепить как локальный баннер";
     }
   }
 
@@ -3993,7 +4044,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js?v=62", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=66", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {
@@ -4049,7 +4100,30 @@ function handleRoute() {
 
   const nextView = route.view || "home";
   const known = els.panels.some((panel) => panel.dataset.viewPanel === nextView);
-  setView(known ? nextView : "home", { updateHistory: false });
+  const resolvedView = known ? nextView : "home";
+  const searchQuery = resolvedView === "search" ? String(route.query || "").trim() : "";
+
+  setView(resolvedView, {
+    updateHistory: false,
+    focusSearch: !searchQuery
+  });
+
+  if (resolvedView === "search") {
+    if (els.searchInput && els.searchInput.value !== searchQuery) {
+      els.searchInput.value = searchQuery;
+    }
+    if (searchQuery) {
+      runSearch(searchQuery, {
+        updateHistory: false,
+        focusSearch: false,
+        replaceHistory: true
+      }).catch(console.error);
+    } else {
+      state.searchQuery = "";
+      state.searchResults = [];
+      renderSearchEmpty();
+    }
+  }
 }
 
 function setShareButtonFeedback(label, timeout = 1600) {
@@ -4257,7 +4331,7 @@ function bindEvents() {
     state.heroCarouselIndex = 0;
     renderHero(state.currentAnime);
     startHeroCarousel();
-    els.detailAdminPinBtn.textContent = "Главный баннер выбран";
+    els.detailAdminPinBtn.textContent = "Локальный баннер выбран";
   });
 
   els.adminRefreshBtn?.addEventListener("click", () => refreshAll().catch(console.error));

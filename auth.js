@@ -1,6 +1,9 @@
 ﻿(function () {
-  const AUTH_STORAGE_KEY = "animecloud_auth_v1";
-  const AUTH_REDIRECT_PENDING_KEY = "animecloud_google_redirect_pending_v1";
+  const APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
+  const STORAGE_KEYS = APP_CONSTANTS.STORAGE_KEYS || {};
+  const AUTH_STORAGE_KEY = STORAGE_KEYS.auth || "animecloud_auth_v1";
+  const AUTH_REDIRECT_PENDING_KEY =
+    STORAGE_KEYS.authRedirectPending || "animecloud_google_redirect_pending_v1";
   const FIREBASE_CONFIG = window.ANIMECLOUD_FIREBASE_CONFIG || null;
   const FIREBASE_DISABLED = window.ANIMECLOUD_FIREBASE_DISABLED === true || !FIREBASE_CONFIG;
   const FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
@@ -11,7 +14,6 @@
   const AUTH_APP_CHECK_ENABLED =
     window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
     document.querySelector('meta[name="firebase-app-check-enabled"]')?.content === "true";
-  const ADMIN_EMAILS = new Set(["serikovmaksim94@gmail.com"]);
 
   const authEls = {
     openBtn: document.getElementById("auth-open-btn"),
@@ -59,7 +61,7 @@
 
   function decorateSession(session) {
     if (!session) return null;
-    const { idToken, refreshToken, expiresAt, isAdmin, role, ...rest } = session;
+    const { idToken, refreshToken, expiresAt, ...rest } = session;
     return rest;
   }
 
@@ -69,9 +71,8 @@
     return "Гость";
   }
 
-  function isOwnerEmail(session) {
-    const email = String(session?.email || "").trim().toLowerCase();
-    return ADMIN_EMAILS.has(email);
+  function isAdminSession(session) {
+    return session?.isAdmin === true;
   }
 
   function readSession() {
@@ -90,7 +91,12 @@
     if (authEls.openBtn) authEls.openBtn.hidden = loggedIn;
     if (authEls.userMenu) authEls.userMenu.hidden = !loggedIn;
     if (authEls.userName) authEls.userName.textContent = deriveName(session);
-    if (authEls.userRoleBadge) authEls.userRoleBadge.hidden = !isOwnerEmail(session);
+    if (authEls.userRoleBadge) {
+      authEls.userRoleBadge.hidden = !isAdminSession(session);
+      if (isAdminSession(session)) {
+        authEls.userRoleBadge.textContent = String(session?.role || "Админ");
+      }
+    }
     if (authEls.userEmail) authEls.userEmail.textContent = session?.email || "Вход не выполнен";
     if (authEls.userAvatar) authEls.userAvatar.src = session?.photoUrl || "/mc-icon-192.png?v=4";
   }
@@ -133,7 +139,7 @@
     setTimeout(callback, 220);
   }
 
-  function normalizeFirebaseUser(user, providerId = "") {
+  function normalizeFirebaseUser(user, providerId = "", claims = {}) {
     const primaryProvider =
       providerId ||
       user?.providerData?.find((item) => item?.providerId && item.providerId !== "firebase")?.providerId ||
@@ -145,7 +151,9 @@
       email: user?.email || "",
       displayName: user?.displayName || "",
       photoUrl: user?.photoURL || "",
-      providerId: primaryProvider
+      providerId: primaryProvider,
+      isAdmin: claims?.admin === true,
+      role: claims?.admin === true ? String(claims?.role || "Админ") : ""
     };
   }
 
@@ -283,7 +291,13 @@
       return null;
     }
 
-    return writeSession(normalizeFirebaseUser(user));
+    let claims = {};
+    try {
+      const tokenResult = await user.getIdTokenResult?.();
+      claims = tokenResult?.claims || {};
+    } catch {}
+
+    return writeSession(normalizeFirebaseUser(user, "", claims));
   }
 
   function setStatus(message, type = "") {

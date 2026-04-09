@@ -123,6 +123,10 @@ module.exports = async (req, res) => {
       return;
     }
 
+    if (typeof Readable.fromWeb !== "function") {
+      throw new Error("Readable.fromWeb requires Node.js 18+ runtime");
+    }
+
     Readable.fromWeb(upstream.body).pipe(res);
   } catch (error) {
     res.statusCode = 502;

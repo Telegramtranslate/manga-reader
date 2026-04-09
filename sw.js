@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v62";
+const CACHE_VERSION = "v66";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,18 +6,20 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=28",
+  "/style.css?v=29",
   "/api/runtime-config.js?v=3",
-  "/firebase-config.js?v=6",
-  "/cloud-sync.js?v=12",
-  "/app.js?v=51",
-  "/auth.js?v=19",
-  "/watch-features.js?v=19",
-  "/manifest.webmanifest?v=12",
+  "/app-constants.min.js?v=1",
+  "/firebase-config.min.js?v=1",
+  "/cloud-sync.min.js?v=1",
+  "/app.min.js?v=1",
+  "/auth.min.js?v=1",
+  "/watch-features.min.js?v=1",
+  "/manifest.webmanifest?v=13",
   "/robots.txt",
-  "/sitemap.xml",
   "/mc-icon-192.png?v=5",
-  "/mc-icon-512.png?v=5"
+  "/mc-icon-192-maskable.png?v=1",
+  "/mc-icon-512.png?v=5",
+  "/mc-icon-512-maskable.png?v=1"
 ];
 
 function canCache(response) {
@@ -63,7 +65,7 @@ function isPosterRequest(request, url) {
   return (
     request.destination === "image" &&
     (url.origin === self.location.origin ||
-      /(?:anilibria\.top|libria\.fun|jsdelivr\.net|kp\.yandex\.net|kodik\.biz|kodik\.info|shikimori\.io|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
+      /(?:anilibria\.top|libria\.fun|jsdelivr\.net|kp\.yandex\.net|kodik\.biz|kodik\.info|kodikres\.com|shikimori\.io|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
         url.hostname
       ))
   );
