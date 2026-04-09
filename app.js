@@ -4044,7 +4044,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=71", { updateViaCache: "none" });
+      await navigator.serviceWorker.register("/sw.js?v=72", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {

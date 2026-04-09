@@ -232,6 +232,7 @@
           onAuthStateChanged,
           setPersistence,
           signInWithEmailAndPassword,
+          signInWithPopup,
           signInWithRedirect,
           signOut
         }
@@ -255,6 +256,7 @@
         GoogleAuthProvider,
         onAuthStateChanged,
         signInWithEmailAndPassword,
+        signInWithPopup,
         signInWithRedirect,
         signOut
       };
@@ -431,9 +433,39 @@
     try {
       const context = await getFirebaseContext();
       if (!context) throw new Error("Авторизация временно недоступна.");
-      const { auth, GoogleAuthProvider, signInWithRedirect } = context;
+      const { auth, GoogleAuthProvider, signInWithPopup, signInWithRedirect } = context;
       const provider = createGoogleProvider(GoogleAuthProvider);
+      const preferRedirect =
+        /Android|iPhone|iPad|iPod|Mobile/i.test(String(navigator.userAgent || "")) ||
+        window.matchMedia?.("(display-mode: standalone)")?.matches;
+
+      if (!preferRedirect) {
+        try {
+          const popupResult = await signInWithPopup(auth, provider);
+          if (popupResult?.user) {
+            await applyFirebaseUserSession(popupResult.user);
+            setGoogleRedirectPending(false);
+            if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
+            closeAuthModal();
+            window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
+            return;
+          }
+        } catch (popupError) {
+          const popupCode = String(popupError?.code || popupError?.message || "");
+          const canFallbackToRedirect =
+            popupCode === "auth/popup-blocked" ||
+            popupCode === "auth/cancelled-popup-request" ||
+            popupCode === "auth/internal-error" ||
+            popupCode === "auth/operation-not-supported-in-this-environment";
+
+          if (!canFallbackToRedirect) {
+            throw popupError;
+          }
+        }
+      }
+
       setGoogleRedirectPending(true);
+      if (authEls.googleNote) authEls.googleNote.textContent = "Открываем вход через Google…";
       await signInWithRedirect(auth, provider);
       return;
     } catch (error) {
