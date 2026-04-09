@@ -120,8 +120,29 @@
 
   function clearSession(options = {}) {
     writeSession(null, { broadcast: options.broadcast !== false });
+    try {
+      localStorage.removeItem(AUTH_REDIRECT_PENDING_KEY);
+    } catch {}
     if (!options.skipFirebaseSignOut && firebaseState.auth && firebaseState.signOut) {
       firebaseState.signOut(firebaseState.auth).catch(() => {});
+    }
+  }
+
+  function setGoogleRedirectPending(pending) {
+    try {
+      if (pending) {
+        localStorage.setItem(AUTH_REDIRECT_PENDING_KEY, "1");
+      } else {
+        localStorage.removeItem(AUTH_REDIRECT_PENDING_KEY);
+      }
+    } catch {}
+  }
+
+  function isGoogleRedirectPending() {
+    try {
+      return localStorage.getItem(AUTH_REDIRECT_PENDING_KEY) === "1";
+    } catch {
+      return false;
     }
   }
 
@@ -409,9 +430,11 @@
       if (!context) throw new Error("Авторизация временно недоступна.");
       const { auth, GoogleAuthProvider, signInWithRedirect } = context;
       const provider = createGoogleProvider(GoogleAuthProvider);
+      setGoogleRedirectPending(true);
       await signInWithRedirect(auth, provider);
       return;
     } catch (error) {
+      setGoogleRedirectPending(false);
       console.error(error);
       if (authEls.googleNote) authEls.googleNote.textContent = "Не удалось выполнить вход через Google.";
       setStatus(mapAuthError(error), "is-error");
@@ -419,6 +442,34 @@
       authState.googleLoading = false;
       renderGoogleButton();
     }
+  }
+
+  async function finalizeGoogleRedirect() {
+    const redirectWasPending = isGoogleRedirectPending();
+    const context = await getFirebaseContext();
+    if (!context) return false;
+
+    const { auth, getRedirectResult } = context;
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      await applyFirebaseUserSession(result.user);
+      setGoogleRedirectPending(false);
+      if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
+      return true;
+    }
+
+    if (redirectWasPending && auth.currentUser) {
+      await applyFirebaseUserSession(auth.currentUser);
+      setGoogleRedirectPending(false);
+      if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
+      return true;
+    }
+
+    if (redirectWasPending) {
+      setGoogleRedirectPending(false);
+    }
+
+    return false;
   }
 
   function renderGoogleButton() {
@@ -525,16 +576,18 @@
       });
     });
 
-    scheduleIdle(async () => {
-      try {
-        const { auth, getRedirectResult } = await getFirebaseContext();
-        await getRedirectResult(auth);
-      } catch (error) {
-        if (error?.code) {
-          setStatus(mapAuthError(error), "is-error");
-        }
+    try {
+      const handledRedirect = await finalizeGoogleRedirect();
+      if (handledRedirect) {
+        closeAuthModal();
+        window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
       }
-    });
+    } catch (error) {
+      setGoogleRedirectPending(false);
+      if (error?.code) {
+        setStatus(mapAuthError(error), "is-error");
+      }
+    }
   }
 
   initAuth().catch((error) => {
