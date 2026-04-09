@@ -1,6 +1,7 @@
 const fs = require("fs/promises");
 const path = require("path");
 const { absoluteKodikUrl, buildAlias, buildIdentity, payloadFromPageUrl, postKodik } = require("../api/_kodik");
+const { normalizeText, uniqueStrings } = require("./_utils");
 
 const SITE_URL = String(process.env.SITE_URL || "https://color-manga-cloud.vercel.app").replace(/\/+$/, "");
 const ANILIBRIA_API_URL = "https://anilibria.top/api/v1/anime/catalog/releases";
@@ -23,35 +24,6 @@ function absoluteAniUrl(input) {
   if (/^https?:\/\//i.test(value)) return value;
   if (value.startsWith("//")) return `https:${value}`;
   return `https://anilibria.top${value}`;
-}
-
-function uniqueStrings(values = []) {
-  const seen = new Set();
-  const result = [];
-
-  values.forEach((value) => {
-    const cleaned = String(value || "").trim();
-    if (!cleaned) return;
-    const key = cleaned.toLowerCase();
-    if (seen.has(key)) return;
-    seen.add(key);
-    result.push(cleaned);
-  });
-
-  return result;
-}
-
-function normalizeText(value) {
-  return String(value || "")
-    .normalize("NFKC")
-    .toLowerCase()
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\u0451/g, "\u0435")
-    .replace(/\[[^\]]*\]/g, " ")
-    .replace(/\([^)]*\)/g, " ")
-    .replace(/[^a-z0-9\u0400-\u04ff]+/g, " ")
-    .trim()
-    .replace(/\s+/g, " ");
 }
 
 function extractItems(payload) {

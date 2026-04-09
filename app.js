@@ -3406,7 +3406,7 @@ async function ensureHlsLibrary() {
     }
 
     const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js";
+    script.src = "/hls.min.js?v=1";
     script.async = true;
     script.crossOrigin = "anonymous";
     script.dataset.animecloudHls = "1";
@@ -4044,7 +4044,7 @@ function registerServiceWorker() {
 
   async function registerLatestWorker() {
     try {
-      await navigator.serviceWorker.register("/sw.js?v=73", { updateViaCache: "none" });
+    await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
       const registration = await navigator.serviceWorker.ready;
       if (registration.periodicSync) {
         try {

@@ -1,5 +1,6 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const { decryptToken, uniqueStrings } = require("./_utils");
 
 const ROOT = path.resolve(__dirname, "..");
 const OUTPUT_PATH = path.join(ROOT, "content-stats.json");
@@ -7,23 +8,10 @@ const ANILIBRIA_BASE = "https://anilibria.top/api/v1/anime";
 const KODIK_BASE = "https://kodik-api.com";
 const ANILIBRIA_PAGE_LIMIT = 50;
 const KODIK_PAGE_LIMIT = 100;
+const KODIK_CONCURRENCY = 5;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function uniqueStrings(values = []) {
-  const seen = new Set();
-  const result = [];
-  values.forEach((value) => {
-    const cleaned = String(value || "").trim();
-    if (!cleaned) return;
-    const key = cleaned.toLowerCase();
-    if (seen.has(key)) return;
-    seen.add(key);
-    result.push(cleaned);
-  });
-  return result;
 }
 
 function normalizeText(value) {
@@ -37,23 +25,6 @@ function normalizeText(value) {
     .replace(/[^a-z0-9\u0400-\u04ff]+/g, " ")
     .trim()
     .replace(/\s+/g, " ");
-}
-
-function decryptToken(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return "";
-  if (/^[a-f0-9]{32}$/i.test(raw)) return raw;
-  if (raw.length < 4 || raw.length % 2 !== 0) return raw;
-
-  try {
-    const middle = raw.length / 2;
-    const left = raw.slice(0, middle).split("").reverse().join("");
-    const right = raw.slice(middle).split("").reverse().join("");
-    const decoded = Buffer.from(right, "base64").toString("utf8") + Buffer.from(left, "base64").toString("utf8");
-    return /^[a-f0-9]{32}$/i.test(decoded) ? decoded : raw;
-  } catch {
-    return raw;
-  }
 }
 
 function getTokenCandidates() {
@@ -226,18 +197,77 @@ function payloadFromNextPage(nextPageUrl) {
   return payload;
 }
 
+function pagePayload(basePayload, page) {
+  return {
+    ...basePayload,
+    page: Math.max(1, Number(page || 1))
+  };
+}
+
+function pageNumberFromPayload(payload) {
+  return Math.max(0, Number(payload?.page || 0));
+}
+
+async function runWithConcurrency(items, concurrency, worker) {
+  const queue = items.slice();
+  const workers = Array.from({ length: Math.max(1, concurrency) }, async () => {
+    while (queue.length) {
+      const next = queue.shift();
+      await worker(next);
+    }
+  });
+
+  await Promise.all(workers);
+}
+
+async function detectDirectKodikPagingSupport(basePayload) {
+  const firstPage = await postKodik(pagePayload(basePayload, 1));
+  if (!firstPage?.next_page) {
+    return { supported: true, firstPage };
+  }
+
+  try {
+    const viaNext = await postKodik(payloadFromNextPage(firstPage.next_page));
+    const directSecond = await postKodik(pagePayload(basePayload, 2));
+    const viaNextKey = String(viaNext?.results?.[0]?.id || viaNext?.results?.[0]?.link || "");
+    const directKey = String(directSecond?.results?.[0]?.id || directSecond?.results?.[0]?.link || "");
+
+    return {
+      supported: Boolean(viaNextKey && directKey && viaNextKey === directKey),
+      firstPage
+    };
+  } catch {
+    return { supported: false, firstPage };
+  }
+}
+
 async function fetchKodikKeys(extraPayload = {}) {
   const keys = new Set();
-    let payload = {
+  const basePayload = {
     limit: KODIK_PAGE_LIMIT,
     types: "anime,anime-serial",
     not_blocked_for_me: "true",
     ...extraPayload
   };
 
-  let page = 0;
+  const { supported, firstPage } = await detectDirectKodikPagingSupport(basePayload);
+  const firstResults = Array.isArray(firstPage?.results) ? firstPage.results : [];
+  firstResults.forEach((item) => keys.add(primaryIdentityKey(mapKodikRelease(item))));
+
+  const totalPages = Math.max(1, Math.ceil(Number(firstPage?.total || firstResults.length || 0) / KODIK_PAGE_LIMIT));
+
+  if (supported && totalPages > 1) {
+    const pages = Array.from({ length: totalPages - 1 }, (_, index) => index + 2);
+    await runWithConcurrency(pages, KODIK_CONCURRENCY, async (page) => {
+      const response = await postKodik(pagePayload(basePayload, page));
+      const results = Array.isArray(response?.results) ? response.results : [];
+      results.forEach((item) => keys.add(primaryIdentityKey(mapKodikRelease(item))));
+    });
+    return keys;
+  }
+
+  let payload = firstPage?.next_page ? payloadFromNextPage(firstPage.next_page) : null;
   while (payload) {
-    page += 1;
     const response = await postKodik(payload);
     const results = Array.isArray(response?.results) ? response.results : [];
     results.forEach((item) => keys.add(primaryIdentityKey(mapKodikRelease(item))));

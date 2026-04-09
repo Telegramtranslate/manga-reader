@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v73";
+const CACHE_VERSION = "v74";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,15 +6,16 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=29",
-  "/api/runtime-config.js?v=4",
-  "/app-constants.min.js?v=1",
-  "/firebase-config.min.js?v=4",
-  "/cloud-sync.min.js?v=1",
-  "/app.min.js?v=2",
-  "/auth.min.js?v=6",
-  "/watch-features.min.js?v=1",
-  "/manifest.webmanifest?v=13",
+  "/style.css",
+  "/api/runtime-config.js",
+  "/app-constants.min.js",
+  "/firebase-config.min.js",
+  "/cloud-sync.min.js",
+  "/app.min.js",
+  "/auth.min.js",
+  "/watch-features.min.js",
+  "/hls.min.js",
+  "/manifest.webmanifest",
   "/robots.txt",
   "/mc-icon-192.png?v=5",
   "/mc-icon-192-maskable.png?v=1",

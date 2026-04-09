@@ -1,4 +1,5 @@
 const { Readable } = require("stream");
+const { guardProxyRequest, resolveSiteOrigin } = require("./_proxy-guard");
 
 function readQueryValue(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -17,11 +18,7 @@ function isAllowedMediaUrl(rawUrl) {
 }
 
 function resolveProxyOrigin(req) {
-  const forwardedProto = readQueryValue(req.headers["x-forwarded-proto"]);
-  const forwardedHost = readQueryValue(req.headers["x-forwarded-host"]);
-  const protocol = forwardedProto || (req.connection?.encrypted ? "https" : "http");
-  const host = forwardedHost || req.headers.host || "localhost";
-  return `${protocol}://${host}`;
+  return resolveSiteOrigin(req);
 }
 
 function isManifestResponse(target, upstream) {
@@ -55,6 +52,10 @@ function rewriteManifestLine(line, baseUrl, proxyOrigin) {
 }
 
 module.exports = async (req, res) => {
+  if (!guardProxyRequest(req, res, { bucketName: "stream-proxy", maxPerWindow: 3600 })) {
+    return;
+  }
+
   const target = readQueryValue(req.query?.url);
   if (!target || !isAllowedMediaUrl(target)) {
     res.statusCode = 400;
@@ -80,7 +81,8 @@ module.exports = async (req, res) => {
     const upstream = await fetch(target, {
       method: req.method === "HEAD" ? "HEAD" : "GET",
       headers: requestHeaders,
-      redirect: "follow"
+      redirect: "follow",
+      signal: AbortSignal.timeout(15000)
     });
 
     res.statusCode = upstream.status;

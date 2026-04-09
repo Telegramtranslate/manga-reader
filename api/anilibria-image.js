@@ -1,3 +1,6 @@
+const { Readable } = require("stream");
+const { guardProxyRequest } = require("./_proxy-guard");
+
 function readValue(value) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -25,6 +28,10 @@ function isAllowedImageUrl(rawUrl) {
 }
 
 module.exports = async (req, res) => {
+  if (!guardProxyRequest(req, res, { bucketName: "image-proxy", maxPerWindow: 720 })) {
+    return;
+  }
+
   const target = readValue(req.query?.url);
 
   if (!target || !isAllowedImageUrl(target)) {
@@ -36,6 +43,7 @@ module.exports = async (req, res) => {
 
   try {
     const upstream = await fetch(target, {
+      method: req.method === "HEAD" ? "HEAD" : "GET",
       headers: {
         accept: req.headers.accept || "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
         "user-agent":
@@ -68,8 +76,16 @@ module.exports = async (req, res) => {
       }
     );
 
-    const arrayBuffer = await upstream.arrayBuffer();
-    res.end(Buffer.from(arrayBuffer));
+    if (req.method === "HEAD" || !upstream.body) {
+      res.end();
+      return;
+    }
+
+    if (typeof Readable.fromWeb !== "function") {
+      throw new Error("Readable.fromWeb requires Node.js 18+ runtime");
+    }
+
+    Readable.fromWeb(upstream.body).pipe(res);
   } catch (error) {
     res.statusCode = 307;
     res.setHeader("Location", target);

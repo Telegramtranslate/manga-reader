@@ -5,9 +5,7 @@ function readArg(index, fallback = "") {
   return String(process.argv[index] || fallback).trim();
 }
 
-const DEFAULT_ADMIN_UID = "1EbxnwOUZsQkCVG04o82og4fEz32";
-
-const uid = readArg(2, DEFAULT_ADMIN_UID);
+const uid = readArg(2);
 const serviceAccountPath = readArg(3, "./service-account.json");
 
 if (!uid) {

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v70";
+const CACHE_VERSION = "442248e383";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,20 +6,21 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=29",
-  "/api/runtime-config.js?v=4",
-  "/app-constants.min.js?v=1",
-  "/firebase-config.min.js?v=4",
-  "/cloud-sync.min.js?v=1",
-  "/app.min.js?v=1",
-  "/auth.min.js?v=4",
-  "/watch-features.min.js?v=1",
-  "/manifest.webmanifest?v=13",
+  "/style.css?v=4e1c2cc1ed",
+  "/api/runtime-config.js?v=442248e383",
+  "/app-constants.min.js?v=e67422b8eb",
+  "/firebase-config.min.js?v=5d36cb298f",
+  "/cloud-sync.min.js?v=e794048119",
+  "/app.min.js?v=024fcf3f1e",
+  "/auth.min.js?v=5a6aac8601",
+  "/watch-features.min.js?v=ee1e79c0f3",
+  "/hls.min.js?v=5ff2d714de",
+  "/manifest.webmanifest?v=3a11887700",
   "/robots.txt",
-  "/mc-icon-192.png?v=5",
-  "/mc-icon-192-maskable.png?v=1",
-  "/mc-icon-512.png?v=5",
-  "/mc-icon-512-maskable.png?v=1"
+  "/mc-icon-192.png?v=af9b2b4f14",
+  "/mc-icon-192-maskable.png?v=af9b2b4f14",
+  "/mc-icon-512.png?v=e46013ca7b",
+  "/mc-icon-512-maskable.png?v=e46013ca7b"
 ];
 
 function canCache(response) {
@@ -46,11 +47,11 @@ function isMediaStreamRequest(url) {
 }
 
 function isManifestRequest(url) {
-  return url.origin === self.location.origin && url.pathname === "/manifest.webmanifest";
+  return url.origin === self.location.origin && url.pathname === "/manifest.webmanifest?v=3a11887700";
 }
 
 function isRuntimeConfigRequest(url) {
-  return url.origin === self.location.origin && url.pathname === "/api/runtime-config.js";
+  return url.origin === self.location.origin && url.pathname === "/api/runtime-config.js?v=442248e383";
 }
 
 function isIconRequest(url) {

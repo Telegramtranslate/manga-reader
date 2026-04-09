@@ -10,6 +10,10 @@ const {
   payloadFromPageUrl
 } = require("./_kodik");
 
+const DISCOVER_CACHE_TTL_MS = 5 * 60 * 1000;
+const discoverResultCache = new Map();
+const discoverCursorCache = new Map();
+
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -44,18 +48,137 @@ function dedupeRawResults(items = []) {
   });
 }
 
+function escapeCacheValue(value) {
+  return JSON.stringify(value);
+}
+
+function cleanExpiredEntries(store) {
+  const now = Date.now();
+  for (const [key, entry] of store.entries()) {
+    if (!entry || Number(entry.expiresAt || 0) <= now) {
+      store.delete(key);
+    }
+  }
+}
+
+function buildDiscoverSignature(mode, limit, sort, order, genres = [], animeKinds = [], mediaTypes = []) {
+  return [
+    mode,
+    limit,
+    sort || "",
+    order || "",
+    escapeCacheValue(uniqueStrings(genres).slice().sort()),
+    escapeCacheValue(uniqueStrings(animeKinds).slice().sort()),
+    escapeCacheValue(uniqueStrings(mediaTypes).slice().sort())
+  ].join("|");
+}
+
+function buildDiscoverResultCacheKey(signature, page) {
+  return `${signature}|page:${page}`;
+}
+
+function getCachedDiscoverResult(signature, page) {
+  cleanExpiredEntries(discoverResultCache);
+  const cached = discoverResultCache.get(buildDiscoverResultCacheKey(signature, page));
+  return cached ? cached.payload : null;
+}
+
+function setCachedDiscoverResult(signature, page, payload) {
+  discoverResultCache.set(buildDiscoverResultCacheKey(signature, page), {
+    expiresAt: Date.now() + DISCOVER_CACHE_TTL_MS,
+    payload
+  });
+}
+
+function getCursorEntry(signature) {
+  cleanExpiredEntries(discoverCursorCache);
+  const existing = discoverCursorCache.get(signature);
+  if (existing) return existing;
+
+  const created = {
+    expiresAt: Date.now() + DISCOVER_CACHE_TTL_MS,
+    pages: new Map()
+  };
+  discoverCursorCache.set(signature, created);
+  return created;
+}
+
+function setCursorPayload(signature, page, payload) {
+  const entry = getCursorEntry(signature);
+  entry.expiresAt = Date.now() + DISCOVER_CACHE_TTL_MS;
+  entry.pages.set(page, payload);
+}
+
+function getBestCursorPayload(signature, requestedPage) {
+  const entry = getCursorEntry(signature);
+  let bestPage = 0;
+  let bestPayload = null;
+
+  for (const [page, payload] of entry.pages.entries()) {
+    if (page <= requestedPage && page > bestPage) {
+      bestPage = page;
+      bestPayload = payload;
+    }
+  }
+
+  return { page: bestPage, payload: bestPayload };
+}
+
+function pageNumberFromPageUrl(rawUrl) {
+  if (!rawUrl) return 0;
+  const payload = payloadFromPageUrl(rawUrl);
+  return Math.max(0, toNumber(payload.page || payload.__page, 0));
+}
+
+function looksLikeDirectPageResponse(response, requestedPage) {
+  if (requestedPage <= 1) return true;
+  const prevPage = pageNumberFromPageUrl(response?.prev_page);
+  const nextPage = pageNumberFromPageUrl(response?.next_page);
+  return prevPage === requestedPage - 1 || nextPage === requestedPage + 1;
+}
+
 async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], animeKinds = [], mediaTypes = []) {
   const safePage = Math.max(1, toNumber(page, 1));
   const safeLimit = Math.max(12, Math.min(100, toNumber(limit, 24)));
+  const signature = buildDiscoverSignature(mode, safeLimit, sort, order, genres, animeKinds, mediaTypes);
+  const cachedResult = getCachedDiscoverResult(signature, safePage);
+  if (cachedResult) return cachedResult;
 
-  let response = await postKodik(
-    "list",
-    buildDiscoverPayload(mode, safeLimit, 1, sort, order, genres, animeKinds, mediaTypes)
-  );
+  const directPayload = buildDiscoverPayload(mode, safeLimit, safePage, sort, order, genres, animeKinds, mediaTypes);
 
-  for (let currentPage = 2; currentPage <= safePage; currentPage += 1) {
+  try {
+    const directResponse = await postKodik("list", directPayload);
+    if (looksLikeDirectPageResponse(directResponse, safePage)) {
+      const directItems = collectPreviewReleases(directResponse?.results || []);
+      const directResult = {
+        items: directItems,
+        pagination: {
+          current_page: safePage,
+          total_pages: Math.max(1, Math.ceil(toNumber(directResponse?.total, directItems.length) / safeLimit)),
+          total: toNumber(directResponse?.total, directItems.length)
+        }
+      };
+
+      setCachedDiscoverResult(signature, safePage, directResult);
+      setCursorPayload(signature, safePage, directPayload);
+      if (directResponse?.next_page) {
+        setCursorPayload(signature, safePage + 1, payloadFromPageUrl(directResponse.next_page));
+      }
+      return directResult;
+    }
+  } catch {}
+
+  const basePayload = buildDiscoverPayload(mode, safeLimit, 1, sort, order, genres, animeKinds, mediaTypes);
+  setCursorPayload(signature, 1, basePayload);
+
+  const bestCursor = getBestCursorPayload(signature, safePage);
+  let currentPage = Math.max(1, bestCursor.page || 1);
+  let currentPayload = bestCursor.payload || basePayload;
+  let response = await postKodik("list", currentPayload);
+
+  while (currentPage < safePage) {
     if (!response?.next_page) {
-      return {
+      const truncated = {
         items: [],
         pagination: {
           current_page: safePage,
@@ -63,13 +186,19 @@ async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], an
           total: toNumber(response?.total, 0)
         }
       };
+      setCachedDiscoverResult(signature, safePage, truncated);
+      return truncated;
     }
 
-    response = await postKodik("list", payloadFromPageUrl(response.next_page));
+    const nextPayload = payloadFromPageUrl(response.next_page);
+    currentPage += 1;
+    setCursorPayload(signature, currentPage, nextPayload);
+    currentPayload = nextPayload;
+    response = await postKodik("list", currentPayload);
   }
 
   const items = collectPreviewReleases(response?.results || []);
-  return {
+  const result = {
     items,
     pagination: {
       current_page: safePage,
@@ -77,6 +206,12 @@ async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], an
       total: toNumber(response?.total, items.length)
     }
   };
+
+  setCachedDiscoverResult(signature, safePage, result);
+  if (response?.next_page) {
+    setCursorPayload(signature, safePage + 1, payloadFromPageUrl(response.next_page));
+  }
+  return result;
 }
 
 async function fetchSearchResults(meta = {}) {

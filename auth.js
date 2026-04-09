@@ -9,11 +9,16 @@
   const FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
   const AUTH_APP_CHECK_SITE_KEY =
     window.ANIMECLOUD_APP_CHECK_KEY ||
-    document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
+    window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_KEY ||
     "";
+  const authEnvAppCheckEnabled =
+    String(window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_ENABLED || "")
+      .trim()
+      .toLowerCase() === "true";
   const AUTH_APP_CHECK_ENABLED =
     window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
-    document.querySelector('meta[name="firebase-app-check-enabled"]')?.content === "true";
+    authEnvAppCheckEnabled ||
+    Boolean(AUTH_APP_CHECK_SITE_KEY);
 
   const authEls = {
     openBtn: document.getElementById("auth-open-btn"),

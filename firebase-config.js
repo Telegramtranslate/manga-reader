@@ -99,11 +99,15 @@
   const APP_CHECK_SITE_KEY =
     window.ANIMECLOUD_APP_CHECK_KEY ||
     window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_KEY ||
-    document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
     "";
+  const envAppCheckEnabled =
+    String(window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_ENABLED || "")
+      .trim()
+      .toLowerCase() === "true";
   const APP_CHECK_ENABLED =
-    document.querySelector('meta[name="firebase-app-check-enabled"]')?.content === "true" ||
-    window.ANIMECLOUD_ENABLE_APP_CHECK === true;
+    window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
+    envAppCheckEnabled ||
+    Boolean(APP_CHECK_SITE_KEY);
 
   let recaptchaPromise = null;
   const helperHost = String(FIREBASE_CONFIG?.authDomain || "").trim();

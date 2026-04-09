@@ -17,11 +17,14 @@ const CLOUD_PENDING_STORE = "pending";
 const SYNC_TAG = "animecloud-sync";
 const CLOUD_APP_CHECK_SITE_KEY =
   window.ANIMECLOUD_APP_CHECK_KEY ||
-  document.querySelector('meta[name="firebase-app-check-key"]')?.content ||
+  window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_KEY ||
   "";
 const CLOUD_APP_CHECK_ENABLED =
   window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
-  document.querySelector('meta[name="firebase-app-check-enabled"]')?.content === "true";
+  String(window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_ENABLED || "")
+    .trim()
+    .toLowerCase() === "true" ||
+  Boolean(CLOUD_APP_CHECK_SITE_KEY);
 
 const cloudState = {
   contextPromise: null,
