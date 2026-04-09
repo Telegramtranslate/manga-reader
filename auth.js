@@ -284,6 +284,9 @@
         async (user) => {
           try {
             authState.ready = true;
+            if (!user && isGoogleRedirectPending()) {
+              return;
+            }
             await applyFirebaseUserSession(user);
           } catch (error) {
             console.error(error);
@@ -567,15 +570,6 @@
     if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход через AnimeCloud.";
     renderGoogleButton();
 
-    scheduleIdle(() => {
-      bootstrapAuthObserver().catch((error) => {
-        console.error(error);
-        if (!authState.session) {
-          setStatus("Не удалось инициализировать авторизацию.", "is-error");
-        }
-      });
-    });
-
     try {
       const handledRedirect = await finalizeGoogleRedirect();
       if (handledRedirect) {
@@ -588,6 +582,15 @@
         setStatus(mapAuthError(error), "is-error");
       }
     }
+
+    scheduleIdle(() => {
+      bootstrapAuthObserver().catch((error) => {
+        console.error(error);
+        if (!authState.session) {
+          setStatus("Не удалось инициализировать авторизацию.", "is-error");
+        }
+      });
+    });
   }
 
   initAuth().catch((error) => {
