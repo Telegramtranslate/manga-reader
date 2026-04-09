@@ -1,4 +1,6 @@
 module.exports = async (req, res) => {
+  const customAuthDomain = String(process.env.VITE_FIREBASE_CUSTOM_AUTH_DOMAIN || "").trim();
+  const siteUrl = String(process.env.SITE_URL || "").trim();
   let parsed = {};
   try {
     parsed = JSON.parse(process.env.VITE_FIREBASE_CONFIG || "{}");
@@ -11,8 +13,8 @@ module.exports = async (req, res) => {
   const payload = {
     VITE_FIREBASE_CONFIG: valid ? JSON.stringify(parsed) : "",
     VITE_APP_CHECK_KEY: process.env.VITE_APP_CHECK_KEY || "",
-    VITE_FIREBASE_CUSTOM_AUTH_DOMAIN: process.env.VITE_FIREBASE_CUSTOM_AUTH_DOMAIN || "",
-    SITE_URL: process.env.SITE_URL || ""
+    VITE_FIREBASE_CUSTOM_AUTH_DOMAIN: customAuthDomain,
+    SITE_URL: siteUrl
   };
 
   res.statusCode = 200;

@@ -404,36 +404,16 @@
     authState.googleLoading = true;
     renderGoogleButton();
     setStatus("");
-    if (authEls.googleNote) authEls.googleNote.textContent = "Открываем вход через Google…";
+    if (authEls.googleNote) authEls.googleNote.textContent = "Перенаправляем на вход через Google…";
 
     try {
       const context = await getFirebaseContext();
       if (!context) throw new Error("Авторизация временно недоступна.");
-      const { auth, GoogleAuthProvider, signInWithPopup } = context;
+      const { auth, GoogleAuthProvider, signInWithRedirect } = context;
       const provider = createGoogleProvider(GoogleAuthProvider);
-
-      const result = await signInWithPopup(auth, provider);
-      await applyFirebaseUserSession(result.user);
-      if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
-      setStatus("Вход выполнен.", "is-success");
-      closeAuthModal();
-      window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
+      await signInWithRedirect(auth, provider);
+      return;
     } catch (error) {
-      const code = String(error?.code || error?.message || "");
-      if (code === "auth/popup-closed-by-user" || code === "auth/internal-error") {
-        if (authEls.googleNote) authEls.googleNote.textContent = "Popup-вход недоступен. Перенаправляем на защищённый вход AnimeCloud…";
-        setStatus("Перенаправляем на Google через AnimeCloud…");
-        try {
-          const context = await getFirebaseContext();
-          if (!context) throw new Error("Авторизация временно недоступна.");
-          const { auth, GoogleAuthProvider, signInWithRedirect } = context;
-          const provider = createGoogleProvider(GoogleAuthProvider);
-          await signInWithRedirect(auth, provider);
-          return;
-        } catch (redirectError) {
-          console.error(redirectError);
-        }
-      }
       console.error(error);
       if (authEls.googleNote) authEls.googleNote.textContent = "Не удалось выполнить вход через Google.";
       setStatus(mapAuthError(error), "is-error");
