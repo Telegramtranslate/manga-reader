@@ -3363,10 +3363,10 @@ body {
   --surface-3: rgba(242, 233, 223, 0.99);
   --line: rgba(111, 84, 56, 0.14);
   --line-strong: rgba(196, 120, 30, 0.30);
-  --text: #33271d;
-  --text-strong: #1f1710;
-  --muted: #786756;
-  --muted-strong: #5f4d3d;
+  --text: #4f3f31;
+  --text-strong: #382a1f;
+  --muted: #85715d;
+  --muted-strong: #6c5844;
   --accent: #d8891a;
   --accent-2: #f09a2a;
   --accent-3: #f2b65d;
@@ -3584,4 +3584,57 @@ body {
   border-color: rgba(216, 137, 26, 0.24);
   background: rgba(240, 154, 42, 0.12);
   color: #8a5414;
+}
+
+:root[data-theme="light"] .brand-btn {
+  background: none !important;
+  color: #f7efe2 !important;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 0 1px 0 rgba(126, 84, 34, 0.12);
+}
+
+:root[data-theme="light"] .topbar .tab-btn,
+:root[data-theme="light"] .topbar .ghost-btn,
+:root[data-theme="light"] .topbar .mobile-nav__btn,
+:root[data-theme="light"] .topbar .user-chip__text strong,
+:root[data-theme="light"] .topbar .user-chip__text small,
+:root[data-theme="light"] .topbar .search-box input,
+:root[data-theme="light"] .topbar .search-box input::placeholder,
+:root[data-theme="light"] .topbar .search-box__label {
+  color: #f1e5d3 !important;
+}
+
+:root[data-theme="light"] .topbar .tab-btn,
+:root[data-theme="light"] .topbar .ghost-btn,
+:root[data-theme="light"] .topbar .mobile-nav__btn,
+:root[data-theme="light"] .topbar .user-chip,
+:root[data-theme="light"] .topbar .search-box {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 235, 205, 0.12) !important;
+}
+
+:root[data-theme="light"] .topbar .tab-btn.is-active,
+:root[data-theme="light"] .topbar .ghost-btn.is-active,
+:root[data-theme="light"] .topbar .mobile-nav__btn.is-active {
+  color: #fff7ec !important;
+}
+
+:root[data-theme="light"] .section-shell .section-head h2,
+:root[data-theme="light"] .section-shell .anime-card__title,
+:root[data-theme="light"] .section-shell .stat-card span,
+:root[data-theme="light"] .profile-card strong,
+:root[data-theme="light"] .profile-card .profile-user__meta strong,
+:root[data-theme="light"] .profile-card .profile-stat strong {
+  color: #f3e7d7 !important;
+}
+
+:root[data-theme="light"] .section-shell .section-summary,
+:root[data-theme="light"] .section-shell .anime-card__meta,
+:root[data-theme="light"] .section-shell .stat-card small,
+:root[data-theme="light"] .profile-card span,
+:root[data-theme="light"] .profile-card .profile-user__meta span,
+:root[data-theme="light"] .profile-card .profile-stat span {
+  color: #cdbba5 !important;
 }
