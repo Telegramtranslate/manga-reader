@@ -211,7 +211,6 @@
           onAuthStateChanged,
           setPersistence,
           signInWithEmailAndPassword,
-          signInWithPopup,
           signInWithRedirect,
           signOut
         }
@@ -235,7 +234,6 @@
         GoogleAuthProvider,
         onAuthStateChanged,
         signInWithEmailAndPassword,
-        signInWithPopup,
         signInWithRedirect,
         signOut
       };

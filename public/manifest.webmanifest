@@ -1,0 +1,66 @@
+{
+  "id": "/",
+  "name": "AnimeCloud",
+  "short_name": "AnimeCloud",
+  "description": "Каталог аниме с русской озвучкой, быстрым плеером, расписанием, избранным и продолжением просмотра.",
+  "lang": "ru",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#070b14",
+  "theme_color": "#070b14",
+  "categories": [
+    "entertainment",
+    "video"
+  ],
+  "shortcuts": [
+    {
+      "name": "Каталог",
+      "short_name": "Каталог",
+      "description": "Открыть каталог аниме",
+      "url": "/catalog"
+    },
+    {
+      "name": "Расписание",
+      "short_name": "Расписание",
+      "description": "Открыть расписание релизов",
+      "url": "/schedule"
+    },
+    {
+      "name": "Профиль",
+      "short_name": "Профиль",
+      "description": "Открыть списки и продолжение просмотра",
+      "url": "/profile"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/mc-icon-192.png?v=5",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/mc-icon-192-maskable.png?v=1",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/mc-icon-512.png?v=5",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/mc-icon-512-maskable.png?v=1",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

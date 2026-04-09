@@ -25,6 +25,16 @@
     return String(window.__ANIMECLOUD_ENV__?.VITE_FIREBASE_CUSTOM_AUTH_DOMAIN || "").trim();
   }
 
+  function useForcedCustomAuthDomain() {
+    return String(window.__ANIMECLOUD_ENV__?.VITE_FIREBASE_FORCE_CUSTOM_AUTH_DOMAIN || "")
+      .trim()
+      .toLowerCase() === "true";
+  }
+
+  function isFirebaseHostedDomain(hostname) {
+    return /(?:firebaseapp\.com|web\.app)$/i.test(String(hostname || "").trim().toLowerCase());
+  }
+
   function getConfiguredCustomAuthDomain() {
     const envValue = readCustomAuthDomainValue();
     if (!envValue) return "";
@@ -54,16 +64,22 @@
 
     const explicitCustomAuthDomain = getConfiguredCustomAuthDomain();
 
-    if (explicitCustomAuthDomain) {
+    if (
+      explicitCustomAuthDomain &&
+      (useForcedCustomAuthDomain() ||
+        explicitCustomAuthDomain === configuredAuthDomain ||
+        isFirebaseHostedDomain(explicitCustomAuthDomain))
+    ) {
       next.authDomain = explicitCustomAuthDomain;
       return next;
     }
 
     if (
+      useForcedCustomAuthDomain() &&
       isCustomAuthDomainEnabled() &&
       currentHostname &&
       shouldUseSameOriginAuthDomain() &&
-      /(?:firebaseapp\.com|web\.app)$/i.test(configuredAuthDomain)
+      isFirebaseHostedDomain(configuredAuthDomain)
     ) {
       next.authDomain = currentHostname;
     }
