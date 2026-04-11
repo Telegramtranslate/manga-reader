@@ -7,6 +7,7 @@ const CLOUD_FAVORITES_PREFIX = CLOUD_STORAGE_KEYS.favoritesPrefix || "animecloud
 const CLOUD_PROGRESS_KEY = CLOUD_STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
 const CLOUD_COMMENTS_KEY = CLOUD_STORAGE_KEYS.comments || "animecloud_comments_v1";
 const CLOUD_LISTS_KEY = CLOUD_STORAGE_KEYS.lists || "animecloud_lists_v1";
+const CLOUD_RATINGS_KEY = CLOUD_STORAGE_KEYS.ratings || "animecloud_ratings_v1";
 const CLOUD_SETTINGS_KEY = CLOUD_STORAGE_KEYS.settings || "animecloud_settings_v1";
 const CLOUD_FAVORITES_LIMIT = 120;
 const CLOUD_COMMENTS_LIMIT = 200;
@@ -32,6 +33,7 @@ const cloudState = {
   hydrationPromises: new Map(),
   progressUnsubscribe: null,
   commentsUnsubscribers: new Map(),
+  ratingsUnsubscribers: new Map(),
   syncRegistrationPromise: null
 };
 
@@ -185,6 +187,59 @@ function mergeCommentLists(...lists) {
     .slice(-CLOUD_COMMENTS_LIMIT);
 }
 
+function normalizeRatingAlias(alias) {
+  return String(alias || "").trim();
+}
+
+function normalizeRatingValue(value) {
+  const numeric = Number(value || 0);
+  if (!Number.isFinite(numeric)) return 0;
+  const rounded = Math.round(numeric);
+  if (rounded < 1 || rounded > 10) return 0;
+  return rounded;
+}
+
+function normalizeRatingMap(map = {}) {
+  return Object.entries(map || {}).reduce((accumulator, [alias, entry]) => {
+    const safeAlias = normalizeRatingAlias(alias);
+    const value = normalizeRatingValue(entry?.value ?? entry);
+    if (!safeAlias || !value) return accumulator;
+    accumulator[safeAlias] = {
+      value,
+      updatedAt: normalizeTimestampValue(entry?.updatedAt) || Date.now()
+    };
+    return accumulator;
+  }, {});
+}
+
+function normalizeRatingVoteData(id, data = {}) {
+  return {
+    id: String(id || "").trim(),
+    alias: normalizeRatingAlias(data.alias),
+    uid: String(data.uid || "").trim(),
+    value: normalizeRatingValue(data.value),
+    updatedAt: normalizeTimestampValue(data.updatedAt)
+  };
+}
+
+function summarizeRatings(votes = [], session = cloudReadSession(), localRatings = {}) {
+  const normalizedVotes = votes
+    .map((item) => normalizeRatingVoteData(item?.id, item))
+    .filter((item) => item.alias && item.value);
+  const count = normalizedVotes.length;
+  const total = normalizedVotes.reduce((sum, item) => sum + Number(item.value || 0), 0);
+  const localValue = normalizeRatingValue(localRatings?.[normalizedVotes[0]?.alias || ""]?.value);
+  const userVote = session?.localId
+    ? normalizedVotes.find((item) => item.uid === session.localId)?.value || 0
+    : localValue;
+
+  return {
+    average: count ? Number((total / count).toFixed(1)) : userVote || 0,
+    count,
+    userValue: userVote || 0
+  };
+}
+
 function openCloudDatabase() {
   if (cloudState.dbPromise) return cloudState.dbPromise;
 
@@ -303,6 +358,7 @@ async function clearAccountLocalCaches(session = cloudReadSession()) {
     deleteCloudJson(CLOUD_LISTS_KEY, { forceLocal: true }),
     deleteCloudJson(CLOUD_PROGRESS_KEY, { forceLocal: true }),
     deleteCloudJson(CLOUD_COMMENTS_KEY, { forceLocal: true }),
+    deleteCloudJson(CLOUD_RATINGS_KEY, { forceLocal: true }),
     deleteCloudJson(CLOUD_SETTINGS_KEY, { forceLocal: true })
   ]);
   try {
@@ -331,6 +387,7 @@ async function getCloudContext() {
       doc,
       getDoc,
       setDoc,
+      deleteDoc,
       serverTimestamp,
       onSnapshot,
       collection,
@@ -354,6 +411,7 @@ async function getCloudContext() {
       doc,
       getDoc,
       setDoc,
+      deleteDoc,
       serverTimestamp,
       onSnapshot,
       collection,
@@ -729,6 +787,162 @@ async function saveSettings(session = cloudReadSession(), settings = {}) {
   return true;
 }
 
+async function readRatingMap(session = cloudReadSession()) {
+  if (session?.localId) return {};
+  const localRatings = await cloudReadJson(CLOUD_RATINGS_KEY, {}, { session: null });
+  return normalizeRatingMap(localRatings || {});
+}
+
+async function writeRatingMap(map, session = cloudReadSession()) {
+  const normalized = normalizeRatingMap(map || {});
+  if (!session?.localId) {
+    await cloudWriteJson(CLOUD_RATINGS_KEY, normalized, { session: null });
+  }
+  return normalized;
+}
+
+async function loadRatingSummary(alias, session = cloudReadSession()) {
+  const safeAlias = normalizeRatingAlias(alias);
+  if (!safeAlias) {
+    return { average: 0, count: 0, userValue: 0 };
+  }
+
+  const localRatings = await readRatingMap(session);
+  let votes = [];
+
+  try {
+    if (!CLOUD_FIREBASE_CONFIG) {
+      throw new Error("AnimeCloud Firebase config is missing");
+    }
+    const { db, collection, query, getDocs, limit } = await getCloudContext();
+    const snapshot = await getDocs(query(collection(db, "anime_ratings", safeAlias, "votes"), limit(500)));
+    votes = snapshot.docs.map((item) => normalizeRatingVoteData(item.id, item.data())).filter((item) => item.value);
+  } catch (error) {
+    if (session?.localId && !isPermissionDeniedError(error)) {
+      console.error(error);
+    }
+  }
+
+  if (!votes.length && !session?.localId) {
+    const userValue = normalizeRatingValue(localRatings?.[safeAlias]?.value);
+    return { average: userValue || 0, count: userValue ? 1 : 0, userValue };
+  }
+
+  return summarizeRatings(
+    votes.map((vote) => ({ ...vote, alias: safeAlias })),
+    session,
+    { [safeAlias]: localRatings[safeAlias] }
+  );
+}
+
+async function saveRating(alias, value, session = cloudReadSession()) {
+  const safeAlias = normalizeRatingAlias(alias);
+  if (!safeAlias) return { average: 0, count: 0, userValue: 0 };
+
+  const normalizedValue = normalizeRatingValue(value);
+  const localRatings = await readRatingMap(session);
+
+  if (!session?.localId) {
+    const next = { ...localRatings };
+    if (normalizedValue) {
+      next[safeAlias] = {
+        value: normalizedValue,
+        updatedAt: Date.now()
+      };
+    } else {
+      delete next[safeAlias];
+    }
+    await writeRatingMap(next, session);
+    return {
+      average: normalizedValue || 0,
+      count: normalizedValue ? 1 : 0,
+      userValue: normalizedValue
+    };
+  }
+
+  const { db, doc, setDoc, deleteDoc, serverTimestamp } = await getCloudContext();
+  const voteRef = doc(db, "anime_ratings", safeAlias, "votes", session.localId);
+
+  if (normalizedValue) {
+    await setDoc(voteRef, {
+      alias: safeAlias,
+      uid: session.localId,
+      value: normalizedValue,
+      updatedAt: serverTimestamp()
+    });
+  } else {
+    await deleteDoc(voteRef);
+  }
+
+  return loadRatingSummary(safeAlias, session);
+}
+
+function subscribeRatings(alias, callback, session = cloudReadSession()) {
+  const safeAlias = normalizeRatingAlias(alias);
+  if (!safeAlias || typeof callback !== "function") return () => {};
+
+  const current = cloudState.ratingsUnsubscribers.get(safeAlias);
+  if (current) current();
+
+  let active = true;
+  let unsubscribe = null;
+
+  const stop = () => {
+    active = false;
+    if (typeof unsubscribe === "function") unsubscribe();
+    cloudState.ratingsUnsubscribers.delete(safeAlias);
+  };
+
+  loadRatingSummary(safeAlias, session)
+    .then((summary) => {
+      if (active) callback(summary);
+    })
+    .catch((error) => {
+      if (!isPermissionDeniedError(error)) {
+        console.error(error);
+      }
+    });
+
+  if (!CLOUD_FIREBASE_CONFIG) {
+    return stop;
+  }
+
+  getCloudContext()
+    .then(async ({ db, collection, query, onSnapshot, limit }) => {
+      if (!active) return;
+      const votesQuery = query(collection(db, "anime_ratings", safeAlias, "votes"), limit(500));
+      unsubscribe = onSnapshot(
+        votesQuery,
+        async (snapshot) => {
+          const localRatings = await readRatingMap(session);
+          const votes = snapshot.docs
+            .map((item) => normalizeRatingVoteData(item.id, item.data()))
+            .filter((item) => item.value);
+          callback(
+            summarizeRatings(
+              votes.map((vote) => ({ ...vote, alias: safeAlias })),
+              session,
+              { [safeAlias]: localRatings[safeAlias] }
+            )
+          );
+        },
+        (error) => {
+          if (!isPermissionDeniedError(error)) {
+            console.error(error);
+          }
+        }
+      );
+    })
+    .catch((error) => {
+      if (!isPermissionDeniedError(error)) {
+        console.error(error);
+      }
+    });
+
+  cloudState.ratingsUnsubscribers.set(safeAlias, stop);
+  return stop;
+}
+
 async function loadComments(alias) {
   if (!alias) return [];
 
@@ -942,6 +1156,9 @@ window.animeCloudSync = {
   saveProgress,
   loadSettings,
   saveSettings,
+  loadRatingSummary,
+  saveRating,
+  subscribeRatings,
   loadComments,
   saveComments,
   addComment,

@@ -61,7 +61,7 @@
     },
     {
       "source": "/anime/:path*",
-      "destination": "/index.html"
+      "destination": "/api/anime-page?alias=:path*"
     }
   ],
   "headers": [

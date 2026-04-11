@@ -78,6 +78,7 @@ const state = {
   sortingOptions: [],
   typeOptions: [],
   genreOptions: [],
+  voiceOptions: [],
   catalogFilterKey: "",
   catalogFilterPool: [],
   favorites: [],
@@ -96,6 +97,7 @@ const state = {
   catalogType: "",
   catalogGenre: "",
   catalogGenres: [],
+  catalogVoice: "",
   ongoingMergedTotal: 0,
   ongoingPage: 0,
   ongoingTotal: 0,
@@ -123,6 +125,10 @@ const state = {
   heroPool: [],
   heroCarouselIndex: 0,
   heroCarouselTimer: null,
+  personalizedRecommendations: [],
+  personalizedGenres: [],
+  personalizedKey: "",
+  personalizedPromise: null,
   detailRenderToken: "",
   releaseOpenAlias: "",
   releaseOpenPromise: null,
@@ -193,6 +199,7 @@ const els = {
   catalogSort: document.getElementById("catalog-sort"),
   catalogType: document.getElementById("catalog-type"),
   catalogGenre: document.getElementById("catalog-genre"),
+  catalogVoice: document.getElementById("catalog-voice"),
   catalogGenreChips: document.getElementById("catalog-genre-chips"),
   catalogMoreBtn: document.getElementById("catalog-more-btn"),
   ongoingMoreBtn: document.getElementById("ongoing-more-btn"),
@@ -238,6 +245,48 @@ const els = {
   structuredData: document.getElementById("structured-data"),
   homePanel: document.querySelector('[data-view-panel="home"]')
 };
+
+function ensureDynamicInterface() {
+  const catalogActions = document.querySelector('[data-view-panel="catalog"] .section-actions');
+  if (catalogActions && !document.getElementById("catalog-voice")) {
+    const label = document.createElement("label");
+    label.className = "select-control";
+    label.innerHTML =
+      '<span>Озвучка</span><select id="catalog-voice"><option value="">Все озвучки</option></select>';
+    catalogActions.appendChild(label);
+  }
+
+  const profileProgressGrid = document.getElementById("profile-progress-grid");
+  if (profileProgressGrid && !document.getElementById("profile-recommendations-shell")) {
+    const shelf = document.createElement("section");
+    shelf.className = "profile-shelf profile-shelf--recommendations";
+    shelf.id = "profile-recommendations-shell";
+    shelf.innerHTML = `
+      <div class="section-head section-head--compact">
+        <div>
+          <div class="section-kicker">Персонально</div>
+          <h3>Подборка для вас</h3>
+          <p class="section-summary" id="profile-recommendations-summary">
+            Анализируем ваши жанры и историю просмотра…
+          </p>
+        </div>
+        <button class="ghost-btn profile-recommendations__refresh" type="button" id="profile-recommendations-refresh-btn">
+          Обновить подборку
+        </button>
+      </div>
+      <div class="anime-grid" id="profile-recommendations-grid"></div>
+    `;
+    profileProgressGrid.insertAdjacentElement("afterend", shelf);
+  }
+
+  els.catalogVoice = document.getElementById("catalog-voice");
+  els.profileRecommendationsShell = document.getElementById("profile-recommendations-shell");
+  els.profileRecommendationsGrid = document.getElementById("profile-recommendations-grid");
+  els.profileRecommendationsSummary = document.getElementById("profile-recommendations-summary");
+  els.profileRecommendationsRefreshBtn = document.getElementById("profile-recommendations-refresh-btn");
+}
+
+ensureDynamicInterface();
 
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -468,6 +517,89 @@ function buildStructuredData(page) {
   });
 }
 
+function buildReleaseStructuredData(release, description, path) {
+  const canonical = siteUrl(path);
+  const graph = [
+    {
+      "@type": "TVSeries",
+      name: release.title,
+      url: canonical,
+      description,
+      image: release.poster || siteUrl("/mc-icon-512.png"),
+      genre: release.genres || [],
+      inLanguage: "ru",
+      numberOfEpisodes: release.episodesTotal || undefined,
+      dateCreated: /^\d{4}$/.test(String(release.year || "")) ? String(release.year) : undefined,
+      isPartOf: {
+        "@type": "WebSite",
+        name: "AnimeCloud",
+        url: siteUrl("/")
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Главная",
+          item: siteUrl("/")
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Каталог",
+          item: siteUrl("/catalog")
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: release.title,
+          item: canonical
+        }
+      ]
+    }
+  ];
+
+  if (release.externalPlayer || (Array.isArray(release.sourceItems) && release.sourceItems.length)) {
+    graph.push({
+      "@type": "VideoObject",
+      name: `${release.title} — смотреть онлайн`,
+      description,
+      thumbnailUrl: [release.poster || siteUrl("/mc-icon-512.png")],
+      embedUrl: release.externalPlayer || undefined,
+      uploadDate: /^\d{4}$/.test(String(release.year || "")) ? `${String(release.year)}-01-01T00:00:00Z` : undefined,
+      isFamilyFriendly: !/\b(18\+|r|nc-17)\b/i.test(String(release.age || "")),
+      potentialAction: {
+        "@type": "WatchAction",
+        target: canonical
+      }
+    });
+  }
+
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: "AnimeCloud",
+        url: siteUrl("/"),
+        inLanguage: "ru",
+        description: DEFAULT_SEO_DESCRIPTION,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${siteUrl("/search")}?q={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      ...graph
+    ]
+  });
+}
+
 function createFetchSignal(timeoutMs = API_TIMEOUT_MS, externalSignal = null) {
   if (!timeoutMs && !externalSignal) {
     return { signal: undefined, cleanup: () => {} };
@@ -565,24 +697,9 @@ function updateReleaseSeo(release) {
     title: `${release.title} - смотреть онлайн с русской озвучкой | AnimeCloud`,
     description,
     path,
-    image: release.poster || siteUrl("/mc-icon-512.png?v=5"),
+    image: release.poster || siteUrl("/mc-icon-512.png"),
     type: "video.other",
-    structuredData: buildStructuredData({
-      "@type": "TVSeries",
-      name: release.title,
-      url: siteUrl(path),
-      description,
-    image: release.poster || siteUrl("/mc-icon-512.png?v=5"),
-      genre: release.genres || [],
-      inLanguage: "ru",
-      numberOfEpisodes: release.episodesTotal || undefined,
-      dateCreated: /^\d{4}$/.test(String(release.year || "")) ? String(release.year) : undefined,
-      isPartOf: {
-        "@type": "WebSite",
-        name: "AnimeCloud",
-        url: siteUrl("/")
-      }
-    })
+    structuredData: buildReleaseStructuredData(release, description, path)
   });
 }
 
@@ -1125,6 +1242,35 @@ function getReleaseTitleVariants(release) {
     .filter(Boolean);
 }
 
+function normalizeVoiceLabel(value) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .replace(/\b(hls|player|iframe|внешний плеер)\b/gi, "")
+    .replace(/\bTV\b/gi, "")
+    .replace(/\.+/g, ".")
+    .trim();
+}
+
+function getReleaseVoiceLabels(release) {
+  return uniqueStrings([
+    ...(Array.isArray(release?.voices) ? release.voices : []),
+    ...(Array.isArray(release?.sourceItems)
+      ? release.sourceItems.flatMap((source) => [source?.title, ...(Array.isArray(source?.voices) ? source.voices : [])])
+      : [])
+  ])
+    .map(normalizeVoiceLabel)
+    .filter(Boolean)
+    .filter((value) => !/^source-\w+/i.test(value));
+}
+
+function releaseMatchesVoiceFilter(release, voice) {
+  const selected = normalizeComparableText(normalizeVoiceLabel(voice));
+  if (!selected) return true;
+  return getReleaseVoiceLabels(release)
+    .map(normalizeComparableText)
+    .some((label) => label === selected || label.includes(selected));
+}
+
 function getReleaseIdentityKeys(release) {
   const identifiers = release?.identifiers || {};
   return uniqueStrings([
@@ -1134,6 +1280,14 @@ function getReleaseIdentityKeys(release) {
     identifiers.kodikId ? `kodik:${identifiers.kodikId}` : "",
     release?.kodikIdentity || ""
   ]);
+}
+
+function stripComparableReleaseDecorators(value) {
+  return normalizeComparableText(value)
+    .replace(/\b(tv|ona|ova|oad|movie|special|season|part)\b/g, " ")
+    .replace(/\b(тв|фильм|сезон|часть|спешл|спецвыпуск)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function areReleasesSame(left, right) {
@@ -1155,14 +1309,14 @@ function areReleasesSame(left, right) {
     return false;
   }
 
-  return leftTitles.some((leftTitle) =>
-    rightTitles.some(
-      (rightTitle) =>
-        leftTitle === rightTitle ||
-        (leftTitle.length > 4 && rightTitle.includes(leftTitle)) ||
-        (rightTitle.length > 4 && leftTitle.includes(rightTitle))
-    )
-  );
+  if (leftTitles.some((leftTitle) => rightTitles.includes(leftTitle))) {
+    return true;
+  }
+
+  const leftBaseTitles = uniqueStrings(leftTitles.map(stripComparableReleaseDecorators).filter(Boolean));
+  const rightBaseTitles = uniqueStrings(rightTitles.map(stripComparableReleaseDecorators).filter(Boolean));
+
+  return leftBaseTitles.some((leftTitle) => rightBaseTitles.includes(leftTitle));
 }
 
 function mergeSourceItems(primarySources = [], extraSources = []) {
@@ -1392,12 +1546,13 @@ function fetchKodikSearch(query, options = {}) {
 
 function buildKodikReleaseParams(release) {
   if (!release) return null;
+  const guessedMeta = release.alias ? guessKodikMetaFromAlias(release.alias) : null;
 
   const params = {
     action: "release",
-    title: release.title || "",
+    title: release.title || guessedMeta?.title || "",
     originalTitle: release.originalTitle || "",
-    year: release.year || ""
+    year: release.year || guessedMeta?.year || ""
   };
 
   if (release.kodikIdentity) {
@@ -1412,11 +1567,50 @@ function buildKodikReleaseParams(release) {
     params.identity = guessKodikIdentityFromAlias(release.alias);
   }
 
-  if (Array.isArray(release.alternateTitles) && release.alternateTitles.length) {
-    params.alternateTitles = release.alternateTitles.join("||");
+  const alternateTitles = uniqueStrings([
+    ...(Array.isArray(release.alternateTitles) ? release.alternateTitles : []),
+    ...(Array.isArray(guessedMeta?.alternateTitles) ? guessedMeta.alternateTitles : [])
+  ]);
+  if (alternateTitles.length) {
+    params.alternateTitles = alternateTitles.join("||");
   }
 
   return params;
+}
+
+function guessKodikMetaFromAlias(alias) {
+  const value = String(alias || "");
+  if (!value.startsWith("kodik-")) return null;
+  const body = value.slice(6);
+
+  if (body.startsWith("title-")) {
+    const slug = body.slice(6).trim();
+    if (!slug) return null;
+
+    let year = "";
+    let titleSlug = slug;
+    const yearMatch = slug.match(/-(19|20)\d{2}$/);
+    if (yearMatch) {
+      year = yearMatch[0].slice(1);
+      titleSlug = slug.slice(0, -yearMatch[0].length);
+    }
+
+    const title = titleSlug
+      .split("-")
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    if (!title) return null;
+
+    return {
+      title,
+      year,
+      alternateTitles: [title]
+    };
+  }
+
+  return null;
 }
 
 function guessKodikIdentityFromAlias(alias) {
@@ -1429,6 +1623,12 @@ function guessKodikIdentityFromAlias(alias) {
     if (body.startsWith(`${prefix}-`)) {
       return `${prefix}:${body.slice(prefix.length + 1)}`;
     }
+  }
+
+  if (body.startsWith("title-")) {
+    const meta = guessKodikMetaFromAlias(alias);
+    if (!meta?.title) return "";
+    return `title:${normalizeComparableText(meta.title)}:${meta.year || ""}`;
   }
 
   return "";
@@ -1984,6 +2184,23 @@ function registerGenres(releases) {
   renderCatalogControls();
 }
 
+function registerVoices(releases) {
+  const sorted = uniqueStrings([
+    ...state.voiceOptions,
+    ...(releases || []).flatMap((release) => getReleaseVoiceLabels(release))
+  ]).sort((left, right) => left.localeCompare(right, "ru"));
+
+  if (
+    sorted.length === state.voiceOptions.length &&
+    sorted.every((value, index) => value === state.voiceOptions[index])
+  ) {
+    return;
+  }
+
+  state.voiceOptions = sorted;
+  renderCatalogControls();
+}
+
 function renderGenreChips() {
   if (!els.catalogGenreChips) return;
   els.catalogGenreChips.innerHTML = "";
@@ -2015,6 +2232,7 @@ function getFilteredCatalogItems() {
     if (!releaseMatchesCatalogTypeSelection(release, state.catalogType)) return false;
     if (state.catalogGenre && !releaseMatchesGenres(release, [state.catalogGenre])) return false;
     if (state.catalogGenres.length && !releaseMatchesGenres(release, state.catalogGenres)) return false;
+    if (state.catalogVoice && !releaseMatchesVoiceFilter(release, state.catalogVoice)) return false;
     return true;
   });
 }
@@ -2025,18 +2243,22 @@ function refreshCatalogView(pagination = null) {
   const currentPage = pagination?.current_page || state.catalogPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.catalogTotalPages || 0, currentPage ? 1 : 0);
   const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
-  const labels = [...new Set([state.catalogGenre, ...state.catalogGenres].filter(Boolean))];
+  const genreLabels = [...new Set([state.catalogGenre, ...state.catalogGenres].filter(Boolean))];
+  const activeFilters = [
+    ...(genreLabels.length ? [`жанры: ${genreLabels.join(", ")}`] : []),
+    ...(state.catalogVoice ? [`озвучка: ${state.catalogVoice}`] : [])
+  ];
 
   if (els.catalogSummary) {
-    els.catalogSummary.textContent = labels.length
-      ? `Фильтр по жанрам: ${labels.join(", ")}. Загружено ${formatNumber(items.length)} релизов.`
+    els.catalogSummary.textContent = activeFilters.length
+      ? `Активные фильтры: ${activeFilters.join(" • ")}. Загружено ${formatNumber(items.length)} релизов.`
       : `${formatNumber(state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length)} тайтлов в полной базе AnimeCloud.${pageLabel}`;
   }
 
   updateGrid(
     els.catalogGrid,
     items,
-    labels.length ? "По выбранным жанрам пока ничего не найдено." : "Каталог пуст."
+    activeFilters.length ? "По выбранным фильтрам пока ничего не найдено." : "Каталог пуст."
   );
 }
 
@@ -2224,6 +2446,174 @@ function renderFavoriteButton() {
   updateListButtons();
 }
 
+function buildRecommendationProfile() {
+  const genreWeights = new Map();
+  const blockedAliases = new Set();
+  const progressMap = readProgressMap();
+  const favoriteWeights = {
+    watching: 5,
+    completed: 4,
+    planned: 2,
+    paused: 1
+  };
+
+  const addReleaseGenres = (release, weight = 1) => {
+    if (!release) return;
+    normalizeGenreList(release.genres || []).forEach((genre, index) => {
+      const boost = Math.max(0.5, weight - index * 0.2);
+      genreWeights.set(genre, Number(genreWeights.get(genre) || 0) + boost);
+    });
+  };
+
+  state.favorites.forEach((item) => {
+    if (!item?.alias) return;
+    blockedAliases.add(item.alias);
+    addReleaseGenres(item, favoriteWeights[item.listKey] || 2);
+  });
+
+  Object.keys(progressMap || {}).forEach((alias) => {
+    blockedAliases.add(alias);
+    addReleaseGenres(findCachedReleaseByAlias(alias), 3);
+  });
+
+  const topGenres = [...genreWeights.entries()]
+    .sort((left, right) => Number(right[1] || 0) - Number(left[1] || 0))
+    .slice(0, 3)
+    .map(([genre]) => genre);
+
+  return { genreWeights, topGenres, blockedAliases };
+}
+
+function scoreRecommendationRelease(release, profile) {
+  if (!release?.alias || profile.blockedAliases.has(release.alias)) return -Infinity;
+
+  const genres = normalizeGenreList(release.genres || []);
+  if (!genres.length && profile.topGenres.length) return -Infinity;
+
+  let genreScore = 0;
+  let overlapCount = 0;
+  genres.forEach((genre) => {
+    const value = Number(profile.genreWeights.get(genre) || 0);
+    if (value > 0) {
+      overlapCount += 1;
+      genreScore += value;
+    }
+  });
+
+  if (profile.topGenres.length && overlapCount === 0) return -Infinity;
+
+  const ratingScore = Math.min(20, Number(release.sortRating || release.favorites || 0) / 800);
+  const freshnessScore = Math.min(8, Number(release.sortFreshAt || 0) / 1000000000000);
+  const ongoingBonus = release.ongoing ? 2 : 0;
+  const sourceBonus = Array.isArray(release.sourceItems) && release.sourceItems.length > 1 ? 1.5 : 0;
+
+  return genreScore * 6 + overlapCount * 10 + ratingScore + freshnessScore + ongoingBonus + sourceBonus;
+}
+
+function renderPersonalRecommendations() {
+  if (!els.profileRecommendationsGrid || !els.profileRecommendationsSummary) return;
+
+  const genres = state.personalizedGenres || [];
+  const hasSignals = Boolean(genres.length || state.favorites.length || Object.keys(readProgressMap() || {}).length);
+  if (!state.personalizedRecommendations.length) {
+    els.profileRecommendationsSummary.textContent = genres.length
+      ? `По вашим жанрам (${genres.join(", ")}) пока не удалось собрать устойчивую подборку.`
+      : "Добавьте тайтлы в списки или начните смотреть аниме, и здесь появится персональная подборка.";
+    updateGrid(
+      els.profileRecommendationsGrid,
+      [],
+      genres.length ? "По вашим жанрам пока ничего не найдено." : "Подборка появится после первых действий в профиле."
+    );
+    return;
+  }
+
+  els.profileRecommendationsSummary.textContent = genres.length
+    ? `Собрано на основе ваших жанров: ${genres.join(", ")}.`
+    : hasSignals
+      ? "Подборка собрана по вашим действиям и ближайшим похожим релизам."
+      : "Стартовая подборка: популярные релизы, с которых удобно начать.";
+  updateGrid(els.profileRecommendationsGrid, state.personalizedRecommendations, "Подборка пока пуста.");
+}
+
+async function loadPersonalRecommendations(options = {}) {
+  if (!els.profileRecommendationsGrid) return [];
+
+  const profile = buildRecommendationProfile();
+  const cacheKey = JSON.stringify({
+    genres: profile.topGenres,
+    favorites: state.favorites.map((item) => `${item.alias}:${item.listKey || ""}`).sort(),
+    progress: Object.keys(readProgressMap() || {}).sort()
+  });
+
+  if (!options.force && state.personalizedKey === cacheKey && state.personalizedRecommendations.length) {
+    renderPersonalRecommendations();
+    return state.personalizedRecommendations;
+  }
+
+  if (state.personalizedPromise && !options.force) {
+    return state.personalizedPromise;
+  }
+
+  state.personalizedKey = cacheKey;
+  state.personalizedGenres = profile.topGenres;
+  renderSkeletonGrid(els.profileRecommendationsGrid, 6);
+  if (els.profileRecommendationsSummary) {
+    els.profileRecommendationsSummary.textContent = profile.topGenres.length
+      ? `Обновляем подборку по жанрам: ${profile.topGenres.join(", ")}…`
+      : "Собираем базовую персональную подборку…";
+  }
+
+  state.personalizedPromise = (async () => {
+    let pool = uniqueReleases(getAllKnownReleases());
+
+    if (profile.topGenres.length) {
+      const [aniMatches, kodikMatches] = await Promise.all([
+        fetchAniLibriaGenreMatches(profile.topGenres, {
+          ttl: 90000,
+          maxPages: 12,
+          maxItems: 60,
+          sort: "RATING_DESC"
+        }).catch(() => []),
+        fetchKodikDiscover("catalog", 1, 48, {
+          ttl: 90000,
+          genres: profile.topGenres,
+          sort: "shikimori_rating",
+          order: "desc"
+        }).catch(() => ({ items: [] }))
+      ]);
+
+      const merged = mergeReleaseCollections(aniMatches, buildReleases(kodikMatches));
+      registerGenres(merged);
+      registerVoices(merged);
+      pool = mergeReleaseCollections(pool, merged);
+    }
+
+    const fallbackPool = uniqueReleases([...state.recommended, ...state.popular, ...state.latest, ...pool]);
+    const ranked = fallbackPool
+      .map((release) => ({ release, score: scoreRecommendationRelease(release, profile) }))
+      .filter((item) => Number.isFinite(item.score) && item.score > -Infinity)
+      .sort((left, right) => right.score - left.score)
+      .map((item) => item.release);
+
+    state.personalizedRecommendations = (ranked.length ? ranked : fallbackPool.filter((release) => !profile.blockedAliases.has(release.alias))).slice(0, 12);
+    renderPersonalRecommendations();
+    return state.personalizedRecommendations;
+  })()
+    .catch((error) => {
+      console.error(error);
+      state.personalizedRecommendations = uniqueReleases(
+        [...state.recommended, ...state.popular, ...state.latest].filter((release) => !profile.blockedAliases.has(release?.alias))
+      ).slice(0, 12);
+      renderPersonalRecommendations();
+      return state.personalizedRecommendations;
+    })
+    .finally(() => {
+      state.personalizedPromise = null;
+    });
+
+  return state.personalizedPromise;
+}
+
 function renderProfile() {
   if (!els.favoritesGrid) return;
   const user = state.authUser;
@@ -2261,6 +2651,8 @@ function renderProfile() {
   updateGrid(els.listPausedGrid, getListItems("paused"), "Отложенных тайтлов пока нет.");
   updateGrid(els.favoritesGrid, state.favorites, "В избранном пока пусто.");
   renderContinueWatchingSections();
+  renderPersonalRecommendations();
+  safeIdle(() => loadPersonalRecommendations().catch(console.error));
   updateListButtons();
 }
 
@@ -2399,7 +2791,7 @@ async function loadContentStats(force = false) {
     state.topTotalPages = Math.max(state.topTotalPages || 0, Math.ceil((state.topMergedTotal || 0) / GRID_PAGE_SIZE));
     updateStats();
     if (state.catalogLoaded) {
-      if (state.catalogGenre || state.catalogGenres.length) {
+      if (state.catalogGenre || state.catalogGenres.length || state.catalogVoice) {
         refreshCatalogView();
       } else if (els.catalogSummary) {
         const currentPage = state.catalogPage || 0;
@@ -2499,6 +2891,9 @@ function renderCatalogControls() {
   els.catalogSort.innerHTML = "";
   els.catalogType.innerHTML = '<option value="">Все форматы</option>';
   els.catalogGenre.innerHTML = '<option value="">Все жанры</option>';
+  if (els.catalogVoice) {
+    els.catalogVoice.innerHTML = '<option value="">Все озвучки</option>';
+  }
 
   state.sortingOptions.forEach((option) => {
     const node = document.createElement("option");
@@ -2523,6 +2918,16 @@ function renderCatalogControls() {
     node.selected = genre === state.catalogGenre;
     els.catalogGenre.appendChild(node);
   });
+
+  if (els.catalogVoice) {
+    state.voiceOptions.forEach((voice) => {
+      const node = document.createElement("option");
+      node.value = voice;
+      node.textContent = voice;
+      node.selected = voice === state.catalogVoice;
+      els.catalogVoice.appendChild(node);
+    });
+  }
 
   renderGenreChips();
 }
@@ -2553,6 +2958,9 @@ async function loadHome(force = false) {
     registerGenres(state.latest);
     registerGenres(state.recommended);
     registerGenres(state.popular);
+    registerVoices(state.latest);
+    registerVoices(state.recommended);
+    registerVoices(state.popular);
 
       const featuredPool = getHeroCandidates();
       state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
@@ -2586,10 +2994,14 @@ async function loadHome(force = false) {
         Math.ceil((state.topTotal || state.popular.length) / GRID_PAGE_SIZE)
       );
       state.homeLoaded = true;
+      state.personalizedKey = "";
 
     renderContinueWatchingSections();
     updateStats();
     renderHero(state.featured);
+    if (state.currentView === "profile") {
+      safeIdle(() => loadPersonalRecommendations({ force: true }).catch(console.error));
+    }
     requestAnimationFrame(() => {
       updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
       updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
@@ -2686,6 +3098,7 @@ async function loadCatalog(options = {}) {
     els.catalogMoreBtn.disabled = true;
     const activeGenres = normalizeGenreList([state.catalogGenre, ...state.catalogGenres].filter(Boolean));
     const hasGenreFilters = activeGenres.length > 0;
+    const hasClientFilters = hasGenreFilters || Boolean(state.catalogVoice);
     const kodikTypeConfig = getKodikCatalogTypeConfig(state.catalogType);
     const shouldMergeKodik = kodikTypeConfig.enabled;
     const filterKey = JSON.stringify({
@@ -2755,6 +3168,7 @@ async function loadCatalog(options = {}) {
       : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
 
     registerGenres(releases);
+    registerVoices(releases);
     state.catalogItems = reset ? releases : mergeReleaseCollections(state.catalogItems, releases);
     state.catalogPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
     state.catalogTotal = hasGenreFilters
@@ -2771,21 +3185,26 @@ async function loadCatalog(options = {}) {
     state.catalogHasMore = state.catalogPage < (state.catalogTotalPages || 1);
     state.catalogLoaded = true;
 
-    if (hasGenreFilters) {
-      const filteredAppended = appendedReleases.filter((release) =>
-        releaseMatchesGenres(release, activeGenres)
-      );
+    if (hasClientFilters) {
+      const filteredAppended = appendedReleases.filter((release) => {
+        if (hasGenreFilters && !releaseMatchesGenres(release, activeGenres)) return false;
+        if (state.catalogVoice && !releaseMatchesVoiceFilter(release, state.catalogVoice)) return false;
+        return true;
+      });
       const filteredItems = getFilteredCatalogItems();
-      const labels = [...new Set(activeGenres)];
+      const filters = [
+        ...(hasGenreFilters ? [`жанры: ${[...new Set(activeGenres)].join(", ")}`] : []),
+        ...(state.catalogVoice ? [`озвучка: ${state.catalogVoice}`] : [])
+      ];
 
       if (els.catalogSummary) {
-        els.catalogSummary.textContent = `Фильтр по жанрам: ${labels.join(", ")}. Загружено ${formatNumber(
+        els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Загружено ${formatNumber(
           filteredItems.length
         )} релизов.`;
       }
 
       if (!reset && filteredAppended.length && filteredItems.length === previousFilteredCount + filteredAppended.length) {
-        updateGrid(els.catalogGrid, filteredAppended, "По выбранным жанрам пока ничего не найдено.", {
+        updateGrid(els.catalogGrid, filteredAppended, "По выбранным фильтрам пока ничего не найдено.", {
           append: true,
           offset: previousFilteredCount
         });
@@ -2856,6 +3275,7 @@ async function loadOngoing(options = {}) {
       : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
 
     registerGenres(releases);
+    registerVoices(releases);
     state.ongoingItems = reset ? releases : mergeReleaseCollections(state.ongoingItems, releases);
     state.ongoingPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
     state.ongoingTotal = Math.max(mergedOngoingTotal || 0, state.ongoingItems.length);
@@ -2923,6 +3343,7 @@ async function loadTop(options = {}) {
       : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
 
     registerGenres(releases);
+    registerVoices(releases);
     state.topItems = reset ? releases : mergeReleaseCollections(state.topItems, releases);
     state.topPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
     state.topTotal = Math.max(mergedTopTotal || 0, state.topItems.length);
@@ -3129,6 +3550,7 @@ async function runSearch(query, options = {}) {
       ),
       mergeReleaseCollections(buildReleases(kodikGenrePayload), aniGenreResults)
     ).slice(0, 48);
+    registerVoices(state.searchResults);
     els.searchSummary.textContent = state.searchResults.length
       ? `Найдено ${formatNumber(state.searchResults.length)} релизов по запросу «${cleanQuery}».`
       : `По запросу «${cleanQuery}» ничего не найдено.`;
@@ -4009,7 +4431,11 @@ async function refreshAll() {
   state.scheduleLoaded = false;
   state.referencesLoaded = false;
   state.genreOptions = [];
+  state.voiceOptions = [];
   state.catalogGenres = [];
+  state.personalizedKey = "";
+  state.personalizedRecommendations = [];
+  state.personalizedGenres = [];
   if (state.heroCarouselTimer) {
     clearInterval(state.heroCarouselTimer);
     state.heroCarouselTimer = null;
@@ -4308,6 +4734,14 @@ function bindEvents() {
     state.catalogGenre = els.catalogGenre.value;
     state.catalogLoaded = false;
     loadCatalog({ reset: true }).catch(console.error);
+  });
+  els.catalogVoice?.addEventListener("change", () => {
+    state.catalogVoice = els.catalogVoice.value;
+    state.catalogLoaded = false;
+    loadCatalog({ reset: true }).catch(console.error);
+  });
+  els.profileRecommendationsRefreshBtn?.addEventListener("click", () => {
+    loadPersonalRecommendations({ force: true }).catch(console.error);
   });
 
   els.searchInput?.addEventListener("input", (event) => {

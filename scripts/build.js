@@ -151,6 +151,7 @@ async function sanitizePublicIndexHtml() {
   let content = await fs.readFile(indexPath, "utf8");
 
   content = content
+    .replace(/\s*<meta name="keywords"[^>]*>\s*/i, "\n")
     .replace(/\s*<script id="structured-data-legacy"[\s\S]*?<\/script>/, "")
     .replace(/\s*<script id="structured-data-seo-legacy"[\s\S]*?<\/script>/, "");
 

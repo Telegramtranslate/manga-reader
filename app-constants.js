@@ -25,6 +25,7 @@
     progress: "animecloud_watch_progress_v1",
     comments: "animecloud_comments_v1",
     lists: "animecloud_lists_v1",
+    ratings: "animecloud_ratings_v1",
     settings: "animecloud_settings_v1",
     adminHero: "animecloud_admin_featured_alias"
   });

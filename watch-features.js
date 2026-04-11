@@ -2,6 +2,7 @@ const WATCH_APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
 const WATCH_STORAGE_KEYS = WATCH_APP_CONSTANTS.STORAGE_KEYS || {};
 const WATCH_FEATURES_PROGRESS_KEY = WATCH_STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
 const WATCH_FEATURES_COMMENTS_STORAGE_KEY = WATCH_STORAGE_KEYS.comments || "animecloud_comments_v1";
+const WATCH_RATINGS_KEY = WATCH_STORAGE_KEYS.ratings || "animecloud_ratings_v1";
 const WATCH_SETTINGS_KEY = WATCH_STORAGE_KEYS.settings || "animecloud_settings_v1";
 const WATCH_PROGRESS_MIN_INTERVAL = 15000;
 const WATCH_PROGRESS_MIN_DELTA = 15;
@@ -35,14 +36,22 @@ const watchState = {
   lastProgressPosition: 0,
   progressMap: {},
   commentsMap: {},
+  ratingMap: {},
+  ratingSummary: {
+    average: 0,
+    count: 0,
+    userValue: 0
+  },
   realtimeCommentsStop: null,
+  realtimeRatingsStop: null,
   realtimeProgressStop: null,
   settings: {
     autoplayNext: true,
     theme: "dark"
   },
   lastCommentSubmitAt: 0,
-  commentsRenderToken: ""
+  commentsRenderToken: "",
+  ratingBusy: false
 };
 
 function isPermissionDeniedError(error) {
@@ -74,6 +83,33 @@ function writeJson(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {}
   return value;
+}
+
+function normalizeRatingValue(value) {
+  const numeric = Math.round(Number(value || 0));
+  if (!Number.isFinite(numeric)) return 0;
+  if (numeric < 1 || numeric > 10) return 0;
+  return numeric;
+}
+
+function readRatingMap() {
+  const next = readJson(WATCH_RATINGS_KEY, {}) || {};
+  watchState.ratingMap = Object.entries(next).reduce((accumulator, [alias, entry]) => {
+    const normalized = normalizeRatingValue(entry?.value ?? entry);
+    if (!alias || !normalized) return accumulator;
+    accumulator[alias] = {
+      value: normalized,
+      updatedAt: Number(entry?.updatedAt || Date.now())
+    };
+    return accumulator;
+  }, {});
+  return watchState.ratingMap;
+}
+
+function writeRatingMap(map) {
+  watchState.ratingMap = map || {};
+  writeJson(WATCH_RATINGS_KEY, watchState.ratingMap);
+  return watchState.ratingMap;
 }
 
 function getAuthUserSafe() {
@@ -574,6 +610,7 @@ async function hydrateLocalCachesFromIndexedDb() {
 
 async function hydrateWatchPersistence() {
   const user = getAuthUserSafe();
+  readRatingMap();
 
   if (user?.localId && window.animeCloudSync?.hydrateSessionData) {
     try {
@@ -603,6 +640,7 @@ async function hydrateWatchPersistence() {
 
   syncSettingsControls();
   applyTheme(watchState.settings.theme);
+  await refreshCurrentRatingSummary();
 }
 
 function handleCommentSubmit(event) {
@@ -648,6 +686,171 @@ function handleCommentSubmit(event) {
   }
   watchEls.commentInput.value = "";
   renderComments();
+}
+
+function ensureRatingUi() {
+  const detailCopy = document.querySelector(".detail-copy");
+  if (detailCopy && !document.getElementById("rating-box")) {
+    const box = document.createElement("section");
+    box.className = "rating-box";
+    box.id = "rating-box";
+    box.innerHTML = `
+      <div class="detail-label">Оценка зрителей</div>
+      <div class="rating-box__summary">
+        <strong id="rating-average">—</strong>
+        <div class="rating-box__meta">
+          <span id="rating-count">Пока нет оценок</span>
+          <small id="rating-note">Войдите, чтобы оценка синхронизировалась между устройствами.</small>
+        </div>
+      </div>
+      <div class="rating-box__actions" id="rating-actions"></div>
+      <button class="ghost-btn rating-box__clear" type="button" id="rating-clear-btn" hidden>Сбросить оценку</button>
+    `;
+    detailCopy.appendChild(box);
+  }
+
+  watchEls.ratingBox = document.getElementById("rating-box");
+  watchEls.ratingAverage = document.getElementById("rating-average");
+  watchEls.ratingCount = document.getElementById("rating-count");
+  watchEls.ratingNote = document.getElementById("rating-note");
+  watchEls.ratingActions = document.getElementById("rating-actions");
+  watchEls.ratingClearBtn = document.getElementById("rating-clear-btn");
+}
+
+function renderRatingPanel() {
+  ensureRatingUi();
+  if (!watchEls.ratingBox || !watchEls.ratingActions) return;
+
+  const summary = watchState.ratingSummary || { average: 0, count: 0, userValue: 0 };
+  const user = getAuthUserSafe();
+  const averageText = summary.count ? String(summary.average).replace(/\.0$/, "") : summary.userValue ? String(summary.userValue) : "—";
+
+  watchEls.ratingAverage.textContent = averageText;
+  watchEls.ratingCount.textContent = summary.count
+    ? `${summary.count} ${summary.count === 1 ? "оценка" : summary.count < 5 ? "оценки" : "оценок"}`
+    : "Пока нет оценок";
+  watchEls.ratingNote.textContent = summary.userValue
+    ? `Ваша оценка: ${summary.userValue}/10.${user?.localId ? " Синхронизирована в профиле." : " Сохранена локально в этом браузере."}`
+    : user?.localId
+      ? "Поставьте оценку от 1 до 10. Она сохранится в вашем облачном профиле."
+      : "Поставьте локальную оценку. После входа можно будет оценивать из облачного профиля.";
+
+  watchEls.ratingActions.innerHTML = "";
+  for (let value = 1; value <= 10; value += 1) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `rating-chip${summary.userValue === value ? " is-active" : ""}`;
+    button.textContent = String(value);
+    button.disabled = watchState.ratingBusy || !watchState.release?.alias;
+    button.addEventListener("click", () => {
+      void setCurrentRating(value);
+    });
+    watchEls.ratingActions.appendChild(button);
+  }
+
+  watchEls.ratingClearBtn.hidden = !summary.userValue;
+  watchEls.ratingClearBtn.disabled = watchState.ratingBusy;
+}
+
+async function refreshCurrentRatingSummary() {
+  ensureRatingUi();
+  if (!watchState.release?.alias) {
+    watchState.ratingSummary = { average: 0, count: 0, userValue: 0 };
+    renderRatingPanel();
+    return watchState.ratingSummary;
+  }
+
+  try {
+    if (window.animeCloudSync?.loadRatingSummary) {
+      watchState.ratingSummary = await window.animeCloudSync.loadRatingSummary(
+        watchState.release.alias,
+        getAuthUserSafe()
+      );
+    } else {
+      const localValue = normalizeRatingValue(readRatingMap()?.[watchState.release.alias]?.value);
+      watchState.ratingSummary = {
+        average: localValue || 0,
+        count: localValue ? 1 : 0,
+        userValue: localValue
+      };
+    }
+  } catch (error) {
+    console.error(error);
+    const localValue = normalizeRatingValue(readRatingMap()?.[watchState.release.alias]?.value);
+    watchState.ratingSummary = {
+      average: localValue || 0,
+      count: localValue ? 1 : 0,
+      userValue: localValue
+    };
+  }
+
+  renderRatingPanel();
+  return watchState.ratingSummary;
+}
+
+async function setCurrentRating(value) {
+  if (!watchState.release?.alias || watchState.ratingBusy) return;
+  watchState.ratingBusy = true;
+  renderRatingPanel();
+
+  try {
+    if (window.animeCloudSync?.saveRating) {
+      watchState.ratingSummary = await window.animeCloudSync.saveRating(
+        watchState.release.alias,
+        value,
+        getAuthUserSafe()
+      );
+    } else {
+      const next = { ...readRatingMap() };
+      const normalized = normalizeRatingValue(value);
+      if (normalized) {
+        next[watchState.release.alias] = { value: normalized, updatedAt: Date.now() };
+      } else {
+        delete next[watchState.release.alias];
+      }
+      writeRatingMap(next);
+      watchState.ratingSummary = {
+        average: normalized || 0,
+        count: normalized ? 1 : 0,
+        userValue: normalized
+      };
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    watchState.ratingBusy = false;
+    renderRatingPanel();
+  }
+}
+
+function stopRealtimeRatings() {
+  if (typeof watchState.realtimeRatingsStop === "function") {
+    watchState.realtimeRatingsStop();
+  }
+  watchState.realtimeRatingsStop = null;
+}
+
+function bindRealtimeRatings(alias) {
+  stopRealtimeRatings();
+  if (!alias) {
+    watchState.ratingSummary = { average: 0, count: 0, userValue: 0 };
+    renderRatingPanel();
+    return;
+  }
+
+  if (!window.animeCloudSync?.subscribeRatings) {
+    void refreshCurrentRatingSummary();
+    return;
+  }
+
+  watchState.realtimeRatingsStop = window.animeCloudSync.subscribeRatings(
+    alias,
+    (summary) => {
+      watchState.ratingSummary = summary || { average: 0, count: 0, userValue: 0 };
+      renderRatingPanel();
+    },
+    getAuthUserSafe()
+  );
 }
 
 function stopRealtimeComments() {
@@ -779,6 +982,9 @@ function bindFeatureEvents() {
   watchEls.commentForm.addEventListener("submit", handleCommentSubmit);
   watchEls.resumeBtn.addEventListener("click", resumeFromSavedProgress);
   watchEls.resumeClearBtn.addEventListener("click", clearCurrentProgress);
+  watchEls.ratingClearBtn?.addEventListener("click", () => {
+    void setCurrentRating(0);
+  });
 
   if (watchEls.nextEpisodeBtn) {
     watchEls.nextEpisodeBtn.addEventListener("click", playNextEpisode);
@@ -800,7 +1006,10 @@ function bindFeatureEvents() {
     watchState.episode = null;
     watchState.sourceId = getDefaultWatchSourceId(watchState.release);
     watchState.pendingResume = getCurrentProgress();
+    watchState.ratingSummary = { average: 0, count: 0, userValue: 0 };
+    renderRatingPanel();
     bindRealtimeComments(watchState.release?.alias || "");
+    bindRealtimeRatings(watchState.release?.alias || "");
     renderDubBox();
     renderComments();
     renderResumeBox();
@@ -824,6 +1033,7 @@ function bindFeatureEvents() {
 
   window.addEventListener("animecloud:drawer-closed", () => {
     stopRealtimeComments();
+    stopRealtimeRatings();
   });
 
   window.addEventListener("animecloud:auth", async (event) => {
@@ -837,6 +1047,7 @@ function bindFeatureEvents() {
     renderResumeBox();
     bindRealtimeProgress();
     bindRealtimeComments(watchState.release?.alias || "");
+    bindRealtimeRatings(watchState.release?.alias || "");
   });
 
   window.addEventListener("animecloud:admin-clear-comments", () => {
@@ -856,15 +1067,18 @@ function bindFeatureEvents() {
 async function initWatchFeatures() {
   if (!watchEls.player || !watchEls.commentForm) return;
 
+  ensureRatingUi();
   await hydrateWatchPersistence();
 
   bindPlayerTracking();
   bindFeatureEvents();
   bindRealtimeProgress();
+  bindRealtimeRatings(watchState.release?.alias || "");
   renderCommentUser();
   renderComments();
   renderResumeBox();
   renderDubBox();
+  renderRatingPanel();
   renderNextEpisodeButton();
 }
 

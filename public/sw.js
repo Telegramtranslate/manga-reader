@@ -1,4 +1,4 @@
-const CACHE_VERSION = "442248e383";
+const CACHE_VERSION = "8b338120a7";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,14 +6,14 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=4e1c2cc1ed",
-  "/api/runtime-config.js?v=442248e383",
-  "/app-constants.min.js?v=e67422b8eb",
+  "/style.css?v=eacb7e8122",
+  "/api/runtime-config.js?v=8b338120a7",
+  "/app-constants.min.js?v=7f5bd79a51",
   "/firebase-config.min.js?v=5d36cb298f",
-  "/cloud-sync.min.js?v=e794048119",
-  "/app.min.js?v=024fcf3f1e",
+  "/cloud-sync.min.js?v=b95a014e20",
+  "/app.min.js?v=7aeec2dc82",
   "/auth.min.js?v=5a6aac8601",
-  "/watch-features.min.js?v=ee1e79c0f3",
+  "/watch-features.min.js?v=45091ef3ec",
   "/hls.min.js?v=5ff2d714de",
   "/manifest.webmanifest?v=3a11887700",
   "/robots.txt",
@@ -51,7 +51,7 @@ function isManifestRequest(url) {
 }
 
 function isRuntimeConfigRequest(url) {
-  return url.origin === self.location.origin && url.pathname === "/api/runtime-config.js?v=442248e383";
+  return url.origin === self.location.origin && url.pathname === "/api/runtime-config.js?v=8b338120a7";
 }
 
 function isIconRequest(url) {

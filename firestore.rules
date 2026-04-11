@@ -86,6 +86,19 @@ service cloud.firestore {
         request.resource.data.createdAt == request.time;
     }
 
+    function validRatingVote(alias, userId) {
+      return signedIn() &&
+        request.auth.uid == userId &&
+        request.resource.data.keys().hasAll(['alias', 'uid', 'value', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['alias', 'uid', 'value', 'updatedAt']) &&
+        request.resource.data.alias == alias &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.value is int &&
+        request.resource.data.value >= 1 &&
+        request.resource.data.value <= 10 &&
+        request.resource.data.updatedAt == request.time;
+    }
+
     match /users/{userId}/private/{docId} {
       allow read: if owner(userId);
 
@@ -107,6 +120,17 @@ service cloud.firestore {
         allow create: if validCommentCreate(alias);
         allow update: if false;
         allow delete: if adminClaim();
+      }
+    }
+
+    match /anime_ratings/{alias} {
+      allow read: if true;
+      allow write: if false;
+
+      match /votes/{userId} {
+        allow read: if true;
+        allow create, update: if validRatingVote(alias, userId);
+        allow delete: if signedIn() && request.auth.uid == userId;
       }
     }
 
