@@ -1226,6 +1226,10 @@ button {
   margin-top: 18px;
 }
 
+.voice-block {
+  display: none;
+}
+
 .source-btn {
   display: grid;
   gap: 4px;

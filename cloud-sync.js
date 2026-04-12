@@ -222,13 +222,14 @@ function normalizeRatingVoteData(id, data = {}) {
   };
 }
 
-function summarizeRatings(votes = [], session = cloudReadSession(), localRatings = {}) {
+function summarizeRatings(alias, votes = [], session = cloudReadSession(), localRatings = {}) {
+  const safeAlias = normalizeRatingAlias(alias);
   const normalizedVotes = votes
     .map((item) => normalizeRatingVoteData(item?.id, item))
     .filter((item) => item.alias && item.value);
   const count = normalizedVotes.length;
   const total = normalizedVotes.reduce((sum, item) => sum + Number(item.value || 0), 0);
-  const localValue = normalizeRatingValue(localRatings?.[normalizedVotes[0]?.alias || ""]?.value);
+  const localValue = normalizeRatingValue(localRatings?.[safeAlias]?.value);
   const userVote = session?.localId
     ? normalizedVotes.find((item) => item.uid === session.localId)?.value || 0
     : localValue;
@@ -805,13 +806,24 @@ async function writeRatingMap(map, session = cloudReadSession()) {
   return normalized;
 }
 
+async function readFallbackRatingMap() {
+  const localRatings = await cloudReadJson(CLOUD_RATINGS_KEY, {}, { session: null, forceLocal: true });
+  return normalizeRatingMap(localRatings || {});
+}
+
+async function writeFallbackRatingMap(map) {
+  const normalized = normalizeRatingMap(map || {});
+  await cloudWriteJson(CLOUD_RATINGS_KEY, normalized, { session: null, forceLocal: true });
+  return normalized;
+}
+
 async function loadRatingSummary(alias, session = cloudReadSession()) {
   const safeAlias = normalizeRatingAlias(alias);
   if (!safeAlias) {
     return { average: 0, count: 0, userValue: 0 };
   }
 
-  const localRatings = await readRatingMap(session);
+  const localRatings = await readFallbackRatingMap();
   let votes = [];
 
   try {
@@ -833,6 +845,7 @@ async function loadRatingSummary(alias, session = cloudReadSession()) {
   }
 
   return summarizeRatings(
+    safeAlias,
     votes.map((vote) => ({ ...vote, alias: safeAlias })),
     session,
     { [safeAlias]: localRatings[safeAlias] }
@@ -844,18 +857,19 @@ async function saveRating(alias, value, session = cloudReadSession()) {
   if (!safeAlias) return { average: 0, count: 0, userValue: 0 };
 
   const normalizedValue = normalizeRatingValue(value);
-  const localRatings = await readRatingMap(session);
+  const localRatings = await readFallbackRatingMap();
+  const next = { ...localRatings };
+
+  if (normalizedValue) {
+    next[safeAlias] = {
+      value: normalizedValue,
+      updatedAt: Date.now()
+    };
+  } else {
+    delete next[safeAlias];
+  }
 
   if (!session?.localId) {
-    const next = { ...localRatings };
-    if (normalizedValue) {
-      next[safeAlias] = {
-        value: normalizedValue,
-        updatedAt: Date.now()
-      };
-    } else {
-      delete next[safeAlias];
-    }
     await writeRatingMap(next, session);
     return {
       average: normalizedValue || 0,
@@ -864,21 +878,28 @@ async function saveRating(alias, value, session = cloudReadSession()) {
     };
   }
 
-  const { db, doc, setDoc, deleteDoc, serverTimestamp } = await getCloudContext();
-  const voteRef = doc(db, "anime_ratings", safeAlias, "votes", session.localId);
-
-  if (normalizedValue) {
-    await setDoc(voteRef, {
-      alias: safeAlias,
-      uid: session.localId,
-      value: normalizedValue,
-      updatedAt: serverTimestamp()
-    });
-  } else {
-    await deleteDoc(voteRef);
+  try {
+    const { db, doc, setDoc, deleteDoc, serverTimestamp } = await getCloudContext();
+    const voteRef = doc(db, "anime_ratings", safeAlias, "votes", session.localId);
+    if (normalizedValue) {
+      await setDoc(voteRef, {
+        alias: safeAlias,
+        uid: session.localId,
+        value: normalizedValue,
+        updatedAt: serverTimestamp()
+      });
+    } else {
+      await deleteDoc(voteRef);
+    }
+    await writeFallbackRatingMap(next);
+    return loadRatingSummary(safeAlias, session);
+  } catch (error) {
+    if (!isPermissionDeniedError(error)) {
+      console.error(error);
+    }
+    await writeFallbackRatingMap(next);
+    return summarizeRatings(safeAlias, [], session, { [safeAlias]: next[safeAlias] });
   }
-
-  return loadRatingSummary(safeAlias, session);
 }
 
 function subscribeRatings(alias, callback, session = cloudReadSession()) {
@@ -924,6 +945,7 @@ function subscribeRatings(alias, callback, session = cloudReadSession()) {
             .filter((item) => item.value);
           callback(
             summarizeRatings(
+              safeAlias,
               votes.map((vote) => ({ ...vote, alias: safeAlias })),
               session,
               { [safeAlias]: localRatings[safeAlias] }

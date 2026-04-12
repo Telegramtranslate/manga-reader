@@ -2807,7 +2807,7 @@ async function loadHome(force = false) {
     state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
     state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
     state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
-    state.latestTotal = Math.max(state.latestTotal || 0, extractPagination(latestPayload).total || 0, state.latest.length);
+    state.latestTotal = Math.max(state.catalogMergedTotal || 0, state.latestTotal || 0, state.latest.length);
     state.catalogTotal = Math.max(state.catalogMergedTotal || 0, extractPagination(topPayload).total || 0, state.catalogTotal, state.popular.length);
     state.catalogTotalPages = Math.max(
       state.catalogTotalPages || 0,
@@ -3832,9 +3832,6 @@ function renderDetailLoadingState() {
   if (els.episodesList) {
     els.episodesList.replaceChildren(createEmptyState("Подготавливаем список серий..."));
   }
-  if (els.voiceList) {
-    els.voiceList.replaceChildren(createEmptyState("Подготавливаем озвучку..."));
-  }
   if (els.crewList) {
     els.crewList.replaceChildren(createEmptyState("Подготавливаем команду релиза..."));
   }
@@ -3903,11 +3900,6 @@ function queueDetailSectionsRender(release, token) {
 
   safeIdle(() => {
     if (!isActiveDetailRender(token, release.alias)) return;
-    renderVoices(release);
-  });
-
-  safeIdle(() => {
-    if (!isActiveDetailRender(token, release.alias)) return;
     renderCrew(release);
   });
 }
@@ -3924,7 +3916,6 @@ function renderDetails(release, options = {}) {
   if (options.deferHeavy === false) {
     renderSourceSwitch(release);
     renderEpisodes(release);
-    renderVoices(release);
     renderCrew(release);
     return;
   }
