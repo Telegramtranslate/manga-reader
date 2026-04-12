@@ -24,8 +24,7 @@ const CLOUD_APP_CHECK_ENABLED =
   window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
   String(window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_ENABLED || "")
     .trim()
-    .toLowerCase() === "true" ||
-  Boolean(CLOUD_APP_CHECK_SITE_KEY);
+    .toLowerCase() === "true";
 
 const cloudState = {
   contextPromise: null,
@@ -518,6 +517,28 @@ async function writeCloudDoc(pathParts, data) {
   );
 }
 
+async function writeCloudRatingVote(alias, value, session = cloudReadSession()) {
+  const safeAlias = normalizeRatingAlias(alias);
+  if (!safeAlias || !session?.localId) return false;
+
+  const normalizedValue = normalizeRatingValue(value);
+  const { db, doc, setDoc, deleteDoc, serverTimestamp } = await getCloudContext();
+  const voteRef = doc(db, "anime_ratings", safeAlias, "votes", session.localId);
+
+  if (normalizedValue) {
+    await setDoc(voteRef, {
+      alias: safeAlias,
+      uid: session.localId,
+      value: normalizedValue,
+      updatedAt: serverTimestamp()
+    });
+  } else {
+    await deleteDoc(voteRef);
+  }
+
+  return true;
+}
+
 async function writeCloudDocQueued(pathParts, data, options = {}) {
   try {
     await writeCloudDoc(pathParts, data);
@@ -540,6 +561,12 @@ async function flushPendingSync() {
     try {
       if (item.type === "setDoc") {
         await writeCloudDoc(item.pathParts, item.data);
+      } else if (item.type === "ratingVote") {
+        const session = cloudReadSession();
+        if (!session?.localId || session.localId !== item.uid) {
+          break;
+        }
+        await writeCloudRatingVote(item.alias, item.value, session);
       }
       await removePendingOperation(item.id);
     } catch {
@@ -879,24 +906,19 @@ async function saveRating(alias, value, session = cloudReadSession()) {
   }
 
   try {
-    const { db, doc, setDoc, deleteDoc, serverTimestamp } = await getCloudContext();
-    const voteRef = doc(db, "anime_ratings", safeAlias, "votes", session.localId);
-    if (normalizedValue) {
-      await setDoc(voteRef, {
-        alias: safeAlias,
-        uid: session.localId,
-        value: normalizedValue,
-        updatedAt: serverTimestamp()
-      });
-    } else {
-      await deleteDoc(voteRef);
-    }
+    await writeCloudRatingVote(safeAlias, normalizedValue, session);
     await writeFallbackRatingMap(next);
     return loadRatingSummary(safeAlias, session);
   } catch (error) {
     if (!isPermissionDeniedError(error)) {
       console.error(error);
     }
+    await enqueuePendingOperation({
+      type: "ratingVote",
+      uid: session.localId,
+      alias: safeAlias,
+      value: normalizedValue
+    });
     await writeFallbackRatingMap(next);
     return summarizeRatings(safeAlias, [], session, { [safeAlias]: next[safeAlias] });
   }
