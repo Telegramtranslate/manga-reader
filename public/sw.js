@@ -1,20 +1,19 @@
-const CACHE_VERSION = "8b338120a7";
+const CACHE_VERSION = "6f8167cdb3";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 
-const APP_SHELL = [
+const CORE_APP_SHELL = [
   "/",
   "/index.html",
   "/style.css?v=eacb7e8122",
-  "/api/runtime-config.js?v=8b338120a7",
+  "/api/runtime-config.js?v=6f8167cdb3",
   "/app-constants.min.js?v=7f5bd79a51",
   "/firebase-config.min.js?v=5d36cb298f",
-  "/cloud-sync.min.js?v=b95a014e20",
-  "/app.min.js?v=7aeec2dc82",
+  "/cloud-sync.min.js?v=2963e66109",
+  "/app.min.js?v=ef3dd35892",
   "/auth.min.js?v=5a6aac8601",
-  "/watch-features.min.js?v=45091ef3ec",
-  "/hls.min.js?v=5ff2d714de",
+  "/watch-features.min.js?v=15c96eeec6",
   "/manifest.webmanifest?v=3a11887700",
   "/robots.txt",
   "/mc-icon-192.png?v=af9b2b4f14",
@@ -22,6 +21,7 @@ const APP_SHELL = [
   "/mc-icon-512.png?v=e46013ca7b",
   "/mc-icon-512-maskable.png?v=e46013ca7b"
 ];
+const OPTIONAL_APP_SHELL = ["/hls.min.js?v=5ff2d714de"];
 
 function canCache(response) {
   return response && (response.ok || response.type === "opaque");
@@ -47,11 +47,11 @@ function isMediaStreamRequest(url) {
 }
 
 function isManifestRequest(url) {
-  return url.origin === self.location.origin && url.pathname === "/manifest.webmanifest?v=3a11887700";
+  return url.origin === self.location.origin && url.pathname === "/manifest.webmanifest";
 }
 
 function isRuntimeConfigRequest(url) {
-  return url.origin === self.location.origin && url.pathname === "/api/runtime-config.js?v=8b338120a7";
+  return url.origin === self.location.origin && url.pathname === "/api/runtime-config.js";
 }
 
 function isIconRequest(url) {
@@ -59,7 +59,12 @@ function isIconRequest(url) {
 }
 
 function isScheduleRequest(url) {
-  return url.origin === self.location.origin && url.pathname === "/api/anilibria/anime/schedule/week";
+  return (
+    url.origin === self.location.origin &&
+    url.pathname === "/api/kodik" &&
+    url.searchParams.get("action") === "discover" &&
+    url.searchParams.get("mode") === "ongoing"
+  );
 }
 
 function isPosterRequest(request, url) {
@@ -124,7 +129,20 @@ async function networkFirst(request, cacheName, cacheKey = request) {
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil(
+    caches.open(SHELL_CACHE).then(async (cache) => {
+      await cache.addAll(CORE_APP_SHELL);
+      await Promise.allSettled(
+        OPTIONAL_APP_SHELL.map(async (asset) => {
+          const response = await fetch(asset, { cache: "no-store" });
+          if (!canCache(response)) {
+            throw new Error(`Unable to cache optional asset: ${asset}`);
+          }
+          await cache.put(asset, response.clone());
+        })
+      );
+    })
+  );
   self.skipWaiting();
 });
 
@@ -221,7 +239,7 @@ self.addEventListener("periodicsync", (event) => {
 
   event.waitUntil(
     Promise.all([
-      fetch("/api/anilibria/anime/schedule/week", { cache: "no-store" }).catch(() => null),
+      fetch("/api/kodik?action=discover&mode=ongoing&page=1&limit=24", { cache: "no-store" }).catch(() => null),
       self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) =>
         Promise.all(
           clients.map((client) =>

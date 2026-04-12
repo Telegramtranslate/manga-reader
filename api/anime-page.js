@@ -3,11 +3,20 @@ const path = require("node:path");
 const { findBestPreviewMatch, postKodik } = require("./_kodik");
 const { resolveSiteUrl } = require("./_site-url");
 
-const INDEX_TEMPLATE_PATH = path.join(process.cwd(), "index.html");
-const ANILIBRIA_RELEASE_BASE = "https://anilibria.top/api/v1/anime/releases";
-const DEFAULT_TITLE = "AnimeCloud - аниме с русской озвучкой";
+const INDEX_TEMPLATE_PATH = path.resolve(__dirname, "..", "index.html");
 const DEFAULT_DESCRIPTION =
-  "AnimeCloud - каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером из нескольких источников.";
+  "AnimeCloud - каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером.";
+const TEMPLATE_CACHE_TTL_MS = 10 * 60 * 1000;
+const META_CACHE_TTL_MS = 10 * 60 * 1000;
+const META_CACHE_LIMIT = 250;
+
+let templateCache = {
+  value: "",
+  loadedAt: 0,
+  pending: null
+};
+
+const metaCache = new Map();
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -39,8 +48,8 @@ function absoluteUrl(siteUrl, input) {
 function sanitizeIndexTemplate(template) {
   return String(template || "")
     .replace(/\s*<meta name="keywords"[^>]*>\s*/i, "\n")
-    .replace(/\s*<script id="structured-data-legacy"[\s\S]*?<\/script>/, "")
-    .replace(/\s*<script id="structured-data-seo-legacy"[\s\S]*?<\/script>/, "");
+    .replace(/\s*<script id="structured-data-legacy"[\s\S]*?<\/script>/i, "")
+    .replace(/\s*<script id="structured-data-seo-legacy"[\s\S]*?<\/script>/i, "");
 }
 
 function replaceMetaContent(html, id, value) {
@@ -62,6 +71,72 @@ function replaceStructuredData(html, value) {
     /<script id="structured-data" type="application\/ld\+json">[\s\S]*?<\/script>/i,
     `<script id="structured-data" type="application/ld+json">\n${value}\n  </script>`
   );
+}
+
+async function getIndexTemplate() {
+  const now = Date.now();
+  if (templateCache.value && now - templateCache.loadedAt < TEMPLATE_CACHE_TTL_MS) {
+    return templateCache.value;
+  }
+
+  if (!templateCache.pending) {
+    templateCache.pending = fs
+      .readFile(INDEX_TEMPLATE_PATH, "utf8")
+      .then((value) => {
+        templateCache = {
+          value,
+          loadedAt: Date.now(),
+          pending: null
+        };
+        return value;
+      })
+      .catch((error) => {
+        templateCache.pending = null;
+        throw error;
+      });
+  }
+
+  return templateCache.pending;
+}
+
+function pruneMetaCache() {
+  const now = Date.now();
+  for (const [key, entry] of metaCache.entries()) {
+    if (!entry || now - Number(entry.cachedAt || 0) > META_CACHE_TTL_MS) {
+      metaCache.delete(key);
+    }
+  }
+
+  while (metaCache.size > META_CACHE_LIMIT) {
+    const oldestKey = metaCache.keys().next().value;
+    if (!oldestKey) break;
+    metaCache.delete(oldestKey);
+  }
+}
+
+function getMetaCacheKey(alias, siteUrl) {
+  return `${siteUrl}|${String(alias || "").trim()}`;
+}
+
+function readMetaCache(alias, siteUrl) {
+  pruneMetaCache();
+  const key = getMetaCacheKey(alias, siteUrl);
+  const entry = metaCache.get(key);
+  if (!entry) return null;
+  metaCache.delete(key);
+  metaCache.set(key, entry);
+  return entry.value;
+}
+
+function writeMetaCache(alias, siteUrl, value) {
+  const key = getMetaCacheKey(alias, siteUrl);
+  metaCache.delete(key);
+  metaCache.set(key, {
+    value,
+    cachedAt: Date.now()
+  });
+  pruneMetaCache();
+  return value;
 }
 
 function parseKodikAlias(alias) {
@@ -106,70 +181,38 @@ function parseKodikAlias(alias) {
   };
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url, {
-    headers: {
-      accept: "application/json, text/plain, */*",
-      "user-agent": "AnimeCloud SEO/1.0"
-    },
-    redirect: "follow",
-    cache: "no-store",
-    signal: AbortSignal.timeout(10000)
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} for ${url}`);
+function readAlias(req) {
+  const direct = req?.query?.alias;
+  if (Array.isArray(direct)) {
+    const joined = direct.map((value) => String(value || "").trim()).filter(Boolean).join("/");
+    if (joined) return joined;
   }
 
-  return response.json();
-}
+  if (typeof direct === "string" && direct.trim()) {
+    return direct.trim();
+  }
 
-async function fetchAniLibriaMeta(alias, siteUrl) {
   try {
-    const payload = await fetchJson(`${ANILIBRIA_RELEASE_BASE}/${encodeURIComponent(alias)}`);
-    const release = payload?.release || payload || {};
-    if (!release?.alias) return null;
+    const parsedUrl = new URL(req.url || "/", "http://localhost");
+    const aliases = parsedUrl.searchParams
+      .getAll("alias")
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+    if (aliases.length > 1) return aliases.join("/");
+    if (aliases[0]) return aliases[0];
+  } catch {}
 
-    const poster =
-      release?.poster?.optimized?.src ||
-      release?.poster?.src ||
-      release?.poster?.optimized?.preview ||
-      release?.poster?.preview ||
-      "/mc-icon-512.png";
-    const genres = Array.isArray(release?.genres)
-      ? release.genres.map((genre) => genre?.name || genre?.description || genre?.value).filter(Boolean)
-      : [];
-    const title = release?.name?.main || release?.name?.english || "Без названия";
-    const description = truncateSeoText(
-      `${release?.description || DEFAULT_DESCRIPTION} ${genres.length ? `Жанры: ${genres.join(", ")}.` : ""} ${
-        release?.episodes_total ? `Эпизодов: ${release.episodes_total}.` : ""
-      }`
-    );
-
-    return {
-      alias: release.alias,
-      title,
-      description,
-      image: absoluteUrl(siteUrl, poster),
-      year: String(release?.year || ""),
-      type: String(release?.type?.description || release?.type?.value || "Аниме"),
-      genres,
-      episodesTotal: Number(release?.episodes_total || 0),
-      hasVideo: Boolean(Array.isArray(release?.episodes) ? release.episodes.length : 0) || Boolean(release?.external_player),
-      embedUrl: absoluteUrl(siteUrl, release?.external_player || ""),
-      canonical: `${siteUrl}/anime/${encodeURIComponent(release.alias)}`
-    };
-  } catch {
-    return null;
-  }
+  return "";
 }
 
 async function fetchKodikMeta(alias, siteUrl) {
+  const cached = readMetaCache(alias, siteUrl);
+  if (cached) return cached;
+
   const parsedAlias = parseKodikAlias(alias);
   if (!parsedAlias) return null;
 
   const requests = [];
-
   if (parsedAlias.identity) {
     const [kind, rawId] = parsedAlias.identity.split(/:(.+)/, 2);
     const fieldMap = {
@@ -209,34 +252,30 @@ async function fetchKodikMeta(alias, siteUrl) {
 
   if (!requests.length) return null;
 
-  try {
-    const settled = await Promise.allSettled(requests);
-    const items = settled.flatMap((entry) => (entry.status === "fulfilled" ? entry.value?.results || [] : []));
-    const release = findBestPreviewMatch(items, parsedAlias);
-    if (!release) return null;
+  const settled = await Promise.allSettled(requests);
+  const items = settled.flatMap((entry) => (entry.status === "fulfilled" ? entry.value?.results || [] : []));
+  const release = findBestPreviewMatch(items, parsedAlias);
+  if (!release) return null;
 
-    const description = truncateSeoText(
-      `${release.description || DEFAULT_DESCRIPTION} ${
-        release.genres?.length ? `Жанры: ${release.genres.join(", ")}.` : ""
-      } ${release.episodesTotal ? `Эпизодов: ${release.episodesTotal}.` : ""}`
-    );
+  const description = truncateSeoText(
+    `${release.description || DEFAULT_DESCRIPTION} ${
+      release.genres?.length ? `Жанры: ${release.genres.join(", ")}.` : ""
+    } ${release.episodesTotal ? `Эпизодов: ${release.episodesTotal}.` : ""}`
+  );
 
-    return {
-      alias: release.alias || alias,
-      title: release.title || "Без названия",
-      description,
-      image: absoluteUrl(siteUrl, release.poster || "/mc-icon-512.png"),
-      year: String(release.year || ""),
-      type: String(release.type || "Аниме"),
-      genres: Array.isArray(release.genres) ? release.genres : [],
-      episodesTotal: Number(release.episodesTotal || 0),
-      hasVideo: Boolean(release.externalPlayer) || Boolean(Array.isArray(release.episodes) ? release.episodes.length : 0),
-      embedUrl: absoluteUrl(siteUrl, release.externalPlayer || ""),
-      canonical: `${siteUrl}/anime/${encodeURIComponent(alias)}`
-    };
-  } catch {
-    return null;
-  }
+  return writeMetaCache(alias, siteUrl, {
+    alias: release.alias || alias,
+    title: release.title || "Без названия",
+    description,
+    image: absoluteUrl(siteUrl, release.poster || "/mc-icon-512.png"),
+    year: String(release.year || ""),
+    type: String(release.type || "Аниме"),
+    genres: Array.isArray(release.genres) ? release.genres : [],
+    episodesTotal: Number(release.episodesTotal || 0),
+    hasVideo: Boolean(release.externalPlayer) || Boolean(Array.isArray(release.episodes) ? release.episodes.length : 0),
+    embedUrl: absoluteUrl(siteUrl, release.externalPlayer || ""),
+    canonical: `${siteUrl}/anime/${encodeURIComponent(alias)}`
+  });
 }
 
 function buildAnimeStructuredData(meta, siteUrl) {
@@ -259,24 +298,9 @@ function buildAnimeStructuredData(meta, siteUrl) {
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Главная",
-          item: siteUrl
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Каталог",
-          item: `${siteUrl}/catalog`
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: meta.title,
-          item: meta.canonical
-        }
+        { "@type": "ListItem", position: 1, name: "Главная", item: siteUrl },
+        { "@type": "ListItem", position: 2, name: "Каталог", item: `${siteUrl}/catalog` },
+        { "@type": "ListItem", position: 3, name: meta.title, item: meta.canonical }
       ]
     },
     {
@@ -300,7 +324,7 @@ function buildAnimeStructuredData(meta, siteUrl) {
   if (meta.hasVideo) {
     graph.push({
       "@type": "VideoObject",
-      name: `${meta.title} — смотреть онлайн`,
+      name: `${meta.title} - смотреть онлайн`,
       description: meta.description,
       thumbnailUrl: [meta.image],
       embedUrl: meta.embedUrl || undefined,
@@ -337,23 +361,20 @@ function injectAnimeMeta(template, meta, siteUrl) {
 }
 
 module.exports = async (req, res) => {
-  const alias = String(req.query?.alias || "").trim();
+  const alias = readAlias(req);
   const siteUrl = resolveSiteUrl(req);
 
   let template;
   try {
-    template = await fs.readFile(INDEX_TEMPLATE_PATH, "utf8");
-  } catch (error) {
+    template = await getIndexTemplate();
+  } catch {
     res.statusCode = 500;
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.end("Failed to read application template");
     return;
   }
 
-  const meta =
-    (await fetchAniLibriaMeta(alias, siteUrl)) ||
-    (await fetchKodikMeta(alias, siteUrl));
-
+  const meta = await fetchKodikMeta(alias, siteUrl).catch(() => null);
   const html = meta ? injectAnimeMeta(template, meta, siteUrl) : sanitizeIndexTemplate(template);
 
   res.statusCode = 200;

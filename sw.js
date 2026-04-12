@@ -1,9 +1,9 @@
-const CACHE_VERSION = "v74";
+const CACHE_VERSION = "__BUILD_HASH__";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 
-const APP_SHELL = [
+const CORE_APP_SHELL = [
   "/",
   "/index.html",
   "/style.css",
@@ -14,14 +14,14 @@ const APP_SHELL = [
   "/app.min.js",
   "/auth.min.js",
   "/watch-features.min.js",
-  "/hls.min.js",
   "/manifest.webmanifest",
   "/robots.txt",
-  "/mc-icon-192.png?v=5",
-  "/mc-icon-192-maskable.png?v=1",
-  "/mc-icon-512.png?v=5",
-  "/mc-icon-512-maskable.png?v=1"
+  "/mc-icon-192.png",
+  "/mc-icon-192-maskable.png",
+  "/mc-icon-512.png",
+  "/mc-icon-512-maskable.png"
 ];
+const OPTIONAL_APP_SHELL = ["/hls.min.js"];
 
 function canCache(response) {
   return response && (response.ok || response.type === "opaque");
@@ -59,7 +59,12 @@ function isIconRequest(url) {
 }
 
 function isScheduleRequest(url) {
-  return url.origin === self.location.origin && url.pathname === "/api/anilibria/anime/schedule/week";
+  return (
+    url.origin === self.location.origin &&
+    url.pathname === "/api/kodik" &&
+    url.searchParams.get("action") === "discover" &&
+    url.searchParams.get("mode") === "ongoing"
+  );
 }
 
 function isPosterRequest(request, url) {
@@ -124,7 +129,20 @@ async function networkFirst(request, cacheName, cacheKey = request) {
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil(
+    caches.open(SHELL_CACHE).then(async (cache) => {
+      await cache.addAll(CORE_APP_SHELL);
+      await Promise.allSettled(
+        OPTIONAL_APP_SHELL.map(async (asset) => {
+          const response = await fetch(asset, { cache: "no-store" });
+          if (!canCache(response)) {
+            throw new Error(`Unable to cache optional asset: ${asset}`);
+          }
+          await cache.put(asset, response.clone());
+        })
+      );
+    })
+  );
   self.skipWaiting();
 });
 
@@ -221,7 +239,7 @@ self.addEventListener("periodicsync", (event) => {
 
   event.waitUntil(
     Promise.all([
-      fetch("/api/anilibria/anime/schedule/week", { cache: "no-store" }).catch(() => null),
+      fetch("/api/kodik?action=discover&mode=ongoing&page=1&limit=24", { cache: "no-store" }).catch(() => null),
       self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) =>
         Promise.all(
           clients.map((client) =>

@@ -2,16 +2,15 @@
 const MEDIA_PROXY_BASE = "/api/anilibria-stream";
 const IMAGE_PROXY_BASE = "/api/anilibria-image";
 const KODIK_API_BASE = "/api/kodik";
-const ORIGIN_BASE = "https://anilibria.top";
 const APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
 const STORAGE_KEYS = APP_CONSTANTS.STORAGE_KEYS || {};
 const SITE_URL =
   APP_CONSTANTS.SITE_URL ||
   (typeof window !== "undefined" && window.location?.origin ? window.location.origin : "https://example.invalid");
 
-const DEFAULT_SEO_TITLE = "AnimeCloud - аниме с русской озвучкой";
+const DEFAULT_SEO_TITLE = "AnimeCloud - аниме из базы Kodik";
 const DEFAULT_SEO_DESCRIPTION =
-  "AnimeCloud - каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером из нескольких источников.";
+  "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.";
 const VIEW_SEO = {
   home: {
     title: DEFAULT_SEO_TITLE,
@@ -59,6 +58,23 @@ const FAVORITES_STORAGE_PREFIX = STORAGE_KEYS.favoritesPrefix || "animecloud_fav
 const WATCH_PROGRESS_KEY = STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
 const ADMIN_HERO_STORAGE_KEY = STORAGE_KEYS.adminHero || "animecloud_admin_featured_alias";
 const FAVORITE_LIST_KEYS = ["watching", "planned", "completed", "paused"];
+const KODIK_SORTING_OPTIONS = [
+  { value: "FRESH_AT_DESC", label: "Обновлены недавно" },
+  { value: "FRESH_AT_ASC", label: "Обновлены давно" },
+  { value: "RATING_DESC", label: "Самый высокий рейтинг" },
+  { value: "RATING_ASC", label: "Самый низкий рейтинг" },
+  { value: "YEAR_DESC", label: "Самые новые" },
+  { value: "YEAR_ASC", label: "Самые старые" }
+];
+const KODIK_TYPE_OPTIONS = [
+  { value: "TV", description: "TV сериал" },
+  { value: "ONA", description: "ONA" },
+  { value: "WEB", description: "WEB" },
+  { value: "OVA", description: "OVA" },
+  { value: "OAD", description: "OAD" },
+  { value: "MOVIE", description: "Фильм" },
+  { value: "SPECIAL", description: "Спешл" }
+];
 
 const responseCache = new Map();
 const requestCache = new Map();
@@ -117,7 +133,7 @@ const state = {
   currentAnime: null,
   currentEpisode: null,
   currentQuality: "auto",
-  currentSource: "anilibria",
+  currentSource: "kodik",
   manifestBlobUrl: null,
   hls: null,
   hlsLoaderPromise: null,
@@ -373,7 +389,8 @@ function absoluteUrl(path) {
   if (!path) return "/mc-icon-512.png?v=5";
   if (/^https?:\/\//i.test(path)) return path;
   if (path.startsWith("//")) return `https:${path}`;
-  return `${ORIGIN_BASE}${path}`;
+  if (path.startsWith("/")) return path;
+  return path;
 }
 
 function proxiedImageUrl(path) {
@@ -419,8 +436,7 @@ function normalizeExternalPlayer(url) {
 }
 
 function apiUrl(path, params) {
-  const targetPath = /^https?:\/\//i.test(path) || path.startsWith("/api/") ? path : `${API_BASE}${path}`;
-  const url = new URL(targetPath, window.location.origin);
+  const url = new URL(path, window.location.origin);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
@@ -907,12 +923,12 @@ function normalizePreparedRelease(item) {
     ? item.episodes.map((episode) => normalizePreparedEpisode(episode, fallbackSource?.id || ""))
     : fallbackSource?.episodes || [];
   const externalPlayer = normalizeExternalPlayer(
-    item?.externalPlayer || sourceItems.find((source) => source.provider !== "anilibria")?.externalUrl || ""
+    item?.externalPlayer || sourceItems.find((source) => source.externalUrl)?.externalUrl || ""
   );
 
   return {
-    provider: String(item?.provider || "anilibria"),
-    providerSet: uniqueStrings(Array.isArray(item?.providerSet) ? item.providerSet : [item?.provider || "anilibria"]),
+    provider: String(item?.provider || "kodik"),
+    providerSet: uniqueStrings(Array.isArray(item?.providerSet) ? item.providerSet : [item?.provider || "kodik"]),
     id: item?.id || item?.alias,
     alias: item?.alias || "",
     title: item?.title || "Без названия",
@@ -983,153 +999,8 @@ function normalizePreparedRelease(item) {
   };
 }
 
-function buildAniLibriaSourceItems({ episodes, voices, externalPlayer }) {
-  const sources = [
-    {
-      id: "anilibria",
-      provider: "anilibria",
-      kind: "hls",
-      title: "AniLibria",
-      note: voices.length ? voices.slice(0, 4).join(", ") : "Русская озвучка AniLibria",
-      voices,
-      externalUrl: "",
-      episodes
-    }
-  ];
-
-  if (externalPlayer) {
-    sources.push({
-      id: "external",
-      provider: "external",
-      kind: "iframe",
-      title: "Другие озвучки",
-      note: "AniDub, DEEP, Studio Band и другие, если они доступны у источника",
-      voices: [],
-      externalUrl: externalPlayer,
-      episodes: []
-    });
-  }
-
-  return sources;
-}
-
 function buildRelease(item) {
-  if (item?.provider && item?.alias && !item?.release) {
-    return normalizePreparedRelease(item);
-  }
-
-  const source = item?.release || item || {};
-  const publishedEpisode = item?.published_release_episode || source.published_release_episode || null;
-  const members = Array.isArray(source.members) ? source.members : [];
-  const genres = Array.isArray(source.genres)
-    ? source.genres.map((genre) => genre?.name || genre?.description || genre?.value).filter(Boolean)
-    : [];
-  const voices = members
-    .filter((member) => member?.role?.value === "voicing")
-    .map((member) => member.nickname)
-    .filter(Boolean);
-  const episodes = Array.isArray(source.episodes)
-    ? source.episodes
-        .slice()
-        .sort((left, right) => (left.ordinal || 0) - (right.ordinal || 0))
-        .map((episode) => ({
-          ...episode,
-          previewUrl: absoluteUrl(
-            episode?.preview?.optimized?.preview ||
-              episode?.preview?.preview ||
-              episode?.preview?.optimized?.src ||
-              episode?.preview?.src ||
-              episode?.preview?.optimized?.thumbnail ||
-              episode?.preview?.thumbnail
-          )
-        }))
-    : [];
-  const externalPlayer = normalizeExternalPlayer(source.external_player);
-
-  return normalizePreparedRelease({
-    provider: "anilibria",
-    providerSet: ["anilibria"],
-    id: source.id,
-    alias: source.alias,
-    title: source.name?.main || source.name?.english || "Без названия",
-    originalTitle: source.name?.english || "",
-    alternateTitles: uniqueStrings([
-      source.name?.main,
-      source.name?.english,
-      ...(Array.isArray(source.aliases) ? source.aliases : []),
-      ...(Array.isArray(source.names) ? source.names : [])
-    ]),
-    year: source.year || "-",
-    type: source.type?.description || source.type?.value || "Не указано",
-    typeValue: source.type?.value || "",
-    season: source.season?.description || "",
-    age: source.age_rating?.label || "-",
-    ageValue: source.age_rating?.value || "",
-    ongoing: Boolean(source.is_ongoing || source.is_in_production),
-    statusLabel: source.is_ongoing || source.is_in_production ? "Онгоинг" : "Завершен",
-    publishDay: source.publish_day?.description || "",
-    publishDayValue: source.publish_day?.value || 0,
-    sortFreshAt: Date.parse(
-      source.fresh_at || source.updated_at || source.created_at || source.first_published_at || ""
-    ) || 0,
-    sortRating: Number(source.added_in_users_favorites || 0),
-    description: source.description || "Описание пока не заполнено.",
-    posterDirect: absoluteUrl(
-      source.poster?.optimized?.src ||
-        source.poster?.src ||
-        source.poster?.optimized?.preview ||
-        source.poster?.preview ||
-        source.poster?.optimized?.thumbnail ||
-        source.poster?.thumbnail
-    ),
-    heroPosterDirect: heroPosterDirectSource(source.poster),
-    cardPosterDirect: cardPosterDirectSource(source.poster),
-    thumbDirect: thumbDirectSource(source.poster),
-    genres,
-    episodesTotal: source.episodes_total || episodes.length || 0,
-    averageDuration: source.average_duration_of_episode || 0,
-    favorites: source.added_in_users_favorites || 0,
-    externalPlayer,
-    voices,
-    crew: members
-      .map((member) => ({
-        name: member?.nickname,
-        role: member?.role?.description || member?.role?.value || "Команда"
-      }))
-      .filter((member) => member.name),
-    episodes,
-    publishedEpisode: publishedEpisode
-      ? {
-          ordinal: publishedEpisode.ordinal || 0,
-          name: publishedEpisode.name || "Без названия",
-          duration: publishedEpisode.duration || 0
-        }
-      : null,
-    nextEpisodeNumber: item?.next_release_episode_number || source.next_release_episode_number || null,
-    identifiers: {
-      shikimoriId: String(
-        source?.shikimori_id ||
-          source?.shikimoriId ||
-          source?.external_ids?.shikimori ||
-          source?.external_ids?.shikimori_id ||
-          item?.shikimori_id ||
-          ""
-      ),
-      kinopoiskId: String(
-        source?.kinopoisk_id ||
-          source?.kinopoiskId ||
-          source?.external_ids?.kinopoisk ||
-          source?.external_ids?.kinopoisk_id ||
-          item?.kinopoisk_id ||
-          ""
-      ),
-      imdbId: String(
-        source?.imdb_id || source?.imdbId || source?.external_ids?.imdb || source?.external_ids?.imdb_id || item?.imdb_id || ""
-      ),
-      kodikId: ""
-    },
-    sourceItems: buildAniLibriaSourceItems({ episodes, voices, externalPlayer })
-  });
+  return normalizePreparedRelease(item?.release || item || {});
 }
 
 const buildReleases = (payload) => extractList(payload).map(buildRelease);
@@ -1351,18 +1222,16 @@ function mergeReleaseEntries(primary, extra) {
 
   const base = normalizePreparedRelease(primary);
   const addon = normalizePreparedRelease(extra);
-  const hasKodikAddon = addon.providerSet.includes("kodik");
-  const baseSources = hasKodikAddon ? base.sourceItems.filter((source) => source.id !== "external") : base.sourceItems;
-  const mergedSourceItems = mergeSourceItems(baseSources, addon.sourceItems);
-  const firstExternalSource = mergedSourceItems.find((source) => source.provider !== "anilibria" && source.externalUrl);
-  const preferredEpisodes = mergedSourceItems.find((source) => source.provider === "anilibria" && source.episodes?.length)
-    ?.episodes ||
+  const mergedSourceItems = mergeSourceItems(base.sourceItems, addon.sourceItems);
+  const firstExternalSource = mergedSourceItems.find((source) => source.externalUrl);
+  const preferredEpisodes =
     mergedSourceItems.find((source) => source.episodes?.length)?.episodes ||
+    addon.episodes ||
     base.episodes;
 
   return normalizePreparedRelease({
     ...base,
-    provider: base.provider === "anilibria" ? "anilibria" : addon.provider,
+    provider: addon.provider || base.provider,
     providerSet: uniqueStrings([...(base.providerSet || []), ...(addon.providerSet || [])]),
     originalTitle: base.originalTitle || addon.originalTitle,
     alternateTitles: uniqueStrings([...(base.alternateTitles || []), ...(addon.alternateTitles || [])]),
@@ -1488,44 +1357,6 @@ function fetchKodikDiscover(mode, page, limit, options = {}) {
       signal: options.signal
     }
   );
-}
-
-async function fetchAniLibriaGenreMatches(genres, options = {}) {
-  const normalizedGenres = normalizeGenreList(Array.isArray(genres) ? genres : [genres]);
-  if (!normalizedGenres.length) return [];
-
-  const collected = [];
-  const maxPages = Math.max(1, Number(options.maxPages || 8));
-  const limit = Math.max(12, Math.min(48, Number(options.limit || 24)));
-  const maxItems = Math.max(24, Number(options.maxItems || 48));
-
-  for (let page = 1; page <= maxPages; page += 1) {
-    if (options.signal?.aborted) {
-      throw new DOMException("Search aborted", "AbortError");
-    }
-
-    const params = {
-      page,
-      limit,
-      "f[sorting]": options.sort || state.catalogSort || "FRESH_AT_DESC"
-    };
-    if (options.type) {
-      params["f[types]"] = options.type;
-    }
-
-    const payload = await fetchJson("/anime/catalog/releases", params, {
-      ttl: options.ttl ?? 60000,
-      retries: 1,
-      signal: options.signal
-    });
-    const pageItems = buildReleases(payload).filter((release) => releaseMatchesGenres(release, normalizedGenres, "some"));
-    collected.push(...pageItems);
-
-    const pagination = extractPagination(payload);
-    if (collected.length >= maxItems || page >= (pagination.total_pages || page)) break;
-  }
-
-  return sortCatalogReleases(uniqueReleases(collected).slice(0, maxItems), options.sort || state.catalogSort);
 }
 
 function fetchKodikSearch(query, options = {}) {
@@ -2251,8 +2082,8 @@ function refreshCatalogView(pagination = null) {
 
   if (els.catalogSummary) {
     els.catalogSummary.textContent = activeFilters.length
-      ? `Активные фильтры: ${activeFilters.join(" • ")}. Загружено ${formatNumber(items.length)} релизов.`
-      : `${formatNumber(state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length)} тайтлов в полной базе AnimeCloud.${pageLabel}`;
+      ? `Активные фильтры: ${activeFilters.join(" • ")}. Загружено ${formatNumber(items.length)} релизов из базы Kodik.`
+      : `${formatNumber(state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length)} тайтлов в полной базе Kodik.${pageLabel}`;
   }
 
   updateGrid(
@@ -2567,22 +2398,14 @@ async function loadPersonalRecommendations(options = {}) {
     let pool = uniqueReleases(getAllKnownReleases());
 
     if (profile.topGenres.length) {
-      const [aniMatches, kodikMatches] = await Promise.all([
-        fetchAniLibriaGenreMatches(profile.topGenres, {
-          ttl: 90000,
-          maxPages: 12,
-          maxItems: 60,
-          sort: "RATING_DESC"
-        }).catch(() => []),
-        fetchKodikDiscover("catalog", 1, 48, {
-          ttl: 90000,
-          genres: profile.topGenres,
-          sort: "shikimori_rating",
-          order: "desc"
-        }).catch(() => ({ items: [] }))
-      ]);
+      const kodikMatches = await fetchKodikDiscover("catalog", 1, 48, {
+        ttl: 90000,
+        genres: profile.topGenres,
+        sort: "shikimori_rating",
+        order: "desc"
+      }).catch(() => ({ items: [] }));
 
-      const merged = mergeReleaseCollections(aniMatches, buildReleases(kodikMatches));
+      const merged = buildReleases(kodikMatches);
       registerGenres(merged);
       registerVoices(merged);
       pool = mergeReleaseCollections(pool, merged);
@@ -2799,7 +2622,7 @@ async function loadContentStats(force = false) {
         const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
         els.catalogSummary.textContent = `${formatNumber(
           state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
-        )} тайтлов в полной базе AnimeCloud.${pageLabel}`;
+        )} тайтлов в полной базе Kodik.${pageLabel}`;
       }
     }
     if (state.ongoingLoaded) refreshOngoingSummary();
@@ -2876,13 +2699,8 @@ async function ensureViewLoaded(view) {
 
 async function loadReferences(force = false) {
   if (state.referencesLoaded && !force) return;
-  const [sortingPayload, typesPayload] = await Promise.all([
-    fetchJson("/anime/catalog/references/sorting", null, { ttl: DETAIL_TTL }),
-    fetchJson("/anime/catalog/references/types", null, { ttl: DETAIL_TTL })
-  ]);
-
-  state.sortingOptions = Array.isArray(sortingPayload) ? sortingPayload : [];
-  state.typeOptions = Array.isArray(typesPayload) ? typesPayload : [];
+  state.sortingOptions = KODIK_SORTING_OPTIONS.slice();
+  state.typeOptions = KODIK_TYPE_OPTIONS.slice();
   state.referencesLoaded = true;
   renderCatalogControls();
 }
@@ -2941,19 +2759,20 @@ async function loadHome(force = false) {
   renderSkeletonGrid(els.popularGrid, 6);
 
   try {
-    const [latestPayload, recommendedPayload, popularPayload, latestCountPayload, ongoingCountPayload, kodikLatestPayload, kodikTopPayload] = await Promise.all([
-      fetchJson("/anime/releases/latest", { limit: 12 }, { ttl: 60000 }),
-      fetchJson("/anime/releases/recommended", { limit: 12 }, { ttl: 60000 }),
-      fetchJson("/anime/catalog/releases", { page: 1, limit: 12, "f[sorting]": "RATING_DESC" }, { ttl: 120000 }),
-      fetchJson("/anime/catalog/releases", { page: 1, limit: 1, "f[sorting]": "FRESH_AT_DESC" }, { ttl: 120000 }),
-      fetchJson("/anime/catalog/releases", { page: 1, limit: 1, "f[publish_statuses]": "IS_ONGOING" }, { ttl: 120000 }),
+    const [latestPayload, topPayload, topPageTwoPayload, ongoingPayload] = await Promise.all([
       fetchKodikDiscover("latest", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] })),
-      fetchKodikDiscover("top", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] }))
+      fetchKodikDiscover("top", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] })),
+      fetchKodikDiscover("top", 2, 18, { ttl: 120000 }).catch(() => ({ items: [] })),
+      fetchKodikDiscover("ongoing", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] }))
     ]);
 
-    state.latest = mergeReleaseCollections(buildReleases(latestPayload), buildReleases(kodikLatestPayload)).slice(0, 12);
-    state.recommended = mergeReleaseCollections(buildReleases(recommendedPayload), buildReleases(kodikTopPayload)).slice(0, 12);
-    state.popular = mergeReleaseCollections(buildReleases(popularPayload), buildReleases(kodikTopPayload)).slice(0, 12);
+    state.latest = buildReleases(latestPayload).slice(0, 12);
+    state.recommended = buildReleases(topPayload).slice(0, 12);
+    state.popular = uniqueReleases([
+      ...buildReleases(topPageTwoPayload),
+      ...buildReleases(ongoingPayload),
+      ...state.recommended
+    ]).slice(0, 12);
 
     registerGenres(state.latest);
     registerGenres(state.recommended);
@@ -2962,39 +2781,31 @@ async function loadHome(force = false) {
     registerVoices(state.recommended);
     registerVoices(state.popular);
 
-      const featuredPool = getHeroCandidates();
-      state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
-      state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
-      state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
-      state.latestTotal = Math.max(state.latestTotal || 0, extractPagination(latestCountPayload).total || 0, state.latest.length);
-      state.catalogTotal = Math.max(
-        extractPagination(popularPayload).total || 0,
-        state.catalogTotal,
-        state.popular.length
-      );
-      state.catalogTotalPages = Math.max(
-        state.catalogTotalPages || 0,
-        extractPagination(popularPayload).total_pages || 0,
-        Math.ceil((state.catalogTotal || state.popular.length) / GRID_PAGE_SIZE)
-      );
-      state.ongoingTotal = Math.max(extractPagination(ongoingCountPayload).total || 0, state.ongoingTotal, state.ongoingItems.length);
-      state.ongoingTotalPages = Math.max(
-        state.ongoingTotalPages || 0,
-        extractPagination(ongoingCountPayload).total_pages || 0,
-        Math.ceil((state.ongoingTotal || state.ongoingItems.length) / GRID_PAGE_SIZE)
-      );
-      state.topTotal = Math.max(
-        extractPagination(popularPayload).total || 0,
-        state.topTotal,
-        state.popular.length
-      );
-      state.topTotalPages = Math.max(
-        state.topTotalPages || 0,
-        extractPagination(popularPayload).total_pages || 0,
-        Math.ceil((state.topTotal || state.popular.length) / GRID_PAGE_SIZE)
-      );
-      state.homeLoaded = true;
-      state.personalizedKey = "";
+    const featuredPool = getHeroCandidates();
+    state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
+    state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
+    state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
+    state.latestTotal = Math.max(state.latestTotal || 0, extractPagination(latestPayload).total || 0, state.latest.length);
+    state.catalogTotal = Math.max(state.catalogMergedTotal || 0, extractPagination(topPayload).total || 0, state.catalogTotal, state.popular.length);
+    state.catalogTotalPages = Math.max(
+      state.catalogTotalPages || 0,
+      extractPagination(topPayload).total_pages || 0,
+      Math.ceil((state.catalogTotal || state.popular.length) / GRID_PAGE_SIZE)
+    );
+    state.ongoingTotal = Math.max(state.ongoingMergedTotal || 0, extractPagination(ongoingPayload).total || 0, state.ongoingTotal, ongoingPayload?.items?.length || 0);
+    state.ongoingTotalPages = Math.max(
+      state.ongoingTotalPages || 0,
+      extractPagination(ongoingPayload).total_pages || 0,
+      Math.ceil((state.ongoingTotal || 0) / GRID_PAGE_SIZE)
+    );
+    state.topTotal = Math.max(state.topMergedTotal || 0, extractPagination(topPayload).total || 0, state.topTotal, state.recommended.length);
+    state.topTotalPages = Math.max(
+      state.topTotalPages || 0,
+      extractPagination(topPayload).total_pages || 0,
+      Math.ceil((state.topTotal || state.recommended.length) / GRID_PAGE_SIZE)
+    );
+    state.homeLoaded = true;
+    state.personalizedKey = "";
 
     renderContinueWatchingSections();
     updateStats();
@@ -3100,69 +2911,31 @@ async function loadCatalog(options = {}) {
     const hasGenreFilters = activeGenres.length > 0;
     const hasClientFilters = hasGenreFilters || Boolean(state.catalogVoice);
     const kodikTypeConfig = getKodikCatalogTypeConfig(state.catalogType);
-    const shouldMergeKodik = kodikTypeConfig.enabled;
+    const shouldLoadKodik = kodikTypeConfig.enabled;
     const filterKey = JSON.stringify({
       sort: state.catalogSort,
       type: state.catalogType || "",
-      genres: activeGenres
+      genres: activeGenres,
+      voice: state.catalogVoice || ""
     });
-    const matchesCatalogType = (release) =>
-      releaseMatchesCatalogTypeSelection(release, state.catalogType);
 
-    const [aniResult, kodikPayload] = await Promise.all([
-      hasGenreFilters
-        ? (async () => {
-            const requiredPoolSize = nextPage * GRID_PAGE_SIZE + GRID_PAGE_SIZE * 8;
-            if (
-              state.catalogFilterKey !== filterKey ||
-              !state.catalogFilterPool.length ||
-              state.catalogFilterPool.length < requiredPoolSize
-            ) {
-              const filteredPool = await fetchAniLibriaGenreMatches(activeGenres, {
-                ttl: 120000,
-                maxPages: Math.max(24, Math.ceil(requiredPoolSize / GRID_PAGE_SIZE) * 4),
-                limit: GRID_PAGE_SIZE,
-                maxItems: Math.max(480, requiredPoolSize),
-                sort: state.catalogSort,
-                type: state.catalogType
-              });
-              state.catalogFilterKey = filterKey;
-              state.catalogFilterPool = sortCatalogReleases(filteredPool.filter(matchesCatalogType), state.catalogSort);
-            }
+    if (reset) {
+      state.catalogFilterKey = filterKey;
+      state.catalogFilterPool = [];
+    }
 
-            const startIndex = (nextPage - 1) * GRID_PAGE_SIZE;
-            const total = state.catalogFilterPool.length;
-            return {
-              items: state.catalogFilterPool.slice(startIndex, startIndex + GRID_PAGE_SIZE),
-              pagination: {
-                current_page: nextPage,
-                total,
-                total_pages: Math.max(1, Math.ceil(total / GRID_PAGE_SIZE))
-              }
-            };
-          })()
-        : (async () => {
-            state.catalogFilterKey = "";
-            state.catalogFilterPool = [];
-            const payload = await fetchJson("/anime/catalog/releases", buildCatalogParams(nextPage), { ttl: 120000 });
-            return {
-              items: buildReleases(payload),
-              pagination: extractPagination(payload)
-            };
-          })(),
-      shouldMergeKodik
-        ? fetchKodikDiscover("catalog", nextPage, GRID_PAGE_SIZE, {
-            ttl: 120000,
-            ...getKodikSortConfig(state.catalogSort),
-            genres: activeGenres,
-            animeKinds: kodikTypeConfig.animeKinds,
-            mediaTypes: kodikTypeConfig.mediaTypes
-          }).catch(() => ({ items: [] }))
-        : Promise.resolve({ items: [] })
-    ]);
-    const pagination = aniResult.pagination || {};
-    const kodikPagination = extractPagination(kodikPayload);
-    const releases = sortCatalogReleases(mergeReleaseCollections(aniResult.items, buildReleases(kodikPayload)), state.catalogSort);
+    const kodikPayload = shouldLoadKodik
+      ? await fetchKodikDiscover("catalog", nextPage, GRID_PAGE_SIZE, {
+          ttl: 120000,
+          ...getKodikSortConfig(state.catalogSort),
+          genres: activeGenres,
+          animeKinds: kodikTypeConfig.animeKinds,
+          mediaTypes: kodikTypeConfig.mediaTypes
+        }).catch(() => ({ items: [] }))
+      : { items: [], pagination: { current_page: nextPage, total_pages: nextPage, total: 0 } };
+
+    const pagination = extractPagination(kodikPayload);
+    const releases = sortCatalogReleases(buildReleases(kodikPayload), state.catalogSort);
     const appendedReleases = reset
       ? releases
       : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
@@ -3170,18 +2943,15 @@ async function loadCatalog(options = {}) {
     registerGenres(releases);
     registerVoices(releases);
     state.catalogItems = reset ? releases : mergeReleaseCollections(state.catalogItems, releases);
-    state.catalogPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
+    state.catalogPage = Math.max(pagination.current_page || 0, nextPage);
     state.catalogTotal = hasGenreFilters
       ? Math.max(state.catalogItems.length, pagination.total || 0)
-      : Math.max(mergedCatalogTotal || 0, state.catalogItems.length);
-    state.catalogTotalPages = hasGenreFilters
-      ? Math.max(
-          pagination.total_pages || 0,
-          kodikPagination.total_pages || 0,
-          Math.ceil((state.catalogTotal || state.catalogItems.length) / GRID_PAGE_SIZE),
-          state.catalogPage ? 1 : 0
-        )
-      : Math.max(Math.ceil((Math.max(mergedCatalogTotal || 0, state.catalogItems.length) || 0) / GRID_PAGE_SIZE), state.catalogPage ? 1 : 0);
+      : Math.max(mergedCatalogTotal || 0, pagination.total || 0, state.catalogItems.length);
+    state.catalogTotalPages = Math.max(
+      pagination.total_pages || 0,
+      Math.ceil((state.catalogTotal || state.catalogItems.length) / GRID_PAGE_SIZE),
+      state.catalogPage ? 1 : 0
+    );
     state.catalogHasMore = state.catalogPage < (state.catalogTotalPages || 1);
     state.catalogLoaded = true;
 
@@ -3200,7 +2970,7 @@ async function loadCatalog(options = {}) {
       if (els.catalogSummary) {
         els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Загружено ${formatNumber(
           filteredItems.length
-        )} релизов.`;
+        )} релизов из базы Kodik.`;
       }
 
       if (!reset && filteredAppended.length && filteredItems.length === previousFilteredCount + filteredAppended.length) {
@@ -3214,7 +2984,7 @@ async function loadCatalog(options = {}) {
     } else {
       els.catalogSummary.textContent = `${formatNumber(
         state.catalogMergedTotal || state.catalogTotal
-      )} тайтлов в полной базе AnimeCloud. Страница ${state.catalogPage} из ${
+      )} тайтлов в полной базе Kodik. Страница ${state.catalogPage} из ${
         state.catalogTotalPages || 1
       }.`;
       if (reset) {
@@ -3261,15 +3031,11 @@ async function loadOngoing(options = {}) {
 
   try {
     els.ongoingMoreBtn.disabled = true;
-    const [payload, kodikPayload] = await Promise.all([
-      fetchJson("/anime/catalog/releases", buildCatalogParams(nextPage, { "f[publish_statuses]": "IS_ONGOING" }), {
-        ttl: 120000
-      }),
-      fetchKodikDiscover("ongoing", nextPage, GRID_PAGE_SIZE, { ttl: 120000 }).catch(() => ({ items: [] }))
-    ]);
-    const releases = mergeReleaseCollections(buildReleases(payload), buildReleases(kodikPayload));
-    const pagination = extractPagination(payload);
-    const kodikPagination = extractPagination(kodikPayload);
+    const kodikPayload = await fetchKodikDiscover("ongoing", nextPage, GRID_PAGE_SIZE, {
+      ttl: 120000
+    }).catch(() => ({ items: [] }));
+    const releases = buildReleases(kodikPayload);
+    const pagination = extractPagination(kodikPayload);
     const appendedReleases = reset
       ? releases
       : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
@@ -3277,10 +3043,11 @@ async function loadOngoing(options = {}) {
     registerGenres(releases);
     registerVoices(releases);
     state.ongoingItems = reset ? releases : mergeReleaseCollections(state.ongoingItems, releases);
-    state.ongoingPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
-    state.ongoingTotal = Math.max(mergedOngoingTotal || 0, state.ongoingItems.length);
+    state.ongoingPage = Math.max(pagination.current_page || 0, nextPage);
+    state.ongoingTotal = Math.max(mergedOngoingTotal || 0, pagination.total || 0, state.ongoingItems.length);
     state.ongoingTotalPages = Math.max(
-      Math.ceil((Math.max(mergedOngoingTotal || 0, state.ongoingItems.length) || 0) / GRID_PAGE_SIZE),
+      pagination.total_pages || 0,
+      Math.ceil((Math.max(state.ongoingTotal || 0, state.ongoingItems.length) || 0) / GRID_PAGE_SIZE),
       state.ongoingPage ? 1 : 0
     );
     state.ongoingHasMore = state.ongoingPage < (state.ongoingTotalPages || 1);
@@ -3329,15 +3096,11 @@ async function loadTop(options = {}) {
 
   try {
     els.topMoreBtn.disabled = true;
-    const [payload, kodikPayload] = await Promise.all([
-      fetchJson("/anime/catalog/releases", { page: nextPage, limit: GRID_PAGE_SIZE, "f[sorting]": "RATING_DESC" }, {
-        ttl: 120000
-      }),
-      fetchKodikDiscover("top", nextPage, GRID_PAGE_SIZE, { ttl: 120000 }).catch(() => ({ items: [] }))
-    ]);
-    const releases = mergeReleaseCollections(buildReleases(payload), buildReleases(kodikPayload));
-    const pagination = extractPagination(payload);
-    const kodikPagination = extractPagination(kodikPayload);
+    const kodikPayload = await fetchKodikDiscover("top", nextPage, GRID_PAGE_SIZE, {
+      ttl: 120000
+    }).catch(() => ({ items: [] }));
+    const releases = buildReleases(kodikPayload);
+    const pagination = extractPagination(kodikPayload);
     const appendedReleases = reset
       ? releases
       : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
@@ -3345,10 +3108,11 @@ async function loadTop(options = {}) {
     registerGenres(releases);
     registerVoices(releases);
     state.topItems = reset ? releases : mergeReleaseCollections(state.topItems, releases);
-    state.topPage = Math.max(pagination.current_page || 0, kodikPagination.current_page || 0, nextPage);
-    state.topTotal = Math.max(mergedTopTotal || 0, state.topItems.length);
+    state.topPage = Math.max(pagination.current_page || 0, nextPage);
+    state.topTotal = Math.max(mergedTopTotal || 0, pagination.total || 0, state.topItems.length);
     state.topTotalPages = Math.max(
-      Math.ceil((Math.max(mergedTopTotal || 0, state.topItems.length) || 0) / GRID_PAGE_SIZE),
+      pagination.total_pages || 0,
+      Math.ceil((Math.max(state.topTotal || 0, state.topItems.length) || 0) / GRID_PAGE_SIZE),
       state.topPage ? 1 : 0
     );
     state.topHasMore = state.topPage < (state.topTotalPages || 1);
@@ -3382,7 +3146,7 @@ async function loadSchedule() {
   try {
     state.scheduleLoaded = true;
     els.scheduleGrid.replaceChildren(createEmptyState("Загружаем расписание…"));
-    const payload = await fetchJson("/anime/schedule/week", null, { ttl: 60000 });
+    const payload = await fetchKodikDiscover("ongoing", 1, 72, { ttl: 60000 });
     state.scheduleItems = buildReleases(payload);
     renderSchedule();
   } catch (error) {
@@ -3407,7 +3171,7 @@ function renderSchedule() {
       return dayDiff !== 0 ? dayDiff : left.title.localeCompare(right.title, "ru");
     })
     .forEach((release) => {
-      const key = release.publishDay || "Без дня";
+      const key = release.publishDay || "Сейчас доступно в Kodik";
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(release);
     });
@@ -3526,8 +3290,7 @@ async function runSearch(query, options = {}) {
   try {
     const localResults = searchLocalReleases(cleanQuery);
     const matchedGenres = findMatchingGenres(cleanQuery).slice(0, 3);
-    const [payload, kodikPayload, kodikGenrePayload, aniGenreResults] = await Promise.all([
-      fetchJson("/app/search/releases", { query: cleanQuery }, { ttl: 60000, signal: controller.signal }),
+    const [kodikPayload, kodikGenrePayload] = await Promise.all([
       fetchKodikSearch(cleanQuery, { ttl: 60000, signal: controller.signal }).catch(() => ({ items: [] })),
       matchedGenres.length
         ? fetchKodikDiscover("catalog", 1, 48, {
@@ -3536,19 +3299,13 @@ async function runSearch(query, options = {}) {
             genres: matchedGenres,
             sort: "updated_at"
           }).catch(() => ({ items: [] }))
-        : Promise.resolve({ items: [] }),
-      matchedGenres.length
-        ? fetchAniLibriaGenreMatches(matchedGenres, { ttl: 60000, signal: controller.signal }).catch(() => [])
-        : Promise.resolve([])
+        : Promise.resolve({ items: [] })
     ]);
     if (controller.signal.aborted) return;
 
     state.searchResults = mergeReleaseCollections(
-      mergeReleaseCollections(
-        mergeReleaseCollections(localResults, buildReleases(payload)),
-        buildReleases(kodikPayload)
-      ),
-      mergeReleaseCollections(buildReleases(kodikGenrePayload), aniGenreResults)
+      mergeReleaseCollections(localResults, buildReleases(kodikPayload)),
+      buildReleases(kodikGenrePayload)
     ).slice(0, 48);
     registerVoices(state.searchResults);
     els.searchSummary.textContent = state.searchResults.length
@@ -3569,11 +3326,7 @@ async function runSearch(query, options = {}) {
 
 const prefetchRelease = (alias) => {
   const preview = findCachedReleaseByAlias(alias);
-  if ((preview?.provider === "kodik" && !preview.providerSet?.includes("anilibria")) || String(alias || "").startsWith("kodik-")) {
-    return fetchKodikRelease(preview, { ttl: DETAIL_TTL }).catch(() => {});
-  }
-
-  return fetchJson(`/anime/releases/${encodeURIComponent(alias)}`, null, { ttl: DETAIL_TTL }).catch(() => {});
+  return fetchKodikRelease(preview || { alias, kodikIdentity: guessKodikIdentityFromAlias(alias) }, { ttl: DETAIL_TTL }).catch(() => {});
 };
 
 function createAnimeCard(release, index) {
@@ -3783,9 +3536,14 @@ function clearPlayerStartupTimer() {
   state.playerStartupTimer = null;
 }
 
+function isActiveVideoSource() {
+  const source = state.currentAnime ? getSourceById(state.currentAnime, state.currentSource) : null;
+  return Boolean(source && source.kind !== "iframe" && source.kind !== "iframe-episodes");
+}
+
 function syncPlayerReadyState() {
   clearPlayerStartupTimer();
-  if (state.currentSource === "anilibria" && !els.player.hidden) {
+  if (isActiveVideoSource() && !els.player.hidden) {
     els.playerNote.textContent = "Поток подключён.";
   }
 }
@@ -3796,7 +3554,7 @@ function armPlayerStartupTimer(selectionToken, episode, qualityKey) {
 
   state.playerStartupTimer = setTimeout(() => {
     if (state.playerSelectionToken !== selectionToken) return;
-    if (state.currentSource !== "anilibria") return;
+    if (!isActiveVideoSource()) return;
     if (state.currentEpisode?.id !== episode?.id) return;
     if (els.player.readyState >= 2 || Number(els.player.currentTime || 0) > 0) {
       clearPlayerStartupTimer();
@@ -3888,9 +3646,7 @@ async function attachPlayer(manifestUrl) {
       }
       destroyPlayer();
       if (
-        fallbackToEmbeddedSource(
-          "Поток AniLibria не ответил. Открыли встроенный внешний плеер с альтернативным источником."
-        )
+        fallbackToEmbeddedSource("Поток не ответил. Открыли встроенный внешний плеер с альтернативным источником.")
       ) {
         return;
       }
@@ -3914,10 +3670,10 @@ function getSourceById(release, sourceId) {
 
 function getDefaultSourceId(release) {
   const sources = getReleaseSources(release);
-  if (!sources.length) return "anilibria";
+  if (!sources.length) return "kodik";
   return (
-    sources.find((source) => source.provider === "anilibria" && source.kind === "hls")?.id ||
     sources.find((source) => source.episodes?.length)?.id ||
+    sources.find((source) => source.externalUrl)?.id ||
     sources[0].id
   );
 }
@@ -4339,25 +4095,12 @@ async function openRelease(alias, options = {}) {
       }
     }
 
-    const isKodikOnly =
-      (preview?.provider === "kodik" && !preview.providerSet?.includes("anilibria")) ||
-      (alias.startsWith("kodik-") && !preview);
-    let release = null;
-
-    if (isKodikOnly) {
-      const kodikPayload = await fetchKodikRelease(preview || { alias, kodikIdentity: guessKodikIdentityFromAlias(alias) });
-      if (!kodikPayload && !preview) {
-        throw new Error(`Kodik release not found: ${alias}`);
-      }
-      release = kodikPayload ? buildRelease(kodikPayload) : normalizePreparedRelease(preview);
-    } else {
-      const payload = await fetchJson(`/anime/releases/${encodeURIComponent(alias)}`, null, { ttl: DETAIL_TTL });
-      release = buildRelease(payload);
-      const kodikPayload = await fetchKodikRelease(preview || release).catch(() => null);
-      if (kodikPayload) {
-        release = mergeReleaseEntries(release, buildRelease(kodikPayload));
-      }
+    const kodikPayload = await fetchKodikRelease(preview || { alias, kodikIdentity: guessKodikIdentityFromAlias(alias) }).catch(() => null);
+    if (!kodikPayload && !preview) {
+      throw new Error(`Kodik release not found: ${alias}`);
     }
+
+    const release = kodikPayload ? buildRelease(kodikPayload) : normalizePreparedRelease(preview);
 
     state.currentAnime = release;
     state.currentEpisode = null;
@@ -4828,13 +4571,13 @@ function bindEvents() {
   els.player?.addEventListener("canplay", syncPlayerReadyState);
   els.player?.addEventListener("playing", syncPlayerReadyState);
   els.player?.addEventListener("waiting", () => {
-    if (state.currentSource === "anilibria" && !els.player.hidden && els.player.readyState < 2) {
+    if (isActiveVideoSource() && !els.player.hidden && els.player.readyState < 2) {
       els.playerNote.textContent = "Буферизуем поток…";
     }
   });
   els.player?.addEventListener("error", () => {
     clearPlayerStartupTimer();
-    if (state.currentSource === "anilibria") {
+    if (isActiveVideoSource()) {
       els.playerNote.textContent = "Не удалось воспроизвести видео. Попробуйте 480p или другую серию.";
     }
   });

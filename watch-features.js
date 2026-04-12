@@ -30,7 +30,7 @@ const watchEls = {
 const watchState = {
   release: null,
   episode: null,
-  sourceId: "anilibria",
+  sourceId: "kodik",
   pendingResume: null,
   lastProgressSave: 0,
   lastProgressPosition: 0,
@@ -339,7 +339,7 @@ function renderDubBox() {
   if (!watchEls.dubBox) return;
 
   const externalSources = Array.isArray(watchState.release?.sourceItems)
-    ? watchState.release.sourceItems.filter((source) => source.provider !== "anilibria")
+    ? watchState.release.sourceItems.filter((source) => source.externalUrl || (Array.isArray(source.episodes) && source.episodes.length))
     : [];
 
   if (!watchState.release?.externalPlayer && !externalSources.length) {
@@ -462,7 +462,8 @@ function getSourceEpisodesForWatch(release, sourceId) {
   if (Array.isArray(release?.sourceItems)) {
     const source =
       release.sourceItems.find((item) => item.id === sourceId) ||
-      release.sourceItems.find((item) => item.provider === "anilibria") ||
+      release.sourceItems.find((item) => Array.isArray(item?.episodes) && item.episodes.length) ||
+      release.sourceItems.find((item) => item.externalUrl) ||
       release.sourceItems[0];
     if (Array.isArray(source?.episodes) && source.episodes.length) {
       return source.episodes;
@@ -474,13 +475,14 @@ function getSourceEpisodesForWatch(release, sourceId) {
 
 function getDefaultWatchSourceId(release) {
   if (!Array.isArray(release?.sourceItems) || !release.sourceItems.length) {
-    return "anilibria";
+    return "kodik";
   }
 
   return (
-    release.sourceItems.find((item) => item.provider === "anilibria")?.id ||
+    release.sourceItems.find((item) => Array.isArray(item?.episodes) && item.episodes.length)?.id ||
+    release.sourceItems.find((item) => item.externalUrl)?.id ||
     release.sourceItems[0].id ||
-    "anilibria"
+    "kodik"
   );
 }
 
@@ -522,7 +524,6 @@ function clearAllComments() {
 
 async function saveProgress(force = false) {
   if (!watchState.release?.alias || !watchState.episode?.id) return false;
-  if (watchState.sourceId !== "anilibria") return false;
   if (watchEls.player.hidden) return false;
 
   const now = Date.now();
@@ -560,6 +561,29 @@ async function saveProgress(force = false) {
     renderResumeBox();
     renderNextEpisodeButton();
   }
+  return true;
+}
+
+async function saveEpisodeSelectionProgress() {
+  if (!watchState.release?.alias || !watchState.episode?.id) return false;
+
+  const currentMap = { ...getProgressMap() };
+  currentMap[watchState.release.alias] = {
+    alias: watchState.release.alias,
+    title: watchState.release.title,
+    poster: watchState.release.poster,
+    cardPoster: watchState.release.cardPoster || watchState.release.poster,
+    episodeId: watchState.episode.id,
+    episodeOrdinal: watchState.episode.ordinal || 0,
+    episodeLabel: `${watchState.episode.ordinal || "?"} серия`,
+    time: Number(currentMap[watchState.release.alias]?.time || 0),
+    duration: Number(currentMap[watchState.release.alias]?.duration || 0),
+    updatedAt: Date.now()
+  };
+
+  await saveProgressMap(currentMap, { broadcast: true });
+  renderResumeBox();
+  renderNextEpisodeButton();
   return true;
 }
 
@@ -1019,10 +1043,11 @@ function bindFeatureEvents() {
   window.addEventListener("animecloud:episode-selected", (event) => {
     watchState.release = event.detail?.release || watchState.release;
     watchState.episode = event.detail?.episode || null;
-    watchState.sourceId = event.detail?.sourceId || "anilibria";
+    watchState.sourceId = event.detail?.sourceId || "kodik";
     watchState.pendingResume = getCurrentProgress();
     renderResumeBox();
     renderNextEpisodeButton();
+    void saveEpisodeSelectionProgress();
   });
 
   window.addEventListener("animecloud:source-changed", (event) => {

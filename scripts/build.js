@@ -84,6 +84,11 @@ async function copyFileToPublic(filename) {
 }
 
 async function copyNodeModuleFileToPublic(sourcePath, outputName) {
+  try {
+    await fs.access(sourcePath);
+  } catch {
+    throw new Error(`Required runtime asset is missing: ${sourcePath}`);
+  }
   const outputPath = path.join(PUBLIC_DIR, outputName);
   await fs.copyFile(sourcePath, outputPath);
   return outputPath;
@@ -140,6 +145,12 @@ async function rewritePublicAssetReferences(referenceMap) {
         /const CACHE_VERSION = ".*?";/,
         `const CACHE_VERSION = "${buildId}";`
       );
+      content = content
+        .replace(/url\.pathname === "\/manifest\.webmanifest(?:\?v=[^"]+)?"/g, 'url.pathname === "/manifest.webmanifest"')
+        .replace(
+          /url\.pathname === "\/api\/runtime-config\.js(?:\?v=[^"]+)?"/g,
+          'url.pathname === "/api/runtime-config.js"'
+        );
     }
 
     await fs.writeFile(filePath, content, "utf8");

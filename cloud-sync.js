@@ -1113,7 +1113,7 @@ function handleServiceWorkerMessage(event) {
     return;
   }
   if (type === "animecloud:warm-schedule") {
-    fetch("/api/anilibria/anime/schedule/week", { cache: "no-store" }).catch(() => {});
+    fetch("/api/kodik?action=discover&mode=ongoing&page=1&limit=24", { cache: "no-store" }).catch(() => {});
   }
 }
 
