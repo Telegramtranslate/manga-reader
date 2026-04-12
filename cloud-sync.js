@@ -404,7 +404,11 @@ async function getCloudContext() {
 
     const app = getApps().length ? getApp() : initializeApp(CLOUD_FIREBASE_CONFIG);
 
-    await ensureFirebaseAppCheck(app);
+    Promise.resolve()
+      .then(() => ensureFirebaseAppCheck(app))
+      .catch((error) => {
+        console.warn("AnimeCloud Cloud App Check init skipped", error);
+      });
 
     return {
       db: getFirestore(app),

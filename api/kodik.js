@@ -124,19 +124,6 @@ function getBestCursorPayload(signature, requestedPage) {
   return { page: bestPage, payload: bestPayload };
 }
 
-function pageNumberFromPageUrl(rawUrl) {
-  if (!rawUrl) return 0;
-  const payload = payloadFromPageUrl(rawUrl);
-  return Math.max(0, toNumber(payload.page || payload.__page, 0));
-}
-
-function looksLikeDirectPageResponse(response, requestedPage) {
-  if (requestedPage <= 1) return true;
-  const prevPage = pageNumberFromPageUrl(response?.prev_page);
-  const nextPage = pageNumberFromPageUrl(response?.next_page);
-  return prevPage === requestedPage - 1 || nextPage === requestedPage + 1;
-}
-
 async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], animeKinds = [], mediaTypes = []) {
   const safePage = Math.max(1, toNumber(page, 1));
   const safeLimit = Math.max(12, Math.min(100, toNumber(limit, 24)));
@@ -144,32 +131,27 @@ async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], an
   const cachedResult = getCachedDiscoverResult(signature, safePage);
   if (cachedResult) return cachedResult;
 
-  const directPayload = buildDiscoverPayload(mode, safeLimit, safePage, sort, order, genres, animeKinds, mediaTypes);
-
-  try {
-    const directResponse = await postKodik("list", directPayload);
-    if (looksLikeDirectPageResponse(directResponse, safePage)) {
-      const directItems = collectPreviewReleases(directResponse?.results || []);
-      const directResult = {
-        items: directItems,
-        pagination: {
-          current_page: safePage,
-          total_pages: Math.max(1, Math.ceil(toNumber(directResponse?.total, directItems.length) / safeLimit)),
-          total: toNumber(directResponse?.total, directItems.length)
-        }
-      };
-
-      setCachedDiscoverResult(signature, safePage, directResult);
-      setCursorPayload(signature, safePage, directPayload);
-      if (directResponse?.next_page) {
-        setCursorPayload(signature, safePage + 1, payloadFromPageUrl(directResponse.next_page));
-      }
-      return directResult;
-    }
-  } catch {}
-
   const basePayload = buildDiscoverPayload(mode, safeLimit, 1, sort, order, genres, animeKinds, mediaTypes);
   setCursorPayload(signature, 1, basePayload);
+
+  if (safePage === 1) {
+    const firstResponse = await postKodik("list", basePayload);
+    const firstItems = collectPreviewReleases(firstResponse?.results || []);
+    const firstResult = {
+      items: firstItems,
+      pagination: {
+        current_page: 1,
+        total_pages: Math.max(1, Math.ceil(toNumber(firstResponse?.total, firstItems.length) / safeLimit)),
+        total: toNumber(firstResponse?.total, firstItems.length)
+      }
+    };
+
+    setCachedDiscoverResult(signature, 1, firstResult);
+    if (firstResponse?.next_page) {
+      setCursorPayload(signature, 2, payloadFromPageUrl(firstResponse.next_page));
+    }
+    return firstResult;
+  }
 
   const bestCursor = getBestCursorPayload(signature, safePage);
   let currentPage = Math.max(1, bestCursor.page || 1);

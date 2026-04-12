@@ -772,7 +772,6 @@ function buildDiscoverPayload(mode, limit, page, sort, order, genres = [], anime
     payload.anime_kind = normalizedAnimeKinds.join(",");
   }
 
-  payload.page = Math.max(1, page);
   payload.__page = Math.max(1, page);
   return payload;
 }
