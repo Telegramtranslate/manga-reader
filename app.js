@@ -1356,7 +1356,14 @@ function fetchKodikDiscover(mode, page, limit, options = {}) {
       retries: options.retries || 2,
       signal: options.signal
     }
-  );
+  ).then((payload) => {
+    if (payload?.unavailable) {
+      const error = new Error(String(payload.message || payload.error || "Kodik temporarily unavailable"));
+      error.payload = payload;
+      throw error;
+    }
+    return payload;
+  });
 }
 
 function fetchKodikSearch(query, options = {}) {
@@ -1372,7 +1379,22 @@ function fetchKodikSearch(query, options = {}) {
       retries: options.retries || 2,
       signal: options.signal
     }
-  );
+  ).then((payload) => {
+    if (payload?.unavailable) {
+      const error = new Error(String(payload.message || payload.error || "Kodik temporarily unavailable"));
+      error.payload = payload;
+      throw error;
+    }
+    return payload;
+  });
+}
+
+function getKodikUnavailableMessage(error, fallbackMessage) {
+  const raw = String(error?.payload?.message || error?.message || "").toLowerCase();
+  if (raw.includes("неверный токен") || raw.includes("отсутствует или неверный токен") || raw.includes("invalid token") || raw.includes("missing token")) {
+    return "Kodik временно недоступен: проверьте KODIK_TOKEN в Vercel.";
+  }
+  return fallbackMessage;
 }
 
 function buildKodikReleaseParams(release) {
@@ -2760,10 +2782,10 @@ async function loadHome(force = false) {
 
   try {
     const [latestPayload, topPayload, topPageTwoPayload, ongoingPayload] = await Promise.all([
-      fetchKodikDiscover("latest", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] })),
-      fetchKodikDiscover("top", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] })),
-      fetchKodikDiscover("top", 2, 18, { ttl: 120000 }).catch(() => ({ items: [] })),
-      fetchKodikDiscover("ongoing", 1, 18, { ttl: 120000 }).catch(() => ({ items: [] }))
+      fetchKodikDiscover("latest", 1, 18, { ttl: 120000 }),
+      fetchKodikDiscover("top", 1, 18, { ttl: 120000 }),
+      fetchKodikDiscover("top", 2, 18, { ttl: 120000 }),
+      fetchKodikDiscover("ongoing", 1, 18, { ttl: 120000 })
     ]);
 
     state.latest = buildReleases(latestPayload).slice(0, 12);
@@ -2822,10 +2844,11 @@ async function loadHome(force = false) {
   } catch (error) {
     console.error("loadHome failed", error);
     state.homeLoaded = false;
-    renderHeroFallback("Не удалось загрузить главную витрину.");
-    replaceWithErrorState(els.latestGrid, "Не удалось загрузить последние релизы.", () => loadHome(true).catch(console.error));
-    replaceWithErrorState(els.recommendedGrid, "Не удалось загрузить рекомендации.", () => loadHome(true).catch(console.error));
-    replaceWithErrorState(els.popularGrid, "Не удалось загрузить популярные релизы.", () => loadHome(true).catch(console.error));
+    const message = getKodikUnavailableMessage(error, "Не удалось загрузить главную витрину.");
+    renderHeroFallback(message);
+    replaceWithErrorState(els.latestGrid, message, () => loadHome(true).catch(console.error));
+    replaceWithErrorState(els.recommendedGrid, message, () => loadHome(true).catch(console.error));
+    replaceWithErrorState(els.popularGrid, message, () => loadHome(true).catch(console.error));
     renderContinueWatchingSections();
     updateStats();
     throw error;
@@ -2931,7 +2954,7 @@ async function loadCatalog(options = {}) {
           genres: activeGenres,
           animeKinds: kodikTypeConfig.animeKinds,
           mediaTypes: kodikTypeConfig.mediaTypes
-        }).catch(() => ({ items: [] }))
+        })
       : { items: [], pagination: { current_page: nextPage, total_pages: nextPage, total: 0 } };
 
     const pagination = extractPagination(kodikPayload);
@@ -3005,8 +3028,9 @@ async function loadCatalog(options = {}) {
     console.error("loadCatalog failed", error);
     els.catalogMoreBtn.hidden = true;
     els.catalogMoreBtn.disabled = false;
-    els.catalogSummary.textContent = "Каталог временно недоступен.";
-    replaceWithErrorState(els.catalogGrid, "Не удалось загрузить каталог.", () => loadCatalog({ reset: true }).catch(console.error));
+    const message = getKodikUnavailableMessage(error, "Каталог временно недоступен.");
+    els.catalogSummary.textContent = message;
+    replaceWithErrorState(els.catalogGrid, message, () => loadCatalog({ reset: true }).catch(console.error));
     throw error;
   }
 }
@@ -3033,7 +3057,7 @@ async function loadOngoing(options = {}) {
     els.ongoingMoreBtn.disabled = true;
     const kodikPayload = await fetchKodikDiscover("ongoing", nextPage, GRID_PAGE_SIZE, {
       ttl: 120000
-    }).catch(() => ({ items: [] }));
+    });
     const releases = buildReleases(kodikPayload);
     const pagination = extractPagination(kodikPayload);
     const appendedReleases = reset
@@ -3071,8 +3095,9 @@ async function loadOngoing(options = {}) {
     console.error("loadOngoing failed", error);
     els.ongoingMoreBtn.hidden = true;
     els.ongoingMoreBtn.disabled = false;
-    els.ongoingSummary.textContent = "Раздел онгоингов временно недоступен.";
-    replaceWithErrorState(els.ongoingGrid, "Не удалось загрузить онгоинги.", () => loadOngoing({ reset: true }).catch(console.error));
+    const message = getKodikUnavailableMessage(error, "Раздел онгоингов временно недоступен.");
+    els.ongoingSummary.textContent = message;
+    replaceWithErrorState(els.ongoingGrid, message, () => loadOngoing({ reset: true }).catch(console.error));
     throw error;
   }
 }
@@ -3098,7 +3123,7 @@ async function loadTop(options = {}) {
     els.topMoreBtn.disabled = true;
     const kodikPayload = await fetchKodikDiscover("top", nextPage, GRID_PAGE_SIZE, {
       ttl: 120000
-    }).catch(() => ({ items: [] }));
+    });
     const releases = buildReleases(kodikPayload);
     const pagination = extractPagination(kodikPayload);
     const appendedReleases = reset
@@ -3136,8 +3161,9 @@ async function loadTop(options = {}) {
     console.error("loadTop failed", error);
     els.topMoreBtn.hidden = true;
     els.topMoreBtn.disabled = false;
-    els.topSummary.textContent = "Топ временно недоступен.";
-    replaceWithErrorState(els.topGrid, "Не удалось загрузить топ.", () => loadTop({ reset: true }).catch(console.error));
+    const message = getKodikUnavailableMessage(error, "Топ временно недоступен.");
+    els.topSummary.textContent = message;
+    replaceWithErrorState(els.topGrid, message, () => loadTop({ reset: true }).catch(console.error));
     throw error;
   }
 }
@@ -3291,14 +3317,14 @@ async function runSearch(query, options = {}) {
     const localResults = searchLocalReleases(cleanQuery);
     const matchedGenres = findMatchingGenres(cleanQuery).slice(0, 3);
     const [kodikPayload, kodikGenrePayload] = await Promise.all([
-      fetchKodikSearch(cleanQuery, { ttl: 60000, signal: controller.signal }).catch(() => ({ items: [] })),
+      fetchKodikSearch(cleanQuery, { ttl: 60000, signal: controller.signal }),
       matchedGenres.length
         ? fetchKodikDiscover("catalog", 1, 48, {
             ttl: 60000,
             signal: controller.signal,
             genres: matchedGenres,
             sort: "updated_at"
-          }).catch(() => ({ items: [] }))
+          })
         : Promise.resolve({ items: [] })
     ]);
     if (controller.signal.aborted) return;
@@ -3315,8 +3341,9 @@ async function runSearch(query, options = {}) {
   } catch (error) {
     if (error.name === "AbortError") return;
     console.error(error);
-    els.searchSummary.textContent = "Поиск временно недоступен.";
-    updateGrid(els.searchGrid, [], "Поиск временно недоступен.");
+    const message = getKodikUnavailableMessage(error, "Поиск временно недоступен.");
+    els.searchSummary.textContent = message;
+    updateGrid(els.searchGrid, [], message);
   } finally {
     if (state.searchAbort === controller) {
       state.searchAbort = null;

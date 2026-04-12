@@ -653,16 +653,16 @@ async function postKodik(endpoint, payload = {}) {
         data = null;
       }
 
+      if (data.error) {
+        throw new Error(String(data.error));
+      }
+
       if (!response.ok) {
         throw new Error(`Kodik API request failed: ${response.status}`);
       }
 
       if (!data || typeof data !== "object") {
         throw new Error("Kodik API returned invalid payload");
-      }
-
-      if (data.error) {
-        throw new Error(String(data.error));
       }
 
       return data;

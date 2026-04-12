@@ -247,9 +247,14 @@
       ]);
 
       const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
-      await ensureFirebaseAppCheck(app);
       const auth = getAuth(app);
       await setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+      scheduleIdle(() => {
+        ensureFirebaseAppCheck(app).catch((error) => {
+          console.warn("AnimeCloud Auth App Check init skipped", error);
+        });
+      });
 
       firebaseState.auth = auth;
       firebaseState.signOut = signOut;
