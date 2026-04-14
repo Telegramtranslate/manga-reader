@@ -11,14 +11,7 @@
     window.ANIMECLOUD_APP_CHECK_KEY ||
     window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_KEY ||
     "";
-  const authEnvAppCheckEnabled =
-    String(window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_ENABLED || "")
-      .trim()
-      .toLowerCase() === "true";
-  const AUTH_APP_CHECK_ENABLED =
-    window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
-    authEnvAppCheckEnabled ||
-    Boolean(AUTH_APP_CHECK_SITE_KEY);
+  const AUTH_APP_CHECK_ENABLED = window.ANIMECLOUD_ENABLE_APP_CHECK === true;
 
   const authEls = {
     openBtn: document.getElementById("auth-open-btn"),

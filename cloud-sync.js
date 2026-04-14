@@ -20,11 +20,7 @@ const CLOUD_APP_CHECK_SITE_KEY =
   window.ANIMECLOUD_APP_CHECK_KEY ||
   window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_KEY ||
   "";
-const CLOUD_APP_CHECK_ENABLED =
-  window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
-  String(window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_ENABLED || "")
-    .trim()
-    .toLowerCase() === "true";
+const CLOUD_APP_CHECK_ENABLED = window.ANIMECLOUD_ENABLE_APP_CHECK === true;
 
 const cloudState = {
   contextPromise: null,
@@ -229,9 +225,10 @@ function summarizeRatings(alias, votes = [], session = cloudReadSession(), local
   const count = normalizedVotes.length;
   const total = normalizedVotes.reduce((sum, item) => sum + Number(item.value || 0), 0);
   const localValue = normalizeRatingValue(localRatings?.[safeAlias]?.value);
-  const userVote = session?.localId
+  const cloudUserVote = session?.localId
     ? normalizedVotes.find((item) => item.uid === session.localId)?.value || 0
-    : localValue;
+    : 0;
+  const userVote = cloudUserVote || localValue;
 
   return {
     average: count ? Number((total / count).toFixed(1)) : userVote || 0,
@@ -960,13 +957,13 @@ function subscribeRatings(alias, callback, session = cloudReadSession()) {
       const votesQuery = query(collection(db, "anime_ratings", safeAlias, "votes"), limit(500));
       unsubscribe = onSnapshot(
         votesQuery,
-        async (snapshot) => {
-          const localRatings = await readRatingMap(session);
-          const votes = snapshot.docs
-            .map((item) => normalizeRatingVoteData(item.id, item.data()))
-            .filter((item) => item.value);
-          callback(
-            summarizeRatings(
+          async (snapshot) => {
+            const localRatings = await readFallbackRatingMap();
+            const votes = snapshot.docs
+              .map((item) => normalizeRatingVoteData(item.id, item.data()))
+              .filter((item) => item.value);
+            callback(
+              summarizeRatings(
               safeAlias,
               votes.map((vote) => ({ ...vote, alias: safeAlias })),
               session,

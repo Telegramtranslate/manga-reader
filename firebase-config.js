@@ -104,10 +104,8 @@
     String(window.__ANIMECLOUD_ENV__?.VITE_APP_CHECK_ENABLED || "")
       .trim()
       .toLowerCase() === "true";
-  const APP_CHECK_ENABLED =
-    window.ANIMECLOUD_ENABLE_APP_CHECK === true ||
-    envAppCheckEnabled ||
-    Boolean(APP_CHECK_SITE_KEY);
+  const APP_CHECK_ENABLED = envAppCheckEnabled;
+  const EFFECTIVE_APP_CHECK_KEY = APP_CHECK_ENABLED ? APP_CHECK_SITE_KEY : "";
 
   let recaptchaPromise = null;
   const helperHost = String(FIREBASE_CONFIG?.authDomain || "").trim();
@@ -119,8 +117,8 @@
   window.ANIMECLOUD_FIREBASE_HELPER_ORIGIN = helperHost ? `https://${helperHost}` : "";
   window.ANIMECLOUD_USE_CUSTOM_AUTH_DOMAIN = isCustomAuthDomainEnabled();
   window.ANIMECLOUD_FIREBASE_SDK_VERSION = window.ANIMECLOUD_FIREBASE_SDK_VERSION || "10.12.5";
-  window.ANIMECLOUD_APP_CHECK_KEY = window.ANIMECLOUD_APP_CHECK_KEY || APP_CHECK_SITE_KEY;
-  window.ANIMECLOUD_ENABLE_APP_CHECK = window.ANIMECLOUD_ENABLE_APP_CHECK === true || APP_CHECK_ENABLED;
+  window.ANIMECLOUD_APP_CHECK_KEY = EFFECTIVE_APP_CHECK_KEY;
+  window.ANIMECLOUD_ENABLE_APP_CHECK = APP_CHECK_ENABLED;
 
   window.animeCloudLoadRecaptchaEnterprise = function animeCloudLoadRecaptchaEnterprise() {
     if (window.ANIMECLOUD_FIREBASE_DISABLED || !window.ANIMECLOUD_ENABLE_APP_CHECK || !window.ANIMECLOUD_APP_CHECK_KEY) {
