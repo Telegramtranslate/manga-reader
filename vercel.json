@@ -58,6 +58,87 @@
                  ],
     "headers":  [
                     {
+                        "source":  "/",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
+                        "source":  "/index.html",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
+                        "source":  "/catalog",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
+                        "source":  "/ongoing",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
+                        "source":  "/top",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
+                        "source":  "/schedule",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
+                        "source":  "/search",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
+                        "source":  "/profile",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
+                        "source":  "/anime/(.*)",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
                         "source":  "/(.*)",
                         "headers":  [
                                         {

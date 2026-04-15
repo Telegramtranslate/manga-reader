@@ -261,6 +261,24 @@ const els = {
   homePanel: document.querySelector('[data-view-panel="home"]')
 };
 
+const STATIC_UI_TEXT = Object.freeze({
+  homeStats: [
+    "релизов в базе",
+    "тайтлов в каталоге",
+    "онгоингов",
+    "в топ-подборке"
+  ],
+  latestKicker: "Лента",
+  latestTitle: "Последние релизы",
+  latestSummary: "Свежие серии и обновления, которые сейчас выходят быстрее всего.",
+  recommendedKicker: "Подборка",
+  recommendedTitle: "Что посмотреть сегодня",
+  recommendedSummary: "Рекомендации для вечернего просмотра без перегруженного интерфейса.",
+  popularKicker: "Топ",
+  popularTitle: "Популярное сейчас",
+  popularSummary: "Тайтлы, которые чаще всего открывают и добавляют в избранное."
+});
+
 function ensureDynamicInterface() {
   const catalogActions = document.querySelector('[data-view-panel="catalog"] .section-actions');
   if (catalogActions && !document.getElementById("catalog-voice")) {
@@ -302,6 +320,32 @@ function ensureDynamicInterface() {
 }
 
 ensureDynamicInterface();
+
+function setStaticText(selector, text) {
+  const node = document.querySelector(selector);
+  if (node && node.textContent !== text) {
+    node.textContent = text;
+  }
+}
+
+function repairStaticUiText() {
+  const homeStatLabels = document.querySelectorAll(".stats-row--home .stat-card small");
+  STATIC_UI_TEXT.homeStats.forEach((text, index) => {
+    if (homeStatLabels[index] && homeStatLabels[index].textContent !== text) {
+      homeStatLabels[index].textContent = text;
+    }
+  });
+
+  setStaticText("#latest-shell .section-kicker", STATIC_UI_TEXT.latestKicker);
+  setStaticText("#latest-shell h2", STATIC_UI_TEXT.latestTitle);
+  setStaticText("#latest-shell .section-summary", STATIC_UI_TEXT.latestSummary);
+  setStaticText("#recommended-shell .section-kicker", STATIC_UI_TEXT.recommendedKicker);
+  setStaticText("#recommended-shell h2", STATIC_UI_TEXT.recommendedTitle);
+  setStaticText("#recommended-shell .section-summary", STATIC_UI_TEXT.recommendedSummary);
+  setStaticText("#popular-shell .section-kicker", STATIC_UI_TEXT.popularKicker);
+  setStaticText("#popular-shell h2", STATIC_UI_TEXT.popularTitle);
+  setStaticText("#popular-shell .section-summary", STATIC_UI_TEXT.popularSummary);
+}
 
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -2252,6 +2296,7 @@ function updateStats() {
   els.catalogCount.textContent = formatNumber(stats.catalogTotal || getHeroCandidates().length);
   els.ongoingCount.textContent = formatNumber(stats.ongoingTotal);
   els.topCount.textContent = formatNumber(stats.topTotal);
+  repairStaticUiText();
 }
 
 async function loadContentStats(force = false) {
@@ -2319,6 +2364,7 @@ function setView(view, options = {}) {
   });
 
   syncHomeChrome(view);
+  repairStaticUiText();
 
   if (options.updateHistory !== false) {
     const search =
@@ -4285,6 +4331,7 @@ function bindEvents() {
 async function init() {
   relocateInjectedControls();
   bindEvents();
+  repairStaticUiText();
   registerServiceWorker();
   releaseViewportLocks();
 
