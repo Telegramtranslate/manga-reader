@@ -9,6 +9,7 @@ const {
   findBestPreviewMatch,
   payloadFromPageUrl
 } = require("./_kodik");
+const { getSharedJson, setSharedJson } = require("./_distributed-cache");
 
 const DISCOVER_CACHE_TTL_MS = 5 * 60 * 1000;
 const discoverResultCache = new Map();
@@ -78,17 +79,28 @@ function buildDiscoverResultCacheKey(signature, page) {
   return `${signature}|page:${page}`;
 }
 
-function getCachedDiscoverResult(signature, page) {
+async function getCachedDiscoverResult(signature, page) {
   cleanExpiredEntries(discoverResultCache);
-  const cached = discoverResultCache.get(buildDiscoverResultCacheKey(signature, page));
-  return cached ? cached.payload : null;
+  const cacheKey = buildDiscoverResultCacheKey(signature, page);
+  const cached = discoverResultCache.get(cacheKey);
+  if (cached) return cached.payload;
+
+  const shared = await getSharedJson(`kodik:discover:${cacheKey}`);
+  if (!shared) return null;
+  discoverResultCache.set(cacheKey, {
+    expiresAt: Date.now() + DISCOVER_CACHE_TTL_MS,
+    payload: shared
+  });
+  return shared;
 }
 
-function setCachedDiscoverResult(signature, page, payload) {
-  discoverResultCache.set(buildDiscoverResultCacheKey(signature, page), {
+async function setCachedDiscoverResult(signature, page, payload) {
+  const cacheKey = buildDiscoverResultCacheKey(signature, page);
+  discoverResultCache.set(cacheKey, {
     expiresAt: Date.now() + DISCOVER_CACHE_TTL_MS,
     payload
   });
+  await setSharedJson(`kodik:discover:${cacheKey}`, payload, DISCOVER_CACHE_TTL_MS);
 }
 
 function getCursorEntry(signature) {
@@ -202,7 +214,7 @@ async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], an
   const safePage = Math.max(1, toNumber(page, 1));
   const safeLimit = Math.max(12, Math.min(100, toNumber(limit, 24)));
   const signature = buildDiscoverSignature(mode, safeLimit, sort, order, genres, animeKinds, mediaTypes);
-  const cachedResult = getCachedDiscoverResult(signature, safePage);
+  const cachedResult = await getCachedDiscoverResult(signature, safePage);
   if (cachedResult) return cachedResult;
 
   const basePayload = buildDiscoverPayload(mode, safeLimit, 1, sort, order, genres, animeKinds, mediaTypes);
@@ -229,7 +241,7 @@ async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], an
     }
   };
 
-  setCachedDiscoverResult(signature, safePage, result);
+  await setCachedDiscoverResult(signature, safePage, result);
   if (uniquePool.nextPayload) setCursorPayload(signature, safePage + 1, uniquePool.nextPayload);
   return result;
 }

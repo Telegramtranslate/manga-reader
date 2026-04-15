@@ -2,6 +2,15 @@ const { DEFAULT_SITE_URL, normalizeSiteUrl } = require("./_site-url");
 
 const KODIK_API_ORIGIN = "https://kodik-api.com";
 const SITE_URL = normalizeSiteUrl(process.env.SITE_URL || DEFAULT_SITE_URL);
+const KODIK_REQUEST_TIMEOUT_MS = 10000;
+const KODIK_RETRY_ATTEMPTS = 3;
+const KODIK_RETRY_BASE_DELAY_MS = 300;
+const KODIK_CIRCUIT_BREAKER_FAILURES = 8;
+const KODIK_CIRCUIT_BREAKER_COOLDOWN_MS = 30000;
+const kodikCircuitState = {
+  failures: 0,
+  openUntil: 0
+};
 const GENRE_LABEL_ALIASES = new Map([
   ["сенен", "Сёнен"],
   ["сёнен", "Сёнен"],
@@ -66,25 +75,65 @@ function isPlainKodikToken(value) {
   return /^[a-f0-9]{32}$/i.test(String(value || "").trim());
 }
 
+function splitTokenCandidates(rawValue) {
+  return String(rawValue || "")
+    .split(/[\s,;|]+/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function decodeEncryptedKodikToken(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
   if (isPlainKodikToken(raw)) return raw;
-  if (raw.length < 4 || raw.length % 2 !== 0) return raw;
+  if (raw.length < 4 || raw.length % 2 !== 0) return "";
 
   try {
     const middle = raw.length / 2;
     const left = raw.slice(0, middle).split("").reverse().join("");
     const right = raw.slice(middle).split("").reverse().join("");
     const decoded = Buffer.from(right, "base64").toString("utf8") + Buffer.from(left, "base64").toString("utf8");
-    return isPlainKodikToken(decoded) ? decoded : raw;
+    return isPlainKodikToken(decoded) ? decoded : "";
   } catch {
-    return raw;
+    return "";
   }
 }
 
 function getKodikTokenCandidates() {
-  return uniqueStrings([process.env.KODIK_TOKEN].map(decodeEncryptedKodikToken));
+  const rawTokens = splitTokenCandidates(process.env.KODIK_TOKEN);
+  const validTokens = rawTokens
+    .flatMap((token) => {
+      const direct = isPlainKodikToken(token) ? token : "";
+      const decoded = decodeEncryptedKodikToken(token);
+      return [direct, decoded].filter(Boolean);
+    })
+    .filter((token) => isPlainKodikToken(token));
+  return uniqueStrings(validTokens);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function ensureCircuitClosed() {
+  const timestamp = Date.now();
+  if (kodikCircuitState.openUntil > timestamp) {
+    const waitMs = kodikCircuitState.openUntil - timestamp;
+    throw new Error(`Kodik circuit breaker is open (${waitMs}ms remaining)`);
+  }
+}
+
+function reportKodikSuccess() {
+  kodikCircuitState.failures = 0;
+  kodikCircuitState.openUntil = 0;
+}
+
+function reportKodikFailure() {
+  kodikCircuitState.failures += 1;
+  if (kodikCircuitState.failures >= KODIK_CIRCUIT_BREAKER_FAILURES) {
+    kodikCircuitState.openUntil = Date.now() + KODIK_CIRCUIT_BREAKER_COOLDOWN_MS;
+    kodikCircuitState.failures = 0;
+  }
 }
 
 function normalizeText(value) {
@@ -617,6 +666,7 @@ function buildFullRelease(groupItems) {
 }
 
 async function postKodik(endpoint, payload = {}) {
+  ensureCircuitClosed();
   const tokens = getKodikTokenCandidates();
   if (!tokens.length) {
     throw new Error("Kodik token is missing");
@@ -625,49 +675,63 @@ async function postKodik(endpoint, payload = {}) {
   let lastError = null;
 
   for (const token of tokens) {
-    const body = new URLSearchParams();
-    body.set("token", token);
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value === undefined || value === null || value === "") return;
-      body.set(key, String(value));
-    });
-
-    try {
-      const response = await fetch(`${KODIK_API_ORIGIN}/${endpoint}`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-          accept: "application/json, text/plain, */*",
-          "user-agent": `AnimeCloud/1.0 (+${SITE_URL})`
-        },
-        body: body.toString(),
-        redirect: "follow"
+    for (let attempt = 0; attempt < KODIK_RETRY_ATTEMPTS; attempt += 1) {
+      const body = new URLSearchParams();
+      body.set("token", token);
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === "") return;
+        body.set(key, String(value));
       });
 
-      const rawText = await response.text();
-      let data = null;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), KODIK_REQUEST_TIMEOUT_MS);
 
       try {
-        data = rawText ? JSON.parse(rawText) : null;
-      } catch {
-        data = null;
-      }
+        const response = await fetch(`${KODIK_API_ORIGIN}/${endpoint}`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            accept: "application/json, text/plain, */*",
+            "user-agent": `AnimeCloud/1.0 (+${SITE_URL})`
+          },
+          body: body.toString(),
+          redirect: "follow",
+          signal: controller.signal
+        });
 
-      if (data.error) {
-        throw new Error(String(data.error));
-      }
+        const rawText = await response.text();
+        let data = null;
 
-      if (!response.ok) {
-        throw new Error(`Kodik API request failed: ${response.status}`);
-      }
+        try {
+          data = rawText ? JSON.parse(rawText) : null;
+        } catch {
+          data = null;
+        }
 
-      if (!data || typeof data !== "object") {
-        throw new Error("Kodik API returned invalid payload");
-      }
+        if (data?.error) {
+          throw new Error(String(data.error));
+        }
 
-      return data;
-    } catch (error) {
-      lastError = error;
+        if (!response.ok) {
+          throw new Error(`Kodik API request failed: ${response.status}`);
+        }
+
+        if (!data || typeof data !== "object") {
+          throw new Error("Kodik API returned invalid payload");
+        }
+
+        clearTimeout(timeout);
+        reportKodikSuccess();
+        return data;
+      } catch (error) {
+        clearTimeout(timeout);
+        lastError = error;
+        reportKodikFailure();
+        if (attempt < KODIK_RETRY_ATTEMPTS - 1) {
+          const delay = KODIK_RETRY_BASE_DELAY_MS * 2 ** attempt + Math.floor(Math.random() * 120);
+          await sleep(delay);
+        }
+      }
     }
   }
 

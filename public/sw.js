@@ -1,4 +1,4 @@
-const CACHE_VERSION = "ba7a81975f";
+const CACHE_VERSION = "5a787b181b";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,18 +6,18 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const CORE_APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=a148b3b7a4",
-  "/api/runtime-config.js?v=ba7a81975f",
+  "/style.css?v=09e779119e",
+  "/api/runtime-config.js?v=5a787b181b",
   "/app-constants.min.js?v=7f5bd79a51",
   "/firebase-config.min.js?v=d0b5fb95e7",
   "/cloud-sync.min.js?v=5f6fd75210",
-  "/app-api-client.min.js?v=0459f9f003",
-  "/app-seo.min.js?v=e90031fe96",
-  "/app-stats.min.js?v=f03c55bb24",
-  "/app-player-utils.min.js?v=8fafca808d",
-  "/app.min.js?v=73d2ba2306",
+  "/app-api-client.min.js?v=e8305d4d50",
+  "/app-seo.min.js?v=89e2c3501b",
+  "/app-stats.min.js?v=0dba658ff4",
+  "/app-player-utils.min.js?v=25dfbdad16",
+  "/app.min.js?v=f588864273",
   "/auth.min.js?v=edab9161c1",
-  "/watch-features.min.js?v=f0c44d7fbb",
+  "/watch-features.min.js?v=0abb2c2297",
   "/manifest.webmanifest?v=3a11887700",
   "/robots.txt",
   "/mc-icon-192.png?v=af9b2b4f14",
@@ -72,13 +72,7 @@ function isScheduleRequest(url) {
 }
 
 function isPosterRequest(request, url) {
-  return (
-    request.destination === "image" &&
-    (url.origin === self.location.origin ||
-      /(?:kp\.yandex\.net|kodik\.biz|kodik\.info|kodikres\.com|shikimori\.io|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
-        url.hostname
-      ))
-  );
+  return request.destination === "image" && url.origin === self.location.origin;
 }
 
 async function staleWhileRevalidate(request, cacheName, cacheKey = request) {

@@ -251,23 +251,6 @@ function formatClock(seconds) {
     : `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-function currentDisplayName() {
-  const user = getAuthUserSafe();
-  return user?.displayName || user?.email?.split("@")[0] || "Гость";
-}
-
-function escapeText(value) {
-  return String(value || "").trim();
-}
-
-function renderCommentUser() {
-  if (!watchEls.commentUser) return;
-  const user = getAuthUserSafe();
-  watchEls.commentUser.textContent = user?.localId
-    ? `Комментируете как ${currentDisplayName()}`
-    : "Комментируете как гость";
-}
-
 function mergeComments(localItems, cloudItems) {
   const seen = new Set();
   return [...(cloudItems || []), ...(localItems || [])]
@@ -283,64 +266,6 @@ function mergeComments(localItems, cloudItems) {
     })
     .sort((left, right) => Number(left?.createdAt || 0) - Number(right?.createdAt || 0))
     .slice(-200);
-}
-
-function renderComments() {
-  renderCommentUser();
-
-  if (!watchState.release?.alias) {
-    watchEls.commentsList.innerHTML = "";
-    watchEls.commentsSummary.textContent = "Откройте тайтл, чтобы увидеть комментарии.";
-    return;
-  }
-
-  const comments = getCommentsForCurrentRelease();
-  watchEls.commentsSummary.textContent = comments.length
-    ? `Комментариев: ${comments.length}. Новые сообщения приходят в реальном времени.`
-    : "Комментариев пока нет. Будьте первым.";
-
-  watchEls.commentsList.innerHTML = "";
-  if (!comments.length) return;
-
-  const fragment = document.createDocumentFragment();
-  comments.forEach((comment) => {
-    const article = document.createElement("article");
-    article.className = "comment-item";
-
-    const author = document.createElement("strong");
-    author.textContent = escapeText(comment.author) || "Пользователь";
-    article.appendChild(author);
-
-    const meta = document.createElement("small");
-    const time = Number(comment.createdAt || 0);
-    meta.textContent = time ? new Date(time).toLocaleString("ru-RU") : "Только что";
-    article.appendChild(meta);
-
-    const body = document.createElement("p");
-    body.textContent = escapeText(comment.body);
-    article.appendChild(body);
-
-    fragment.appendChild(article);
-  });
-
-  watchEls.commentsList.appendChild(fragment);
-}
-
-function renderResumeBox() {
-  if (!watchEls.resumeBox) return;
-  const progress = getCurrentProgress();
-  watchState.pendingResume = progress;
-
-  if (!progress) {
-    watchEls.resumeBox.hidden = true;
-    watchEls.resumeText.textContent = "Прогресс пока не сохранён.";
-    return;
-  }
-
-  watchEls.resumeBox.hidden = false;
-  watchEls.resumeText.textContent = `Остановились на ${progress.episodeLabel || "серии"} • ${formatClock(
-    progress.time
-  )}${progress.duration ? ` из ${formatClock(progress.duration)}` : ""}`;
 }
 
 function renderDubBox() {

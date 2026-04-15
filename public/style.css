@@ -585,6 +585,11 @@ button {
   grid-template-columns: repeat(3, minmax(180px, 1fr));
   gap: 12px;
   width: min(100%, 760px);
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
+  backdrop-filter: blur(8px);
 }
 
 .genre-chip-row {
@@ -914,6 +919,41 @@ button {
 .load-more-wrap .ghost-btn.is-loading {
   opacity: 0.82;
   pointer-events: none;
+}
+
+.pager-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.pager-wrap .ghost-btn {
+  min-width: 132px;
+}
+
+.pager-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(13, 19, 33, 0.72);
+  color: var(--text-strong);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.pager-label.is-loading {
+  color: var(--accent);
+  opacity: 0.88;
 }
 
 .profile-cards {
@@ -1553,7 +1593,11 @@ button {
 
 .auth-slot {
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 0;
 }
 
 .auth-open-btn {
@@ -1562,8 +1606,10 @@ button {
 
 .user-menu {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 10px;
+  margin-left: auto;
+  max-width: 100%;
 }
 
 .user-chip {

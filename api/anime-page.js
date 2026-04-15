@@ -1,6 +1,8 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const cheerio = require("cheerio");
 const { findBestPreviewMatch, postKodik } = require("./_kodik");
+const { getSharedJson, setSharedJson } = require("./_distributed-cache");
 const { resolveSiteUrl } = require("./_site-url");
 
 const INDEX_TEMPLATE_PATH = path.resolve(__dirname, "..", "index.html");
@@ -52,27 +54,6 @@ function sanitizeIndexTemplate(template) {
     .replace(/\s*<script id="structured-data-seo-legacy"[\s\S]*?<\/script>/i, "");
 }
 
-function replaceMetaContent(html, id, value) {
-  const escaped = escapeAttribute(value);
-  return html.replace(new RegExp(`(<meta[^>]+id="${id}"[^>]+content=")[^"]*(")`, "i"), `$1${escaped}$2`);
-}
-
-function replaceLinkHref(html, id, value) {
-  const escaped = escapeAttribute(value);
-  return html.replace(new RegExp(`(<link[^>]+id="${id}"[^>]+href=")[^"]*(")`, "i"), `$1${escaped}$2`);
-}
-
-function replaceTitle(html, value) {
-  return html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(value)}</title>`);
-}
-
-function replaceStructuredData(html, value) {
-  return html.replace(
-    /<script id="structured-data" type="application\/ld\+json">[\s\S]*?<\/script>/i,
-    `<script id="structured-data" type="application/ld+json">\n${value}\n  </script>`
-  );
-}
-
 async function getIndexTemplate() {
   const now = Date.now();
   if (templateCache.value && now - templateCache.loadedAt < TEMPLATE_CACHE_TTL_MS) {
@@ -118,17 +99,26 @@ function getMetaCacheKey(alias, siteUrl) {
   return `${siteUrl}|${String(alias || "").trim()}`;
 }
 
-function readMetaCache(alias, siteUrl) {
+async function readMetaCache(alias, siteUrl) {
   pruneMetaCache();
   const key = getMetaCacheKey(alias, siteUrl);
   const entry = metaCache.get(key);
-  if (!entry) return null;
-  metaCache.delete(key);
-  metaCache.set(key, entry);
-  return entry.value;
+  if (entry) {
+    metaCache.delete(key);
+    metaCache.set(key, entry);
+    return entry.value;
+  }
+
+  const shared = await getSharedJson(`anime:meta:${key}`);
+  if (!shared) return null;
+  metaCache.set(key, {
+    value: shared,
+    cachedAt: Date.now()
+  });
+  return shared;
 }
 
-function writeMetaCache(alias, siteUrl, value) {
+async function writeMetaCache(alias, siteUrl, value) {
   const key = getMetaCacheKey(alias, siteUrl);
   metaCache.delete(key);
   metaCache.set(key, {
@@ -136,6 +126,7 @@ function writeMetaCache(alias, siteUrl, value) {
     cachedAt: Date.now()
   });
   pruneMetaCache();
+  await setSharedJson(`anime:meta:${key}`, value, META_CACHE_TTL_MS);
   return value;
 }
 
@@ -206,7 +197,7 @@ function readAlias(req) {
 }
 
 async function fetchKodikMeta(alias, siteUrl) {
-  const cached = readMetaCache(alias, siteUrl);
+  const cached = await readMetaCache(alias, siteUrl);
   if (cached) return cached;
 
   const parsedAlias = parseKodikAlias(alias);
@@ -343,21 +334,22 @@ function injectAnimeMeta(template, meta, siteUrl) {
   const safeDescription = meta.description || DEFAULT_DESCRIPTION;
   const safeImage = meta.image || `${siteUrl}/mc-icon-512.png`;
   const canonical = meta.canonical || `${siteUrl}/anime/${encodeURIComponent(meta.alias || "")}`;
+  const $ = cheerio.load(sanitizeIndexTemplate(template));
 
-  let html = sanitizeIndexTemplate(template);
-  html = replaceTitle(html, safeTitle);
-  html = replaceMetaContent(html, "meta-description", safeDescription);
-  html = replaceMetaContent(html, "og-title", safeTitle);
-  html = replaceMetaContent(html, "og-description", safeDescription);
-  html = replaceMetaContent(html, "og-url", canonical);
-  html = replaceMetaContent(html, "og-image", safeImage);
-  html = replaceMetaContent(html, "twitter-title", safeTitle);
-  html = replaceMetaContent(html, "twitter-description", safeDescription);
-  html = replaceMetaContent(html, "twitter-image", safeImage);
-  html = replaceMetaContent(html, "og-type", "video.other");
-  html = replaceLinkHref(html, "canonical-link", canonical);
-  html = replaceStructuredData(html, buildAnimeStructuredData({ ...meta, canonical }, siteUrl));
-  return html;
+  $("title").first().text(safeTitle);
+  $("#meta-description").attr("content", safeDescription);
+  $("#og-title").attr("content", safeTitle);
+  $("#og-description").attr("content", safeDescription);
+  $("#og-url").attr("content", canonical);
+  $("#og-image").attr("content", safeImage);
+  $("#twitter-title").attr("content", safeTitle);
+  $("#twitter-description").attr("content", safeDescription);
+  $("#twitter-image").attr("content", safeImage);
+  $("#og-type").attr("content", "video.other");
+  $("#canonical-link").attr("href", canonical);
+  $("#structured-data").text(`\n${buildAnimeStructuredData({ ...meta, canonical }, siteUrl)}\n  `);
+
+  return $.html();
 }
 
 module.exports = async (req, res) => {
