@@ -1,4 +1,3 @@
-﻿const API_BASE = "/api/anilibria";
 const MEDIA_PROXY_BASE = "/api/anilibria-stream";
 const IMAGE_PROXY_BASE = "/api/anilibria-image";
 const KODIK_API_BASE = "/api/kodik";
@@ -4229,21 +4228,74 @@ async function clearSiteRuntimeCaches() {
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
 
+  let controllerRefreshInProgress = false;
+  const hadController = Boolean(navigator.serviceWorker.controller);
+
+  async function promptForWorkerUpdate(registration) {
+    if (!registration?.waiting || !navigator.serviceWorker.controller) return;
+
+    const shouldReload = window.confirm(
+      "Доступна новая версия AnimeCloud. Обновить страницу сейчас, чтобы применить свежие фиксы и убрать старый кэш?"
+    );
+    if (!shouldReload) return;
+
+    try {
+      await clearSiteRuntimeCaches();
+    } catch {}
+
+    registration.waiting.postMessage({ type: "animecloud:skip-waiting" });
+  }
+
+  function observeRegistration(registration) {
+    if (!registration) return;
+
+    if (registration.waiting) {
+      promptForWorkerUpdate(registration).catch(console.error);
+    }
+
+    registration.addEventListener("updatefound", () => {
+      const installing = registration.installing;
+      if (!installing) return;
+
+      installing.addEventListener("statechange", () => {
+        if (installing.state === "installed" && navigator.serviceWorker.controller) {
+          promptForWorkerUpdate(registration).catch(console.error);
+        }
+      });
+    });
+  }
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || controllerRefreshInProgress) return;
+    controllerRefreshInProgress = true;
+    clearSiteRuntimeCaches()
+      .catch(() => {})
+      .finally(() => {
+        window.location.reload();
+      });
+  });
+
   async function registerLatestWorker() {
     try {
-    await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
-      const registration = await navigator.serviceWorker.ready;
-      if (registration.periodicSync) {
+      const registration = await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
+      observeRegistration(registration);
+      registration.update().catch(() => {});
+
+      const readyRegistration = await navigator.serviceWorker.ready;
+      observeRegistration(readyRegistration);
+      if (readyRegistration.periodicSync) {
         try {
           const permission = await navigator.permissions.query({ name: "periodic-background-sync" }).catch(() => null);
           if (!permission || permission.state === "granted") {
-            await registration.periodicSync.register("animecloud-schedule-refresh", {
+            await readyRegistration.periodicSync.register("animecloud-schedule-refresh", {
               minInterval: 6 * 60 * 60 * 1000
             });
           }
         } catch {}
       }
-    } catch {}
+    } catch (error) {
+      console.error("registerServiceWorker failed", error);
+    }
   }
 
   window.addEventListener(
@@ -4254,7 +4306,6 @@ function registerServiceWorker() {
     { once: true }
   );
 }
-
 function bindViewButtons(buttons) {
   buttons.forEach((button) => {
     button.addEventListener("click", (event) => {

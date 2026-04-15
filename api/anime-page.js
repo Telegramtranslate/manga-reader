@@ -5,7 +5,7 @@ const { resolveSiteUrl } = require("./_site-url");
 
 const INDEX_TEMPLATE_PATH = path.resolve(__dirname, "..", "index.html");
 const DEFAULT_DESCRIPTION =
-  "AnimeCloud - каталог аниме с русской озвучкой, быстрым мобильным интерфейсом, расписанием, подборками и встроенным плеером.";
+  "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.";
 const TEMPLATE_CACHE_TTL_MS = 10 * 60 * 1000;
 const META_CACHE_TTL_MS = 10 * 60 * 1000;
 const META_CACHE_LIMIT = 250;
@@ -32,7 +32,7 @@ function escapeAttribute(value) {
 function truncateSeoText(text, max = 170) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
   if (clean.length <= max) return clean;
-  return `${clean.slice(0, Math.max(0, max - 1)).trim()}…`;
+  return `${clean.slice(0, Math.max(0, max - 3)).trim()}...`;
 }
 
 function absoluteUrl(siteUrl, input) {

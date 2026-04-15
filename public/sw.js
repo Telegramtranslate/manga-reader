@@ -1,4 +1,4 @@
-const CACHE_VERSION = "6f8167cdb3";
+const CACHE_VERSION = "7be18429fd";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,14 +6,14 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const CORE_APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=eacb7e8122",
-  "/api/runtime-config.js?v=6f8167cdb3",
+  "/style.css?v=a148b3b7a4",
+  "/api/runtime-config.js?v=7be18429fd",
   "/app-constants.min.js?v=7f5bd79a51",
-  "/firebase-config.min.js?v=5d36cb298f",
-  "/cloud-sync.min.js?v=2963e66109",
-  "/app.min.js?v=ef3dd35892",
-  "/auth.min.js?v=5a6aac8601",
-  "/watch-features.min.js?v=15c96eeec6",
+  "/firebase-config.min.js?v=d0b5fb95e7",
+  "/cloud-sync.min.js?v=5f6fd75210",
+  "/app.min.js?v=4ea906dec0",
+  "/auth.min.js?v=edab9161c1",
+  "/watch-features.min.js?v=f0c44d7fbb",
   "/manifest.webmanifest?v=3a11887700",
   "/robots.txt",
   "/mc-icon-192.png?v=af9b2b4f14",
@@ -39,7 +39,7 @@ function isShellAsset(url) {
 }
 
 function isApiRequest(url) {
-  return url.origin === self.location.origin && /^\/api\/(?:anilibria|kodik)(?:\/|$)/.test(url.pathname);
+  return url.origin === self.location.origin && /^\/api\/kodik(?:\/|$)/.test(url.pathname);
 }
 
 function isMediaStreamRequest(url) {
@@ -71,7 +71,7 @@ function isPosterRequest(request, url) {
   return (
     request.destination === "image" &&
     (url.origin === self.location.origin ||
-      /(?:anilibria\.top|libria\.fun|jsdelivr\.net|kp\.yandex\.net|kodik\.biz|kodik\.info|kodikres\.com|shikimori\.io|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
+      /(?:kp\.yandex\.net|kodik\.biz|kodik\.info|kodikres\.com|shikimori\.io|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
         url.hostname
       ))
   );

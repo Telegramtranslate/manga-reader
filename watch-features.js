@@ -93,7 +93,13 @@ function normalizeRatingValue(value) {
 }
 
 function readRatingMap() {
-  const next = readJson(WATCH_RATINGS_KEY, {}) || {};
+  let next = {};
+  try {
+    const raw = localStorage.getItem(WATCH_RATINGS_KEY);
+    next = raw ? JSON.parse(raw) : {};
+  } catch {
+    next = {};
+  }
   watchState.ratingMap = Object.entries(next).reduce((accumulator, [alias, entry]) => {
     const normalized = normalizeRatingValue(entry?.value ?? entry);
     if (!alias || !normalized) return accumulator;
@@ -108,7 +114,9 @@ function readRatingMap() {
 
 function writeRatingMap(map) {
   watchState.ratingMap = map || {};
-  writeJson(WATCH_RATINGS_KEY, watchState.ratingMap);
+  try {
+    localStorage.setItem(WATCH_RATINGS_KEY, JSON.stringify(watchState.ratingMap));
+  } catch {}
   return watchState.ratingMap;
 }
 
@@ -814,25 +822,43 @@ async function refreshCurrentRatingSummary() {
 
 async function setCurrentRating(value) {
   if (!watchState.release?.alias || watchState.ratingBusy) return;
+  const safeAlias = watchState.release.alias;
+  const normalized = normalizeRatingValue(value);
+  const previousSummary = { ...(watchState.ratingSummary || { average: 0, count: 0, userValue: 0 }) };
+  const nextLocalMap = { ...readRatingMap() };
+
+  if (normalized) {
+    nextLocalMap[safeAlias] = { value: normalized, updatedAt: Date.now() };
+  } else {
+    delete nextLocalMap[safeAlias];
+  }
+
+  writeRatingMap(nextLocalMap);
+  watchState.ratingSummary = {
+    average: normalized || 0,
+    count: normalized ? Math.max(previousSummary.count || 0, 1) : 0,
+    userValue: normalized
+  };
   watchState.ratingBusy = true;
   renderRatingPanel();
 
   try {
     if (window.animeCloudSync?.saveRating) {
       watchState.ratingSummary = await window.animeCloudSync.saveRating(
-        watchState.release.alias,
+        safeAlias,
         value,
         getAuthUserSafe()
       );
-    } else {
-      const next = { ...readRatingMap() };
-      const normalized = normalizeRatingValue(value);
-      if (normalized) {
-        next[watchState.release.alias] = { value: normalized, updatedAt: Date.now() };
+      if (watchState.ratingSummary?.userValue) {
+        nextLocalMap[safeAlias] = {
+          value: normalizeRatingValue(watchState.ratingSummary.userValue),
+          updatedAt: Date.now()
+        };
       } else {
-        delete next[watchState.release.alias];
+        delete nextLocalMap[safeAlias];
       }
-      writeRatingMap(next);
+      writeRatingMap(nextLocalMap);
+    } else {
       watchState.ratingSummary = {
         average: normalized || 0,
         count: normalized ? 1 : 0,
@@ -841,6 +867,11 @@ async function setCurrentRating(value) {
     }
   } catch (error) {
     console.error(error);
+    watchState.ratingSummary = {
+      average: normalized || 0,
+      count: normalized ? Math.max(previousSummary.count || 0, 1) : 0,
+      userValue: normalized
+    };
   } finally {
     watchState.ratingBusy = false;
     renderRatingPanel();

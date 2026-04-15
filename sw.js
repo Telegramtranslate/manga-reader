@@ -39,7 +39,7 @@ function isShellAsset(url) {
 }
 
 function isApiRequest(url) {
-  return url.origin === self.location.origin && /^\/api\/(?:anilibria|kodik)(?:\/|$)/.test(url.pathname);
+  return url.origin === self.location.origin && /^\/api\/kodik(?:\/|$)/.test(url.pathname);
 }
 
 function isMediaStreamRequest(url) {
@@ -71,7 +71,7 @@ function isPosterRequest(request, url) {
   return (
     request.destination === "image" &&
     (url.origin === self.location.origin ||
-      /(?:anilibria\.top|libria\.fun|jsdelivr\.net|kp\.yandex\.net|kodik\.biz|kodik\.info|kodikres\.com|shikimori\.io|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
+      /(?:kp\.yandex\.net|kodik\.biz|kodik\.info|kodikres\.com|shikimori\.io|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
         url.hostname
       ))
   );
