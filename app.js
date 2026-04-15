@@ -293,15 +293,6 @@ const STATIC_UI_TEXT = Object.freeze({
 });
 
 function ensureDynamicInterface() {
-  const catalogActions = document.querySelector('[data-view-panel="catalog"] .section-actions');
-  if (catalogActions && !document.getElementById("catalog-voice")) {
-    const label = document.createElement("label");
-    label.className = "select-control";
-    label.innerHTML =
-      '<span>Озвучка</span><select id="catalog-voice"><option value="">Все озвучки</option></select>';
-    catalogActions.appendChild(label);
-  }
-
   const profileProgressGrid = document.getElementById("profile-progress-grid");
   if (profileProgressGrid && !document.getElementById("profile-recommendations-shell")) {
     const shelf = document.createElement("section");
@@ -1890,14 +1881,10 @@ function syncCatalogPager() {
   const currentPageLabel = Math.max(1, state.catalogPage || 1);
   const loadingSuffix = state.catalogLoading ? " · загрузка…" : "";
   if (els.catalogPageLabel) {
-    if (state.catalogVoice && !state.catalogFilterExhausted) {
-      els.catalogPageLabel.textContent = `Страница ${currentPageLabel}${loadingSuffix}`;
-    } else {
-      els.catalogPageLabel.textContent = `Страница ${currentPageLabel} из ${Math.max(
-        1,
-        state.catalogTotalPages || 1
-      )}${loadingSuffix}`;
-    }
+    els.catalogPageLabel.textContent = `Страница ${currentPageLabel} из ${Math.max(
+      1,
+      state.catalogTotalPages || 1
+    )}${loadingSuffix}`;
     els.catalogPageLabel.classList.toggle("is-loading", Boolean(state.catalogLoading));
   }
 
@@ -1940,7 +1927,6 @@ function getFilteredCatalogItems() {
     if (!releaseMatchesCatalogTypeSelection(release, state.catalogType)) return false;
     if (state.catalogGenre && !releaseMatchesGenres(release, [state.catalogGenre])) return false;
     if (state.catalogGenres.length && !releaseMatchesGenres(release, state.catalogGenres)) return false;
-    if (state.catalogVoice && !releaseMatchesVoiceFilter(release, state.catalogVoice)) return false;
     return true;
   });
 }
@@ -1952,21 +1938,13 @@ function refreshCatalogView(pagination = null) {
   const totalPages = Math.max(pagination?.total_pages || 0, state.catalogTotalPages || 0, currentPage ? 1 : 0);
   const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
   const genreLabels = [...new Set([state.catalogGenre, ...state.catalogGenres].filter(Boolean))];
-  const activeFilters = [
-    ...(genreLabels.length ? [`жанры: ${genreLabels.join(", ")}`] : []),
-    ...(state.catalogVoice ? [`озвучка: ${state.catalogVoice}`] : [])
-  ];
+  const activeFilters = [...(genreLabels.length ? [`жанры: ${genreLabels.join(", ")}`] : [])];
 
   if (els.catalogSummary) {
     if (activeFilters.length) {
-      const exactMatchCount =
-        state.catalogVoice && state.catalogFilterExhausted
-          ? state.catalogFilterPool.length
-          : state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length;
-      const totalLabel =
-        state.catalogVoice && !state.catalogFilterExhausted
-          ? `Показываем страницу ${Math.max(1, currentPage || 1)} по выбранной озвучке.`
-          : `Найдено ${formatNumber(exactMatchCount)} релизов по фильтрам.${pageLabel}`;
+      const totalLabel = `Найдено ${formatNumber(
+        state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
+      )} релизов по фильтрам.${pageLabel}`;
       els.catalogSummary.textContent = `Активные фильтры: ${activeFilters.join(" • ")}. ${totalLabel}`;
     } else {
       els.catalogSummary.textContent = `${formatNumber(
@@ -2510,7 +2488,7 @@ async function loadContentStats(force = false) {
     applyContentStats(state, stats, { gridPageSize: GRID_PAGE_SIZE });
     updateStats();
     if (state.catalogLoaded) {
-      if (state.catalogGenre || state.catalogGenres.length || state.catalogVoice) {
+      if (state.catalogGenre || state.catalogGenres.length) {
         refreshCatalogView();
       } else if (els.catalogSummary) {
         const currentPage = state.catalogPage || 0;
@@ -2606,9 +2584,6 @@ function renderCatalogControls() {
   els.catalogSort.innerHTML = "";
   els.catalogType.innerHTML = '<option value="">Все форматы</option>';
   els.catalogGenre.innerHTML = '<option value="">Все жанры</option>';
-  if (els.catalogVoice) {
-    els.catalogVoice.innerHTML = '<option value="">Все озвучки</option>';
-  }
 
   state.sortingOptions.forEach((option) => {
     const node = document.createElement("option");
@@ -2633,16 +2608,6 @@ function renderCatalogControls() {
     node.selected = genre === state.catalogGenre;
     els.catalogGenre.appendChild(node);
   });
-
-  if (els.catalogVoice) {
-    state.voiceOptions.forEach((voice) => {
-      const node = document.createElement("option");
-      node.value = voice;
-      node.textContent = voice;
-      node.selected = voice === state.catalogVoice;
-      els.catalogVoice.appendChild(node);
-    });
-  }
 
   renderGenreChips();
 }
@@ -2811,15 +2776,13 @@ async function loadCatalog(options = {}) {
     if (els.catalogNextBtn) els.catalogNextBtn.disabled = true;
     const activeGenres = normalizeGenreList([state.catalogGenre, ...state.catalogGenres].filter(Boolean));
     const hasGenreFilters = activeGenres.length > 0;
-    const hasVoiceFilter = Boolean(state.catalogVoice);
-    const hasClientFilters = hasGenreFilters || hasVoiceFilter;
+    const hasClientFilters = hasGenreFilters;
     const kodikTypeConfig = getKodikCatalogTypeConfig(state.catalogType);
     const shouldLoadKodik = kodikTypeConfig.enabled;
     const filterKey = JSON.stringify({
       sort: state.catalogSort,
       type: state.catalogType || "",
-      genres: activeGenres,
-      voice: state.catalogVoice || ""
+      genres: activeGenres
     });
 
     if (reset || state.catalogFilterKey !== filterKey) {
@@ -2835,9 +2798,7 @@ async function loadCatalog(options = {}) {
     };
 
     const kodikPayload = shouldLoadKodik
-      ? hasVoiceFilter
-        ? await fetchCatalogVoicePage(requestedPage, requestOptions, requestToken)
-        : await fetchKodikDiscover("catalog", requestedPage, GRID_PAGE_SIZE, requestOptions)
+      ? await fetchKodikDiscover("catalog", requestedPage, GRID_PAGE_SIZE, requestOptions)
       : {
           items: [],
           pagination: { current_page: requestedPage, total_pages: requestedPage, total: 0 },
@@ -2853,35 +2814,24 @@ async function loadCatalog(options = {}) {
     registerVoices(releases);
     state.catalogItems = releases;
     state.catalogPage = Math.max(pagination.current_page || 0, requestedPage);
-    state.catalogTotal = hasVoiceFilter
-      ? pagination.total || state.catalogFilterTotalMatches || state.catalogItems.length
-      : hasGenreFilters
-        ? Math.max(state.catalogItems.length, pagination.total || 0)
-        : Math.max(mergedCatalogTotal || 0, pagination.total || 0, state.catalogItems.length);
+    state.catalogTotal = hasGenreFilters
+      ? Math.max(state.catalogItems.length, pagination.total || 0)
+      : Math.max(mergedCatalogTotal || 0, pagination.total || 0, state.catalogItems.length);
     state.catalogTotalPages = Math.max(
       pagination.total_pages || 0,
       Math.ceil((state.catalogTotal || state.catalogItems.length) / GRID_PAGE_SIZE),
       state.catalogPage ? 1 : 0
     );
-    state.catalogHasMore = hasVoiceFilter
-      ? Boolean(kodikPayload?.hasMore)
-      : state.catalogPage < (state.catalogTotalPages || 1);
+    state.catalogHasMore = state.catalogPage < (state.catalogTotalPages || 1);
     state.catalogLoaded = true;
 
     if (hasClientFilters) {
-      const filters = [
-        ...(hasGenreFilters ? [`жанры: ${[...new Set(activeGenres)].join(", ")}`] : []),
-        ...(state.catalogVoice ? [`озвучка: ${state.catalogVoice}`] : [])
-      ];
+      const filters = [...(hasGenreFilters ? [`жанры: ${[...new Set(activeGenres)].join(", ")}`] : [])];
 
       if (els.catalogSummary) {
-        if (hasVoiceFilter && !kodikPayload?.totalKnown) {
-          els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Показываем страницу ${state.catalogPage} по выбранной озвучке.`;
-        } else {
-          els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Найдено ${formatNumber(
-            state.catalogTotal || state.catalogItems.length
-          )} релизов по фильтрам.`;
-        }
+        els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Найдено ${formatNumber(
+          state.catalogTotal || state.catalogItems.length
+        )} релизов по фильтрам.`;
       }
       refreshCatalogView(pagination);
     } else {
@@ -4430,11 +4380,6 @@ function bindEvents() {
   });
   els.catalogGenre?.addEventListener("change", () => {
     state.catalogGenre = els.catalogGenre.value;
-    state.catalogLoaded = false;
-    loadCatalog({ reset: true }).catch(console.error);
-  });
-  els.catalogVoice?.addEventListener("change", () => {
-    state.catalogVoice = els.catalogVoice.value;
     state.catalogLoaded = false;
     loadCatalog({ reset: true }).catch(console.error);
   });

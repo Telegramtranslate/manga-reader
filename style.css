@@ -1593,7 +1593,11 @@ button {
 
 .auth-slot {
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 0;
 }
 
 .auth-open-btn {
@@ -1602,8 +1606,10 @@ button {
 
 .user-menu {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 10px;
+  margin-left: auto;
+  max-width: 100%;
 }
 
 .user-chip {
