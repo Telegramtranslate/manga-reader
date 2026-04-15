@@ -53,6 +53,7 @@ const GRID_PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE = 260;
 const RENDER_BATCH_SIZE = 8;
 const VOICE_FILTER_PREFETCH_PAGES = 3;
+const CATALOG_VOICE_FILTER_CACHE_LIMIT = 12;
 const CONTENT_STATS_TTL = 12 * 60 * 60 * 1000;
 const FAVORITES_STORAGE_PREFIX = STORAGE_KEYS.favoritesPrefix || "animecloud_favorites";
 const WATCH_PROGRESS_KEY = STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
@@ -79,6 +80,7 @@ const KODIK_TYPE_OPTIONS = [
 const responseCache = new Map();
 const requestCache = new Map();
 const manifestCache = new Map();
+const catalogVoiceFilterCache = new Map();
 
 const state = {
   currentView: "home",
@@ -97,6 +99,8 @@ const state = {
   voiceOptions: [],
   catalogFilterKey: "",
   catalogFilterPool: [],
+  catalogFilterAliasSet: new Set(),
+  catalogFilterPageCache: new Map(),
   catalogFilterCursor: 0,
   catalogFilterExhausted: false,
   catalogFilterTotalMatches: 0,
@@ -148,6 +152,7 @@ const state = {
   personalizedGenres: [],
   personalizedKey: "",
   personalizedPromise: null,
+  personalizedRequestToken: "",
   detailRenderToken: "",
   releaseOpenAlias: "",
   releaseOpenPromise: null,
@@ -1760,15 +1765,46 @@ function registerVoices(releases) {
 
 function resetCatalogVoicePool(filterKey) {
   state.catalogFilterKey = filterKey;
+  const cached = catalogVoiceFilterCache.get(filterKey);
+  if (cached) {
+    state.catalogFilterPool = Array.isArray(cached.pool) ? cached.pool.slice() : [];
+    state.catalogFilterAliasSet = new Set(Array.isArray(cached.aliases) ? cached.aliases : []);
+    state.catalogFilterPageCache = new Map(cached.pageCache || []);
+    state.catalogFilterCursor = Number(cached.cursor || 0);
+    state.catalogFilterExhausted = Boolean(cached.exhausted);
+    state.catalogFilterTotalMatches = Number(cached.totalMatches || 0);
+    catalogVoiceFilterCache.delete(filterKey);
+    catalogVoiceFilterCache.set(filterKey, cached);
+    return;
+  }
   state.catalogFilterPool = [];
+  state.catalogFilterAliasSet = new Set();
+  state.catalogFilterPageCache = new Map();
   state.catalogFilterCursor = 0;
   state.catalogFilterExhausted = false;
   state.catalogFilterTotalMatches = 0;
 }
 
-function mergeUniqueAliases(list, extra = []) {
-  const merged = Array.isArray(list) ? list.slice() : [];
-  const seen = new Set(merged.map((release) => release?.alias).filter(Boolean));
+function cacheCatalogVoicePoolState() {
+  if (!state.catalogFilterKey) return;
+  catalogVoiceFilterCache.set(state.catalogFilterKey, {
+    pool: state.catalogFilterPool.slice(),
+    aliases: [...state.catalogFilterAliasSet],
+    pageCache: [...state.catalogFilterPageCache.entries()],
+    cursor: state.catalogFilterCursor,
+    exhausted: state.catalogFilterExhausted,
+    totalMatches: state.catalogFilterTotalMatches
+  });
+  while (catalogVoiceFilterCache.size > CATALOG_VOICE_FILTER_CACHE_LIMIT) {
+    const [oldestKey] = catalogVoiceFilterCache.keys();
+    if (!oldestKey) break;
+    catalogVoiceFilterCache.delete(oldestKey);
+  }
+}
+
+function mergeUniqueAliases(list, extra = [], aliasSet = null) {
+  const merged = Array.isArray(list) ? list : [];
+  const seen = aliasSet || new Set(merged.map((release) => release?.alias).filter(Boolean));
 
   (Array.isArray(extra) ? extra : []).forEach((release) => {
     if (!release) return;
@@ -1783,6 +1819,10 @@ function mergeUniqueAliases(list, extra = []) {
 
 async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
   const safePage = Math.max(1, Number(page || 1));
+  const cachedPage = state.catalogFilterPageCache.get(safePage);
+  if (cachedPage) {
+    return cachedPage;
+  }
   const startIndex = (safePage - 1) * GRID_PAGE_SIZE;
   const neededCount = startIndex + GRID_PAGE_SIZE + 1;
 
@@ -1811,7 +1851,7 @@ async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
       registerVoices(releases);
 
       const matched = releases.filter((release) => releaseMatchesVoiceFilter(release, state.catalogVoice));
-      state.catalogFilterPool = mergeUniqueAliases(state.catalogFilterPool, matched);
+      mergeUniqueAliases(state.catalogFilterPool, matched, state.catalogFilterAliasSet);
       state.catalogFilterCursor = rawPage;
       state.catalogFilterExhausted = rawPage >= Math.max(pagination.total_pages || 0, rawPage) || !releases.length;
 
@@ -1831,7 +1871,7 @@ async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
     ? Math.max(1, Math.ceil(state.catalogFilterPool.length / GRID_PAGE_SIZE))
     : Math.max(safePage + (hasMore ? 1 : 0), 1);
 
-  return {
+  const result = {
     items,
     pagination: {
       current_page: safePage,
@@ -1841,6 +1881,9 @@ async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
     hasMore,
     totalKnown: state.catalogFilterExhausted
   };
+  state.catalogFilterPageCache.set(safePage, result);
+  cacheCatalogVoicePoolState();
+  return result;
 }
 
 function syncCatalogPager() {
@@ -2232,6 +2275,8 @@ async function loadPersonalRecommendations(options = {}) {
     return state.personalizedPromise;
   }
 
+  const requestToken = `recommend-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  state.personalizedRequestToken = requestToken;
   state.personalizedKey = cacheKey;
   state.personalizedGenres = profile.topGenres;
   renderSkeletonGrid(els.profileRecommendationsGrid, 6);
@@ -2239,6 +2284,11 @@ async function loadPersonalRecommendations(options = {}) {
     els.profileRecommendationsSummary.textContent = profile.topGenres.length
       ? `Обновляем подборку по жанрам: ${profile.topGenres.join(", ")}…`
       : "Собираем базовую персональную подборку…";
+  }
+
+  if (els.profileRecommendationsRefreshBtn) {
+    els.profileRecommendationsRefreshBtn.disabled = true;
+    els.profileRecommendationsRefreshBtn.textContent = "Обновляем…";
   }
 
   state.personalizedPromise = (async () => {
@@ -2265,12 +2315,14 @@ async function loadPersonalRecommendations(options = {}) {
       .sort((left, right) => right.score - left.score)
       .map((item) => item.release);
 
+    if (state.personalizedRequestToken !== requestToken) return state.personalizedRecommendations;
     state.personalizedRecommendations = (ranked.length ? ranked : fallbackPool.filter((release) => !profile.blockedAliases.has(release.alias))).slice(0, 12);
     renderPersonalRecommendations();
     return state.personalizedRecommendations;
   })()
     .catch((error) => {
       console.error(error);
+      if (state.personalizedRequestToken !== requestToken) return state.personalizedRecommendations;
       state.personalizedRecommendations = uniqueReleases(
         [...state.recommended, ...state.popular, ...state.latest].filter((release) => !profile.blockedAliases.has(release?.alias))
       ).slice(0, 12);
@@ -2278,7 +2330,13 @@ async function loadPersonalRecommendations(options = {}) {
       return state.personalizedRecommendations;
     })
     .finally(() => {
-      state.personalizedPromise = null;
+      if (state.personalizedRequestToken === requestToken) {
+        state.personalizedPromise = null;
+      }
+      if (els.profileRecommendationsRefreshBtn) {
+        els.profileRecommendationsRefreshBtn.disabled = false;
+        els.profileRecommendationsRefreshBtn.textContent = "Обновить подборку";
+      }
     });
 
   return state.personalizedPromise;
