@@ -159,6 +159,8 @@ const state = {
   playerSelectionToken: "",
   hlsRecoveryTried: false,
   playerStartupTimer: null,
+  externalPlayerAssistTimer: null,
+  externalPlayerUrl: "",
   installPromptEvent: null,
   progressUiFrame: 0,
   shareFeedbackTimer: 0,
@@ -257,6 +259,9 @@ const els = {
   qualitySwitch: document.getElementById("quality-switch"),
   player: document.getElementById("anime-player"),
   externalPlayer: document.getElementById("external-player"),
+  externalPlayerActions: document.getElementById("external-player-actions"),
+  externalPlayerOpenBtn: document.getElementById("external-player-open-btn"),
+  externalPlayerRetryBtn: document.getElementById("external-player-retry-btn"),
   nextEpisodeBtn: document.getElementById("next-episode-btn"),
   cardTemplate: document.getElementById("anime-card-template"),
   metaDescription: document.getElementById("meta-description"),
@@ -3324,6 +3329,17 @@ function destroyPlayer() {
 }
 
 function stopExternalPlayer() {
+  if (state.externalPlayerAssistTimer) {
+    clearTimeout(state.externalPlayerAssistTimer);
+    state.externalPlayerAssistTimer = null;
+  }
+  state.externalPlayerUrl = "";
+  if (els.externalPlayerActions) {
+    els.externalPlayerActions.hidden = true;
+  }
+  if (els.externalPlayerRetryBtn) {
+    els.externalPlayerRetryBtn.hidden = true;
+  }
   const currentSrc = els.externalPlayer.getAttribute("src") || "";
   if (currentSrc && currentSrc !== "about:blank") {
     els.externalPlayer.src = "about:blank";
@@ -3333,15 +3349,57 @@ function stopExternalPlayer() {
 }
 
 function showVideoSurface() {
+  if (state.externalPlayerAssistTimer) {
+    clearTimeout(state.externalPlayerAssistTimer);
+    state.externalPlayerAssistTimer = null;
+  }
+  state.externalPlayerUrl = "";
+  if (els.externalPlayerActions) {
+    els.externalPlayerActions.hidden = true;
+  }
+  if (els.externalPlayerRetryBtn) {
+    els.externalPlayerRetryBtn.hidden = true;
+  }
   els.externalPlayer.hidden = true;
   els.player.hidden = false;
 }
 
 function showExternalSurface(url) {
   destroyPlayer();
+  if (state.externalPlayerAssistTimer) {
+    clearTimeout(state.externalPlayerAssistTimer);
+    state.externalPlayerAssistTimer = null;
+  }
+  const externalUrl = normalizeExternalPlayer(url || "");
+  state.externalPlayerUrl = externalUrl;
+  if (els.externalPlayerActions) {
+    els.externalPlayerActions.hidden = false;
+  }
+  if (els.externalPlayerRetryBtn) {
+    els.externalPlayerRetryBtn.hidden = true;
+  }
   els.player.hidden = true;
   els.externalPlayer.hidden = false;
-  els.externalPlayer.src = url;
+  if (!externalUrl) {
+    els.playerNote.textContent = "Для этого источника внешний плеер сейчас недоступен.";
+    return;
+  }
+  els.externalPlayer.src = "about:blank";
+  requestAnimationFrame(() => {
+    if (state.externalPlayerUrl !== externalUrl) return;
+    els.externalPlayer.src = externalUrl;
+  });
+  state.externalPlayerAssistTimer = setTimeout(() => {
+    if (state.externalPlayerUrl !== externalUrl || els.externalPlayer.hidden) return;
+    els.playerNote.textContent =
+      "Внешний Kodik-плеер долго не отвечает. Попробуйте открыть источник напрямую или повторить загрузку.";
+    if (els.externalPlayerActions) {
+      els.externalPlayerActions.hidden = false;
+    }
+    if (els.externalPlayerRetryBtn) {
+      els.externalPlayerRetryBtn.hidden = false;
+    }
+  }, 12000);
 }
 
 function fallbackToEmbeddedSource(message) {
@@ -3827,8 +3885,8 @@ async function selectEpisode(episode, options = {}) {
     showExternalSurface(episode.externalUrl || source?.externalUrl || state.currentAnime.externalPlayer);
     els.playerNote.textContent =
       source?.kind === "iframe-episodes"
-        ? "Эта озвучка открыта во встроенном внешнем плеере. Серии и качество задаются там."
-        : "Этот источник открывается во встроенном внешнем плеере.";
+        ? "Эта озвучка открыта во встроенном внешнем плеере. Серии и качество задаются там. Если загрузка зависнет, откройте источник напрямую."
+        : "Этот источник открывается во встроенном внешнем плеере. Если загрузка зависнет, откройте источник напрямую.";
     return;
   }
 
@@ -3883,7 +3941,8 @@ function switchSource(sourceId) {
     showExternalSurface(source.externalUrl);
     els.qualitySwitch.innerHTML = "";
     els.playerTitle.textContent = source.title;
-    els.playerNote.textContent = source.note || "Этот источник открывается во встроенном внешнем плеере.";
+    els.playerNote.textContent =
+      source.note || "Этот источник открывается во встроенном внешнем плеере. Если загрузка зависнет, откройте источник напрямую.";
     return;
   }
 
@@ -4356,6 +4415,17 @@ function bindEvents() {
   els.installBtn?.addEventListener("click", () => {
     handleInstallClick().catch(console.error);
   });
+  els.externalPlayerOpenBtn?.addEventListener("click", () => {
+    if (!state.externalPlayerUrl) return;
+    const popup = window.open(state.externalPlayerUrl, "_blank", "noopener,noreferrer");
+    if (!popup) {
+      window.location.href = state.externalPlayerUrl;
+    }
+  });
+  els.externalPlayerRetryBtn?.addEventListener("click", () => {
+    if (!state.externalPlayerUrl) return;
+    showExternalSurface(state.externalPlayerUrl);
+  });
   bindLoadMoreButton(els.ongoingMoreBtn, () => loadOngoing({ reset: false }));
   bindLoadMoreButton(els.topMoreBtn, () => loadTop({ reset: false }));
 
@@ -4470,6 +4540,11 @@ function bindEvents() {
   els.player?.addEventListener("loadeddata", syncPlayerReadyState);
   els.player?.addEventListener("canplay", syncPlayerReadyState);
   els.player?.addEventListener("playing", syncPlayerReadyState);
+  els.externalPlayer?.addEventListener("load", () => {
+    if (!state.externalPlayerAssistTimer) return;
+    clearTimeout(state.externalPlayerAssistTimer);
+    state.externalPlayerAssistTimer = null;
+  });
   els.player?.addEventListener("waiting", () => {
     if (isActiveVideoSource() && !els.player.hidden && els.player.readyState < 2) {
       els.playerNote.textContent = "Буферизуем поток…";

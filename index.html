@@ -598,8 +598,9 @@
                 id="external-player"
                 class="external-player"
                 title="Альтернативный источник"
-                loading="lazy"
+                loading="eager"
                 sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation"
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                 referrerpolicy="strict-origin-when-cross-origin"
                 allowfullscreen
                 hidden
@@ -607,6 +608,10 @@
             </div>
 
             <p class="player-note" id="player-note">Выберите релиз и серию справа.</p>
+            <div class="external-player-actions" id="external-player-actions" hidden>
+              <button class="ghost-btn" type="button" id="external-player-open-btn">Открыть источник напрямую</button>
+              <button class="ghost-btn" type="button" id="external-player-retry-btn">Попробовать ещё раз</button>
+            </div>
 
             <div class="player-footer">
               <div class="resume-box" id="resume-box" hidden>
