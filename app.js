@@ -52,6 +52,7 @@ const API_TIMEOUT_MS = 10000;
 const GRID_PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE = 260;
 const RENDER_BATCH_SIZE = 8;
+const VOICE_FILTER_PREFETCH_PAGES = 3;
 const CONTENT_STATS_TTL = 12 * 60 * 60 * 1000;
 const FAVORITES_STORAGE_PREFIX = STORAGE_KEYS.favoritesPrefix || "animecloud_favorites";
 const WATCH_PROGRESS_KEY = STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
@@ -155,7 +156,9 @@ const state = {
   playerStartupTimer: null,
   installPromptEvent: null,
   progressUiFrame: 0,
-  shareFeedbackTimer: 0
+  shareFeedbackTimer: 0,
+  catalogRequestToken: "",
+  catalogLoading: false
 };
 
 const els = {
@@ -1778,27 +1781,45 @@ function mergeUniqueAliases(list, extra = []) {
   return merged;
 }
 
-async function fetchCatalogVoicePage(page, requestOptions) {
+async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
   const safePage = Math.max(1, Number(page || 1));
   const startIndex = (safePage - 1) * GRID_PAGE_SIZE;
   const neededCount = startIndex + GRID_PAGE_SIZE + 1;
 
   while (state.catalogFilterPool.length < neededCount && !state.catalogFilterExhausted) {
-    const rawPage = state.catalogFilterCursor + 1;
-    const payload = await fetchKodikDiscover("catalog", rawPage, GRID_PAGE_SIZE, requestOptions);
-    const pagination = extractPagination(payload);
-    const releases = sortCatalogReleases(buildReleases(payload), state.catalogSort);
+    if (requestToken && state.catalogRequestToken !== requestToken) {
+      return { items: [], pagination: { current_page: safePage, total_pages: safePage, total: 0 }, hasMore: false, totalKnown: true };
+    }
 
-    registerGenres(releases);
-    registerVoices(releases);
+    const firstPage = state.catalogFilterCursor + 1;
+    const pages = Array.from({ length: VOICE_FILTER_PREFETCH_PAGES }, (_, index) => firstPage + index);
+    const payloads = await Promise.all(
+      pages.map((rawPage) => fetchKodikDiscover("catalog", rawPage, GRID_PAGE_SIZE, requestOptions))
+    );
 
-    const matched = releases.filter((release) => releaseMatchesVoiceFilter(release, state.catalogVoice));
-    state.catalogFilterPool = mergeUniqueAliases(state.catalogFilterPool, matched);
-    state.catalogFilterCursor = rawPage;
-    state.catalogFilterExhausted = rawPage >= Math.max(pagination.total_pages || 0, rawPage) || !releases.length;
+    for (let index = 0; index < payloads.length; index += 1) {
+      if (requestToken && state.catalogRequestToken !== requestToken) {
+        return { items: [], pagination: { current_page: safePage, total_pages: safePage, total: 0 }, hasMore: false, totalKnown: true };
+      }
 
-    if (state.catalogFilterExhausted) {
-      state.catalogFilterTotalMatches = state.catalogFilterPool.length;
+      const rawPage = pages[index];
+      const payload = payloads[index];
+      const pagination = extractPagination(payload);
+      const releases = sortCatalogReleases(buildReleases(payload), state.catalogSort);
+
+      registerGenres(releases);
+      registerVoices(releases);
+
+      const matched = releases.filter((release) => releaseMatchesVoiceFilter(release, state.catalogVoice));
+      state.catalogFilterPool = mergeUniqueAliases(state.catalogFilterPool, matched);
+      state.catalogFilterCursor = rawPage;
+      state.catalogFilterExhausted = rawPage >= Math.max(pagination.total_pages || 0, rawPage) || !releases.length;
+
+      if (state.catalogFilterExhausted) {
+        state.catalogFilterTotalMatches = state.catalogFilterPool.length;
+        break;
+      }
+      if (state.catalogFilterPool.length >= neededCount) break;
     }
   }
 
@@ -1823,15 +1844,18 @@ async function fetchCatalogVoicePage(page, requestOptions) {
 }
 
 function syncCatalogPager() {
+  const currentPageLabel = Math.max(1, state.catalogPage || 1);
+  const loadingSuffix = state.catalogLoading ? " · загрузка…" : "";
   if (els.catalogPageLabel) {
     if (state.catalogVoice && !state.catalogFilterExhausted) {
-      els.catalogPageLabel.textContent = `Страница ${Math.max(1, state.catalogPage || 1)}`;
+      els.catalogPageLabel.textContent = `Страница ${currentPageLabel}${loadingSuffix}`;
     } else {
-      els.catalogPageLabel.textContent = `Страница ${Math.max(1, state.catalogPage || 1)} из ${Math.max(
+      els.catalogPageLabel.textContent = `Страница ${currentPageLabel} из ${Math.max(
         1,
         state.catalogTotalPages || 1
-      )}`;
+      )}${loadingSuffix}`;
     }
+    els.catalogPageLabel.classList.toggle("is-loading", Boolean(state.catalogLoading));
   }
 
   if (els.catalogPrevBtn) {
@@ -2703,7 +2727,12 @@ function releaseMatchesCatalogTypeSelection(release, catalogType = state.catalog
 }
 
 async function loadCatalog(options = {}) {
+  const requestToken = `catalog-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  state.catalogRequestToken = requestToken;
+  state.catalogLoading = true;
+  syncCatalogPager();
   await loadReferences();
+  if (state.catalogRequestToken !== requestToken) return;
   const reset = Boolean(options.reset);
   const requestedPage = Math.max(1, Number(options.page || (reset ? 1 : state.catalogPage || 1)));
   const mergedCatalogTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.catalogTotal || 0));
@@ -2714,7 +2743,7 @@ async function loadCatalog(options = {}) {
     state.catalogTotal = mergedCatalogTotal;
     state.catalogTotalPages = 0;
     state.catalogHasMore = false;
-    els.catalogSummary.textContent = "Загружаем каталог…";
+    if (els.catalogSummary) els.catalogSummary.textContent = "Загружаем каталог…";
     renderSkeletonGrid(els.catalogGrid, 8);
     syncCatalogPager();
   }
@@ -2749,7 +2778,7 @@ async function loadCatalog(options = {}) {
 
     const kodikPayload = shouldLoadKodik
       ? hasVoiceFilter
-        ? await fetchCatalogVoicePage(requestedPage, requestOptions)
+        ? await fetchCatalogVoicePage(requestedPage, requestOptions, requestToken)
         : await fetchKodikDiscover("catalog", requestedPage, GRID_PAGE_SIZE, requestOptions)
       : {
           items: [],
@@ -2757,6 +2786,7 @@ async function loadCatalog(options = {}) {
           hasMore: false,
           totalKnown: true
         };
+    if (state.catalogRequestToken !== requestToken) return;
 
     const pagination = extractPagination(kodikPayload);
     const releases = sortCatalogReleases(buildReleases(kodikPayload), state.catalogSort);
@@ -2797,22 +2827,30 @@ async function loadCatalog(options = {}) {
       }
       refreshCatalogView(pagination);
     } else {
-      els.catalogSummary.textContent = `${formatNumber(
-        state.catalogMergedTotal || state.catalogTotal
-      )} тайтлов в полной базе Kodik. Страница ${state.catalogPage} из ${
-        state.catalogTotalPages || 1
-      }.`;
+      if (els.catalogSummary) {
+        els.catalogSummary.textContent = `${formatNumber(
+          state.catalogMergedTotal || state.catalogTotal
+        )} тайтлов в полной базе Kodik. Страница ${state.catalogPage} из ${
+          state.catalogTotalPages || 1
+        }.`;
+      }
       updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
     }
     syncCatalogPager();
     updateStats();
   } catch (error) {
+    if (state.catalogRequestToken !== requestToken) return;
     console.error("loadCatalog failed", error);
     syncCatalogPager();
     const message = getKodikUnavailableMessage(error, "Каталог временно недоступен.");
-    els.catalogSummary.textContent = message;
+    if (els.catalogSummary) els.catalogSummary.textContent = message;
     replaceWithErrorState(els.catalogGrid, message, () => loadCatalog({ reset: true }).catch(console.error));
     throw error;
+  } finally {
+    if (state.catalogRequestToken === requestToken) {
+      state.catalogLoading = false;
+      syncCatalogPager();
+    }
   }
 }
 

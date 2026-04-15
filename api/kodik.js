@@ -13,6 +13,7 @@ const {
 const DISCOVER_CACHE_TTL_MS = 5 * 60 * 1000;
 const discoverResultCache = new Map();
 const discoverCursorCache = new Map();
+const discoverUniquePoolCache = new Map();
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -124,6 +125,79 @@ function getBestCursorPayload(signature, requestedPage) {
   return { page: bestPage, payload: bestPayload };
 }
 
+function getUniquePoolEntry(signature) {
+  cleanExpiredEntries(discoverUniquePoolCache);
+  const existing = discoverUniquePoolCache.get(signature);
+  if (existing) return existing;
+
+  const created = {
+    expiresAt: Date.now() + DISCOVER_CACHE_TTL_MS,
+    items: [],
+    seenAliases: new Set(),
+    totalRaw: 0,
+    initialized: false,
+    exhausted: false,
+    nextPayload: null,
+    inflight: null
+  };
+  discoverUniquePoolCache.set(signature, created);
+  return created;
+}
+
+function appendUniquePreviewItems(entry, items = []) {
+  const list = Array.isArray(items) ? items : [];
+  list.forEach((item) => {
+    const alias = String(item?.alias || "").trim();
+    if (!alias || entry.seenAliases.has(alias)) return;
+    entry.seenAliases.add(alias);
+    entry.items.push(item);
+  });
+}
+
+function ingestDiscoverResponse(entry, response, fallbackLimit) {
+  entry.expiresAt = Date.now() + DISCOVER_CACHE_TTL_MS;
+  const fallbackTotal = entry.items.length;
+  entry.totalRaw = Math.max(entry.totalRaw || 0, toNumber(response?.total, fallbackTotal));
+  appendUniquePreviewItems(entry, collectPreviewReleases(response?.results || []));
+  entry.nextPayload = response?.next_page ? payloadFromPageUrl(response.next_page) : null;
+  entry.exhausted = !entry.nextPayload;
+  entry.initialized = true;
+
+  if (!entry.totalRaw) {
+    entry.totalRaw = Math.max(entry.items.length, toNumber(fallbackLimit, 0));
+  }
+}
+
+async function ensureUniqueDiscoverPool(entry, targetCount, firstPayload, safeLimit) {
+  if (entry.items.length >= targetCount || entry.exhausted) return;
+
+  if (entry.inflight) {
+    await entry.inflight;
+    return ensureUniqueDiscoverPool(entry, targetCount, firstPayload, safeLimit);
+  }
+
+  entry.inflight = (async () => {
+    if (!entry.initialized) {
+      const firstResponse = await postKodik("list", firstPayload);
+      ingestDiscoverResponse(entry, firstResponse, safeLimit);
+    }
+
+    while (entry.items.length < targetCount && !entry.exhausted) {
+      const payload = entry.nextPayload;
+      if (!payload) {
+        entry.exhausted = true;
+        break;
+      }
+      const response = await postKodik("list", payload);
+      ingestDiscoverResponse(entry, response, safeLimit);
+    }
+  })().finally(() => {
+    entry.inflight = null;
+  });
+
+  await entry.inflight;
+}
+
 async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], animeKinds = [], mediaTypes = []) {
   const safePage = Math.max(1, toNumber(page, 1));
   const safeLimit = Math.max(12, Math.min(100, toNumber(limit, 24)));
@@ -133,66 +207,30 @@ async function fetchDiscoverPage(mode, page, limit, sort, order, genres = [], an
 
   const basePayload = buildDiscoverPayload(mode, safeLimit, 1, sort, order, genres, animeKinds, mediaTypes);
   setCursorPayload(signature, 1, basePayload);
+  const uniquePool = getUniquePoolEntry(signature);
+  const requiredItems = safePage * safeLimit + 1;
+  await ensureUniqueDiscoverPool(uniquePool, requiredItems, basePayload, safeLimit);
 
-  if (safePage === 1) {
-    const firstResponse = await postKodik("list", basePayload);
-    const firstItems = collectPreviewReleases(firstResponse?.results || []);
-    const firstResult = {
-      items: firstItems,
-      pagination: {
-        current_page: 1,
-        total_pages: Math.max(1, Math.ceil(toNumber(firstResponse?.total, firstItems.length) / safeLimit)),
-        total: toNumber(firstResponse?.total, firstItems.length)
-      }
-    };
+  const sliceStart = (safePage - 1) * safeLimit;
+  const sliceEnd = sliceStart + safeLimit;
+  const items = uniquePool.items.slice(sliceStart, sliceEnd);
+  const hasMore = uniquePool.items.length > sliceEnd || !uniquePool.exhausted;
+  const total = uniquePool.exhausted ? uniquePool.items.length : Math.max(uniquePool.totalRaw || 0, uniquePool.items.length);
+  const totalPages = uniquePool.exhausted
+    ? Math.max(1, Math.ceil(Math.max(uniquePool.items.length, 1) / safeLimit))
+    : Math.max(Math.ceil(Math.max(total, 1) / safeLimit), safePage + (hasMore ? 1 : 0));
 
-    setCachedDiscoverResult(signature, 1, firstResult);
-    if (firstResponse?.next_page) {
-      setCursorPayload(signature, 2, payloadFromPageUrl(firstResponse.next_page));
-    }
-    return firstResult;
-  }
-
-  const bestCursor = getBestCursorPayload(signature, safePage);
-  let currentPage = Math.max(1, bestCursor.page || 1);
-  let currentPayload = bestCursor.payload || basePayload;
-  let response = await postKodik("list", currentPayload);
-
-  while (currentPage < safePage) {
-    if (!response?.next_page) {
-      const truncated = {
-        items: [],
-        pagination: {
-          current_page: safePage,
-          total_pages: Math.max(1, Math.ceil(toNumber(response?.total, 0) / safeLimit)),
-          total: toNumber(response?.total, 0)
-        }
-      };
-      setCachedDiscoverResult(signature, safePage, truncated);
-      return truncated;
-    }
-
-    const nextPayload = payloadFromPageUrl(response.next_page);
-    currentPage += 1;
-    setCursorPayload(signature, currentPage, nextPayload);
-    currentPayload = nextPayload;
-    response = await postKodik("list", currentPayload);
-  }
-
-  const items = collectPreviewReleases(response?.results || []);
   const result = {
     items,
     pagination: {
       current_page: safePage,
-      total_pages: Math.max(1, Math.ceil(toNumber(response?.total, items.length) / safeLimit)),
-      total: toNumber(response?.total, items.length)
+      total_pages: totalPages,
+      total
     }
   };
 
   setCachedDiscoverResult(signature, safePage, result);
-  if (response?.next_page) {
-    setCursorPayload(signature, safePage + 1, payloadFromPageUrl(response.next_page));
-  }
+  if (uniquePool.nextPayload) setCursorPayload(signature, safePage + 1, uniquePool.nextPayload);
   return result;
 }
 
