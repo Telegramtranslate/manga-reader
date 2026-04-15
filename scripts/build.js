@@ -12,6 +12,10 @@ const FILES = [
   "app-constants.js",
   "firebase-config.js",
   "cloud-sync.js",
+  "app-api-client.js",
+  "app-seo.js",
+  "app-stats.js",
+  "app-player-utils.js",
   "app.js",
   "auth.js",
   "watch-features.js"
@@ -36,6 +40,10 @@ const HASHED_PUBLIC_FILES = [
   "app-constants.min.js",
   "firebase-config.min.js",
   "cloud-sync.min.js",
+  "app-api-client.min.js",
+  "app-seo.min.js",
+  "app-stats.min.js",
+  "app-player-utils.min.js",
   "app.min.js",
   "auth.min.js",
   "watch-features.min.js",
@@ -55,17 +63,36 @@ async function runNodeScript(scriptPath) {
   });
 }
 
+function isProductionLikeBuild(env = process.env) {
+  return String(env.VERCEL_ENV || env.NODE_ENV || "").toLowerCase() === "production";
+}
+
+function getMissingRequiredBuildEnv(env = process.env) {
+  if (!isProductionLikeBuild(env)) return [];
+  return ["KODIK_TOKEN", "SITE_URL"].filter((key) => !String(env[key] || "").trim());
+}
+
 async function generateDerivedFiles() {
+  const missing = getMissingRequiredBuildEnv();
+  if (missing.length) {
+    throw new Error(`Missing required production build env: ${missing.join(", ")}`);
+  }
+
   if (!process.env.KODIK_TOKEN) {
-    console.log("Skipping sitemap generation: KODIK_TOKEN is not set.");
+    console.log("Skipping Kodik-derived files: KODIK_TOKEN is not set.");
     return;
   }
 
   try {
+    await runNodeScript(path.join(ROOT, "scripts", "generate-content-stats.js"));
+    console.log("Generated content-stats.json during build.");
     await runNodeScript(path.join(ROOT, "scripts", "generate-sitemap-anime.js"));
     console.log("Generated sitemap-anime.xml during build.");
   } catch (error) {
-    console.warn("Failed to generate sitemap-anime.xml during build, keeping existing file.");
+    if (isProductionLikeBuild()) {
+      throw error;
+    }
+    console.warn("Failed to generate Kodik-derived files during build, keeping existing files.");
     if (error?.stdout) console.warn(error.stdout.trim());
     if (error?.stderr) console.warn(error.stderr.trim());
   }
@@ -224,7 +251,14 @@ async function main() {
   });
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+module.exports = {
+  isProductionLikeBuild,
+  getMissingRequiredBuildEnv
+};
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}

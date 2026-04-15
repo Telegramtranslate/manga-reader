@@ -384,402 +384,63 @@ async function handleInstallClick() {
   }
 }
 
-function absoluteUrl(path) {
-  if (!path) return "/mc-icon-512.png?v=5";
-  if (/^https?:\/\//i.test(path)) return path;
-  if (path.startsWith("//")) return `https:${path}`;
-  if (path.startsWith("/")) return path;
-  return path;
-}
+const apiClient = window.ANIMECLOUD_API_CLIENT.createApiClient({
+  responseCache,
+  requestCache,
+  location: window.location,
+  history: window.history,
+  fetchImpl: window.fetch.bind(window),
+  imageProxyBase: IMAGE_PROXY_BASE,
+  siteUrlBase: SITE_URL,
+  apiTimeoutMs: API_TIMEOUT_MS,
+  apiRetryAttempts: API_RETRY_ATTEMPTS,
+  apiRetryBaseDelay: API_RETRY_BASE_DELAY
+});
+const {
+  absoluteUrl,
+  proxiedImageUrl,
+  normalizeExternalPlayer,
+  apiUrl,
+  siteUrl,
+  normalizePath,
+  getViewPath,
+  getAnimePath,
+  routeFromLocation,
+  navigateTo,
+  createFetchSignal,
+  fetchJson
+} = apiClient;
 
-function proxiedImageUrl(path) {
-  const absolute = absoluteUrl(path);
-  if (!absolute || absolute.startsWith("/")) return absolute;
-  try {
-    const url = new URL(absolute, window.location.origin);
-    if (url.origin === window.location.origin) return url.toString();
-    if (
-      !(
-        /(^|\.)anilibria\.top$/i.test(url.hostname) ||
-        /(^|\.)libria\.fun$/i.test(url.hostname) ||
-        /(^|\.)kp\.yandex\.net$/i.test(url.hostname) ||
-        /(^|\.)kodik\.biz$/i.test(url.hostname) ||
-        /(^|\.)kodik\.info$/i.test(url.hostname) ||
-        /(^|\.)kodikres\.com$/i.test(url.hostname) ||
-        /(^|\.)shikimori\.io$/i.test(url.hostname) ||
-        /(^|\.)shikimori\.one$/i.test(url.hostname) ||
-        /(^|\.)shikimori\.me$/i.test(url.hostname) ||
-        /(^|\.)shikimori\.org$/i.test(url.hostname)
-      )
-    ) {
-      return absolute;
-    }
-    return `${IMAGE_PROXY_BASE}?url=${encodeURIComponent(url.toString())}`;
-  } catch {
-    return absolute;
-  }
-}
+const seoRuntime = window.ANIMECLOUD_SEO.createSeoRuntime({
+  els,
+  siteUrl,
+  getViewPath,
+  getAnimePath,
+  defaultSeoTitle: DEFAULT_SEO_TITLE,
+  defaultSeoDescription: DEFAULT_SEO_DESCRIPTION,
+  defaultImagePath: "/mc-icon-512.png?v=5",
+  viewSeo: VIEW_SEO
+});
+const {
+  truncateSeoText,
+  buildStructuredData,
+  buildReleaseStructuredData,
+  applySeo,
+  updateViewSeo,
+  updateReleaseSeo
+} = seoRuntime;
 
-function normalizeExternalPlayer(url) {
-  if (!url) return "";
-  const raw = url.startsWith("//") ? `https:${url}` : url;
-  try {
-    const parsed = new URL(raw);
-    if (parsed.hostname.includes("kodik")) {
-      parsed.searchParams.set("translations", "true");
-    }
-    return parsed.toString();
-  } catch {
-    return raw;
-  }
-}
-
-function apiUrl(path, params) {
-  const url = new URL(path, window.location.origin);
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        url.searchParams.set(key, String(value));
-      }
-    });
-  }
-  return url.toString();
-}
-
-function siteUrl(path = "/") {
-  return new URL(path, SITE_URL).toString();
-}
-
-function normalizePath(path) {
-  const next = `/${String(path || "").replace(/^\/+/, "")}`.replace(/\/{2,}/g, "/");
-  return next.length > 1 ? next.replace(/\/+$/, "") : "/";
-}
-
-function getViewPath(view) {
-  return view === "home" ? "/" : normalizePath(view);
-}
-
-function getAnimePath(alias) {
-  return `/anime/${encodeURIComponent(alias)}`;
-}
-
-function routeFromLocation() {
-  const pathname = normalizePath(location.pathname);
-  const query = new URLSearchParams(location.search).get("q")?.trim() || "";
-  if (pathname.startsWith("/anime/")) {
-    return { type: "anime", alias: decodeURIComponent(pathname.slice(7)), legacy: false };
-  }
-
-  const knownViews = new Set(["/", "/catalog", "/ongoing", "/top", "/schedule", "/search", "/profile"]);
-  if (knownViews.has(pathname)) {
-    return {
-      type: "view",
-      view: pathname === "/" ? "home" : pathname.slice(1),
-      legacy: false,
-      query
-    };
-  }
-
-  const rawHash = (location.hash || "").replace(/^#/, "");
-  if (rawHash.startsWith("anime/")) {
-    return { type: "anime", alias: decodeURIComponent(rawHash.slice(6)), legacy: true };
-  }
-  if (rawHash) {
-    return { type: "view", view: rawHash, legacy: true, query: "" };
-  }
-  return { type: "view", view: "home", legacy: false, query: "" };
-}
-
-function navigateTo(path, options = {}) {
-  const nextPath = normalizePath(path);
-  const nextUrl = new URL(nextPath, location.origin);
-  const search = String(options.search || "").replace(/^\?/, "").trim();
-  nextUrl.search = search ? `?${search}` : "";
-  const currentUrl = `${normalizePath(location.pathname)}${location.search}`;
-  const nextUrlValue = `${nextUrl.pathname}${nextUrl.search}`;
-  if (currentUrl === nextUrlValue) return;
-  const method = options.replace ? "replaceState" : "pushState";
-  history[method]({}, "", nextUrlValue);
-}
-
-function truncateSeoText(text, max = 170) {
-  const clean = String(text || "").replace(/\s+/g, " ").trim();
-  if (clean.length <= max) return clean;
-  return `${clean.slice(0, Math.max(0, max - 1)).trim()}…`;
-}
-
-function buildStructuredData(page) {
-  return JSON.stringify({
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        name: "AnimeCloud",
-        url: siteUrl("/"),
-        inLanguage: "ru",
-        description: DEFAULT_SEO_DESCRIPTION,
-        potentialAction: {
-          "@type": "SearchAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${siteUrl("/search")}?q={search_term_string}`
-          },
-          "query-input": "required name=search_term_string"
-        }
-      },
-      page
-    ]
+const { applyContentStats, getHomeStats } = window.ANIMECLOUD_STATS;
+const shouldPreferFastStart = () =>
+  window.ANIMECLOUD_PLAYER_UTILS.shouldPreferFastStart({
+    navigator: window.navigator,
+    matchMedia: window.matchMedia?.bind(window)
   });
-}
-
-function buildReleaseStructuredData(release, description, path) {
-  const canonical = siteUrl(path);
-  const graph = [
-    {
-      "@type": "TVSeries",
-      name: release.title,
-      url: canonical,
-      description,
-      image: release.poster || siteUrl("/mc-icon-512.png"),
-      genre: release.genres || [],
-      inLanguage: "ru",
-      numberOfEpisodes: release.episodesTotal || undefined,
-      dateCreated: /^\d{4}$/.test(String(release.year || "")) ? String(release.year) : undefined,
-      isPartOf: {
-        "@type": "WebSite",
-        name: "AnimeCloud",
-        url: siteUrl("/")
-      }
-    },
-    {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Главная",
-          item: siteUrl("/")
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Каталог",
-          item: siteUrl("/catalog")
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: release.title,
-          item: canonical
-        }
-      ]
-    }
-  ];
-
-  if (release.externalPlayer || (Array.isArray(release.sourceItems) && release.sourceItems.length)) {
-    graph.push({
-      "@type": "VideoObject",
-      name: `${release.title} — смотреть онлайн`,
-      description,
-      thumbnailUrl: [release.poster || siteUrl("/mc-icon-512.png")],
-      embedUrl: release.externalPlayer || undefined,
-      uploadDate: /^\d{4}$/.test(String(release.year || "")) ? `${String(release.year)}-01-01T00:00:00Z` : undefined,
-      isFamilyFriendly: !/\b(18\+|r|nc-17)\b/i.test(String(release.age || "")),
-      potentialAction: {
-        "@type": "WatchAction",
-        target: canonical
-      }
-    });
-  }
-
-  return JSON.stringify({
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        name: "AnimeCloud",
-        url: siteUrl("/"),
-        inLanguage: "ru",
-        description: DEFAULT_SEO_DESCRIPTION,
-        potentialAction: {
-          "@type": "SearchAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${siteUrl("/search")}?q={search_term_string}`
-          },
-          "query-input": "required name=search_term_string"
-        }
-      },
-      ...graph
-    ]
+const pickPreferredQuality = (options) =>
+  window.ANIMECLOUD_PLAYER_UTILS.pickPreferredQuality(options, state.currentQuality, {
+    navigator: window.navigator,
+    matchMedia: window.matchMedia?.bind(window)
   });
-}
-
-function createFetchSignal(timeoutMs = API_TIMEOUT_MS, externalSignal = null) {
-  if (!timeoutMs && !externalSignal) {
-    return { signal: undefined, cleanup: () => {} };
-  }
-
-  const controller = new AbortController();
-  const cleanups = [];
-
-  if (timeoutMs > 0) {
-    const timer = setTimeout(() => controller.abort(new Error("Request timed out")), timeoutMs);
-    cleanups.push(() => clearTimeout(timer));
-  }
-
-  if (externalSignal) {
-    const abortFromExternal = () => controller.abort(externalSignal.reason);
-    if (externalSignal.aborted) {
-      abortFromExternal();
-    } else {
-      externalSignal.addEventListener("abort", abortFromExternal, { once: true });
-      cleanups.push(() => externalSignal.removeEventListener("abort", abortFromExternal));
-    }
-  }
-
-  return {
-    signal: controller.signal,
-    cleanup: () => cleanups.splice(0).forEach((fn) => fn())
-  };
-}
-
-function applySeo({ title, description, path, image, type = "website", structuredData, robots }) {
-  const canonical = siteUrl(path || "/");
-  document.title = title || DEFAULT_SEO_TITLE;
-  if (els.metaDescription) els.metaDescription.content = description || DEFAULT_SEO_DESCRIPTION;
-  if (els.metaRobots) {
-    els.metaRobots.content =
-      robots || "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
-  }
-  if (els.canonicalLink) els.canonicalLink.href = canonical;
-  if (els.ogType) els.ogType.content = type;
-  if (els.ogTitle) els.ogTitle.content = title || DEFAULT_SEO_TITLE;
-  if (els.ogDescription) els.ogDescription.content = description || DEFAULT_SEO_DESCRIPTION;
-  if (els.ogUrl) els.ogUrl.content = canonical;
-  if (els.ogImage) els.ogImage.content = image || siteUrl("/mc-icon-512.png?v=5");
-  if (els.twitterTitle) els.twitterTitle.content = title || DEFAULT_SEO_TITLE;
-  if (els.twitterDescription) els.twitterDescription.content = description || DEFAULT_SEO_DESCRIPTION;
-  if (els.twitterImage) els.twitterImage.content = image || siteUrl("/mc-icon-512.png?v=5");
-  if (els.structuredData) {
-    els.structuredData.textContent =
-      structuredData ||
-      buildStructuredData({
-        "@type": "CollectionPage",
-        name: title || DEFAULT_SEO_TITLE,
-        url: canonical,
-        inLanguage: "ru",
-        description: description || DEFAULT_SEO_DESCRIPTION,
-        isPartOf: {
-          "@type": "WebSite",
-          name: "AnimeCloud",
-          url: siteUrl("/")
-        }
-      });
-  }
-}
-
-function updateViewSeo(view) {
-  const seo = VIEW_SEO[view] || VIEW_SEO.home;
-  applySeo({
-    title: seo.title,
-    description: seo.description,
-    path: getViewPath(view),
-    robots: seo.robots,
-    structuredData: buildStructuredData({
-      "@type": "CollectionPage",
-      name: seo.title,
-      url: siteUrl(getViewPath(view)),
-      inLanguage: "ru",
-      description: seo.description,
-      isPartOf: {
-        "@type": "WebSite",
-        name: "AnimeCloud",
-        url: siteUrl("/")
-      }
-    })
-  });
-}
-
-function updateReleaseSeo(release) {
-  const description = truncateSeoText(
-    `${release.description || DEFAULT_SEO_DESCRIPTION} ${
-      release.genres?.length ? `Жанры: ${release.genres.join(", ")}.` : ""
-    } ${release.episodesTotal ? `Эпизодов: ${release.episodesTotal}.` : ""}`
-  );
-  const path = getAnimePath(release.alias);
-  applySeo({
-    title: `${release.title} - смотреть онлайн с русской озвучкой | AnimeCloud`,
-    description,
-    path,
-    image: release.poster || siteUrl("/mc-icon-512.png"),
-    type: "video.other",
-    structuredData: buildReleaseStructuredData(release, description, path)
-  });
-}
-
-async function fetchJson(path, params, options = {}) {
-  const ttl = options.ttl ?? CACHE_TTL;
-  const url = apiUrl(path, params);
-  const cached = responseCache.get(url);
-  if (ttl > 0 && cached && Date.now() - cached.time < ttl) {
-    return cached.data;
-  }
-  if (requestCache.has(url)) {
-    return requestCache.get(url);
-  }
-
-  const promise = (async () => {
-    let lastError = null;
-    const attempts = Math.max(1, Number(options.retries || API_RETRY_ATTEMPTS));
-
-    for (let attempt = 1; attempt <= attempts; attempt += 1) {
-      const { signal, cleanup } = createFetchSignal(options.timeout ?? API_TIMEOUT_MS, options.signal);
-      try {
-        const response = await fetch(url, { cache: "no-store", signal });
-        const rawText = await response.text();
-
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.status} ${path}`);
-        }
-
-        if (!rawText) {
-          throw new Error(`API request returned empty body: ${path}`);
-        }
-
-        const data = JSON.parse(rawText);
-        if (data == null) {
-          throw new Error(`API request returned invalid payload: ${path}`);
-        }
-
-        if (ttl > 0) {
-          responseCache.set(url, { time: Date.now(), data });
-        }
-        return data;
-      } catch (error) {
-        lastError = error;
-        if (error?.name === "AbortError") {
-          throw error;
-        }
-        if (attempt < attempts) {
-          await sleep(API_RETRY_BASE_DELAY * attempt);
-          continue;
-        }
-      } finally {
-        cleanup();
-      }
-    }
-
-    if (cached?.data) {
-      return cached.data;
-    }
-
-    throw lastError || new Error(`API request failed: ${path}`);
-  })().finally(() => requestCache.delete(url));
-
-  requestCache.set(url, promise);
-  return promise;
-}
 
 const extractList = (payload) => {
   if (Array.isArray(payload)) return payload;
@@ -1514,27 +1175,6 @@ function formatClock(seconds) {
 
 const formatDurationMinutes = (minutes) => (minutes ? `${minutes} мин.` : "");
 const formatEpisodeDuration = (seconds) => (seconds ? `${Math.max(1, Math.round(seconds / 60))} мин.` : "");
-
-function shouldPreferFastStart() {
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  const saveData = Boolean(connection?.saveData);
-  const effectiveType = String(connection?.effectiveType || "");
-  const downlink = Number(connection?.downlink || 0);
-  if (saveData || effectiveType === "slow-2g" || effectiveType === "2g" || effectiveType === "3g") return true;
-  if (downlink && downlink < 4) return true;
-  return Boolean(window.matchMedia?.("(max-width: 860px)").matches && (!downlink || downlink < 6));
-}
-
-function pickPreferredQuality(options) {
-  if (!options.length) return "";
-  if (state.currentQuality && state.currentQuality !== "auto" && options.some((item) => item.key === state.currentQuality)) {
-    return state.currentQuality;
-  }
-  if (shouldPreferFastStart() && options.some((item) => item.key === "480")) return "480";
-  if (options.some((item) => item.key === "720")) return "720";
-  if (options.some((item) => item.key === "1080")) return "1080";
-  return options[0].key;
-}
 
 function createEmptyState(message) {
   const node = document.createElement("div");
@@ -2607,12 +2247,11 @@ function applyAdminHero(releases) {
 }
 
 function updateStats() {
-  els.latestCount.textContent = formatNumber(state.latestTotal || state.latest.length || state.recommended.length || state.popular.length);
-  els.catalogCount.textContent = formatNumber(
-    state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length || getHeroCandidates().length
-  );
-  els.ongoingCount.textContent = formatNumber(state.ongoingMergedTotal || state.ongoingTotal || state.ongoingItems.length);
-  els.topCount.textContent = formatNumber(state.topMergedTotal || state.topTotal || state.popular.length || state.topItems.length);
+  const stats = getHomeStats(state);
+  els.latestCount.textContent = formatNumber(stats.latestTotal);
+  els.catalogCount.textContent = formatNumber(stats.catalogTotal || getHeroCandidates().length);
+  els.ongoingCount.textContent = formatNumber(stats.ongoingTotal);
+  els.topCount.textContent = formatNumber(stats.topTotal);
 }
 
 async function loadContentStats(force = false) {
@@ -2623,16 +2262,7 @@ async function loadContentStats(force = false) {
     } catch {
       stats = await fetchJson("/content-stats.json", null, { ttl: force ? 0 : CONTENT_STATS_TTL, retries: 1 });
     }
-    state.catalogMergedTotal = Math.max(Number(stats?.catalogTotal || 0), state.catalogMergedTotal || 0);
-    state.ongoingMergedTotal = Math.max(Number(stats?.ongoingTotal || 0), state.ongoingMergedTotal || 0);
-    state.topMergedTotal = Math.max(Number(stats?.topTotal || 0), state.topMergedTotal || 0);
-    state.latestTotal = Math.max(Number(stats?.latestTotal || 0), state.latestTotal || 0);
-    state.catalogTotal = Math.max(state.catalogMergedTotal || 0, state.catalogTotal || 0);
-    state.ongoingTotal = Math.max(state.ongoingMergedTotal || 0, state.ongoingTotal || 0);
-    state.topTotal = Math.max(state.topMergedTotal || 0, state.topTotal || 0);
-    state.catalogTotalPages = Math.max(state.catalogTotalPages || 0, Math.ceil((state.catalogMergedTotal || 0) / GRID_PAGE_SIZE));
-    state.ongoingTotalPages = Math.max(state.ongoingTotalPages || 0, Math.ceil((state.ongoingMergedTotal || 0) / GRID_PAGE_SIZE));
-    state.topTotalPages = Math.max(state.topTotalPages || 0, Math.ceil((state.topMergedTotal || 0) / GRID_PAGE_SIZE));
+    applyContentStats(state, stats, { gridPageSize: GRID_PAGE_SIZE });
     updateStats();
     if (state.catalogLoaded) {
       if (state.catalogGenre || state.catalogGenres.length || state.catalogVoice) {

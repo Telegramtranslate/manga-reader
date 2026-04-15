@@ -2,7 +2,14 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { absoluteKodikUrl, buildAlias, buildIdentity, payloadFromPageUrl, postKodik } = require("../api/_kodik");
 
-const SITE_URL = String(process.env.SITE_URL || "https://color-manga-cloud.vercel.app").replace(/\/+$/, "");
+function resolveSitemapSiteUrl(env = process.env) {
+  const value = String(env.SITE_URL || "").trim();
+  if (!value) {
+    throw new Error("SITE_URL environment variable is required to generate sitemap-anime.xml");
+  }
+  return value.replace(/\/+$/, "");
+}
+
 const KODIK_PAGE_LIMIT = 100;
 const OUTPUT_PATH = path.join(__dirname, "..", "sitemap-anime.xml");
 
@@ -15,7 +22,7 @@ function xmlEscape(value) {
     .replaceAll("'", "&apos;");
 }
 
-function buildKodikEntry(item) {
+function buildKodikEntry(item, siteUrl) {
   const identity = buildIdentity(item);
   if (!identity) return null;
 
@@ -35,13 +42,13 @@ function buildKodikEntry(item) {
 
   return {
     key: identity,
-    loc: `${SITE_URL}/anime/${encodeURIComponent(buildAlias(identity))}`,
+    loc: `${siteUrl}/anime/${encodeURIComponent(buildAlias(identity))}`,
     lastmod: updatedAt ? new Date(updatedAt).toISOString() : null,
     image: poster || ""
   };
 }
 
-async function collectKodikEntries() {
+async function collectKodikEntries(siteUrl) {
   const entries = new Map();
   let payload = {
     limit: KODIK_PAGE_LIMIT,
@@ -57,7 +64,7 @@ async function collectKodikEntries() {
     results.forEach((item) => {
       const type = String(item?.type || "").toLowerCase();
       if (type !== "anime" && type !== "anime-serial") return;
-      const entry = buildKodikEntry(item);
+      const entry = buildKodikEntry(item, siteUrl);
       if (entry?.key && entry?.loc && !entries.has(entry.key)) {
         entries.set(entry.key, entry);
       }
@@ -70,7 +77,8 @@ async function collectKodikEntries() {
 }
 
 async function main() {
-  const entries = await collectKodikEntries();
+  const siteUrl = resolveSitemapSiteUrl();
+  const entries = await collectKodikEntries(siteUrl);
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
@@ -90,7 +98,13 @@ ${entries
   console.log(`Generated ${entries.length} Kodik anime URLs -> ${OUTPUT_PATH}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+module.exports = {
+  resolveSitemapSiteUrl
+};
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
