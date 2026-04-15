@@ -72,9 +72,13 @@ function payloadFromNextPage(nextPageUrl) {
 }
 
 function pagePayload(basePayload, page) {
+  const safePage = Math.max(1, Number(page || 1));
+  if (safePage <= 1) {
+    return { ...basePayload };
+  }
   return {
     ...basePayload,
-    page: Math.max(1, Number(page || 1))
+    page: safePage
   };
 }
 
@@ -91,7 +95,7 @@ async function runWithConcurrency(items, concurrency, worker) {
 }
 
 async function detectDirectKodikPagingSupport(basePayload) {
-  const firstPage = await postKodik(pagePayload(basePayload, 1));
+  const firstPage = await postKodik(basePayload);
   if (!firstPage?.next_page) {
     return { supported: true, firstPage };
   }
@@ -159,10 +163,14 @@ async function fetchKodikCatalogTotalWithParallelProbe() {
 
   let counted = Array.isArray(firstPage?.results) ? firstPage.results.length : 0;
   const pages = Array.from({ length: totalPages - 1 }, (_, index) => index + 2);
-  await runWithConcurrency(pages, KODIK_CONCURRENCY, async (page) => {
-    const response = await postKodik(pagePayload(basePayload, page));
-    counted += Array.isArray(response?.results) ? response.results.length : 0;
-  });
+  try {
+    await runWithConcurrency(pages, KODIK_CONCURRENCY, async (page) => {
+      const response = await postKodik(pagePayload(basePayload, page));
+      counted += Array.isArray(response?.results) ? response.results.length : 0;
+    });
+  } catch {
+    return Math.max(initialTotal, await fetchKodikTotal());
+  }
 
   return Math.max(initialTotal, counted);
 }
