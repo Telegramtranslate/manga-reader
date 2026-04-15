@@ -96,6 +96,9 @@ const state = {
   voiceOptions: [],
   catalogFilterKey: "",
   catalogFilterPool: [],
+  catalogFilterCursor: 0,
+  catalogFilterExhausted: false,
+  catalogFilterTotalMatches: 0,
   favorites: [],
   authUser: null,
   featured: null,
@@ -216,7 +219,9 @@ const els = {
   catalogGenre: document.getElementById("catalog-genre"),
   catalogVoice: document.getElementById("catalog-voice"),
   catalogGenreChips: document.getElementById("catalog-genre-chips"),
-  catalogMoreBtn: document.getElementById("catalog-more-btn"),
+  catalogPrevBtn: document.getElementById("catalog-prev-btn"),
+  catalogPageLabel: document.getElementById("catalog-page-label"),
+  catalogNextBtn: document.getElementById("catalog-next-btn"),
   ongoingMoreBtn: document.getElementById("ongoing-more-btn"),
   topMoreBtn: document.getElementById("top-more-btn"),
   drawer: document.getElementById("details-drawer"),
@@ -266,7 +271,7 @@ const STATIC_UI_TEXT = Object.freeze({
     "релизов в базе",
     "тайтлов в каталоге",
     "онгоингов",
-    "в топ-подборке"
+    "в рейтинге"
   ],
   latestKicker: "Лента",
   latestTitle: "Последние релизы",
@@ -1737,6 +1742,93 @@ function registerVoices(releases) {
   renderCatalogControls();
 }
 
+function resetCatalogVoicePool(filterKey) {
+  state.catalogFilterKey = filterKey;
+  state.catalogFilterPool = [];
+  state.catalogFilterCursor = 0;
+  state.catalogFilterExhausted = false;
+  state.catalogFilterTotalMatches = 0;
+}
+
+function mergeUniqueAliases(list, extra = []) {
+  const merged = Array.isArray(list) ? list.slice() : [];
+  const seen = new Set(merged.map((release) => release?.alias).filter(Boolean));
+
+  (Array.isArray(extra) ? extra : []).forEach((release) => {
+    if (!release) return;
+    const alias = String(release.alias || "").trim();
+    if (alias && seen.has(alias)) return;
+    if (alias) seen.add(alias);
+    merged.push(release);
+  });
+
+  return merged;
+}
+
+async function fetchCatalogVoicePage(page, requestOptions) {
+  const safePage = Math.max(1, Number(page || 1));
+  const startIndex = (safePage - 1) * GRID_PAGE_SIZE;
+  const neededCount = startIndex + GRID_PAGE_SIZE + 1;
+
+  while (state.catalogFilterPool.length < neededCount && !state.catalogFilterExhausted) {
+    const rawPage = state.catalogFilterCursor + 1;
+    const payload = await fetchKodikDiscover("catalog", rawPage, GRID_PAGE_SIZE, requestOptions);
+    const pagination = extractPagination(payload);
+    const releases = sortCatalogReleases(buildReleases(payload), state.catalogSort);
+
+    registerGenres(releases);
+    registerVoices(releases);
+
+    const matched = releases.filter((release) => releaseMatchesVoiceFilter(release, state.catalogVoice));
+    state.catalogFilterPool = mergeUniqueAliases(state.catalogFilterPool, matched);
+    state.catalogFilterCursor = rawPage;
+    state.catalogFilterExhausted = rawPage >= Math.max(pagination.total_pages || 0, rawPage) || !releases.length;
+
+    if (state.catalogFilterExhausted) {
+      state.catalogFilterTotalMatches = state.catalogFilterPool.length;
+    }
+  }
+
+  const items = state.catalogFilterPool.slice(startIndex, startIndex + GRID_PAGE_SIZE);
+  const hasMore = state.catalogFilterExhausted
+    ? startIndex + GRID_PAGE_SIZE < state.catalogFilterPool.length
+    : state.catalogFilterPool.length > startIndex + GRID_PAGE_SIZE || !state.catalogFilterExhausted;
+  const totalPages = state.catalogFilterExhausted
+    ? Math.max(1, Math.ceil(state.catalogFilterPool.length / GRID_PAGE_SIZE))
+    : Math.max(safePage + (hasMore ? 1 : 0), 1);
+
+  return {
+    items,
+    pagination: {
+      current_page: safePage,
+      total_pages: totalPages,
+      total: state.catalogFilterExhausted ? state.catalogFilterPool.length : 0
+    },
+    hasMore,
+    totalKnown: state.catalogFilterExhausted
+  };
+}
+
+function syncCatalogPager() {
+  if (els.catalogPageLabel) {
+    if (state.catalogVoice && !state.catalogFilterExhausted) {
+      els.catalogPageLabel.textContent = `Страница ${Math.max(1, state.catalogPage || 1)}`;
+    } else {
+      els.catalogPageLabel.textContent = `Страница ${Math.max(1, state.catalogPage || 1)} из ${Math.max(
+        1,
+        state.catalogTotalPages || 1
+      )}`;
+    }
+  }
+
+  if (els.catalogPrevBtn) {
+    els.catalogPrevBtn.disabled = state.catalogPage <= 1;
+  }
+  if (els.catalogNextBtn) {
+    els.catalogNextBtn.disabled = !state.catalogHasMore;
+  }
+}
+
 function renderGenreChips() {
   if (!els.catalogGenreChips) return;
   els.catalogGenreChips.innerHTML = "";
@@ -1786,9 +1878,21 @@ function refreshCatalogView(pagination = null) {
   ];
 
   if (els.catalogSummary) {
-    els.catalogSummary.textContent = activeFilters.length
-      ? `Активные фильтры: ${activeFilters.join(" • ")}. Загружено ${formatNumber(items.length)} релизов из базы Kodik.`
-      : `${formatNumber(state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length)} тайтлов в полной базе Kodik.${pageLabel}`;
+    if (activeFilters.length) {
+      const exactMatchCount =
+        state.catalogVoice && state.catalogFilterExhausted
+          ? state.catalogFilterPool.length
+          : state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length;
+      const totalLabel =
+        state.catalogVoice && !state.catalogFilterExhausted
+          ? `Показываем страницу ${Math.max(1, currentPage || 1)} по выбранной озвучке.`
+          : `Найдено ${formatNumber(exactMatchCount)} релизов по фильтрам.${pageLabel}`;
+      els.catalogSummary.textContent = `Активные фильтры: ${activeFilters.join(" • ")}. ${totalLabel}`;
+    } else {
+      els.catalogSummary.textContent = `${formatNumber(
+        state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
+      )} тайтлов в полной базе Kodik.${pageLabel}`;
+    }
   }
 
   updateGrid(
@@ -1796,6 +1900,7 @@ function refreshCatalogView(pagination = null) {
     items,
     activeFilters.length ? "По выбранным фильтрам пока ничего не найдено." : "Каталог пуст."
   );
+  syncCatalogPager();
 }
 
 function refreshOngoingSummary(pagination = null) {
@@ -2587,10 +2692,7 @@ function releaseMatchesCatalogTypeSelection(release, catalogType = state.catalog
 async function loadCatalog(options = {}) {
   await loadReferences();
   const reset = Boolean(options.reset);
-  const nextPage = reset ? 1 : state.catalogPage + 1;
-  const existingAliases = new Set(state.catalogItems.map((release) => release.alias).filter(Boolean));
-  const previousCatalogCount = reset ? 0 : state.catalogItems.length;
-  const previousFilteredCount = reset ? 0 : getFilteredCatalogItems().length;
+  const requestedPage = Math.max(1, Number(options.page || (reset ? 1 : state.catalogPage || 1)));
   const mergedCatalogTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.catalogTotal || 0));
 
   if (reset) {
@@ -2601,13 +2703,16 @@ async function loadCatalog(options = {}) {
     state.catalogHasMore = false;
     els.catalogSummary.textContent = "Загружаем каталог…";
     renderSkeletonGrid(els.catalogGrid, 8);
+    syncCatalogPager();
   }
 
   try {
-    els.catalogMoreBtn.disabled = true;
+    if (els.catalogPrevBtn) els.catalogPrevBtn.disabled = true;
+    if (els.catalogNextBtn) els.catalogNextBtn.disabled = true;
     const activeGenres = normalizeGenreList([state.catalogGenre, ...state.catalogGenres].filter(Boolean));
     const hasGenreFilters = activeGenres.length > 0;
-    const hasClientFilters = hasGenreFilters || Boolean(state.catalogVoice);
+    const hasVoiceFilter = Boolean(state.catalogVoice);
+    const hasClientFilters = hasGenreFilters || hasVoiceFilter;
     const kodikTypeConfig = getKodikCatalogTypeConfig(state.catalogType);
     const shouldLoadKodik = kodikTypeConfig.enabled;
     const filterKey = JSON.stringify({
@@ -2617,92 +2722,80 @@ async function loadCatalog(options = {}) {
       voice: state.catalogVoice || ""
     });
 
-    if (reset) {
-      state.catalogFilterKey = filterKey;
-      state.catalogFilterPool = [];
+    if (reset || state.catalogFilterKey !== filterKey) {
+      resetCatalogVoicePool(filterKey);
     }
 
+    const requestOptions = {
+      ttl: 120000,
+      ...getKodikSortConfig(state.catalogSort),
+      genres: activeGenres,
+      animeKinds: kodikTypeConfig.animeKinds,
+      mediaTypes: kodikTypeConfig.mediaTypes
+    };
+
     const kodikPayload = shouldLoadKodik
-      ? await fetchKodikDiscover("catalog", nextPage, GRID_PAGE_SIZE, {
-          ttl: 120000,
-          ...getKodikSortConfig(state.catalogSort),
-          genres: activeGenres,
-          animeKinds: kodikTypeConfig.animeKinds,
-          mediaTypes: kodikTypeConfig.mediaTypes
-        })
-      : { items: [], pagination: { current_page: nextPage, total_pages: nextPage, total: 0 } };
+      ? hasVoiceFilter
+        ? await fetchCatalogVoicePage(requestedPage, requestOptions)
+        : await fetchKodikDiscover("catalog", requestedPage, GRID_PAGE_SIZE, requestOptions)
+      : {
+          items: [],
+          pagination: { current_page: requestedPage, total_pages: requestedPage, total: 0 },
+          hasMore: false,
+          totalKnown: true
+        };
 
     const pagination = extractPagination(kodikPayload);
     const releases = sortCatalogReleases(buildReleases(kodikPayload), state.catalogSort);
-    const appendedReleases = reset
-      ? releases
-      : releases.filter((release) => release?.alias && !existingAliases.has(release.alias));
 
     registerGenres(releases);
     registerVoices(releases);
-    state.catalogItems = reset ? releases : mergeReleaseCollections(state.catalogItems, releases);
-    state.catalogPage = Math.max(pagination.current_page || 0, nextPage);
-    state.catalogTotal = hasGenreFilters
-      ? Math.max(state.catalogItems.length, pagination.total || 0)
-      : Math.max(mergedCatalogTotal || 0, pagination.total || 0, state.catalogItems.length);
+    state.catalogItems = releases;
+    state.catalogPage = Math.max(pagination.current_page || 0, requestedPage);
+    state.catalogTotal = hasVoiceFilter
+      ? pagination.total || state.catalogFilterTotalMatches || state.catalogItems.length
+      : hasGenreFilters
+        ? Math.max(state.catalogItems.length, pagination.total || 0)
+        : Math.max(mergedCatalogTotal || 0, pagination.total || 0, state.catalogItems.length);
     state.catalogTotalPages = Math.max(
       pagination.total_pages || 0,
       Math.ceil((state.catalogTotal || state.catalogItems.length) / GRID_PAGE_SIZE),
       state.catalogPage ? 1 : 0
     );
-    state.catalogHasMore = state.catalogPage < (state.catalogTotalPages || 1);
+    state.catalogHasMore = hasVoiceFilter
+      ? Boolean(kodikPayload?.hasMore)
+      : state.catalogPage < (state.catalogTotalPages || 1);
     state.catalogLoaded = true;
 
     if (hasClientFilters) {
-      const filteredAppended = appendedReleases.filter((release) => {
-        if (hasGenreFilters && !releaseMatchesGenres(release, activeGenres)) return false;
-        if (state.catalogVoice && !releaseMatchesVoiceFilter(release, state.catalogVoice)) return false;
-        return true;
-      });
-      const filteredItems = getFilteredCatalogItems();
       const filters = [
         ...(hasGenreFilters ? [`жанры: ${[...new Set(activeGenres)].join(", ")}`] : []),
         ...(state.catalogVoice ? [`озвучка: ${state.catalogVoice}`] : [])
       ];
 
       if (els.catalogSummary) {
-        els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Загружено ${formatNumber(
-          filteredItems.length
-        )} релизов из базы Kodik.`;
+        if (hasVoiceFilter && !kodikPayload?.totalKnown) {
+          els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Показываем страницу ${state.catalogPage} по выбранной озвучке.`;
+        } else {
+          els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Найдено ${formatNumber(
+            state.catalogTotal || state.catalogItems.length
+          )} релизов по фильтрам.`;
+        }
       }
-
-      if (!reset && filteredAppended.length && filteredItems.length === previousFilteredCount + filteredAppended.length) {
-        updateGrid(els.catalogGrid, filteredAppended, "По выбранным фильтрам пока ничего не найдено.", {
-          append: true,
-          offset: previousFilteredCount
-        });
-      } else {
-        refreshCatalogView(pagination);
-      }
+      refreshCatalogView(pagination);
     } else {
       els.catalogSummary.textContent = `${formatNumber(
         state.catalogMergedTotal || state.catalogTotal
       )} тайтлов в полной базе Kodik. Страница ${state.catalogPage} из ${
         state.catalogTotalPages || 1
       }.`;
-      if (reset) {
-        updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
-      } else if (appendedReleases.length) {
-        updateGrid(els.catalogGrid, appendedReleases, "Каталог пуст.", {
-          append: true,
-          offset: previousCatalogCount
-        });
-      }
+      updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
     }
-
-    els.catalogMoreBtn.hidden = !state.catalogHasMore;
-    els.catalogMoreBtn.disabled = !state.catalogHasMore;
+    syncCatalogPager();
     updateStats();
-    setupInfiniteScroll();
   } catch (error) {
     console.error("loadCatalog failed", error);
-    els.catalogMoreBtn.hidden = true;
-    els.catalogMoreBtn.disabled = false;
+    syncCatalogPager();
     const message = getKodikUnavailableMessage(error, "Каталог временно недоступен.");
     els.catalogSummary.textContent = message;
     replaceWithErrorState(els.catalogGrid, message, () => loadCatalog({ reset: true }).catch(console.error));
@@ -4204,9 +4297,17 @@ function bindEvents() {
   els.installBtn?.addEventListener("click", () => {
     handleInstallClick().catch(console.error);
   });
-  bindLoadMoreButton(els.catalogMoreBtn, () => loadCatalog({ reset: false }));
   bindLoadMoreButton(els.ongoingMoreBtn, () => loadOngoing({ reset: false }));
   bindLoadMoreButton(els.topMoreBtn, () => loadTop({ reset: false }));
+
+  els.catalogPrevBtn?.addEventListener("click", () => {
+    if (state.catalogPage <= 1) return;
+    loadCatalog({ page: state.catalogPage - 1 }).catch(console.error);
+  });
+  els.catalogNextBtn?.addEventListener("click", () => {
+    if (!state.catalogHasMore) return;
+    loadCatalog({ page: state.catalogPage + 1 }).catch(console.error);
+  });
 
   els.catalogSort?.addEventListener("change", () => {
     state.catalogSort = els.catalogSort.value;

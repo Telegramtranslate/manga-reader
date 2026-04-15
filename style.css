@@ -916,6 +916,35 @@ button {
   pointer-events: none;
 }
 
+.pager-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.pager-wrap .ghost-btn {
+  min-width: 132px;
+}
+
+.pager-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(13, 19, 33, 0.72);
+  color: var(--text-strong);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 .profile-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
