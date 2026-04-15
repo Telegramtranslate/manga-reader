@@ -1,6 +1,6 @@
-(function (global, factory) {
-  const api = factory();
-  global.ANIMECLOUD_STATS = api;
+(function (root, factory) {
+  const api = factory(root);
+  root.ANIMECLOUD_STATS = api;
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   }

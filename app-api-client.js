@@ -1,11 +1,13 @@
-(function (global, factory) {
-  const api = factory();
-  global.ANIMECLOUD_API_CLIENT = api;
+(function (root, factory) {
+  const api = factory(root);
+  root.ANIMECLOUD_API_CLIENT = api;
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   }
-})(typeof window !== "undefined" ? window : globalThis, function () {
+})(typeof window !== "undefined" ? window : globalThis, function (root) {
   const DEFAULT_ALLOWED_IMAGE_HOSTS = [
+    /(^|\.)anilibria\.top$/i,
+    /(^|\.)libria\.fun$/i,
     /(^|\.)kp\.yandex\.net$/i,
     /(^|\.)kodik\.biz$/i,
     /(^|\.)kodik\.info$/i,
@@ -56,7 +58,7 @@
   }
 
   function routeFromLocation(locationLike) {
-    const activeLocation = locationLike || global.location;
+    const activeLocation = locationLike || root.location;
     const pathname = normalizePath(activeLocation?.pathname || "/");
     const query = new URLSearchParams(activeLocation?.search || "").get("q")?.trim() || "";
     if (pathname.startsWith("/anime/")) {
@@ -115,9 +117,9 @@
   function createApiClient(options = {}) {
     const responseCache = options.responseCache || new Map();
     const requestCache = options.requestCache || new Map();
-    const locationLike = options.location || global.location;
-    const historyLike = options.history || global.history;
-    const fetchImpl = options.fetchImpl || global.fetch.bind(global);
+    const locationLike = options.location || root.location;
+    const historyLike = options.history || root.history;
+    const fetchImpl = options.fetchImpl || root.fetch.bind(root);
     const imageProxyBase = options.imageProxyBase || "/api/anilibria-image";
     const siteUrlBase = options.siteUrlBase || locationLike?.origin || "https://example.invalid";
     const apiTimeoutMs = Number(options.apiTimeoutMs || 10000);

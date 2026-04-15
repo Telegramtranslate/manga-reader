@@ -1,6 +1,6 @@
-(function (global, factory) {
-  const api = factory();
-  global.ANIMECLOUD_PLAYER_UTILS = api;
+(function (root, factory) {
+  const api = factory(root);
+  root.ANIMECLOUD_PLAYER_UTILS = api;
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   }

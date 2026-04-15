@@ -1142,8 +1142,7 @@ function buildKodikReleaseParams(release) {
 
 function guessKodikMetaFromAlias(alias) {
   const value = String(alias || "");
-  if (!value.startsWith("kodik-")) return null;
-  const body = value.slice(6);
+  const body = value.startsWith("kodik-") ? value.slice(6) : value;
 
   if (body.startsWith("title-")) {
     const slug = body.slice(6).trim();
@@ -1168,6 +1167,20 @@ function guessKodikMetaFromAlias(alias) {
     return {
       title,
       year,
+      alternateTitles: [title]
+    };
+  }
+
+  if (!value.startsWith("kodik-") && /^[a-z0-9-]+$/i.test(body)) {
+    const title = body
+      .split("-")
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    if (!title) return null;
+    return {
+      title,
+      year: "",
       alternateTitles: [title]
     };
   }

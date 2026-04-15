@@ -72,13 +72,7 @@ function isScheduleRequest(url) {
 }
 
 function isPosterRequest(request, url) {
-  return (
-    request.destination === "image" &&
-    (url.origin === self.location.origin ||
-      /(?:kp\.yandex\.net|kodik\.biz|kodik\.info|kodikres\.com|shikimori\.io|shikimori\.one|shikimori\.me|shikimori\.org)$/i.test(
-        url.hostname
-      ))
-  );
+  return request.destination === "image" && url.origin === self.location.origin;
 }
 
 async function staleWhileRevalidate(request, cacheName, cacheKey = request) {
