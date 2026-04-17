@@ -1309,6 +1309,18 @@ button {
   margin: 14px 0 0;
 }
 
+.external-player-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.external-player-actions[hidden] {
+  display: none;
+}
+
 .player-footer {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
