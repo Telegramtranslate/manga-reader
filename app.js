@@ -2992,7 +2992,22 @@ function renderNotificationPopover() {
 }
 
 function applyNotifications(items, options = {}) {
-  state.notifications = mergeNotifications(items);
+  const nextItems = mergeNotifications(items);
+  const shouldPreserveExisting =
+    !options.reset &&
+    state.authUser?.localId &&
+    state.notificationPrimed &&
+    !nextItems.length &&
+    state.notifications.length > 0;
+
+  if (shouldPreserveExisting) {
+    state.notificationKnownIds = new Set(state.notifications.map((item) => item.id));
+    renderNotifications();
+    renderNotificationPopover();
+    return;
+  }
+
+  state.notifications = nextItems;
   renderNotifications();
   renderNotificationPopover();
 
@@ -3084,7 +3099,7 @@ function bindNotificationLiveSync() {
     }
     state.notificationPrimed = false;
     state.notificationKnownIds = new Set();
-    applyNotifications([], { silent: true });
+    applyNotifications([], { reset: true, silent: true });
     renderNotifications();
     renderNotificationPopover();
     return;
@@ -5346,7 +5361,7 @@ function bindEvents() {
       scheduleNotificationSync(900);
     } else {
       stopNotificationLiveSync();
-      applyNotifications([], { silent: true });
+      applyNotifications([], { reset: true, silent: true });
       renderContinueWatchingSections();
     }
     if (state.currentAnime) {
