@@ -3805,6 +3805,11 @@ body {
   justify-self: start;
 }
 
+.auth-slot .notification-btn {
+  flex: 0 0 auto;
+  align-self: center;
+}
+
 .notification-btn__icon {
   font-size: 1.05rem;
   line-height: 1;
@@ -3836,7 +3841,7 @@ body {
   position: fixed;
   top: 92px;
   left: 24px;
-  z-index: 125;
+  z-index: 240;
   width: min(380px, calc(100vw - 24px));
   max-height: min(70vh, 560px);
   overflow: auto;

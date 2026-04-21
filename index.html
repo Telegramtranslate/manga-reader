@@ -119,24 +119,23 @@
           <button class="ghost-btn" type="button" id="refresh-btn">Обновить</button>
           <button class="ghost-btn" type="button" id="install-btn" hidden>Установить</button>
 
-          <button class="ghost-btn notification-btn" type="button" id="notification-btn" hidden aria-label="Уведомления">
-            <span class="notification-btn__icon" aria-hidden="true">🔔</span>
-            <span class="notification-btn__text">Уведомления</span>
-            <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
-          </button>
-          <section class="notification-popover" id="notification-popover" hidden aria-label="Уведомления">
-            <div class="notification-popover__head">
-              <div>
-                <strong>Уведомления</strong>
-                <small id="notification-popover-summary">Новые серии и новые тайтлы появятся здесь.</small>
-              </div>
-              <button class="ghost-btn notification-popover__mark-all" type="button" id="notification-popover-mark-all-btn" hidden>Прочитать всё</button>
-            </div>
-            <div class="notification-popover__list" id="notification-popover-list"></div>
-          </section>
-
           <div class="auth-slot">
             <button class="ghost-btn auth-open-btn" type="button" id="auth-open-btn">Войти</button>
+            <button class="ghost-btn notification-btn" type="button" id="notification-btn" hidden aria-label="Уведомления">
+              <span class="notification-btn__icon" aria-hidden="true">🔔</span>
+              <span class="notification-btn__text">Уведомления</span>
+              <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
+            </button>
+            <section class="notification-popover" id="notification-popover" hidden aria-label="Уведомления">
+              <div class="notification-popover__head">
+                <div>
+                  <strong>Уведомления</strong>
+                  <small id="notification-popover-summary">Новые серии и новые тайтлы появятся здесь.</small>
+                </div>
+                <button class="ghost-btn notification-popover__mark-all" type="button" id="notification-popover-mark-all-btn" hidden>Прочитать всё</button>
+              </div>
+              <div class="notification-popover__list" id="notification-popover-list"></div>
+            </section>
 
             <div class="user-menu" id="user-menu" hidden>
               <button class="user-chip" type="button" id="user-chip">
@@ -438,7 +437,6 @@
                   <strong id="profile-name">Гость</strong>
                   <span class="profile-role-badge" id="profile-role-badge" hidden>Владелец</span>
                   <span id="profile-email">Вход не выполнен</span>
-                  <button class="primary-btn" type="button" id="next-episode-btn" hidden>Следующая серия</button>
                 </div>
               </div>
             </section>
@@ -459,13 +457,6 @@
 
             <section class="profile-card">
               <div class="detail-label">Настройки просмотра</div>
-              <label class="settings-toggle">
-                <input id="settings-autoplay-next" type="checkbox" checked>
-                <span>
-                  <strong>Автовоспроизведение следующей серии</strong>
-                  <small>После завершения текущего эпизода сайт автоматически откроет следующий.</small>
-                </span>
-              </label>
               <label class="settings-toggle">
                 <input id="settings-theme" type="checkbox" checked>
                 <span>
@@ -617,11 +608,6 @@
               <div class="source-switch" id="source-switch"></div>
             </div>
 
-            <div class="voice-block">
-              <div class="detail-label">Кто озвучивает</div>
-              <div class="voice-list" id="voice-list"></div>
-            </div>
-
             <div class="player-surface">
               <video id="anime-player" class="anime-player" controls playsinline preload="metadata"></video>
               <iframe
@@ -649,7 +635,6 @@
                 <div class="resume-box__meta" id="resume-text">Прогресс пока не сохранён.</div>
                 <div class="resume-actions">
                   <button class="ghost-btn" type="button" id="resume-btn">Продолжить</button>
-                  <button class="ghost-btn" type="button" id="resume-clear-btn">Сбросить</button>
                 </div>
               </div>
 

@@ -7,39 +7,39 @@ const SITE_URL =
   APP_CONSTANTS.SITE_URL ||
   (typeof window !== "undefined" && window.location?.origin ? window.location.origin : "https://example.invalid");
 
-const DEFAULT_SEO_TITLE = "AnimeCloud - Р°РЅРёРјРµ РёР· Р±Р°Р·С‹ Kodik";
+const DEFAULT_SEO_TITLE = "AnimeCloud - аниме из базы Kodik";
 const DEFAULT_SEO_DESCRIPTION =
-  "AnimeCloud - РєР°С‚Р°Р»РѕРі Р°РЅРёРјРµ РёР· Р±Р°Р·С‹ Kodik СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№, Р±С‹СЃС‚СЂС‹Рј РјРѕР±РёР»СЊРЅС‹Рј РёРЅС‚РµСЂС„РµР№СЃРѕРј, РїРѕРґР±РѕСЂРєР°РјРё Рё РІСЃС‚СЂРѕРµРЅРЅС‹Рј РїР»РµРµСЂРѕРј.";
+  "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.";
 const VIEW_SEO = {
   home: {
     title: DEFAULT_SEO_TITLE,
     description: DEFAULT_SEO_DESCRIPTION
   },
   catalog: {
-    title: "РљР°С‚Р°Р»РѕРі Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ - AnimeCloud",
+    title: "Каталог аниме с русской озвучкой - AnimeCloud",
     description:
-      "РљР°С‚Р°Р»РѕРі Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№: РїРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹, Р¶Р°РЅСЂС‹, С„РѕСЂРјР°С‚С‹, РѕРЅРіРѕРёРЅРіРё Рё Р±С‹СЃС‚СЂС‹Р№ РїРѕРёСЃРє РЅР° AnimeCloud."
+      "Каталог аниме с русской озвучкой: популярные релизы, жанры, форматы, онгоинги и быстрый поиск на AnimeCloud."
   },
   ongoing: {
-    title: "РћРЅРіРѕРёРЅРіРё Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ - AnimeCloud",
-    description: "РЎРІРµР¶РёРµ РѕРЅРіРѕРёРЅРіРё Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ Рё Р±С‹СЃС‚СЂС‹Рј РїР»РµРµСЂРѕРј РЅР° AnimeCloud."
+    title: "Онгоинги аниме с русской озвучкой - AnimeCloud",
+    description: "Свежие онгоинги аниме с русской озвучкой и быстрым плеером на AnimeCloud."
   },
   top: {
-    title: "РўРѕРї Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ - AnimeCloud",
-    description: "РўРѕРї Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№: РїРѕРїСѓР»СЏСЂРЅС‹Рµ Рё РІС‹СЃРѕРєРѕ РѕС†РµРЅРµРЅРЅС‹Рµ СЂРµР»РёР·С‹ РІ РєР°С‚Р°Р»РѕРіРµ AnimeCloud."
+    title: "Топ аниме с русской озвучкой - AnimeCloud",
+    description: "Топ аниме с русской озвучкой: популярные и высоко оцененные релизы в каталоге AnimeCloud."
   },
   schedule: {
-    title: "Р Р°СЃРїРёСЃР°РЅРёРµ РІС‹С…РѕРґР° Р°РЅРёРјРµ - AnimeCloud",
-    description: "Р Р°СЃРїРёСЃР°РЅРёРµ РІС‹С…РѕРґР° Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ РїРѕ РґРЅСЏРј РЅРµРґРµР»Рё РЅР° AnimeCloud."
+    title: "Расписание выхода аниме - AnimeCloud",
+    description: "Расписание выхода аниме с русской озвучкой по дням недели на AnimeCloud."
   },
   search: {
-    title: "РџРѕРёСЃРє Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ - AnimeCloud",
-    description: "РџРѕРёСЃРє Р°РЅРёРјРµ РїРѕ РЅР°Р·РІР°РЅРёСЋ, С„РѕСЂРјР°С‚Сѓ Рё Р¶Р°РЅСЂР°Рј РІ РєР°С‚Р°Р»РѕРіРµ AnimeCloud.",
+    title: "Поиск аниме с русской озвучкой - AnimeCloud",
+    description: "Поиск аниме по названию, формату и жанрам в каталоге AnimeCloud.",
     robots: "noindex,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
   },
   profile: {
-    title: "РџСЂРѕС„РёР»СЊ Р·СЂРёС‚РµР»СЏ - AnimeCloud",
-    description: "РџСЂРѕС„РёР»СЊ, СЃРїРёСЃРєРё, РєРѕРјРјРµРЅС‚Р°СЂРёРё Рё РёСЃС‚РѕСЂРёСЏ РїСЂРѕСЃРјРѕС‚СЂР° РІ AnimeCloud.",
+    title: "Профиль зрителя - AnimeCloud",
+    description: "Профиль, списки, комментарии и история просмотра в AnimeCloud.",
     robots: "noindex,nofollow,noarchive"
   }
 };
@@ -60,21 +60,21 @@ const WATCH_PROGRESS_KEY = STORAGE_KEYS.progress || "animecloud_watch_progress_v
 const ADMIN_HERO_STORAGE_KEY = STORAGE_KEYS.adminHero || "animecloud_admin_featured_alias";
 const FAVORITE_LIST_KEYS = ["watching", "planned", "completed", "paused"];
 const KODIK_SORTING_OPTIONS = [
-  { value: "FRESH_AT_DESC", label: "РћР±РЅРѕРІР»РµРЅС‹ РЅРµРґР°РІРЅРѕ" },
-  { value: "FRESH_AT_ASC", label: "РћР±РЅРѕРІР»РµРЅС‹ РґР°РІРЅРѕ" },
-  { value: "RATING_DESC", label: "РЎР°РјС‹Р№ РІС‹СЃРѕРєРёР№ СЂРµР№С‚РёРЅРі" },
-  { value: "RATING_ASC", label: "РЎР°РјС‹Р№ РЅРёР·РєРёР№ СЂРµР№С‚РёРЅРі" },
-  { value: "YEAR_DESC", label: "РЎР°РјС‹Рµ РЅРѕРІС‹Рµ" },
-  { value: "YEAR_ASC", label: "РЎР°РјС‹Рµ СЃС‚Р°СЂС‹Рµ" }
+  { value: "FRESH_AT_DESC", label: "Обновлены недавно" },
+  { value: "FRESH_AT_ASC", label: "Обновлены давно" },
+  { value: "RATING_DESC", label: "Самый высокий рейтинг" },
+  { value: "RATING_ASC", label: "Самый низкий рейтинг" },
+  { value: "YEAR_DESC", label: "Самые новые" },
+  { value: "YEAR_ASC", label: "Самые старые" }
 ];
 const KODIK_TYPE_OPTIONS = [
-  { value: "TV", description: "TV СЃРµСЂРёР°Р»" },
+  { value: "TV", description: "TV сериал" },
   { value: "ONA", description: "ONA" },
   { value: "WEB", description: "WEB" },
   { value: "OVA", description: "OVA" },
   { value: "OAD", description: "OAD" },
-  { value: "MOVIE", description: "Р¤РёР»СЊРј" },
-  { value: "SPECIAL", description: "РЎРїРµС€Р»" }
+  { value: "MOVIE", description: "Фильм" },
+  { value: "SPECIAL", description: "Спешл" }
 ];
 
 const responseCache = new Map();
@@ -304,8 +304,35 @@ const STATIC_UI_TEXT = Object.freeze({
     "онгоингов",
     "в рейтинге"
   ],
+  topTabs: {
+    home: "Главная",
+    catalog: "Каталог",
+    ongoing: "Онгоинги",
+    top: "Топ",
+    schedule: "Расписание",
+    search: "Поиск",
+    profile: "Профиль"
+  },
+  mobileTabs: {
+    home: "Главная",
+    catalog: "Каталог",
+    top: "Топ",
+    schedule: "Расписание",
+    search: "Поиск"
+  },
+  topbar: {
+    searchLabel: "Поиск по AnimeCloud",
+    searchPlaceholder: "Например: Naruto, Bleach, Dorohedoro",
+    refresh: "Обновить",
+    install: "Установить",
+    login: "Войти",
+    logout: "Выйти",
+    notificationSummary: "Новые серии и новые тайтлы появятся здесь.",
+    notificationMarkAll: "Прочитать всё"
+  },
   continueKicker: "Продолжить",
   continueTitle: "Продолжить просмотр",
+  continueSummary: "Открывайте серии с того места, где остановились.",
   latestKicker: "Лента",
   latestTitle: "Последние релизы",
   latestSummary: "Свежие серии и обновления, которые сейчас выходят быстрее всего.",
@@ -314,7 +341,108 @@ const STATIC_UI_TEXT = Object.freeze({
   recommendedSummary: "Рекомендации для вечернего просмотра без перегруженного интерфейса.",
   popularKicker: "Топ",
   popularTitle: "Популярное сейчас",
-  popularSummary: "Тайтлы, которые чаще всего открывают и добавляют в избранное."
+  popularSummary: "Тайтлы, которые чаще всего открывают и добавляют в избранное.",
+  catalog: {
+    kicker: "Полная база",
+    title: "Каталог AnimeCloud",
+    summary: "Загружаем каталог…",
+    sort: "Сортировка",
+    format: "Формат",
+    genre: "Жанр",
+    allFormats: "Все форматы",
+    allGenres: "Все жанры",
+    pagerAria: "Навигация по страницам каталога",
+    prev: "Назад",
+    next: "Вперёд",
+    page: "Страница 1"
+  },
+  ongoing: {
+    kicker: "Прямо сейчас",
+    title: "Онгоинги",
+    summary: "Загружаем онгоинги…"
+  },
+  top: {
+    kicker: "Рейтинг",
+    title: "Топ аниме",
+    summary: "Загружаем топ каталога…"
+  },
+  schedule: {
+    kicker: "Недельный план",
+    title: "Расписание выхода",
+    summary: "Компактный список по дням недели без тяжёлого рендера и лишней анимации."
+  },
+  search: {
+    kicker: "Поиск",
+    title: "Результаты",
+    summary: "Введите название сверху, чтобы открыть нужный релиз."
+  },
+  profile: {
+    kicker: "Профиль",
+    title: "Избранное и история входа",
+    summary: "Войдите, чтобы хранить свою коллекцию отдельно. Без входа избранное сохранится только в этом браузере.",
+    account: "Аккаунт",
+    collection: "Коллекция",
+    favorites: "в избранном",
+    storageMode: "режим хранения",
+    historyKicker: "История",
+    historyTitle: "Продолжить просмотр",
+    historySummary: "Ваш недосмотр и быстрый возврат к серии.",
+    shelfKicker: "Мои списки",
+    watching: "Смотрю",
+    planned: "Запланировано",
+    completed: "Просмотрено",
+    paused: "Отложено",
+    quickAccess: "Быстрый доступ",
+    favoritesTitle: "Избранное",
+    notificationsKicker: "Обновления",
+    notificationsTitle: "Уведомления",
+    notificationsSummary: "Войдите, чтобы получать облачные уведомления о новых тайтлах и сериях.",
+    notificationsMarkAll: "Отметить всё прочитанным"
+  },
+  drawer: {
+    close: "Закрыть",
+    posterAlt: "Постер выбранного тайтла",
+    kicker: "Карточка релиза",
+    emptyTitle: "Выберите тайтл",
+    emptyDescription: "Откройте любое аниме, чтобы увидеть эпизоды, качество и доступные источники.",
+    favorite: "В избранное",
+    share: "Поделиться",
+    adminPin: "Закрепить как локальный баннер",
+    watch: "Смотрю",
+    plan: "Запланировано",
+    complete: "Просмотрено",
+    pause: "Отложено",
+    playerKicker: "Плеер",
+    playerTitle: "Серия не выбрана",
+    sourceLabel: "Озвучка и источник",
+    playerNote: "Выберите релиз и серию справа.",
+    openExternal: "Открыть источник напрямую",
+    retryExternal: "Попробовать ещё раз",
+    resumeLabel: "Продолжить просмотр",
+    resumeEmpty: "Прогресс пока не сохранён.",
+    resumeButton: "Продолжить",
+    dubsLabel: "Доп. озвучки",
+    dubNote: "Дополнительные озвучки выбираются во внешнем плеере, если источник их реально отдаёт.",
+    episodesLabel: "Серии",
+    crewLabel: "Команда релиза"
+  },
+  comments: {
+    kicker: "Обсуждение",
+    title: "Комментарии",
+    summary: "Комментарии и история пока сохраняются локально в этом браузере. Вход нужен для разделения профилей и имени автора.",
+    placeholder: "Напишите комментарий по тайтлу или текущей серии…",
+    guest: "Комментируете как гость",
+    submit: "Отправить"
+  },
+  auth: {
+    close: "Закрыть",
+    kicker: "Аккаунт",
+    title: "Вход и регистрация",
+    copy: "Почта нужна для вашего профиля, а Google-вход работает через проект авторизации этого сайта.",
+    googleNote: "Google-вход инициализируется…",
+    loginTab: "Вход",
+    registerTab: "Регистрация"
+  }
 });
 
 function ensureDynamicInterface() {
@@ -326,14 +454,14 @@ function ensureDynamicInterface() {
     shelf.innerHTML = `
       <div class="section-head section-head--compact">
         <div>
-          <div class="section-kicker">РџРµСЂСЃРѕРЅР°Р»СЊРЅРѕ</div>
-          <h3>РџРѕРґР±РѕСЂРєР° РґР»СЏ РІР°СЃ</h3>
+          <div class="section-kicker">Персонально</div>
+          <h3>Подборка для вас</h3>
           <p class="section-summary" id="profile-recommendations-summary">
-            РђРЅР°Р»РёР·РёСЂСѓРµРј РІР°С€Рё Р¶Р°РЅСЂС‹ Рё РёСЃС‚РѕСЂРёСЋ РїСЂРѕСЃРјРѕС‚СЂР°вЂ¦
+            Анализируем ваши жанры и историю просмотра…
           </p>
         </div>
         <button class="ghost-btn profile-recommendations__refresh" type="button" id="profile-recommendations-refresh-btn">
-          РћР±РЅРѕРІРёС‚СЊ РїРѕРґР±РѕСЂРєСѓ
+          Обновить подборку
         </button>
       </div>
       <div class="anime-grid" id="profile-recommendations-grid"></div>
@@ -349,11 +477,38 @@ function ensureDynamicInterface() {
 }
 
 ensureDynamicInterface();
+mountFloatingUi();
 
 function setStaticText(selector, text) {
   const node = document.querySelector(selector);
   if (node && node.textContent !== text) {
     node.textContent = text;
+  }
+}
+
+function setStaticAttr(selector, attribute, value) {
+  const node = document.querySelector(selector);
+  if (node && node.getAttribute(attribute) !== value) {
+    node.setAttribute(attribute, value);
+  }
+}
+
+function mountFloatingUi() {
+  const authSlot = document.querySelector(".auth-slot");
+  if (authSlot && els.notificationBtn && authSlot !== els.notificationBtn.parentElement) {
+    authSlot.insertBefore(els.notificationBtn, els.userMenu || els.authOpenBtn?.nextSibling || null);
+  }
+  if (els.notificationPopover && els.notificationPopover.parentElement !== document.body) {
+    document.body.appendChild(els.notificationPopover);
+  }
+  document.getElementById("next-episode-btn")?.remove();
+  document.getElementById("resume-clear-btn")?.remove();
+  document.getElementById("rating-box")?.remove();
+  document.getElementById("settings-autoplay-next")?.closest(".settings-toggle")?.remove();
+  const voiceBlock = document.querySelector(".voice-block");
+  if (voiceBlock) {
+    voiceBlock.remove();
+    els.voiceList = null;
   }
 }
 
@@ -370,12 +525,100 @@ function repairStaticUiText() {
   setStaticText("#latest-shell .section-summary", STATIC_UI_TEXT.latestSummary);
   setStaticText("#continue-shell .section-kicker", STATIC_UI_TEXT.continueKicker);
   setStaticText("#continue-shell h2", STATIC_UI_TEXT.continueTitle);
+  setStaticText("#continue-shell .section-summary", STATIC_UI_TEXT.continueSummary);
   setStaticText("#recommended-shell .section-kicker", STATIC_UI_TEXT.recommendedKicker);
   setStaticText("#recommended-shell h2", STATIC_UI_TEXT.recommendedTitle);
   setStaticText("#recommended-shell .section-summary", STATIC_UI_TEXT.recommendedSummary);
   setStaticText("#popular-shell .section-kicker", STATIC_UI_TEXT.popularKicker);
   setStaticText("#popular-shell h2", STATIC_UI_TEXT.popularTitle);
   setStaticText("#popular-shell .section-summary", STATIC_UI_TEXT.popularSummary);
+  setStaticText('[data-view="home"]', STATIC_UI_TEXT.topTabs.home);
+  setStaticText('[data-view="catalog"]', STATIC_UI_TEXT.topTabs.catalog);
+  setStaticText('[data-view="ongoing"]', STATIC_UI_TEXT.topTabs.ongoing);
+  setStaticText('[data-view="top"]', STATIC_UI_TEXT.topTabs.top);
+  setStaticText('[data-view="schedule"]', STATIC_UI_TEXT.topTabs.schedule);
+  setStaticText('[data-view="search"]', STATIC_UI_TEXT.topTabs.search);
+  setStaticText('[data-view="profile"]', STATIC_UI_TEXT.topTabs.profile);
+  setStaticText('.mobile-nav__btn[data-view="home"]', STATIC_UI_TEXT.mobileTabs.home);
+  setStaticText('.mobile-nav__btn[data-view="catalog"]', STATIC_UI_TEXT.mobileTabs.catalog);
+  setStaticText('.mobile-nav__btn[data-view="top"]', STATIC_UI_TEXT.mobileTabs.top);
+  setStaticText('.mobile-nav__btn[data-view="schedule"]', STATIC_UI_TEXT.mobileTabs.schedule);
+  setStaticText('.mobile-nav__btn[data-view="search"]', STATIC_UI_TEXT.mobileTabs.search);
+  setStaticText(".search-box__label", STATIC_UI_TEXT.topbar.searchLabel);
+  setStaticAttr("#search-input", "placeholder", STATIC_UI_TEXT.topbar.searchPlaceholder);
+  setStaticText("#refresh-btn", STATIC_UI_TEXT.topbar.refresh);
+  setStaticText("#install-btn", STATIC_UI_TEXT.topbar.install);
+  setStaticText("#auth-open-btn", STATIC_UI_TEXT.topbar.login);
+  setStaticText("#logout-btn", STATIC_UI_TEXT.topbar.logout);
+  setStaticText("#notification-popover-summary", STATIC_UI_TEXT.topbar.notificationSummary);
+  setStaticText("#notification-popover-mark-all-btn", STATIC_UI_TEXT.topbar.notificationMarkAll);
+  setStaticText("#catalog-summary", STATIC_UI_TEXT.catalog.summary);
+  setStaticText('[data-view-panel="catalog"] .section-kicker', STATIC_UI_TEXT.catalog.kicker);
+  setStaticText('[data-view-panel="catalog"] h2', STATIC_UI_TEXT.catalog.title);
+  setStaticText('.select-control span', STATIC_UI_TEXT.catalog.sort);
+  setStaticText('.select-control + .select-control span', STATIC_UI_TEXT.catalog.format);
+  setStaticText('.select-control + .select-control + .select-control span', STATIC_UI_TEXT.catalog.genre);
+  setStaticAttr(".pager-wrap", "aria-label", STATIC_UI_TEXT.catalog.pagerAria);
+  setStaticText("#catalog-prev-btn", STATIC_UI_TEXT.catalog.prev);
+  setStaticText("#catalog-next-btn", STATIC_UI_TEXT.catalog.next);
+  setStaticText("#catalog-page-label", STATIC_UI_TEXT.catalog.page);
+  setStaticText('[data-view-panel="ongoing"] .section-kicker', STATIC_UI_TEXT.ongoing.kicker);
+  setStaticText('[data-view-panel="ongoing"] h2', STATIC_UI_TEXT.ongoing.title);
+  setStaticText("#ongoing-summary", STATIC_UI_TEXT.ongoing.summary);
+  setStaticText('[data-view-panel="top"] .section-kicker', STATIC_UI_TEXT.top.kicker);
+  setStaticText('[data-view-panel="top"] h2', STATIC_UI_TEXT.top.title);
+  setStaticText("#top-summary", STATIC_UI_TEXT.top.summary);
+  setStaticText('[data-view-panel="schedule"] .section-kicker', STATIC_UI_TEXT.schedule.kicker);
+  setStaticText('[data-view-panel="schedule"] h2', STATIC_UI_TEXT.schedule.title);
+  setStaticText("#schedule-summary", STATIC_UI_TEXT.schedule.summary);
+  setStaticText('[data-view-panel="search"] .section-kicker', STATIC_UI_TEXT.search.kicker);
+  setStaticText('[data-view-panel="search"] h2', STATIC_UI_TEXT.search.title);
+  setStaticText("#search-summary", STATIC_UI_TEXT.search.summary);
+  setStaticText('[data-view-panel="profile"] .section-kicker', STATIC_UI_TEXT.profile.kicker);
+  setStaticText('[data-view-panel="profile"] h2', STATIC_UI_TEXT.profile.title);
+  setStaticText("#profile-summary", STATIC_UI_TEXT.profile.summary);
+  setStaticText("#notifications-summary", STATIC_UI_TEXT.profile.notificationsSummary);
+  setStaticText("#notifications-mark-all-btn", STATIC_UI_TEXT.profile.notificationsMarkAll);
+  setStaticText("#profile-progress-summary", STATIC_UI_TEXT.profile.historySummary);
+  setStaticText("#drawer-close", "×");
+  setStaticAttr("#drawer-close", "aria-label", STATIC_UI_TEXT.drawer.close);
+  setStaticAttr("#detail-poster", "alt", STATIC_UI_TEXT.drawer.posterAlt);
+  setStaticText(".detail-hero .section-kicker", STATIC_UI_TEXT.drawer.kicker);
+  setStaticText("#detail-title", STATIC_UI_TEXT.drawer.emptyTitle);
+  setStaticText("#detail-description", STATIC_UI_TEXT.drawer.emptyDescription);
+  setStaticText("#detail-favorite-btn", STATIC_UI_TEXT.drawer.favorite);
+  setStaticText("#detail-share-btn", STATIC_UI_TEXT.drawer.share);
+  setStaticText("#detail-admin-pin-btn", STATIC_UI_TEXT.drawer.adminPin);
+  setStaticText("#list-watch-btn", STATIC_UI_TEXT.drawer.watch);
+  setStaticText("#list-plan-btn", STATIC_UI_TEXT.drawer.plan);
+  setStaticText("#list-complete-btn", STATIC_UI_TEXT.drawer.complete);
+  setStaticText("#list-pause-btn", STATIC_UI_TEXT.drawer.pause);
+  setStaticText(".player-toolbar .section-kicker", STATIC_UI_TEXT.drawer.playerKicker);
+  setStaticText("#player-title", STATIC_UI_TEXT.drawer.playerTitle);
+  setStaticText(".source-wrap .detail-label", STATIC_UI_TEXT.drawer.sourceLabel);
+  setStaticText("#player-note", STATIC_UI_TEXT.drawer.playerNote);
+  setStaticText("#external-player-open-btn", STATIC_UI_TEXT.drawer.openExternal);
+  setStaticText("#external-player-retry-btn", STATIC_UI_TEXT.drawer.retryExternal);
+  setStaticText("#resume-box .detail-label", STATIC_UI_TEXT.drawer.resumeLabel);
+  setStaticText("#resume-text", STATIC_UI_TEXT.drawer.resumeEmpty);
+  setStaticText("#resume-btn", STATIC_UI_TEXT.drawer.resumeButton);
+  setStaticText("#dub-box .detail-label", STATIC_UI_TEXT.drawer.dubsLabel);
+  setStaticText("#dub-note", STATIC_UI_TEXT.drawer.dubNote);
+  setStaticText(".side-card .detail-label", STATIC_UI_TEXT.drawer.episodesLabel);
+  setStaticText(".side-card + .side-card .detail-label", STATIC_UI_TEXT.drawer.crewLabel);
+  setStaticText(".comments-card .section-kicker", STATIC_UI_TEXT.comments.kicker);
+  setStaticText(".comments-card h2", STATIC_UI_TEXT.comments.title);
+  setStaticText("#comments-summary", STATIC_UI_TEXT.comments.summary);
+  setStaticAttr("#comment-input", "placeholder", STATIC_UI_TEXT.comments.placeholder);
+  setStaticText("#comment-user", STATIC_UI_TEXT.comments.guest);
+  setStaticText("#comment-submit", STATIC_UI_TEXT.comments.submit);
+  setStaticAttr("#auth-close", "aria-label", STATIC_UI_TEXT.auth.close);
+  setStaticText(".auth-modal__copy .section-kicker", STATIC_UI_TEXT.auth.kicker);
+  setStaticText("#auth-title", STATIC_UI_TEXT.auth.title);
+  setStaticText("#auth-copy", STATIC_UI_TEXT.auth.copy);
+  setStaticText("#google-auth-note", STATIC_UI_TEXT.auth.googleNote);
+  setStaticText('.auth-tab[data-auth-tab="login"]', STATIC_UI_TEXT.auth.loginTab);
+  setStaticText('.auth-tab[data-auth-tab="register"]', STATIC_UI_TEXT.auth.registerTab);
 
   const notificationIcon = document.querySelector(".notification-btn__icon");
   if (notificationIcon && notificationIcon.textContent !== "🔔") {
@@ -391,38 +634,38 @@ const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(val
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const uniqueStrings = (values = []) => [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 const GENRE_LABEL_ALIASES = new Map([
-  ["СЃРµРЅРµРЅ", "РЎС‘РЅРµРЅ"],
-  ["СЃС‘РЅРµРЅ", "РЎС‘РЅРµРЅ"],
-  ["СЃРµРґР·Рµ", "РЎС‘РґР·С‘"],
-  ["СЃС‘РґР·С‘", "РЎС‘РґР·С‘"],
-  ["СЃРµРЅРµРЅ Р°Р№", "РЎС‘РЅРµРЅ-Р°Р№"],
-  ["СЃС‘РЅРµРЅ Р°Р№", "РЎС‘РЅРµРЅ-Р°Р№"],
-  ["СЃРµРґР·Рµ Р°Р№", "РЎС‘РґР·С‘-Р°Р№"],
-  ["СЃС‘РґР·С‘ Р°Р№", "РЎС‘РґР·С‘-Р°Р№"],
-  ["СЃСЌР№РЅСЌРЅ", "РЎСЌР№РЅСЌРЅ"],
-  ["СЃРµР№РЅРµРЅ", "РЎСЌР№РЅСЌРЅ"],
-  ["СЃРµРёРЅРµРЅ", "РЎСЌР№РЅСЌРЅ"],
-  ["РґР·РµСЃРµР№", "Р”Р·С‘СЃСЌР№"],
-  ["РґР·С‘СЃСЌР№", "Р”Р·С‘СЃСЌР№"],
-  ["РґР¶РѕСЃРµР№", "Р”Р·С‘СЃСЌР№"],
-  ["СЌРєС€РЅ", "Р­РєС€РµРЅ"],
-  ["action", "Р­РєС€РµРЅ"],
-  ["adventure", "РџСЂРёРєР»СЋС‡РµРЅРёСЏ"],
-  ["comedy", "РљРѕРјРµРґРёСЏ"],
-  ["drama", "Р”СЂР°РјР°"],
-  ["fantasy", "Р¤СЌРЅС‚РµР·Рё"],
-  ["romance", "Р РѕРјР°РЅС‚РёРєР°"],
-  ["РёСЃРµРєР°Р№", "РСЃСЌРєР°Р№"],
-  ["РёСЃСЌРєР°Р№", "РСЃСЌРєР°Р№"],
-  ["isekai", "РСЃСЌРєР°Р№"],
-  ["cgdct", "РњРёР»С‹Рµ РґРµРІРѕС‡РєРё"],
-  ["cute girls doing cute things", "РњРёР»С‹Рµ РґРµРІРѕС‡РєРё"],
-  ["science fiction", "Р¤Р°РЅС‚Р°СЃС‚РёРєР°"],
-  ["sci fi", "Р¤Р°РЅС‚Р°СЃС‚РёРєР°"],
-  ["slice of life", "РџРѕРІСЃРµРґРЅРµРІРЅРѕСЃС‚СЊ"],
-  ["sports", "РЎРїРѕСЂС‚"],
-  ["supernatural", "РЎРІРµСЂС…СЉРµСЃС‚РµСЃС‚РІРµРЅРЅРѕРµ"],
-  ["thriller", "РўСЂРёР»Р»РµСЂ"]
+  ["сенен", "Сёнен"],
+  ["сёнен", "Сёнен"],
+  ["седзе", "Сёдзё"],
+  ["сёдзё", "Сёдзё"],
+  ["сенен ай", "Сёнен-ай"],
+  ["сёнен ай", "Сёнен-ай"],
+  ["седзе ай", "Сёдзё-ай"],
+  ["сёдзё ай", "Сёдзё-ай"],
+  ["сэйнэн", "Сэйнэн"],
+  ["сейнен", "Сэйнэн"],
+  ["сеинен", "Сэйнэн"],
+  ["дзесей", "Дзёсэй"],
+  ["дзёсэй", "Дзёсэй"],
+  ["джосей", "Дзёсэй"],
+  ["экшн", "Экшен"],
+  ["action", "Экшен"],
+  ["adventure", "Приключения"],
+  ["comedy", "Комедия"],
+  ["drama", "Драма"],
+  ["fantasy", "Фэнтези"],
+  ["romance", "Романтика"],
+  ["исекай", "Исекай"],
+  ["исэкай", "Исекай"],
+  ["isekai", "Исекай"],
+  ["cgdct", "Милые девочки"],
+  ["cute girls doing cute things", "Милые девочки"],
+  ["science fiction", "Фантастика"],
+  ["sci fi", "Фантастика"],
+  ["slice of life", "Повседневность"],
+  ["sports", "Спорт"],
+  ["supernatural", "Сверхъестественное"],
+  ["thriller", "Триллер"]
 ]);
 
 function isPermissionDeniedError(error) {
@@ -613,7 +856,7 @@ function normalizePreparedEpisode(episode, fallbackSourceId = "") {
     id: episode?.id || `${fallbackSourceId || "episode"}:${seasonOrdinal || 0}:${ordinal || 0}`,
     ordinal,
     seasonOrdinal,
-    name: episode?.name || (ordinal ? `${ordinal} СЃРµСЂРёСЏ` : "Р¤РёР»СЊРј"),
+    name: episode?.name || (ordinal ? `${ordinal} серия` : "Фильм"),
     duration: Number(episode?.duration || 0),
     externalUrl: episode?.externalUrl ? normalizeExternalPlayer(episode.externalUrl) : "",
     previewUrl: episode?.previewUrl ? absoluteUrl(episode.previewUrl) : "",
@@ -637,7 +880,7 @@ function normalizePreparedSource(source) {
     id: sourceId,
     provider: String(source?.provider || "external"),
     kind: String(source?.kind || (episodes.length ? "iframe-episodes" : "iframe")),
-    title: String(source?.title || "РСЃС‚РѕС‡РЅРёРє"),
+    title: String(source?.title || "Источник"),
     note: String(source?.note || ""),
     voices: uniqueStrings(Array.isArray(source?.voices) ? source.voices : []),
     translationId: String(source?.translationId || ""),
@@ -675,7 +918,7 @@ function normalizePreparedRelease(item) {
     providerSet: uniqueStrings(Array.isArray(item?.providerSet) ? item.providerSet : [item?.provider || "kodik"]),
     id: item?.id || item?.alias,
     alias: item?.alias || "",
-    title: item?.title || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ",
+    title: item?.title || "Без названия",
     originalTitle: item?.originalTitle || "",
     alternateTitles: uniqueStrings([
       item?.title,
@@ -683,18 +926,18 @@ function normalizePreparedRelease(item) {
       ...(Array.isArray(item?.alternateTitles) ? item.alternateTitles : [])
     ]),
     year: item?.year || "-",
-    type: item?.type || "РќРµ СѓРєР°Р·Р°РЅРѕ",
+    type: item?.type || "Не указано",
     typeValue: item?.typeValue || "",
     season: item?.season || "",
     age: item?.age || "-",
     ageValue: item?.ageValue || "",
     ongoing: Boolean(item?.ongoing),
-    statusLabel: item?.statusLabel || "Р”РѕСЃС‚СѓРїРЅРѕ",
+    statusLabel: item?.statusLabel || "Доступно",
     publishDay: item?.publishDay || "",
     publishDayValue: Number(item?.publishDayValue || 0),
     sortFreshAt: Number(item?.sortFreshAt || 0),
     sortRating: Number(item?.sortRating || item?.favorites || 0),
-    description: item?.description || "РћРїРёСЃР°РЅРёРµ РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅРѕ.",
+    description: item?.description || "Описание пока не заполнено.",
     posterSources,
     posterCandidateQueue: uniqueStrings(posterSources.map((url) => proxiedImageUrl(url)).filter(Boolean)),
     posterDirectQueue: posterSources,
@@ -719,7 +962,7 @@ function normalizePreparedRelease(item) {
       ? item.crew
           .map((member) => ({
             name: String(member?.name || "").trim(),
-            role: String(member?.role || "РљРѕРјР°РЅРґР°").trim()
+            role: String(member?.role || "Команда").trim()
           }))
           .filter((member) => member.name)
       : [],
@@ -727,7 +970,7 @@ function normalizePreparedRelease(item) {
     publishedEpisode: item?.publishedEpisode
       ? {
           ordinal: Number(item.publishedEpisode.ordinal || 0),
-          name: item.publishedEpisode.name || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ",
+          name: item.publishedEpisode.name || "Без названия",
           duration: Number(item.publishedEpisode.duration || 0)
         }
       : null,
@@ -753,7 +996,7 @@ function normalizeComparableText(value) {
   return String(value || "")
     .normalize("NFKC")
     .toLowerCase()
-    .replace(/[С‘]/g, "Рµ")
+    .replace(/[С‘]/g, "е")
     .replace(/\[[^\]]*\]/g, " ")
     .replace(/\([^)]*\)/g, " ")
     .replace(/[^a-z0-9\u0400-\u04ff]+/g, " ")
@@ -860,7 +1103,7 @@ function getReleaseTitleVariants(release) {
 function normalizeVoiceLabel(value) {
   return String(value || "")
     .replace(/\s+/g, " ")
-    .replace(/\b(hls|player|iframe|РІРЅРµС€РЅРёР№ РїР»РµРµСЂ)\b/gi, "")
+    .replace(/\b(hls|player|iframe|внешний плеер)\b/gi, "")
     .replace(/\bTV\b/gi, "")
     .replace(/\.+/g, ".")
     .trim();
@@ -900,7 +1143,7 @@ function getReleaseIdentityKeys(release) {
 function stripComparableReleaseDecorators(value) {
   return normalizeComparableText(value)
     .replace(/\b(tv|ona|ova|oad|movie|special|season|part)\b/g, " ")
-    .replace(/\b(С‚РІ|С„РёР»СЊРј|СЃРµР·РѕРЅ|С‡Р°СЃС‚СЊ|СЃРїРµС€Р»|СЃРїРµС†РІС‹РїСѓСЃРє)\b/g, " ")
+    .replace(/\b(тв|фильм|сезон|часть|спешл|спецвыпуск)\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -980,7 +1223,7 @@ function mergeReleaseEntries(primary, extra) {
     originalTitle: base.originalTitle || addon.originalTitle,
     alternateTitles: uniqueStrings([...(base.alternateTitles || []), ...(addon.alternateTitles || [])]),
     description:
-      base.description && base.description !== "РћРїРёСЃР°РЅРёРµ РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅРѕ."
+      base.description && base.description !== "Описание пока не заполнено."
         ? base.description
         : addon.description || base.description,
     posterSources: uniqueStrings([...(base.posterSources || []), ...(addon.posterSources || [])]),
@@ -1135,8 +1378,8 @@ function fetchKodikSearch(query, options = {}) {
 
 function getKodikUnavailableMessage(error, fallbackMessage) {
   const raw = String(error?.payload?.message || error?.message || "").toLowerCase();
-  if (raw.includes("РЅРµРІРµСЂРЅС‹Р№ С‚РѕРєРµРЅ") || raw.includes("РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РёР»Рё РЅРµРІРµСЂРЅС‹Р№ С‚РѕРєРµРЅ") || raw.includes("invalid token") || raw.includes("missing token")) {
-    return "Kodik РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ: РїСЂРѕРІРµСЂСЊС‚Рµ KODIK_TOKEN РІ Vercel.";
+  if (raw.includes("неверный токен") || raw.includes("отсутствует или неверный токен") || raw.includes("invalid token") || raw.includes("missing token")) {
+    return "Kodik временно недоступен: проверьте KODIK_TOKEN в Vercel.";
   }
   return fallbackMessage;
 }
@@ -1270,8 +1513,8 @@ function formatClock(seconds) {
     : `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-const formatDurationMinutes = (minutes) => (minutes ? `${minutes} РјРёРЅ.` : "");
-const formatEpisodeDuration = (seconds) => (seconds ? `${Math.max(1, Math.round(seconds / 60))} РјРёРЅ.` : "");
+const formatDurationMinutes = (minutes) => (minutes ? `${minutes} мин.` : "");
+const formatEpisodeDuration = (seconds) => (seconds ? `${Math.max(1, Math.round(seconds / 60))} мин.` : "");
 
 function createEmptyState(message) {
   const node = document.createElement("div");
@@ -1292,7 +1535,7 @@ function createErrorState(message, onRetry) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "ghost-btn";
-    button.textContent = "РџРѕРІС‚РѕСЂРёС‚СЊ";
+    button.textContent = "Повторить";
     button.addEventListener("click", onRetry);
     node.appendChild(button);
   }
@@ -1637,7 +1880,7 @@ function decorateEpisodeProgress(release) {
     if (!button.querySelector(".episode-progress-meta")) {
       const meta = document.createElement("small");
       meta.className = "episode-progress-meta";
-      meta.textContent = `РџСЂРѕРґРѕР»Р¶РёС‚СЊ СЃ ${formatClock(progress.time || 0)}`;
+      meta.textContent = `Продолжить с ${formatClock(progress.time || 0)}`;
       button.appendChild(meta);
     }
   });
@@ -2177,7 +2420,7 @@ function toggleFavorite(release) {
 function renderFavoriteButton() {
   if (!els.detailFavoriteBtn) return;
   const active = Boolean(state.currentAnime && isFavorite(state.currentAnime.alias));
-  els.detailFavoriteBtn.textContent = active ? "Р’ СЃРїРёСЃРєР°С…" : "Р”РѕР±Р°РІРёС‚СЊ РІ СЃРїРёСЃРѕРє";
+  els.detailFavoriteBtn.textContent = active ? "В списках" : "Добавить в список";
   els.detailFavoriteBtn.classList.toggle("is-active", active);
   updateListButtons();
 }
@@ -2253,22 +2496,22 @@ function renderPersonalRecommendations() {
   const hasSignals = Boolean(genres.length || state.favorites.length || Object.keys(readProgressMap() || {}).length);
   if (!state.personalizedRecommendations.length) {
     els.profileRecommendationsSummary.textContent = genres.length
-      ? `РџРѕ РІР°С€РёРј Р¶Р°РЅСЂР°Рј (${genres.join(", ")}) РїРѕРєР° РЅРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР±СЂР°С‚СЊ СѓСЃС‚РѕР№С‡РёРІСѓСЋ РїРѕРґР±РѕСЂРєСѓ.`
-      : "Р”РѕР±Р°РІСЊС‚Рµ С‚Р°Р№С‚Р»С‹ РІ СЃРїРёСЃРєРё РёР»Рё РЅР°С‡РЅРёС‚Рµ СЃРјРѕС‚СЂРµС‚СЊ Р°РЅРёРјРµ, Рё Р·РґРµСЃСЊ РїРѕСЏРІРёС‚СЃСЏ РїРµСЂСЃРѕРЅР°Р»СЊРЅР°СЏ РїРѕРґР±РѕСЂРєР°.";
+      ? `По вашим жанрам (${genres.join(", ")}) пока не удалось собрать устойчивую подборку.`
+      : "Добавьте тайтлы в списки или начните смотреть аниме, и здесь появится персональная подборка.";
     updateGrid(
       els.profileRecommendationsGrid,
       [],
-      genres.length ? "РџРѕ РІР°С€РёРј Р¶Р°РЅСЂР°Рј РїРѕРєР° РЅРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ." : "РџРѕРґР±РѕСЂРєР° РїРѕСЏРІРёС‚СЃСЏ РїРѕСЃР»Рµ РїРµСЂРІС‹С… РґРµР№СЃС‚РІРёР№ РІ РїСЂРѕС„РёР»Рµ."
+      genres.length ? "По вашим жанрам пока ничего не найдено." : "Подборка появится после первых действий в профиле."
     );
     return;
   }
 
   els.profileRecommendationsSummary.textContent = genres.length
-    ? `РЎРѕР±СЂР°РЅРѕ РЅР° РѕСЃРЅРѕРІРµ РІР°С€РёС… Р¶Р°РЅСЂРѕРІ: ${genres.join(", ")}.`
+    ? `Собрано на основе ваших жанров: ${genres.join(", ")}.`
     : hasSignals
-      ? "РџРѕРґР±РѕСЂРєР° СЃРѕР±СЂР°РЅР° РїРѕ РІР°С€РёРј РґРµР№СЃС‚РІРёСЏРј Рё Р±Р»РёР¶Р°Р№С€РёРј РїРѕС…РѕР¶РёРј СЂРµР»РёР·Р°Рј."
-      : "РЎС‚Р°СЂС‚РѕРІР°СЏ РїРѕРґР±РѕСЂРєР°: РїРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹, СЃ РєРѕС‚РѕСЂС‹С… СѓРґРѕР±РЅРѕ РЅР°С‡Р°С‚СЊ.";
-  updateGrid(els.profileRecommendationsGrid, state.personalizedRecommendations, "РџРѕРґР±РѕСЂРєР° РїРѕРєР° РїСѓСЃС‚Р°.");
+      ? "Подборка собрана по вашим действиям и ближайшим похожим релизам."
+      : "Стартовая подборка: популярные релизы, с которых удобно начать.";
+  updateGrid(els.profileRecommendationsGrid, state.personalizedRecommendations, "Подборка пока пуста.");
 }
 
 async function loadPersonalRecommendations(options = {}) {
@@ -2297,13 +2540,13 @@ async function loadPersonalRecommendations(options = {}) {
   renderSkeletonGrid(els.profileRecommendationsGrid, 6);
   if (els.profileRecommendationsSummary) {
     els.profileRecommendationsSummary.textContent = profile.topGenres.length
-      ? `РћР±РЅРѕРІР»СЏРµРј РїРѕРґР±РѕСЂРєСѓ РїРѕ Р¶Р°РЅСЂР°Рј: ${profile.topGenres.join(", ")}вЂ¦`
-      : "РЎРѕР±РёСЂР°РµРј Р±Р°Р·РѕРІСѓСЋ РїРµСЂСЃРѕРЅР°Р»СЊРЅСѓСЋ РїРѕРґР±РѕСЂРєСѓвЂ¦";
+      ? `Обновляем подборку по жанрам: ${profile.topGenres.join(", ")}…`
+      : "Собираем базовую персональную подборку…";
   }
 
   if (els.profileRecommendationsRefreshBtn) {
     els.profileRecommendationsRefreshBtn.disabled = true;
-    els.profileRecommendationsRefreshBtn.textContent = "РћР±РЅРѕРІР»СЏРµРјвЂ¦";
+    els.profileRecommendationsRefreshBtn.textContent = "Обновляем…";
   }
 
   state.personalizedPromise = (async () => {
@@ -2350,7 +2593,7 @@ async function loadPersonalRecommendations(options = {}) {
       }
       if (els.profileRecommendationsRefreshBtn) {
         els.profileRecommendationsRefreshBtn.disabled = false;
-        els.profileRecommendationsRefreshBtn.textContent = "РћР±РЅРѕРІРёС‚СЊ РїРѕРґР±РѕСЂРєСѓ";
+        els.profileRecommendationsRefreshBtn.textContent = "Обновить подборку";
       }
     });
 
@@ -2364,8 +2607,8 @@ function normalizeNotificationPayload(item = {}) {
     id: String(item.id || "").trim(),
     type: String(item.type || "new_anime").trim() || "new_anime",
     alias: String(item.alias || "").trim(),
-    title: String(item.title || "").trim() || "РћР±РЅРѕРІР»РµРЅРёРµ РєР°С‚Р°Р»РѕРіР°",
-    body: String(item.body || "").trim() || "РџРѕСЏРІРёР»РѕСЃСЊ РЅРѕРІРѕРµ РѕР±РЅРѕРІР»РµРЅРёРµ.",
+    title: String(item.title || "").trim() || "Обновление каталога",
+    body: String(item.body || "").trim() || "Появилось новое обновление.",
     createdAt: Number.isFinite(createdAt) && createdAt > 0 ? createdAt : Date.now(),
     readAt: Number.isFinite(readAt) && readAt > 0 ? readAt : 0,
     episode: Math.max(0, Number(item.episode || 0)),
@@ -2410,7 +2653,13 @@ function positionNotificationPopover() {
   const rect = els.notificationBtn.getBoundingClientRect();
   const width = Math.min(380, Math.max(280, window.innerWidth - 24));
   const left = Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12));
-  els.notificationPopover.style.top = `${Math.max(16, rect.bottom + 10)}px`;
+  const maxHeight = Math.min(560, window.innerHeight - 24);
+  els.notificationPopover.style.maxHeight = `${maxHeight}px`;
+  const estimatedHeight = Math.min(maxHeight, Math.max(220, els.notificationPopover.scrollHeight || 0));
+  const belowTop = rect.bottom + 10;
+  const aboveTop = rect.top - estimatedHeight - 10;
+  const top = belowTop + estimatedHeight > window.innerHeight - 12 && aboveTop >= 12 ? aboveTop : Math.max(16, belowTop);
+  els.notificationPopover.style.top = `${top}px`;
   els.notificationPopover.style.left = `${left}px`;
   els.notificationPopover.style.right = "auto";
   els.notificationPopover.style.width = `${Math.min(width, window.innerWidth - 24)}px`;
@@ -2429,6 +2678,7 @@ function closeNotificationPopover() {
 function openNotificationPopover() {
   if (!state.authUser?.localId || !els.notificationPopover) return;
   state.notificationPopoverOpen = true;
+  renderNotificationPopover();
   els.notificationPopover.hidden = false;
   if (els.notificationBtn) {
     els.notificationBtn.setAttribute("aria-expanded", "true");
@@ -2515,7 +2765,9 @@ const confirmDialogState = {
   body: null,
   confirmBtn: null,
   cancelBtn: null,
-  resolver: null
+  resolver: null,
+  promise: null,
+  dismissible: true
 };
 
 function ensureConfirmDialog() {
@@ -2540,6 +2792,7 @@ function ensureConfirmDialog() {
   const resolveAndClose = (value) => {
     const resolver = confirmDialogState.resolver;
     confirmDialogState.resolver = null;
+    confirmDialogState.promise = null;
     root.hidden = true;
     document.body.classList.remove("is-dialog-open");
     if (resolver) resolver(value);
@@ -2547,7 +2800,7 @@ function ensureConfirmDialog() {
 
   root.addEventListener("click", (event) => {
     const target = event.target;
-    if (target instanceof HTMLElement && target.hasAttribute("data-confirm-dismiss")) {
+    if (confirmDialogState.dismissible && target instanceof HTMLElement && target.hasAttribute("data-confirm-dismiss")) {
       resolveAndClose(false);
     }
   });
@@ -2556,7 +2809,7 @@ function ensureConfirmDialog() {
   root.querySelector("[data-confirm-accept]")?.addEventListener("click", () => resolveAndClose(true));
   document.addEventListener("keydown", (event) => {
     if (!confirmDialogState.root || confirmDialogState.root.hidden) return;
-    if (event.key === "Escape") {
+    if (confirmDialogState.dismissible && event.key === "Escape") {
       event.preventDefault();
       resolveAndClose(false);
     }
@@ -2575,19 +2828,25 @@ function showConfirmDialog({
   title = "Подтвердите действие",
   message = "",
   confirmLabel = "Подтвердить",
-  cancelLabel = "Отмена"
+  cancelLabel = "Отмена",
+  dismissible = true
 } = {}) {
   const dialog = ensureConfirmDialog();
+  if (confirmDialogState.promise) {
+    return confirmDialogState.promise;
+  }
   dialog.title.textContent = title;
   dialog.body.textContent = message;
   dialog.confirmBtn.textContent = confirmLabel;
   dialog.cancelBtn.textContent = cancelLabel;
+  confirmDialogState.dismissible = dismissible;
   dialog.root.hidden = false;
   document.body.classList.add("is-dialog-open");
   dialog.confirmBtn.focus();
-  return new Promise((resolve) => {
+  confirmDialogState.promise = new Promise((resolve) => {
     dialog.resolver = resolve;
   });
+  return confirmDialogState.promise;
 }
 
 function renderNotifications() {
@@ -2752,7 +3011,7 @@ function applyNotifications(items, options = {}) {
       state.notificationKnownIds.add(item.id);
       createToast(item.title, item.body, [
         {
-          label: "РћС‚РєСЂС‹С‚СЊ",
+          label: "Открыть",
           onClick: () => {
             markNotificationIdsRead([item.id]).catch(console.error);
             openRelease(item.alias).catch(console.error);
@@ -2883,35 +3142,35 @@ function renderProfile() {
   syncInstallButton();
 
   if (els.profileAvatar) els.profileAvatar.src = user?.photoUrl || "/mc-icon-192.png?v=5";
-  if (els.profileName) els.profileName.textContent = user?.displayName || user?.email?.split("@")[0] || "Р“РѕСЃС‚СЊ";
+  if (els.profileName) els.profileName.textContent = user?.displayName || user?.email?.split("@")[0] || "Гость";
   if (els.profileRoleBadge) {
     els.profileRoleBadge.hidden = !admin;
     if (admin) {
-      els.profileRoleBadge.textContent = String(user?.role || "РђРґРјРёРЅ");
+      els.profileRoleBadge.textContent = String(user?.role || "Админ");
     }
   }
-  if (els.profileEmail) els.profileEmail.textContent = user?.email || "Р’С…РѕРґ РЅРµ РІС‹РїРѕР»РЅРµРЅ";
+  if (els.profileEmail) els.profileEmail.textContent = user?.email || "Вход не выполнен";
   if (els.favoritesCount) els.favoritesCount.textContent = formatNumber(state.favorites.length);
   if (els.favoritesMode) {
-    els.favoritesMode.textContent = admin ? String(user?.role || "РђРґРјРёРЅ") : user?.localId ? "РћР±Р»Р°РєРѕ" : "Р›РѕРєР°Р»СЊРЅРѕ";
+    els.favoritesMode.textContent = admin ? String(user?.role || "Админ") : user?.localId ? "Облако" : "Локально";
   }
   if (els.profileSummary) {
     els.profileSummary.textContent = user?.localId
-      ? "РЎРїРёСЃРєРё, РїСЂРѕРіСЂРµСЃСЃ Рё РєРѕРјРјРµРЅС‚Р°СЂРёРё СЃРёРЅС…СЂРѕРЅРёР·РёСЂСѓСЋС‚СЃСЏ С‡РµСЂРµР· Firebase РґР»СЏ С‚РµРєСѓС‰РµРіРѕ Р°РєРєР°СѓРЅС‚Р°."
-      : "Р‘РµР· РІС…РѕРґР° РґР°РЅРЅС‹Рµ С…СЂР°РЅСЏС‚СЃСЏ С‚РѕР»СЊРєРѕ РІ СЌС‚РѕРј Р±СЂР°СѓР·РµСЂРµ.";
+      ? "Списки, прогресс и комментарии синхронизируются через Firebase для текущего аккаунта."
+      : "Без входа данные хранятся только в этом браузере.";
   }
   if (els.adminPanel) els.adminPanel.hidden = !admin;
   if (els.adminNote) {
     els.adminNote.textContent = admin
-      ? "Р›РѕРєР°Р»СЊРЅС‹Рµ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹ РІР»Р°РґРµР»СЊС†Р° РґРµР№СЃС‚РІСѓСЋС‚ С‚РѕР»СЊРєРѕ РІ СЌС‚РѕР№ СЃР±РѕСЂРєРµ СЃР°Р№С‚Р°."
-      : "РџР°РЅРµР»СЊ РІРёРґРЅР° С‚РѕР»СЊРєРѕ РІР»Р°РґРµР»СЊС†Сѓ.";
+      ? "Локальные инструменты владельца действуют только в этой сборке сайта."
+      : "Панель видна только владельцу.";
   }
 
-  updateGrid(els.listWatchingGrid, getListItems("watching"), "РЎРїРёСЃРѕРє В«РЎРјРѕС‚СЂСЋВ» РїРѕРєР° РїСѓСЃС‚.");
-  updateGrid(els.listPlannedGrid, getListItems("planned"), "РџРѕРєР° РЅРёС‡РµРіРѕ РЅРµ Р·Р°РїР»Р°РЅРёСЂРѕРІР°РЅРѕ.");
-  updateGrid(els.listCompletedGrid, getListItems("completed"), "РџСЂРѕСЃРјРѕС‚СЂРµРЅРЅС‹Рµ С‚Р°Р№С‚Р»С‹ РїРѕРєР° РЅРµ РѕС‚РјРµС‡РµРЅС‹.");
-  updateGrid(els.listPausedGrid, getListItems("paused"), "РћС‚Р»РѕР¶РµРЅРЅС‹С… С‚Р°Р№С‚Р»РѕРІ РїРѕРєР° РЅРµС‚.");
-  updateGrid(els.favoritesGrid, state.favorites, "Р’ РёР·Р±СЂР°РЅРЅРѕРј РїРѕРєР° РїСѓСЃС‚Рѕ.");
+  updateGrid(els.listWatchingGrid, getListItems("watching"), "Список «Смотрю» пока пуст.");
+  updateGrid(els.listPlannedGrid, getListItems("planned"), "Пока ничего не запланировано.");
+  updateGrid(els.listCompletedGrid, getListItems("completed"), "Просмотренные тайтлы пока не отмечены.");
+  updateGrid(els.listPausedGrid, getListItems("paused"), "Отложенных тайтлов пока нет.");
+  updateGrid(els.favoritesGrid, state.favorites, "В избранном пока пусто.");
   renderContinueWatchingSections();
   renderPersonalRecommendations();
   renderNotifications();
@@ -2998,10 +3257,10 @@ function renderHero(release) {
   renderHeroPoster();
 
   const meta = [
-    `${release.type} вЂў ${release.year}`,
+    `${release.type} • ${release.year}`,
     release.season,
-    `${release.episodesTotal || "?"} СЌРї.`,
-    release.publishDay ? `Р’С‹С…РѕРґРёС‚: ${release.publishDay}` : "",
+    `${release.episodesTotal || "?"} эп.`,
+    release.publishDay ? `Выходит: ${release.publishDay}` : "",
     release.age
   ].filter(Boolean);
 
@@ -3052,10 +3311,10 @@ async function loadContentStats(force = false) {
       } else if (els.catalogSummary) {
         const currentPage = state.catalogPage || 0;
         const totalPages = Math.max(state.catalogTotalPages || 0, currentPage ? 1 : 0);
-        const pageLabel = currentPage ? ` РЎС‚СЂР°РЅРёС†Р° ${currentPage} РёР· ${totalPages || 1}.` : "";
+        const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
         els.catalogSummary.textContent = `${formatNumber(
           state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
-        )} С‚Р°Р№С‚Р»РѕРІ РІ РїРѕР»РЅРѕР№ Р±Р°Р·Рµ Kodik.${pageLabel}`;
+        )} тайтлов в полной базе Kodik.${pageLabel}`;
       }
     }
     if (state.ongoingLoaded) refreshOngoingSummary();
@@ -3141,8 +3400,8 @@ async function loadReferences(force = false) {
 
 function renderCatalogControls() {
   els.catalogSort.innerHTML = "";
-  els.catalogType.innerHTML = '<option value="">Р’СЃРµ С„РѕСЂРјР°С‚С‹</option>';
-  els.catalogGenre.innerHTML = '<option value="">Р’СЃРµ Р¶Р°РЅСЂС‹</option>';
+  els.catalogType.innerHTML = '<option value="">Все форматы</option>';
+  els.catalogGenre.innerHTML = '<option value="">Все жанры</option>';
 
   state.sortingOptions.forEach((option) => {
     const node = document.createElement("option");
@@ -3236,9 +3495,9 @@ async function loadHome(force = false) {
       safeIdle(() => loadPersonalRecommendations({ force: true }).catch(console.error));
     }
     requestAnimationFrame(() => {
-      updateGrid(els.latestGrid, state.latest, "РЎРІРµР¶РёРµ СЂРµР»РёР·С‹ РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅС‹.");
-      updateGrid(els.recommendedGrid, state.recommended, "РџРѕРґР±РѕСЂРєР° РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅР°.");
-      updateGrid(els.popularGrid, state.popular, "РџРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹ РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅС‹.");
+      updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
+      updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
+      updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
       startHeroCarousel();
     });
     if (state.authUser?.localId) {
@@ -3247,7 +3506,7 @@ async function loadHome(force = false) {
   } catch (error) {
     console.error("loadHome failed", error);
     state.homeLoaded = false;
-    const message = getKodikUnavailableMessage(error, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РіР»Р°РІРЅСѓСЋ РІРёС‚СЂРёРЅСѓ.");
+    const message = getKodikUnavailableMessage(error, "Не удалось загрузить главную витрину.");
     renderHeroFallback(message);
     replaceWithErrorState(els.latestGrid, message, () => loadHome(true).catch(console.error));
     replaceWithErrorState(els.recommendedGrid, message, () => loadHome(true).catch(console.error));
@@ -3561,21 +3820,21 @@ async function loadTop(options = {}) {
 async function loadSchedule() {
   try {
     state.scheduleLoaded = true;
-    els.scheduleGrid.replaceChildren(createEmptyState("Р—Р°РіСЂСѓР¶Р°РµРј СЂР°СЃРїРёСЃР°РЅРёРµвЂ¦"));
+    els.scheduleGrid.replaceChildren(createEmptyState("Загружаем расписание…"));
     const payload = await fetchKodikDiscover("ongoing", 1, 72, { ttl: 60000 });
     state.scheduleItems = buildReleases(payload);
     renderSchedule();
   } catch (error) {
     console.error("loadSchedule failed", error);
     state.scheduleLoaded = false;
-    replaceWithErrorState(els.scheduleGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЂР°СЃРїРёСЃР°РЅРёРµ.", () => loadSchedule().catch(console.error));
+    replaceWithErrorState(els.scheduleGrid, "Не удалось загрузить расписание.", () => loadSchedule().catch(console.error));
     throw error;
   }
 }
 
 function renderSchedule() {
   if (!state.scheduleItems.length) {
-    els.scheduleGrid.replaceChildren(createEmptyState("Р Р°СЃРїРёСЃР°РЅРёРµ РїРѕРєР° РЅРµРґРѕСЃС‚СѓРїРЅРѕ."));
+    els.scheduleGrid.replaceChildren(createEmptyState("Расписание пока недоступно."));
     return;
   }
 
@@ -3587,7 +3846,7 @@ function renderSchedule() {
       return dayDiff !== 0 ? dayDiff : left.title.localeCompare(right.title, "ru");
     })
     .forEach((release) => {
-      const key = release.publishDay || "РЎРµР№С‡Р°СЃ РґРѕСЃС‚СѓРїРЅРѕ РІ Kodik";
+      const key = release.publishDay || "Сейчас доступно в Kodik";
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(release);
     });
@@ -3612,11 +3871,11 @@ function renderSchedule() {
         release.title
       )}" loading="lazy" decoding="async"><div class="schedule-item__body"><strong>${escapeHtml(
         release.title
-      )}</strong><span>${escapeHtml(`${release.type} вЂў ${release.year}`)}</span><small>${escapeHtml(
+      )}</strong><span>${escapeHtml(`${release.type} • ${release.year}`)}</span><small>${escapeHtml(
         release.publishedEpisode
-          ? `Р”РѕСЃС‚СѓРїРЅР° ${release.publishedEpisode.ordinal} СЃРµСЂРёСЏ`
+          ? `Доступна ${release.publishedEpisode.ordinal} серия`
           : release.nextEpisodeNumber
-            ? `РЎР»РµРґСѓСЋС‰Р°СЏ СЃРµСЂРёСЏ: ${release.nextEpisodeNumber}`
+            ? `Следующая серия: ${release.nextEpisodeNumber}`
             : `${release.episodesTotal || "?"} СЌРї.`
       )}</small></div>`;
       button.addEventListener("click", () => openRelease(release.alias).catch(console.error));
@@ -3632,8 +3891,8 @@ function renderSchedule() {
 }
 
 function renderSearchEmpty() {
-  updateGrid(els.searchGrid, [], "Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ Р°РЅРёРјРµ, С‡С‚РѕР±С‹ СѓРІРёРґРµС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹.");
-  els.searchSummary.textContent = "Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ СЃРІРµСЂС…Сѓ, С‡С‚РѕР±С‹ РЅР°Р№С‚Рё СЂРµР»РёР·.";
+  updateGrid(els.searchGrid, [], "Введите название аниме, чтобы увидеть результаты.");
+  els.searchSummary.textContent = "Введите название сверху, чтобы найти релиз.";
 }
 
 function searchLocalReleases(query) {
@@ -3700,7 +3959,7 @@ async function runSearch(query, options = {}) {
     replaceHistory:
       options.replaceHistory ?? normalizePath(location.pathname) === "/search"
   });
-  els.searchSummary.textContent = "РС‰РµРј СЂРµР»РёР·С‹вЂ¦";
+  els.searchSummary.textContent = "Ищем релизы…";
   renderSkeletonGrid(els.searchGrid, 8);
 
   try {
@@ -3725,13 +3984,13 @@ async function runSearch(query, options = {}) {
     ).slice(0, 48);
     registerVoices(state.searchResults);
     els.searchSummary.textContent = state.searchResults.length
-      ? `РќР°Р№РґРµРЅРѕ ${formatNumber(state.searchResults.length)} СЂРµР»РёР·РѕРІ РїРѕ Р·Р°РїСЂРѕСЃСѓ В«${cleanQuery}В».`
-      : `РџРѕ Р·Р°РїСЂРѕСЃСѓ В«${cleanQuery}В» РЅРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ.`;
-    updateGrid(els.searchGrid, state.searchResults, "РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ.");
+      ? `Найдено ${formatNumber(state.searchResults.length)} релизов по запросу «${cleanQuery}».`
+      : `По запросу «${cleanQuery}» ничего не найдено.`;
+    updateGrid(els.searchGrid, state.searchResults, "Ничего не найдено.");
   } catch (error) {
     if (error.name === "AbortError") return;
     console.error(error);
-    const message = getKodikUnavailableMessage(error, "РџРѕРёСЃРє РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
+    const message = getKodikUnavailableMessage(error, "Поиск временно недоступен.");
     els.searchSummary.textContent = message;
     updateGrid(els.searchGrid, [], message);
   } finally {
@@ -3763,7 +4022,7 @@ function createAnimeCard(release, index) {
   node.querySelector(".anime-card__title").textContent = release.title;
   node.querySelector(".anime-card__meta").textContent = [release.type, release.year, `${release.episodesTotal || "?"} СЌРї.`]
     .filter(Boolean)
-    .join(" вЂў ");
+    .join(" • ");
 
   poster.src = cardSrc;
   poster.alt = release.title;
@@ -3783,7 +4042,7 @@ function createAnimeCard(release, index) {
 
   action.href = getAnimePath(release.alias);
   action.dataset.releaseAlias = release.alias;
-  action.setAttribute("aria-label", `${release.title}: РѕС‚РєСЂС‹С‚СЊ СЂРµР»РёР·`);
+  action.setAttribute("aria-label", `${release.title}: открыть релиз`);
 
   return decorateCardProgress(node, release);
 }
@@ -3927,7 +4186,7 @@ function showExternalSurface(url) {
   els.player.hidden = true;
   els.externalPlayer.hidden = false;
   if (!externalUrl) {
-    els.playerNote.textContent = "Р”Р»СЏ СЌС‚РѕРіРѕ РёСЃС‚РѕС‡РЅРёРєР° РІРЅРµС€РЅРёР№ РїР»РµРµСЂ СЃРµР№С‡Р°СЃ РЅРµРґРѕСЃС‚СѓРїРµРЅ.";
+    els.playerNote.textContent = "Для этого источника внешний плеер сейчас недоступен.";
     return;
   }
   els.externalPlayer.src = "about:blank";
@@ -3938,7 +4197,7 @@ function showExternalSurface(url) {
   state.externalPlayerAssistTimer = setTimeout(() => {
     if (state.externalPlayerUrl !== externalUrl || els.externalPlayer.hidden) return;
     els.playerNote.textContent =
-      "Р’РЅРµС€РЅРёР№ Kodik-РїР»РµРµСЂ РґРѕР»РіРѕ РЅРµ РѕС‚РІРµС‡Р°РµС‚. РџРѕРїСЂРѕР±СѓР№С‚Рµ РѕС‚РєСЂС‹С‚СЊ РёСЃС‚РѕС‡РЅРёРє РЅР°РїСЂСЏРјСѓСЋ РёР»Рё РїРѕРІС‚РѕСЂРёС‚СЊ Р·Р°РіСЂСѓР·РєСѓ.";
+      "Внешний Kodik-плеер долго не отвечает. Попробуйте открыть источник напрямую или повторить загрузку.";
     if (els.externalPlayerActions) {
       els.externalPlayerActions.hidden = false;
     }
@@ -3958,7 +4217,7 @@ function fallbackToEmbeddedSource(message) {
   renderEpisodes(state.currentAnime);
   els.qualitySwitch.innerHTML = "";
   els.playerTitle.textContent = fallbackSource.title;
-  els.playerNote.textContent = message || "РџРѕС‚РѕРє РЅРµ РѕС‚РІРµС‚РёР». РћС‚РєСЂС‹Р»Рё РІСЃС‚СЂРѕРµРЅРЅС‹Р№ РІРЅРµС€РЅРёР№ РїР»РµРµСЂ.";
+  els.playerNote.textContent = message || "Поток не ответил. Открыли встроенный внешний плеер.";
   showExternalSurface(fallbackSource.externalUrl);
   return true;
 }
@@ -4002,7 +4261,7 @@ function isActiveVideoSource() {
 function syncPlayerReadyState() {
   clearPlayerStartupTimer();
   if (isActiveVideoSource() && !els.player.hidden) {
-    els.playerNote.textContent = "РџРѕС‚РѕРє РїРѕРґРєР»СЋС‡С‘РЅ.";
+    els.playerNote.textContent = "Поток подключён.";
   }
 }
 
@@ -4020,14 +4279,14 @@ function armPlayerStartupTimer(selectionToken, episode, qualityKey) {
     }
 
     if (qualityKey !== "480" && episode?.hls_480 && state.currentQuality !== "480") {
-      els.playerNote.textContent = "РџРѕС‚РѕРє РґРѕР»РіРѕ СЃС‚Р°СЂС‚СѓРµС‚. РџРµСЂРµРєР»СЋС‡Р°РµРјСЃСЏ РЅР° 480pвЂ¦";
+      els.playerNote.textContent = "Поток долго стартует. Переключаемся на 480p…";
       state.currentQuality = "480";
       selectEpisode(episode, { preserveSource: true, forceReload: true }).catch(console.error);
       return;
     }
 
     destroyPlayer();
-    els.playerNote.textContent = "РџРѕС‚РѕРє РЅРµ Р·Р°РіСЂСѓР·РёР»СЃСЏ. РџРѕРїСЂРѕР±СѓР№С‚Рµ 480p, РґСЂСѓРіСѓСЋ СЃРµСЂРёСЋ РёР»Рё РѕР±РЅРѕРІРёС‚Рµ СЃС‚СЂР°РЅРёС†Сѓ.";
+    els.playerNote.textContent = "Поток не загрузился. Попробуйте 480p, другую серию или обновите страницу.";
   }, timeoutMs);
 }
 
@@ -4088,7 +4347,7 @@ async function attachPlayer(manifestUrl) {
     });
     state.hls.on(HlsLib.Events.MANIFEST_PARSED, () => {
       if (!els.player.hidden) {
-        els.playerNote.textContent = "Р‘СѓС„РµСЂРёР·СѓРµРј РїРѕС‚РѕРєвЂ¦";
+        els.playerNote.textContent = "Буферизуем поток…";
       }
     });
     state.hls.on(HlsLib.Events.ERROR, (_, data) => {
@@ -4096,7 +4355,7 @@ async function attachPlayer(manifestUrl) {
       console.error("HLS fatal error", data);
       if (data.type === HlsLib.ErrorTypes.NETWORK_ERROR && !state.hlsRecoveryTried) {
         state.hlsRecoveryTried = true;
-        els.playerNote.textContent = "РџРѕС‚РѕРє РЅРµ РѕС‚РІРµС‡Р°РµС‚. РџРµСЂРµР·Р°РіСЂСѓР¶Р°РµРј СЃРѕРµРґРёРЅРµРЅРёРµвЂ¦";
+        els.playerNote.textContent = "Поток не отвечает. Перезагружаем соединение…";
         try {
           state.hls.startLoad(-1);
           return;
@@ -4104,11 +4363,11 @@ async function attachPlayer(manifestUrl) {
       }
       destroyPlayer();
       if (
-        fallbackToEmbeddedSource("РџРѕС‚РѕРє РЅРµ РѕС‚РІРµС‚РёР». РћС‚РєСЂС‹Р»Рё РІСЃС‚СЂРѕРµРЅРЅС‹Р№ РІРЅРµС€РЅРёР№ РїР»РµРµСЂ СЃ Р°Р»СЊС‚РµСЂРЅР°С‚РёРІРЅС‹Рј РёСЃС‚РѕС‡РЅРёРєРѕРј.")
+        fallbackToEmbeddedSource("Поток не ответил. Открыли встроенный внешний плеер с альтернативным источником.")
       ) {
         return;
       }
-      els.playerNote.textContent = "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїРѕС‚РѕРє. РџРѕРїСЂРѕР±СѓР№С‚Рµ РґСЂСѓРіСѓСЋ СЃРµСЂРёСЋ РёР»Рё РѕР±РЅРѕРІРёС‚Рµ СЃС‚СЂР°РЅРёС†Сѓ.";
+      els.playerNote.textContent = "Не удалось загрузить поток. Попробуйте другую серию или обновите страницу.";
     });
     state.hls.loadSource(playableManifestUrl);
     state.hls.attachMedia(els.player);
@@ -4171,15 +4430,15 @@ function createSourceNode(source) {
 }
 
 function createEpisodeNode(episode) {
-  const label = episode.ordinal ? `${episode.ordinal} СЃРµСЂРёСЏ` : episode.name || "Р¤РёР»СЊРј";
+  const label = episode.ordinal ? `${episode.ordinal} серия` : episode.name || "Фильм";
   const button = document.createElement("button");
   button.type = "button";
   button.className = `episode-btn${state.currentEpisode?.id === episode.id ? " is-active" : ""}`;
   button.dataset.episodeId = episode.id || "";
   button.dataset.ordinal = String(episode.ordinal || "");
   button.innerHTML = `<strong>${escapeHtml(label)}</strong><span>${escapeHtml(
-    episode.name || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ"
-  )}</span><small>${escapeHtml(formatEpisodeDuration(episode.duration) || "Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РЅРµ СѓРєР°Р·Р°РЅР°")}</small>`;
+    episode.name || "Без названия"
+  )}</span><small>${escapeHtml(formatEpisodeDuration(episode.duration) || "Длительность не указана")}</small>`;
   button.addEventListener("click", () => selectEpisode(episode).catch(console.error));
   return button;
 }
@@ -4187,7 +4446,7 @@ function createEpisodeNode(episode) {
 function createVoiceNode(name) {
   const pill = document.createElement("div");
   pill.className = "voice-pill";
-  pill.innerHTML = `<strong>${escapeHtml(name)}</strong><small>РѕР·РІСѓС‡РєР°</small>`;
+  pill.innerHTML = `<strong>${escapeHtml(name)}</strong><small>озвучка</small>`;
   return pill;
 }
 
@@ -4203,7 +4462,7 @@ function renderSourceSwitch(release) {
   els.sourceSwitch.innerHTML = "";
   const sources = buildSourceList(release);
   if (!sources.length) {
-    els.sourceSwitch.appendChild(createEmptyState("РСЃС‚РѕС‡РЅРёРєРё РїРѕРєР° РЅРµРґРѕСЃС‚СѓРїРЅС‹."));
+    els.sourceSwitch.appendChild(createEmptyState("Источники пока недоступны."));
     return;
   }
   scheduleChunkRender(els.sourceSwitch, sources, createSourceNode, { batchSize: 2 });
@@ -4218,8 +4477,8 @@ function renderEpisodes(release) {
     els.episodesList.appendChild(
       createEmptyState(
         source?.kind === "iframe"
-          ? "РЎРµСЂРёРё РІС‹Р±РёСЂР°СЋС‚СЃСЏ РїСЂСЏРјРѕ РІРЅСѓС‚СЂРё СЌС‚РѕРіРѕ РїР»РµРµСЂР°."
-          : "РЈ СЌС‚РѕРіРѕ СЂРµР»РёР·Р° РїРѕРєР° РЅРµС‚ РѕРїСѓР±Р»РёРєРѕРІР°РЅРЅС‹С… СЃРµСЂРёР№."
+          ? "Серии выбираются прямо внутри этого плеера."
+          : "У этого релиза пока нет опубликованных серий."
       )
     );
     return;
@@ -4239,7 +4498,7 @@ function renderVoices(release) {
   els.voiceList.innerHTML = "";
   const voices = release?.voices || [];
   if (!voices.length) {
-    els.voiceList.appendChild(createEmptyState("РљРѕРјР°РЅРґР° РѕР·РІСѓС‡РєРё РЅРµ СѓРєР°Р·Р°РЅР°."));
+    els.voiceList.appendChild(createEmptyState("Команда озвучки не указана."));
     return;
   }
   scheduleChunkRender(els.voiceList, voices, createVoiceNode, { batchSize: 6 });
@@ -4250,7 +4509,7 @@ function renderCrew(release) {
   els.crewList.innerHTML = "";
   const crew = release?.crew || [];
   if (!crew.length) {
-    els.crewList.appendChild(createEmptyState("РљРѕРјР°РЅРґР° СЂРµР»РёР·Р° РЅРµ СѓРєР°Р·Р°РЅР°."));
+    els.crewList.appendChild(createEmptyState("Команда релиза не указана."));
     return;
   }
   scheduleChunkRender(els.crewList, crew, createCrewNode, { batchSize: 6 });
@@ -4258,13 +4517,13 @@ function renderCrew(release) {
 
 function renderDetailLoadingState() {
   if (els.sourceSwitch) {
-    els.sourceSwitch.replaceChildren(createEmptyState("РџРѕРґРіРѕС‚Р°РІР»РёРІР°РµРј РёСЃС‚РѕС‡РЅРёРєРё..."));
+    els.sourceSwitch.replaceChildren(createEmptyState("Подготавливаем источники..."));
   }
   if (els.episodesList) {
-    els.episodesList.replaceChildren(createEmptyState("РџРѕРґРіРѕС‚Р°РІР»РёРІР°РµРј СЃРїРёСЃРѕРє СЃРµСЂРёР№..."));
+    els.episodesList.replaceChildren(createEmptyState("Подготавливаем список серий..."));
   }
   if (els.crewList) {
-    els.crewList.replaceChildren(createEmptyState("РџРѕРґРіРѕС‚Р°РІР»РёРІР°РµРј РєРѕРјР°РЅРґСѓ СЂРµР»РёР·Р°..."));
+    els.crewList.replaceChildren(createEmptyState("Подготавливаем команду релиза..."));
   }
 }
 
@@ -4293,10 +4552,10 @@ function renderDetailShell(release) {
     release.year,
     kodikRating ? `\u0420\u0435\u0439\u0442\u0438\u043d\u0433: ${kodikRating}` : "",
     release.season,
-    `${release.episodesTotal || "?"} СЌРї.`,
+    `${release.episodesTotal || "?"} эп.`,
     formatDurationMinutes(release.averageDuration),
-    release.publishDay ? `Р’С‹С…РѕРґРёС‚: ${release.publishDay}` : "",
-    release.favorites ? `${formatNumber(release.favorites)} РІ РёР·Р±СЂР°РЅРЅРѕРј` : "",
+    release.publishDay ? `Выходит: ${release.publishDay}` : "",
+    release.favorites ? `${formatNumber(release.favorites)} в избранном` : "",
     release.age
   ].filter(Boolean);
 
@@ -4310,7 +4569,7 @@ function renderDetailShell(release) {
     els.detailAdminPinBtn.hidden = !isAdminUser();
     if (isAdminUser()) {
       els.detailAdminPinBtn.textContent =
-        readAdminHeroAlias() === release.alias ? "Р›РѕРєР°Р»СЊРЅС‹Р№ Р±Р°РЅРЅРµСЂ РІС‹Р±СЂР°РЅ" : "Р—Р°РєСЂРµРїРёС‚СЊ РєР°Рє Р»РѕРєР°Р»СЊРЅС‹Р№ Р±Р°РЅРЅРµСЂ";
+        readAdminHeroAlias() === release.alias ? "Локальный баннер выбран" : "Закрепить как локальный баннер";
     }
   }
 
@@ -4421,8 +4680,8 @@ async function selectEpisode(episode, options = {}) {
 
   syncRenderedEpisodeState();
   syncRenderedSourceState();
-  els.playerTitle.textContent = `${episode.ordinal ? `${episode.ordinal} СЃРµСЂРёСЏ` : "Р¤РёР»СЊРј"}${
-    episode.name ? ` вЂў ${episode.name}` : ""
+  els.playerTitle.textContent = `${episode.ordinal ? `${episode.ordinal} серия` : "Фильм"}${
+    episode.name ? ` • ${episode.name}` : ""
   }`;
   window.dispatchEvent(
     new CustomEvent("animecloud:episode-selected", {
@@ -4437,8 +4696,8 @@ async function selectEpisode(episode, options = {}) {
     showExternalSurface(episode.externalUrl || source?.externalUrl || state.currentAnime.externalPlayer);
     els.playerNote.textContent =
       source?.kind === "iframe-episodes"
-        ? "Р­С‚Р° РѕР·РІСѓС‡РєР° РѕС‚РєСЂС‹С‚Р° РІРѕ РІСЃС‚СЂРѕРµРЅРЅРѕРј РІРЅРµС€РЅРµРј РїР»РµРµСЂРµ. РЎРµСЂРёРё Рё РєР°С‡РµСЃС‚РІРѕ Р·Р°РґР°СЋС‚СЃСЏ С‚Р°Рј. Р•СЃР»Рё Р·Р°РіСЂСѓР·РєР° Р·Р°РІРёСЃРЅРµС‚, РѕС‚РєСЂРѕР№С‚Рµ РёСЃС‚РѕС‡РЅРёРє РЅР°РїСЂСЏРјСѓСЋ."
-        : "Р­С‚РѕС‚ РёСЃС‚РѕС‡РЅРёРє РѕС‚РєСЂС‹РІР°РµС‚СЃСЏ РІРѕ РІСЃС‚СЂРѕРµРЅРЅРѕРј РІРЅРµС€РЅРµРј РїР»РµРµСЂРµ. Р•СЃР»Рё Р·Р°РіСЂСѓР·РєР° Р·Р°РІРёСЃРЅРµС‚, РѕС‚РєСЂРѕР№С‚Рµ РёСЃС‚РѕС‡РЅРёРє РЅР°РїСЂСЏРјСѓСЋ.";
+        ? "Эта озвучка открыта во встроенном внешнем плеере. Серии и качество задаются там. Если загрузка зависнет, откройте источник напрямую."
+        : "Этот источник открывается во встроенном внешнем плеере. Если загрузка зависнет, откройте источник напрямую.";
     return;
   }
 
@@ -4450,11 +4709,11 @@ async function selectEpisode(episode, options = {}) {
 
   if (!selected) {
     destroyPlayer();
-    els.playerNote.textContent = "РЈ СЌС‚РѕР№ СЃРµСЂРёРё РїРѕРєР° РЅРµС‚ РґРѕСЃС‚СѓРїРЅРѕРіРѕ РїРѕС‚РѕРєР°.";
+    els.playerNote.textContent = "У этой серии пока нет доступного потока.";
     return;
   }
 
-  els.playerNote.textContent = `РџР»РµРµСЂ РїРѕРґРіРѕС‚Р°РІР»РёРІР°РµС‚ РїРѕС‚РѕРє С‡РµСЂРµР· РІР°С€ РґРѕРјРµРЅ. РЎС‚Р°СЂС‚РѕРІРѕРµ РєР°С‡РµСЃС‚РІРѕ: ${selected.label}. РџСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РїРµСЂРµРєР»СЋС‡РёС‚Рµ РµРіРѕ РІСЂСѓС‡РЅСѓСЋ.`;
+  els.playerNote.textContent = `Плеер подготавливает поток через ваш домен. Стартовое качество: ${selected.label}. При необходимости переключите его вручную.`;
 
   await afterNextPaint();
   if (state.playerSelectionToken !== selectionToken || state.currentEpisode?.id !== episode.id) return;
@@ -4469,7 +4728,7 @@ async function selectEpisode(episode, options = {}) {
     console.error(error);
     if (state.playerSelectionToken === selectionToken) {
       clearPlayerStartupTimer();
-      els.playerNote.textContent = "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїРѕС‚РѕРє. РџРѕРїСЂРѕР±СѓР№С‚Рµ РґСЂСѓРіРѕРµ РєР°С‡РµСЃС‚РІРѕ РёР»Рё РґСЂСѓРіСѓСЋ СЃРµСЂРёСЋ.";
+      els.playerNote.textContent = "Не удалось загрузить поток. Попробуйте другое качество или другую серию.";
     }
   }
 }
@@ -4494,7 +4753,7 @@ function switchSource(sourceId) {
     els.qualitySwitch.innerHTML = "";
     els.playerTitle.textContent = source.title;
     els.playerNote.textContent =
-      source.note || "Р­С‚РѕС‚ РёСЃС‚РѕС‡РЅРёРє РѕС‚РєСЂС‹РІР°РµС‚СЃСЏ РІРѕ РІСЃС‚СЂРѕРµРЅРЅРѕРј РІРЅРµС€РЅРµРј РїР»РµРµСЂРµ. Р•СЃР»Рё Р·Р°РіСЂСѓР·РєР° Р·Р°РІРёСЃРЅРµС‚, РѕС‚РєСЂРѕР№С‚Рµ РёСЃС‚РѕС‡РЅРёРє РЅР°РїСЂСЏРјСѓСЋ.";
+      source.note || "Этот источник открывается во встроенном внешнем плеере. Если загрузка зависнет, откройте источник напрямую.";
     return;
   }
 
@@ -4510,8 +4769,8 @@ function switchSource(sourceId) {
   els.playerTitle.textContent = source.title;
   els.playerNote.textContent =
     source.kind === "iframe"
-      ? "РЎРµСЂРёРё РІС‹Р±РёСЂР°СЋС‚СЃСЏ РІРЅСѓС‚СЂРё СЌС‚РѕРіРѕ РїР»РµРµСЂР°."
-      : "Р”Р»СЏ СЌС‚РѕРіРѕ РёСЃС‚РѕС‡РЅРёРєР° РїРѕРєР° РЅРµС‚ РѕРїСѓР±Р»РёРєРѕРІР°РЅРЅС‹С… СЌРїРёР·РѕРґРѕРІ.";
+      ? "Серии выбираются внутри этого плеера."
+      : "Для этого источника пока нет опубликованных эпизодов.";
 }
 
 async function openRelease(alias, options = {}) {
@@ -4599,8 +4858,8 @@ async function openRelease(alias, options = {}) {
     destroyPlayer();
     stopExternalPlayer();
     els.qualitySwitch.innerHTML = "";
-    els.playerTitle.textContent = "РЎРµСЂРёРё РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‚";
-    els.playerNote.textContent = "Р”Р»СЏ СЌС‚РѕРіРѕ СЂРµР»РёР·Р° РїРѕРєР° РЅРµС‚ РѕРїСѓР±Р»РёРєРѕРІР°РЅРЅС‹С… СЌРїРёР·РѕРґРѕРІ.";
+    els.playerTitle.textContent = "Серии отсутствуют";
+    els.playerNote.textContent = "Для этого релиза пока нет опубликованных эпизодов.";
     return release;
   })().finally(() => {
     if (state.releaseOpenAlias === alias) {
@@ -4668,16 +4927,21 @@ function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
 
   let controllerRefreshInProgress = false;
+  let updatePromptInFlight = false;
   const hadController = Boolean(navigator.serviceWorker.controller);
 
   async function promptForWorkerUpdate(registration) {
-    if (!registration?.waiting || !navigator.serviceWorker.controller) return;
+    if (!registration?.waiting || !navigator.serviceWorker.controller || updatePromptInFlight) return;
+    updatePromptInFlight = true;
 
     const shouldReload = await showConfirmDialog({
       title: "Доступна новая версия AnimeCloud",
       message: "Обновить страницу сейчас, чтобы применить свежие исправления и убрать старый кэш?",
       confirmLabel: "Обновить",
-      cancelLabel: "Позже"
+      cancelLabel: "Позже",
+      dismissible: false
+    }).finally(() => {
+      updatePromptInFlight = false;
     });
     if (!shouldReload) return;
 
@@ -4814,7 +5078,7 @@ function setShareButtonFeedback(label, timeout = 1600) {
     clearTimeout(state.shareFeedbackTimer);
   }
   state.shareFeedbackTimer = setTimeout(() => {
-    button.textContent = "РџРѕРґРµР»РёС‚СЊСЃСЏ";
+    button.textContent = "Поделиться";
     state.shareFeedbackTimer = 0;
   }, timeout);
 }
@@ -4841,7 +5105,7 @@ async function copyTextFallback(value) {
     textarea.remove();
   }
   if (!success) {
-    window.prompt("РЎРєРѕРїРёСЂСѓР№С‚Рµ СЃСЃС‹Р»РєСѓ РЅР° С‚Р°Р№С‚Р»", value);
+    window.prompt("Скопируйте ссылку на тайтл", value);
   }
   return success;
 }
@@ -4851,8 +5115,8 @@ async function handleShareClick() {
   const button = els.detailShareBtn;
   const url = `${location.origin}${getAnimePath(state.currentAnime.alias)}`;
   const shareData = {
-    title: `${state.currentAnime.title} вЂ” AnimeCloud`,
-    text: `РЎРјРѕС‚СЂРёС‚Рµ ${state.currentAnime.title} РІ AnimeCloud`,
+    title: `${state.currentAnime.title} — AnimeCloud`,
+    text: `Смотрите ${state.currentAnime.title} в AnimeCloud`,
     url
   };
 
@@ -4861,24 +5125,24 @@ async function handleShareClick() {
   try {
     if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
       await navigator.share(shareData);
-      setShareButtonFeedback("РЎСЃС‹Р»РєР° РѕС‚РїСЂР°РІР»РµРЅР°");
+      setShareButtonFeedback("Ссылка отправлена");
       return;
     }
 
     await copyTextFallback(url);
-    setShareButtonFeedback("РЎСЃС‹Р»РєР° СЃРєРѕРїРёСЂРѕРІР°РЅР°");
+    setShareButtonFeedback("Ссылка скопирована");
   } catch (error) {
     const code = String(error?.name || error?.code || "").toLowerCase();
     if (code.includes("abort")) {
-      setShareButtonFeedback("РџРѕРґРµР»РёС‚СЊСЃСЏ", 400);
+      setShareButtonFeedback("Поделиться", 400);
       return;
     }
 
     try {
       await copyTextFallback(url);
-      setShareButtonFeedback("РЎСЃС‹Р»РєР° СЃРєРѕРїРёСЂРѕРІР°РЅР°");
+      setShareButtonFeedback("Ссылка скопирована");
     } catch {
-      setShareButtonFeedback("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРµР»РёС‚СЊСЃСЏ");
+      setShareButtonFeedback("Не удалось поделиться");
     }
   } finally {
     if (button) button.disabled = false;
@@ -4904,12 +5168,12 @@ function bindListButtons() {
 function setLoadMoreButtonLoading(button, loading) {
   if (!button) return;
   if (!button.dataset.labelDefault) {
-    button.dataset.labelDefault = button.textContent.trim() || "РџРѕРєР°Р·Р°С‚СЊ РµС‰С‘";
+    button.dataset.labelDefault = button.textContent.trim() || "Показать ещё";
   }
 
   button.classList.toggle("is-loading", loading);
   button.setAttribute("aria-busy", loading ? "true" : "false");
-  button.textContent = loading ? "Р—Р°РіСЂСѓР¶Р°РµРј РµС‰С‘вЂ¦" : button.dataset.labelDefault;
+  button.textContent = loading ? "Загружаем ещё…" : button.dataset.labelDefault;
 }
 
 function bindLoadMoreButton(button, action) {
@@ -5068,7 +5332,7 @@ function bindEvents() {
     state.heroCarouselIndex = 0;
     renderHero(state.currentAnime);
     startHeroCarousel();
-    els.detailAdminPinBtn.textContent = "Р›РѕРєР°Р»СЊРЅС‹Р№ Р±Р°РЅРЅРµСЂ РІС‹Р±СЂР°РЅ";
+    els.detailAdminPinBtn.textContent = "Локальный баннер выбран";
   });
 
   els.adminRefreshBtn?.addEventListener("click", () => refreshAll().catch(console.error));
@@ -5177,13 +5441,13 @@ function bindEvents() {
   });
   els.player?.addEventListener("waiting", () => {
     if (isActiveVideoSource() && !els.player.hidden && els.player.readyState < 2) {
-      els.playerNote.textContent = "Р‘СѓС„РµСЂРёР·СѓРµРј РїРѕС‚РѕРєвЂ¦";
+      els.playerNote.textContent = "Буферизуем поток…";
     }
   });
   els.player?.addEventListener("error", () => {
     clearPlayerStartupTimer();
     if (isActiveVideoSource()) {
-      els.playerNote.textContent = "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕСЃРїСЂРѕРёР·РІРµСЃС‚Рё РІРёРґРµРѕ. РџРѕРїСЂРѕР±СѓР№С‚Рµ 480p РёР»Рё РґСЂСѓРіСѓСЋ СЃРµСЂРёСЋ.";
+      els.playerNote.textContent = "Не удалось воспроизвести видео. Попробуйте 480p или другую серию.";
     }
   });
 }
@@ -5241,9 +5505,9 @@ async function init() {
     });
   } catch (error) {
     console.error(error);
-    updateGrid(els.latestGrid, [], "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РґРѕРјР°С€РЅСЋСЋ СЃС‚СЂР°РЅРёС†Сѓ.");
-    updateGrid(els.recommendedGrid, [], "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РґРѕРјР°С€РЅСЋСЋ СЃС‚СЂР°РЅРёС†Сѓ.");
-    updateGrid(els.popularGrid, [], "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РґРѕРјР°С€РЅСЋСЋ СЃС‚СЂР°РЅРёС†Сѓ.");
+    updateGrid(els.latestGrid, [], "Не удалось загрузить домашнюю страницу.");
+    updateGrid(els.recommendedGrid, [], "Не удалось загрузить домашнюю страницу.");
+    updateGrid(els.popularGrid, [], "Не удалось загрузить домашнюю страницу.");
   }
 }
 
