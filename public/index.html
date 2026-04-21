@@ -43,9 +43,9 @@
   <link rel="preconnect" href="https://kodik-api.com" crossorigin>
   <link rel="preconnect" href="https://kodikplayer.com" crossorigin>
   <link rel="preconnect" href="https://apis.google.com" crossorigin>
-  <link rel="preload" href="/style.css?v=93289a944a" as="style">
-  <link rel="preload" href="/app.min.js?v=4c342a30e4" as="script">
-  <link rel="stylesheet" href="/style.css?v=93289a944a">
+  <link rel="preload" href="/style.css?v=ba7fc18d26" as="style">
+  <link rel="preload" href="/app.min.js?v=fbc07139c1" as="script">
+  <link rel="stylesheet" href="/style.css?v=ba7fc18d26">
   <script id="structured-data" type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -124,6 +124,16 @@
             <span class="notification-btn__text">Уведомления</span>
             <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
           </button>
+          <section class="notification-popover" id="notification-popover" hidden aria-label="Уведомления">
+            <div class="notification-popover__head">
+              <div>
+                <strong>Уведомления</strong>
+                <small id="notification-popover-summary">Новые серии и новые тайтлы появятся здесь.</small>
+              </div>
+              <button class="ghost-btn notification-popover__mark-all" type="button" id="notification-popover-mark-all-btn" hidden>Прочитать всё</button>
+            </div>
+            <div class="notification-popover__list" id="notification-popover-list"></div>
+          </section>
 
           <div class="auth-slot">
             <button class="ghost-btn auth-open-btn" type="button" id="auth-open-btn">Войти</button>
@@ -801,7 +811,7 @@
     </article>
   </template>
 
-<script src="/api/runtime-config.js?v=b8a73d13c4" defer></script>
+<script src="/api/runtime-config.js?v=f48d3a6234" defer></script>
 <script src="/app-constants.min.js?v=7f5bd79a51" defer></script>
 <script src="/firebase-config.min.js?v=d0b5fb95e7" defer></script>
 <script src="/cloud-sync.min.js?v=0e5735ce3e" defer></script>
@@ -809,8 +819,8 @@
 <script src="/app-seo.min.js?v=89e2c3501b" defer></script>
 <script src="/app-stats.min.js?v=0dba658ff4" defer></script>
 <script src="/app-player-utils.min.js?v=25dfbdad16" defer></script>
-<script src="/app.min.js?v=4c342a30e4" defer></script>
-<script src="/auth.min.js?v=edab9161c1" defer></script>
-<script src="/watch-features.min.js?v=0abb2c2297" defer></script>
+<script src="/app.min.js?v=fbc07139c1" defer></script>
+<script src="/auth.min.js?v=420eec33de" defer></script>
+<script src="/watch-features.min.js?v=7dd9a6ea7f" defer></script>
 </body>
 </html>

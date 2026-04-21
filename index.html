@@ -124,6 +124,16 @@
             <span class="notification-btn__text">Уведомления</span>
             <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
           </button>
+          <section class="notification-popover" id="notification-popover" hidden aria-label="Уведомления">
+            <div class="notification-popover__head">
+              <div>
+                <strong>Уведомления</strong>
+                <small id="notification-popover-summary">Новые серии и новые тайтлы появятся здесь.</small>
+              </div>
+              <button class="ghost-btn notification-popover__mark-all" type="button" id="notification-popover-mark-all-btn" hidden>Прочитать всё</button>
+            </div>
+            <div class="notification-popover__list" id="notification-popover-list"></div>
+          </section>
 
           <div class="auth-slot">
             <button class="ghost-btn auth-open-btn" type="button" id="auth-open-btn">Войти</button>

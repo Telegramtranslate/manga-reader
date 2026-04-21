@@ -1,4 +1,4 @@
-const WATCH_APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
+﻿const WATCH_APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
 const WATCH_STORAGE_KEYS = WATCH_APP_CONSTANTS.STORAGE_KEYS || {};
 const WATCH_FEATURES_PROGRESS_KEY = WATCH_STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
 const WATCH_FEATURES_COMMENTS_STORAGE_KEY = WATCH_STORAGE_KEYS.comments || "animecloud_comments_v1";
@@ -23,7 +23,6 @@ const watchEls = {
   commentUser: document.getElementById("comment-user"),
   commentsSummary: document.getElementById("comments-summary"),
   commentsList: document.getElementById("comments-list"),
-  autoplayToggle: document.getElementById("settings-autoplay-next"),
   themeToggle: document.getElementById("settings-theme")
 };
 
@@ -46,7 +45,6 @@ const watchState = {
   realtimeRatingsStop: null,
   realtimeProgressStop: null,
   settings: {
-    autoplayNext: true,
     theme: "dark"
   },
   lastCommentSubmitAt: 0,
@@ -143,7 +141,6 @@ function normalizeTheme(theme) {
 
 function normalizeSettings(settings = {}) {
   return {
-    autoplayNext: settings.autoplayNext !== false,
     theme: normalizeTheme(settings.theme)
   };
 }
@@ -159,12 +156,17 @@ function applyTheme(theme) {
 }
 
 function syncSettingsControls() {
-  if (watchEls.autoplayToggle) {
-    watchEls.autoplayToggle.checked = Boolean(watchState.settings.autoplayNext);
-  }
   if (watchEls.themeToggle) {
     watchEls.themeToggle.checked = watchState.settings.theme !== "light";
   }
+}
+
+function pruneUnsupportedKodikUi() {
+  watchEls.resumeClearBtn?.remove();
+  watchEls.nextEpisodeBtn?.remove();
+  const autoplaySetting = document.getElementById("settings-autoplay-next");
+  autoplaySetting?.closest(".settings-toggle")?.remove();
+  document.getElementById("rating-box")?.remove();
 }
 
 function readSettings() {
@@ -296,7 +298,7 @@ function renderDubBox() {
   });
 
   watchEls.dubNote.textContent =
-    "Дополнительные озвучки и источники доступны во внешнем встроенном плеере, если конкретный провайдер их действительно отдаёт.";
+    "Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РѕР·РІСѓС‡РєРё Рё РёСЃС‚РѕС‡РЅРёРєРё РґРѕСЃС‚СѓРїРЅС‹ РІРѕ РІРЅРµС€РЅРµРј РІСЃС‚СЂРѕРµРЅРЅРѕРј РїР»РµРµСЂРµ, РµСЃР»Рё РєРѕРЅРєСЂРµС‚РЅС‹Р№ РїСЂРѕРІР°Р№РґРµСЂ РёС… РґРµР№СЃС‚РІРёС‚РµР»СЊРЅРѕ РѕС‚РґР°С‘С‚.";
 }
 
 function currentDisplayName() {
@@ -427,12 +429,8 @@ function getNextEpisode() {
 }
 
 function renderNextEpisodeButton() {
-  if (!watchEls.nextEpisodeBtn) return;
-  const nextEpisode = getNextEpisode();
-  watchEls.nextEpisodeBtn.hidden = !nextEpisode;
-  watchEls.nextEpisodeBtn.disabled = !nextEpisode;
-  if (nextEpisode) {
-    watchEls.nextEpisodeBtn.textContent = `Следующая серия: ${nextEpisode.ordinal}`;
+  if (watchEls.nextEpisodeBtn) {
+    watchEls.nextEpisodeBtn.hidden = true;
   }
 }
 
@@ -483,7 +481,7 @@ async function saveProgress(force = false) {
     cardPoster: watchState.release.cardPoster || watchState.release.poster,
     episodeId: watchState.episode.id,
     episodeOrdinal: watchState.episode.ordinal || 0,
-    episodeLabel: `${watchState.episode.ordinal || "?"} серия`,
+    episodeLabel: `${watchState.episode.ordinal || "?"} СЃРµСЂРёСЏ`,
     time: currentTime,
     duration,
     updatedAt: now
@@ -508,7 +506,7 @@ async function saveEpisodeSelectionProgress() {
     cardPoster: watchState.release.cardPoster || watchState.release.poster,
     episodeId: watchState.episode.id,
     episodeOrdinal: watchState.episode.ordinal || 0,
-    episodeLabel: `${watchState.episode.ordinal || "?"} серия`,
+    episodeLabel: `${watchState.episode.ordinal || "?"} СЃРµСЂРёСЏ`,
     time: Number(currentMap[watchState.release.alias]?.time || 0),
     duration: Number(currentMap[watchState.release.alias]?.duration || 0),
     updatedAt: Date.now()
@@ -567,7 +565,6 @@ async function hydrateLocalCachesFromIndexedDb() {
 
 async function hydrateWatchPersistence() {
   const user = getAuthUserSafe();
-  readRatingMap();
 
   if (user?.localId && window.animeCloudSync?.hydrateSessionData) {
     try {
@@ -597,7 +594,6 @@ async function hydrateWatchPersistence() {
 
   syncSettingsControls();
   applyTheme(watchState.settings.theme);
-  await refreshCurrentRatingSummary();
 }
 
 function handleCommentSubmit(event) {
@@ -611,7 +607,7 @@ function handleCommentSubmit(event) {
   const now = Date.now();
   if (now - watchState.lastCommentSubmitAt < WATCH_COMMENT_MIN_INTERVAL) {
     const secondsLeft = Math.max(1, Math.ceil((WATCH_COMMENT_MIN_INTERVAL - (now - watchState.lastCommentSubmitAt)) / 1000));
-    watchEls.commentInput.setCustomValidity(`Подождите ${secondsLeft} сек. перед следующим комментарием.`);
+    watchEls.commentInput.setCustomValidity(`РџРѕРґРѕР¶РґРёС‚Рµ ${secondsLeft} СЃРµРє. РїРµСЂРµРґ СЃР»РµРґСѓСЋС‰РёРј РєРѕРјРјРµРЅС‚Р°СЂРёРµРј.`);
     watchEls.commentInput.reportValidity();
     setTimeout(() => watchEls.commentInput.setCustomValidity(""), 50);
     return;
@@ -646,161 +642,20 @@ function handleCommentSubmit(event) {
 }
 
 function ensureRatingUi() {
-  const detailCopy = document.querySelector(".detail-copy");
-  if (detailCopy && !document.getElementById("rating-box")) {
-    const box = document.createElement("section");
-    box.className = "rating-box";
-    box.id = "rating-box";
-    box.innerHTML = `
-      <div class="detail-label">Оценка зрителей</div>
-      <div class="rating-box__summary">
-        <strong id="rating-average">—</strong>
-        <div class="rating-box__meta">
-          <span id="rating-count">Пока нет оценок</span>
-          <small id="rating-note">Войдите, чтобы оценка синхронизировалась между устройствами.</small>
-        </div>
-      </div>
-      <div class="rating-box__actions" id="rating-actions"></div>
-      <button class="ghost-btn rating-box__clear" type="button" id="rating-clear-btn" hidden>Сбросить оценку</button>
-    `;
-    detailCopy.appendChild(box);
-  }
-
-  watchEls.ratingBox = document.getElementById("rating-box");
-  watchEls.ratingAverage = document.getElementById("rating-average");
-  watchEls.ratingCount = document.getElementById("rating-count");
-  watchEls.ratingNote = document.getElementById("rating-note");
-  watchEls.ratingActions = document.getElementById("rating-actions");
-  watchEls.ratingClearBtn = document.getElementById("rating-clear-btn");
+  document.getElementById("rating-box")?.remove();
 }
 
 function renderRatingPanel() {
   ensureRatingUi();
-  if (!watchEls.ratingBox || !watchEls.ratingActions) return;
-
-  const summary = watchState.ratingSummary || { average: 0, count: 0, userValue: 0 };
-  const user = getAuthUserSafe();
-  const averageText = summary.count ? String(summary.average).replace(/\.0$/, "") : summary.userValue ? String(summary.userValue) : "—";
-
-  watchEls.ratingAverage.textContent = averageText;
-  watchEls.ratingCount.textContent = summary.count
-    ? `${summary.count} ${summary.count === 1 ? "оценка" : summary.count < 5 ? "оценки" : "оценок"}`
-    : "Пока нет оценок";
-  watchEls.ratingNote.textContent = summary.userValue
-    ? `Ваша оценка: ${summary.userValue}/10.${user?.localId ? " Синхронизирована в профиле." : " Сохранена локально в этом браузере."}`
-    : user?.localId
-      ? "Поставьте оценку от 1 до 10. Она сохранится в вашем облачном профиле."
-      : "Поставьте локальную оценку. После входа можно будет оценивать из облачного профиля.";
-
-  watchEls.ratingActions.innerHTML = "";
-  for (let value = 1; value <= 10; value += 1) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `rating-chip${summary.userValue === value ? " is-active" : ""}`;
-    button.textContent = String(value);
-    button.disabled = watchState.ratingBusy || !watchState.release?.alias;
-    button.addEventListener("click", () => {
-      void setCurrentRating(value);
-    });
-    watchEls.ratingActions.appendChild(button);
-  }
-
-  watchEls.ratingClearBtn.hidden = !summary.userValue;
-  watchEls.ratingClearBtn.disabled = watchState.ratingBusy;
 }
 
 async function refreshCurrentRatingSummary() {
-  ensureRatingUi();
-  if (!watchState.release?.alias) {
-    watchState.ratingSummary = { average: 0, count: 0, userValue: 0 };
-    renderRatingPanel();
-    return watchState.ratingSummary;
-  }
-
-  try {
-    if (window.animeCloudSync?.loadRatingSummary) {
-      watchState.ratingSummary = await window.animeCloudSync.loadRatingSummary(
-        watchState.release.alias,
-        getAuthUserSafe()
-      );
-    } else {
-      const localValue = normalizeRatingValue(readRatingMap()?.[watchState.release.alias]?.value);
-      watchState.ratingSummary = {
-        average: localValue || 0,
-        count: localValue ? 1 : 0,
-        userValue: localValue
-      };
-    }
-  } catch (error) {
-    console.error(error);
-    const localValue = normalizeRatingValue(readRatingMap()?.[watchState.release.alias]?.value);
-    watchState.ratingSummary = {
-      average: localValue || 0,
-      count: localValue ? 1 : 0,
-      userValue: localValue
-    };
-  }
-
-  renderRatingPanel();
+  watchState.ratingSummary = { average: 0, count: 0, userValue: 0 };
   return watchState.ratingSummary;
 }
 
 async function setCurrentRating(value) {
-  if (!watchState.release?.alias || watchState.ratingBusy) return;
-  const safeAlias = watchState.release.alias;
-  const normalized = normalizeRatingValue(value);
-  const previousSummary = { ...(watchState.ratingSummary || { average: 0, count: 0, userValue: 0 }) };
-  const nextLocalMap = { ...readRatingMap() };
-
-  if (normalized) {
-    nextLocalMap[safeAlias] = { value: normalized, updatedAt: Date.now() };
-  } else {
-    delete nextLocalMap[safeAlias];
-  }
-
-  writeRatingMap(nextLocalMap);
-  watchState.ratingSummary = {
-    average: normalized || 0,
-    count: normalized ? Math.max(previousSummary.count || 0, 1) : 0,
-    userValue: normalized
-  };
-  watchState.ratingBusy = true;
-  renderRatingPanel();
-
-  try {
-    if (window.animeCloudSync?.saveRating) {
-      watchState.ratingSummary = await window.animeCloudSync.saveRating(
-        safeAlias,
-        value,
-        getAuthUserSafe()
-      );
-      if (watchState.ratingSummary?.userValue) {
-        nextLocalMap[safeAlias] = {
-          value: normalizeRatingValue(watchState.ratingSummary.userValue),
-          updatedAt: Date.now()
-        };
-      } else {
-        delete nextLocalMap[safeAlias];
-      }
-      writeRatingMap(nextLocalMap);
-    } else {
-      watchState.ratingSummary = {
-        average: normalized || 0,
-        count: normalized ? 1 : 0,
-        userValue: normalized
-      };
-    }
-  } catch (error) {
-    console.error(error);
-    watchState.ratingSummary = {
-      average: normalized || 0,
-      count: normalized ? Math.max(previousSummary.count || 0, 1) : 0,
-      userValue: normalized
-    };
-  } finally {
-    watchState.ratingBusy = false;
-    renderRatingPanel();
-  }
+  return watchState.ratingSummary;
 }
 
 function stopRealtimeRatings() {
@@ -812,25 +667,7 @@ function stopRealtimeRatings() {
 
 function bindRealtimeRatings(alias) {
   stopRealtimeRatings();
-  if (!alias) {
-    watchState.ratingSummary = { average: 0, count: 0, userValue: 0 };
-    renderRatingPanel();
-    return;
-  }
-
-  if (!window.animeCloudSync?.subscribeRatings) {
-    void refreshCurrentRatingSummary();
-    return;
-  }
-
-  watchState.realtimeRatingsStop = window.animeCloudSync.subscribeRatings(
-    alias,
-    (summary) => {
-      watchState.ratingSummary = summary || { average: 0, count: 0, userValue: 0 };
-      renderRatingPanel();
-    },
-    getAuthUserSafe()
-  );
+  watchState.ratingSummary = { average: 0, count: 0, userValue: 0 };
 }
 
 function stopRealtimeComments() {
@@ -910,9 +747,6 @@ async function handlePlayerEnded() {
   } catch (error) {
     console.error(error);
   }
-  if (watchState.settings.autoplayNext) {
-    requestAnimationFrame(() => playNextEpisode());
-  }
 }
 
 function handleVisibilityChange() {
@@ -939,10 +773,6 @@ function handlePlayerKeyboard(event) {
     return;
   }
 
-  if (event.key === "ArrowRight" && !isTypingTarget) {
-    event.preventDefault();
-    playNextEpisode();
-  }
 }
 
 function bindPlayerTracking() {
@@ -961,20 +791,6 @@ function bindPlayerTracking() {
 function bindFeatureEvents() {
   watchEls.commentForm.addEventListener("submit", handleCommentSubmit);
   watchEls.resumeBtn.addEventListener("click", resumeFromSavedProgress);
-  watchEls.resumeClearBtn.addEventListener("click", clearCurrentProgress);
-  watchEls.ratingClearBtn?.addEventListener("click", () => {
-    void setCurrentRating(0);
-  });
-
-  if (watchEls.nextEpisodeBtn) {
-    watchEls.nextEpisodeBtn.addEventListener("click", playNextEpisode);
-  }
-
-  if (watchEls.autoplayToggle) {
-    watchEls.autoplayToggle.addEventListener("change", (event) => {
-      saveSettings({ autoplayNext: Boolean(event.target.checked) });
-    });
-  }
   if (watchEls.themeToggle) {
     watchEls.themeToggle.addEventListener("change", (event) => {
       saveSettings({ theme: event.target.checked ? "dark" : "light" });
@@ -986,14 +802,10 @@ function bindFeatureEvents() {
     watchState.episode = null;
     watchState.sourceId = getDefaultWatchSourceId(watchState.release);
     watchState.pendingResume = getCurrentProgress();
-    watchState.ratingSummary = { average: 0, count: 0, userValue: 0 };
-    renderRatingPanel();
     bindRealtimeComments(watchState.release?.alias || "");
-    bindRealtimeRatings(watchState.release?.alias || "");
     renderDubBox();
     renderComments();
     renderResumeBox();
-    renderNextEpisodeButton();
   });
 
   window.addEventListener("animecloud:episode-selected", (event) => {
@@ -1002,7 +814,6 @@ function bindFeatureEvents() {
     watchState.sourceId = event.detail?.sourceId || "kodik";
     watchState.pendingResume = getCurrentProgress();
     renderResumeBox();
-    renderNextEpisodeButton();
     void saveEpisodeSelectionProgress();
   });
 
@@ -1028,7 +839,6 @@ function bindFeatureEvents() {
     renderResumeBox();
     bindRealtimeProgress();
     bindRealtimeComments(watchState.release?.alias || "");
-    bindRealtimeRatings(watchState.release?.alias || "");
   });
 
   window.addEventListener("animecloud:admin-clear-comments", () => {
@@ -1041,26 +851,22 @@ function bindFeatureEvents() {
 
   window.addEventListener("animecloud:progress-updated", () => {
     renderResumeBox();
-    renderNextEpisodeButton();
   });
 }
 
 async function initWatchFeatures() {
   if (!watchEls.player || !watchEls.commentForm) return;
 
-  ensureRatingUi();
+  pruneUnsupportedKodikUi();
   await hydrateWatchPersistence();
 
   bindPlayerTracking();
   bindFeatureEvents();
   bindRealtimeProgress();
-  bindRealtimeRatings(watchState.release?.alias || "");
   renderCommentUser();
   renderComments();
   renderResumeBox();
   renderDubBox();
-  renderRatingPanel();
-  renderNextEpisodeButton();
 }
 
 window.animeCloudWatchState = {
@@ -1076,3 +882,4 @@ window.animeCloudWatchState = {
 };
 
 initWatchFeatures().catch(console.error);
+

@@ -1,4 +1,4 @@
-const MEDIA_PROXY_BASE = "/api/anilibria-stream";
+﻿const MEDIA_PROXY_BASE = "/api/anilibria-stream";
 const IMAGE_PROXY_BASE = "/api/anilibria-image";
 const KODIK_API_BASE = "/api/kodik";
 const APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
@@ -7,39 +7,39 @@ const SITE_URL =
   APP_CONSTANTS.SITE_URL ||
   (typeof window !== "undefined" && window.location?.origin ? window.location.origin : "https://example.invalid");
 
-const DEFAULT_SEO_TITLE = "AnimeCloud - аниме из базы Kodik";
+const DEFAULT_SEO_TITLE = "AnimeCloud - Р°РЅРёРјРµ РёР· Р±Р°Р·С‹ Kodik";
 const DEFAULT_SEO_DESCRIPTION =
-  "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.";
+  "AnimeCloud - РєР°С‚Р°Р»РѕРі Р°РЅРёРјРµ РёР· Р±Р°Р·С‹ Kodik СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№, Р±С‹СЃС‚СЂС‹Рј РјРѕР±РёР»СЊРЅС‹Рј РёРЅС‚РµСЂС„РµР№СЃРѕРј, РїРѕРґР±РѕСЂРєР°РјРё Рё РІСЃС‚СЂРѕРµРЅРЅС‹Рј РїР»РµРµСЂРѕРј.";
 const VIEW_SEO = {
   home: {
     title: DEFAULT_SEO_TITLE,
     description: DEFAULT_SEO_DESCRIPTION
   },
   catalog: {
-    title: "Каталог аниме с русской озвучкой - AnimeCloud",
+    title: "РљР°С‚Р°Р»РѕРі Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ - AnimeCloud",
     description:
-      "Каталог аниме с русской озвучкой: популярные релизы, жанры, форматы, онгоинги и быстрый поиск на AnimeCloud."
+      "РљР°С‚Р°Р»РѕРі Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№: РїРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹, Р¶Р°РЅСЂС‹, С„РѕСЂРјР°С‚С‹, РѕРЅРіРѕРёРЅРіРё Рё Р±С‹СЃС‚СЂС‹Р№ РїРѕРёСЃРє РЅР° AnimeCloud."
   },
   ongoing: {
-    title: "Онгоинги аниме с русской озвучкой - AnimeCloud",
-    description: "Свежие онгоинги аниме с русской озвучкой и быстрым плеером на AnimeCloud."
+    title: "РћРЅРіРѕРёРЅРіРё Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ - AnimeCloud",
+    description: "РЎРІРµР¶РёРµ РѕРЅРіРѕРёРЅРіРё Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ Рё Р±С‹СЃС‚СЂС‹Рј РїР»РµРµСЂРѕРј РЅР° AnimeCloud."
   },
   top: {
-    title: "Топ аниме с русской озвучкой - AnimeCloud",
-    description: "Топ аниме с русской озвучкой: популярные и высоко оцененные релизы в каталоге AnimeCloud."
+    title: "РўРѕРї Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ - AnimeCloud",
+    description: "РўРѕРї Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№: РїРѕРїСѓР»СЏСЂРЅС‹Рµ Рё РІС‹СЃРѕРєРѕ РѕС†РµРЅРµРЅРЅС‹Рµ СЂРµР»РёР·С‹ РІ РєР°С‚Р°Р»РѕРіРµ AnimeCloud."
   },
   schedule: {
-    title: "Расписание выхода аниме - AnimeCloud",
-    description: "Расписание выхода аниме с русской озвучкой по дням недели на AnimeCloud."
+    title: "Р Р°СЃРїРёСЃР°РЅРёРµ РІС‹С…РѕРґР° Р°РЅРёРјРµ - AnimeCloud",
+    description: "Р Р°СЃРїРёСЃР°РЅРёРµ РІС‹С…РѕРґР° Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ РїРѕ РґРЅСЏРј РЅРµРґРµР»Рё РЅР° AnimeCloud."
   },
   search: {
-    title: "Поиск аниме с русской озвучкой - AnimeCloud",
-    description: "Поиск аниме по названию, формату и жанрам в каталоге AnimeCloud.",
+    title: "РџРѕРёСЃРє Р°РЅРёРјРµ СЃ СЂСѓСЃСЃРєРѕР№ РѕР·РІСѓС‡РєРѕР№ - AnimeCloud",
+    description: "РџРѕРёСЃРє Р°РЅРёРјРµ РїРѕ РЅР°Р·РІР°РЅРёСЋ, С„РѕСЂРјР°С‚Сѓ Рё Р¶Р°РЅСЂР°Рј РІ РєР°С‚Р°Р»РѕРіРµ AnimeCloud.",
     robots: "noindex,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
   },
   profile: {
-    title: "Профиль зрителя - AnimeCloud",
-    description: "Профиль, списки, комментарии и история просмотра в AnimeCloud.",
+    title: "РџСЂРѕС„РёР»СЊ Р·СЂРёС‚РµР»СЏ - AnimeCloud",
+    description: "РџСЂРѕС„РёР»СЊ, СЃРїРёСЃРєРё, РєРѕРјРјРµРЅС‚Р°СЂРёРё Рё РёСЃС‚РѕСЂРёСЏ РїСЂРѕСЃРјРѕС‚СЂР° РІ AnimeCloud.",
     robots: "noindex,nofollow,noarchive"
   }
 };
@@ -60,21 +60,21 @@ const WATCH_PROGRESS_KEY = STORAGE_KEYS.progress || "animecloud_watch_progress_v
 const ADMIN_HERO_STORAGE_KEY = STORAGE_KEYS.adminHero || "animecloud_admin_featured_alias";
 const FAVORITE_LIST_KEYS = ["watching", "planned", "completed", "paused"];
 const KODIK_SORTING_OPTIONS = [
-  { value: "FRESH_AT_DESC", label: "Обновлены недавно" },
-  { value: "FRESH_AT_ASC", label: "Обновлены давно" },
-  { value: "RATING_DESC", label: "Самый высокий рейтинг" },
-  { value: "RATING_ASC", label: "Самый низкий рейтинг" },
-  { value: "YEAR_DESC", label: "Самые новые" },
-  { value: "YEAR_ASC", label: "Самые старые" }
+  { value: "FRESH_AT_DESC", label: "РћР±РЅРѕРІР»РµРЅС‹ РЅРµРґР°РІРЅРѕ" },
+  { value: "FRESH_AT_ASC", label: "РћР±РЅРѕРІР»РµРЅС‹ РґР°РІРЅРѕ" },
+  { value: "RATING_DESC", label: "РЎР°РјС‹Р№ РІС‹СЃРѕРєРёР№ СЂРµР№С‚РёРЅРі" },
+  { value: "RATING_ASC", label: "РЎР°РјС‹Р№ РЅРёР·РєРёР№ СЂРµР№С‚РёРЅРі" },
+  { value: "YEAR_DESC", label: "РЎР°РјС‹Рµ РЅРѕРІС‹Рµ" },
+  { value: "YEAR_ASC", label: "РЎР°РјС‹Рµ СЃС‚Р°СЂС‹Рµ" }
 ];
 const KODIK_TYPE_OPTIONS = [
-  { value: "TV", description: "TV сериал" },
+  { value: "TV", description: "TV СЃРµСЂРёР°Р»" },
   { value: "ONA", description: "ONA" },
   { value: "WEB", description: "WEB" },
   { value: "OVA", description: "OVA" },
   { value: "OAD", description: "OAD" },
-  { value: "MOVIE", description: "Фильм" },
-  { value: "SPECIAL", description: "Спешл" }
+  { value: "MOVIE", description: "Р¤РёР»СЊРј" },
+  { value: "SPECIAL", description: "РЎРїРµС€Р»" }
 ];
 
 const responseCache = new Map();
@@ -172,7 +172,8 @@ const state = {
   notificationSyncInFlight: null,
   notificationPrimed: false,
   notificationLiveStop: null,
-  notificationKnownIds: new Set()
+  notificationKnownIds: new Set(),
+  notificationPopoverOpen: false
 };
 
 const els = {
@@ -193,6 +194,10 @@ const els = {
   heroDots: document.getElementById("hero-dots"),
   notificationBtn: document.getElementById("notification-btn"),
   notificationBadge: document.getElementById("notification-badge"),
+  notificationPopover: document.getElementById("notification-popover"),
+  notificationPopoverSummary: document.getElementById("notification-popover-summary"),
+  notificationPopoverList: document.getElementById("notification-popover-list"),
+  notificationPopoverMarkAllBtn: document.getElementById("notification-popover-mark-all-btn"),
   statsRow: document.querySelector(".stats-row"),
   latestCount: document.getElementById("latest-count"),
   catalogCount: document.getElementById("catalog-count"),
@@ -294,20 +299,20 @@ const els = {
 
 const STATIC_UI_TEXT = Object.freeze({
   homeStats: [
-    "релизов в базе",
-    "тайтлов в каталоге",
-    "онгоингов",
-    "в рейтинге"
+    "СЂРµР»РёР·РѕРІ РІ Р±Р°Р·Рµ",
+    "С‚Р°Р№С‚Р»РѕРІ РІ РєР°С‚Р°Р»РѕРіРµ",
+    "РѕРЅРіРѕРёРЅРіРѕРІ",
+    "РІ СЂРµР№С‚РёРЅРіРµ"
   ],
-  latestKicker: "Лента",
-  latestTitle: "Последние релизы",
-  latestSummary: "Свежие серии и обновления, которые сейчас выходят быстрее всего.",
-  recommendedKicker: "Подборка",
-  recommendedTitle: "Что посмотреть сегодня",
-  recommendedSummary: "Рекомендации для вечернего просмотра без перегруженного интерфейса.",
-  popularKicker: "Топ",
-  popularTitle: "Популярное сейчас",
-  popularSummary: "Тайтлы, которые чаще всего открывают и добавляют в избранное."
+  latestKicker: "Р›РµРЅС‚Р°",
+  latestTitle: "РџРѕСЃР»РµРґРЅРёРµ СЂРµР»РёР·С‹",
+  latestSummary: "РЎРІРµР¶РёРµ СЃРµСЂРёРё Рё РѕР±РЅРѕРІР»РµРЅРёСЏ, РєРѕС‚РѕСЂС‹Рµ СЃРµР№С‡Р°СЃ РІС‹С…РѕРґСЏС‚ Р±С‹СЃС‚СЂРµРµ РІСЃРµРіРѕ.",
+  recommendedKicker: "РџРѕРґР±РѕСЂРєР°",
+  recommendedTitle: "Р§С‚Рѕ РїРѕСЃРјРѕС‚СЂРµС‚СЊ СЃРµРіРѕРґРЅСЏ",
+  recommendedSummary: "Р РµРєРѕРјРµРЅРґР°С†РёРё РґР»СЏ РІРµС‡РµСЂРЅРµРіРѕ РїСЂРѕСЃРјРѕС‚СЂР° Р±РµР· РїРµСЂРµРіСЂСѓР¶РµРЅРЅРѕРіРѕ РёРЅС‚РµСЂС„РµР№СЃР°.",
+  popularKicker: "РўРѕРї",
+  popularTitle: "РџРѕРїСѓР»СЏСЂРЅРѕРµ СЃРµР№С‡Р°СЃ",
+  popularSummary: "РўР°Р№С‚Р»С‹, РєРѕС‚РѕСЂС‹Рµ С‡Р°С‰Рµ РІСЃРµРіРѕ РѕС‚РєСЂС‹РІР°СЋС‚ Рё РґРѕР±Р°РІР»СЏСЋС‚ РІ РёР·Р±СЂР°РЅРЅРѕРµ."
 });
 
 function ensureDynamicInterface() {
@@ -319,14 +324,14 @@ function ensureDynamicInterface() {
     shelf.innerHTML = `
       <div class="section-head section-head--compact">
         <div>
-          <div class="section-kicker">Персонально</div>
-          <h3>Подборка для вас</h3>
+          <div class="section-kicker">РџРµСЂСЃРѕРЅР°Р»СЊРЅРѕ</div>
+          <h3>РџРѕРґР±РѕСЂРєР° РґР»СЏ РІР°СЃ</h3>
           <p class="section-summary" id="profile-recommendations-summary">
-            Анализируем ваши жанры и историю просмотра…
+            РђРЅР°Р»РёР·РёСЂСѓРµРј РІР°С€Рё Р¶Р°РЅСЂС‹ Рё РёСЃС‚РѕСЂРёСЋ РїСЂРѕСЃРјРѕС‚СЂР°вЂ¦
           </p>
         </div>
         <button class="ghost-btn profile-recommendations__refresh" type="button" id="profile-recommendations-refresh-btn">
-          Обновить подборку
+          РћР±РЅРѕРІРёС‚СЊ РїРѕРґР±РѕСЂРєСѓ
         </button>
       </div>
       <div class="anime-grid" id="profile-recommendations-grid"></div>
@@ -367,44 +372,53 @@ function repairStaticUiText() {
   setStaticText("#popular-shell .section-kicker", STATIC_UI_TEXT.popularKicker);
   setStaticText("#popular-shell h2", STATIC_UI_TEXT.popularTitle);
   setStaticText("#popular-shell .section-summary", STATIC_UI_TEXT.popularSummary);
+
+  const notificationIcon = document.querySelector(".notification-btn__icon");
+  if (notificationIcon && notificationIcon.textContent !== "🔔") {
+    notificationIcon.textContent = "🔔";
+  }
+  const notificationText = document.querySelector(".notification-btn__text");
+  if (notificationText && notificationText.textContent !== "Уведомления") {
+    notificationText.textContent = "Уведомления";
+  }
 }
 
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const uniqueStrings = (values = []) => [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 const GENRE_LABEL_ALIASES = new Map([
-  ["сенен", "Сёнен"],
-  ["сёнен", "Сёнен"],
-  ["седзе", "Сёдзё"],
-  ["сёдзё", "Сёдзё"],
-  ["сенен ай", "Сёнен-ай"],
-  ["сёнен ай", "Сёнен-ай"],
-  ["седзе ай", "Сёдзё-ай"],
-  ["сёдзё ай", "Сёдзё-ай"],
-  ["сэйнэн", "Сэйнэн"],
-  ["сейнен", "Сэйнэн"],
-  ["сеинен", "Сэйнэн"],
-  ["дзесей", "Дзёсэй"],
-  ["дзёсэй", "Дзёсэй"],
-  ["джосей", "Дзёсэй"],
-  ["экшн", "Экшен"],
-  ["action", "Экшен"],
-  ["adventure", "Приключения"],
-  ["comedy", "Комедия"],
-  ["drama", "Драма"],
-  ["fantasy", "Фэнтези"],
-  ["romance", "Романтика"],
-  ["исекай", "Исэкай"],
-  ["исэкай", "Исэкай"],
-  ["isekai", "Исэкай"],
-  ["cgdct", "Милые девочки"],
-  ["cute girls doing cute things", "Милые девочки"],
-  ["science fiction", "Фантастика"],
-  ["sci fi", "Фантастика"],
-  ["slice of life", "Повседневность"],
-  ["sports", "Спорт"],
-  ["supernatural", "Сверхъестественное"],
-  ["thriller", "Триллер"]
+  ["СЃРµРЅРµРЅ", "РЎС‘РЅРµРЅ"],
+  ["СЃС‘РЅРµРЅ", "РЎС‘РЅРµРЅ"],
+  ["СЃРµРґР·Рµ", "РЎС‘РґР·С‘"],
+  ["СЃС‘РґР·С‘", "РЎС‘РґР·С‘"],
+  ["СЃРµРЅРµРЅ Р°Р№", "РЎС‘РЅРµРЅ-Р°Р№"],
+  ["СЃС‘РЅРµРЅ Р°Р№", "РЎС‘РЅРµРЅ-Р°Р№"],
+  ["СЃРµРґР·Рµ Р°Р№", "РЎС‘РґР·С‘-Р°Р№"],
+  ["СЃС‘РґР·С‘ Р°Р№", "РЎС‘РґР·С‘-Р°Р№"],
+  ["СЃСЌР№РЅСЌРЅ", "РЎСЌР№РЅСЌРЅ"],
+  ["СЃРµР№РЅРµРЅ", "РЎСЌР№РЅСЌРЅ"],
+  ["СЃРµРёРЅРµРЅ", "РЎСЌР№РЅСЌРЅ"],
+  ["РґР·РµСЃРµР№", "Р”Р·С‘СЃСЌР№"],
+  ["РґР·С‘СЃСЌР№", "Р”Р·С‘СЃСЌР№"],
+  ["РґР¶РѕСЃРµР№", "Р”Р·С‘СЃСЌР№"],
+  ["СЌРєС€РЅ", "Р­РєС€РµРЅ"],
+  ["action", "Р­РєС€РµРЅ"],
+  ["adventure", "РџСЂРёРєР»СЋС‡РµРЅРёСЏ"],
+  ["comedy", "РљРѕРјРµРґРёСЏ"],
+  ["drama", "Р”СЂР°РјР°"],
+  ["fantasy", "Р¤СЌРЅС‚РµР·Рё"],
+  ["romance", "Р РѕРјР°РЅС‚РёРєР°"],
+  ["РёСЃРµРєР°Р№", "РСЃСЌРєР°Р№"],
+  ["РёСЃСЌРєР°Р№", "РСЃСЌРєР°Р№"],
+  ["isekai", "РСЃСЌРєР°Р№"],
+  ["cgdct", "РњРёР»С‹Рµ РґРµРІРѕС‡РєРё"],
+  ["cute girls doing cute things", "РњРёР»С‹Рµ РґРµРІРѕС‡РєРё"],
+  ["science fiction", "Р¤Р°РЅС‚Р°СЃС‚РёРєР°"],
+  ["sci fi", "Р¤Р°РЅС‚Р°СЃС‚РёРєР°"],
+  ["slice of life", "РџРѕРІСЃРµРґРЅРµРІРЅРѕСЃС‚СЊ"],
+  ["sports", "РЎРїРѕСЂС‚"],
+  ["supernatural", "РЎРІРµСЂС…СЉРµСЃС‚РµСЃС‚РІРµРЅРЅРѕРµ"],
+  ["thriller", "РўСЂРёР»Р»РµСЂ"]
 ]);
 
 function isPermissionDeniedError(error) {
@@ -595,7 +609,7 @@ function normalizePreparedEpisode(episode, fallbackSourceId = "") {
     id: episode?.id || `${fallbackSourceId || "episode"}:${seasonOrdinal || 0}:${ordinal || 0}`,
     ordinal,
     seasonOrdinal,
-    name: episode?.name || (ordinal ? `${ordinal} серия` : "Фильм"),
+    name: episode?.name || (ordinal ? `${ordinal} СЃРµСЂРёСЏ` : "Р¤РёР»СЊРј"),
     duration: Number(episode?.duration || 0),
     externalUrl: episode?.externalUrl ? normalizeExternalPlayer(episode.externalUrl) : "",
     previewUrl: episode?.previewUrl ? absoluteUrl(episode.previewUrl) : "",
@@ -619,7 +633,7 @@ function normalizePreparedSource(source) {
     id: sourceId,
     provider: String(source?.provider || "external"),
     kind: String(source?.kind || (episodes.length ? "iframe-episodes" : "iframe")),
-    title: String(source?.title || "Источник"),
+    title: String(source?.title || "РСЃС‚РѕС‡РЅРёРє"),
     note: String(source?.note || ""),
     voices: uniqueStrings(Array.isArray(source?.voices) ? source.voices : []),
     translationId: String(source?.translationId || ""),
@@ -657,7 +671,7 @@ function normalizePreparedRelease(item) {
     providerSet: uniqueStrings(Array.isArray(item?.providerSet) ? item.providerSet : [item?.provider || "kodik"]),
     id: item?.id || item?.alias,
     alias: item?.alias || "",
-    title: item?.title || "Без названия",
+    title: item?.title || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ",
     originalTitle: item?.originalTitle || "",
     alternateTitles: uniqueStrings([
       item?.title,
@@ -665,18 +679,18 @@ function normalizePreparedRelease(item) {
       ...(Array.isArray(item?.alternateTitles) ? item.alternateTitles : [])
     ]),
     year: item?.year || "-",
-    type: item?.type || "Не указано",
+    type: item?.type || "РќРµ СѓРєР°Р·Р°РЅРѕ",
     typeValue: item?.typeValue || "",
     season: item?.season || "",
     age: item?.age || "-",
     ageValue: item?.ageValue || "",
     ongoing: Boolean(item?.ongoing),
-    statusLabel: item?.statusLabel || "Доступно",
+    statusLabel: item?.statusLabel || "Р”РѕСЃС‚СѓРїРЅРѕ",
     publishDay: item?.publishDay || "",
     publishDayValue: Number(item?.publishDayValue || 0),
     sortFreshAt: Number(item?.sortFreshAt || 0),
     sortRating: Number(item?.sortRating || item?.favorites || 0),
-    description: item?.description || "Описание пока не заполнено.",
+    description: item?.description || "РћРїРёСЃР°РЅРёРµ РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅРѕ.",
     posterSources,
     posterCandidateQueue: uniqueStrings(posterSources.map((url) => proxiedImageUrl(url)).filter(Boolean)),
     posterDirectQueue: posterSources,
@@ -701,7 +715,7 @@ function normalizePreparedRelease(item) {
       ? item.crew
           .map((member) => ({
             name: String(member?.name || "").trim(),
-            role: String(member?.role || "Команда").trim()
+            role: String(member?.role || "РљРѕРјР°РЅРґР°").trim()
           }))
           .filter((member) => member.name)
       : [],
@@ -709,7 +723,7 @@ function normalizePreparedRelease(item) {
     publishedEpisode: item?.publishedEpisode
       ? {
           ordinal: Number(item.publishedEpisode.ordinal || 0),
-          name: item.publishedEpisode.name || "Без названия",
+          name: item.publishedEpisode.name || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ",
           duration: Number(item.publishedEpisode.duration || 0)
         }
       : null,
@@ -735,7 +749,7 @@ function normalizeComparableText(value) {
   return String(value || "")
     .normalize("NFKC")
     .toLowerCase()
-    .replace(/[ё]/g, "е")
+    .replace(/[С‘]/g, "Рµ")
     .replace(/\[[^\]]*\]/g, " ")
     .replace(/\([^)]*\)/g, " ")
     .replace(/[^a-z0-9\u0400-\u04ff]+/g, " ")
@@ -784,7 +798,7 @@ function normalizeGenreList(values = []) {
       return;
     }
 
-    if (!current.includes("ё") && label.includes("ё")) {
+    if (!current.includes("С‘") && label.includes("С‘")) {
       map.set(key, label);
       return;
     }
@@ -842,7 +856,7 @@ function getReleaseTitleVariants(release) {
 function normalizeVoiceLabel(value) {
   return String(value || "")
     .replace(/\s+/g, " ")
-    .replace(/\b(hls|player|iframe|внешний плеер)\b/gi, "")
+    .replace(/\b(hls|player|iframe|РІРЅРµС€РЅРёР№ РїР»РµРµСЂ)\b/gi, "")
     .replace(/\bTV\b/gi, "")
     .replace(/\.+/g, ".")
     .trim();
@@ -882,7 +896,7 @@ function getReleaseIdentityKeys(release) {
 function stripComparableReleaseDecorators(value) {
   return normalizeComparableText(value)
     .replace(/\b(tv|ona|ova|oad|movie|special|season|part)\b/g, " ")
-    .replace(/\b(тв|фильм|сезон|часть|спешл|спецвыпуск)\b/g, " ")
+    .replace(/\b(С‚РІ|С„РёР»СЊРј|СЃРµР·РѕРЅ|С‡Р°СЃС‚СЊ|СЃРїРµС€Р»|СЃРїРµС†РІС‹РїСѓСЃРє)\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -962,7 +976,7 @@ function mergeReleaseEntries(primary, extra) {
     originalTitle: base.originalTitle || addon.originalTitle,
     alternateTitles: uniqueStrings([...(base.alternateTitles || []), ...(addon.alternateTitles || [])]),
     description:
-      base.description && base.description !== "Описание пока не заполнено."
+      base.description && base.description !== "РћРїРёСЃР°РЅРёРµ РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅРѕ."
         ? base.description
         : addon.description || base.description,
     posterSources: uniqueStrings([...(base.posterSources || []), ...(addon.posterSources || [])]),
@@ -1117,8 +1131,8 @@ function fetchKodikSearch(query, options = {}) {
 
 function getKodikUnavailableMessage(error, fallbackMessage) {
   const raw = String(error?.payload?.message || error?.message || "").toLowerCase();
-  if (raw.includes("неверный токен") || raw.includes("отсутствует или неверный токен") || raw.includes("invalid token") || raw.includes("missing token")) {
-    return "Kodik временно недоступен: проверьте KODIK_TOKEN в Vercel.";
+  if (raw.includes("РЅРµРІРµСЂРЅС‹Р№ С‚РѕРєРµРЅ") || raw.includes("РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РёР»Рё РЅРµРІРµСЂРЅС‹Р№ С‚РѕРєРµРЅ") || raw.includes("invalid token") || raw.includes("missing token")) {
+    return "Kodik РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ: РїСЂРѕРІРµСЂСЊС‚Рµ KODIK_TOKEN РІ Vercel.";
   }
   return fallbackMessage;
 }
@@ -1252,8 +1266,8 @@ function formatClock(seconds) {
     : `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-const formatDurationMinutes = (minutes) => (minutes ? `${minutes} мин.` : "");
-const formatEpisodeDuration = (seconds) => (seconds ? `${Math.max(1, Math.round(seconds / 60))} мин.` : "");
+const formatDurationMinutes = (minutes) => (minutes ? `${minutes} РјРёРЅ.` : "");
+const formatEpisodeDuration = (seconds) => (seconds ? `${Math.max(1, Math.round(seconds / 60))} РјРёРЅ.` : "");
 
 function createEmptyState(message) {
   const node = document.createElement("div");
@@ -1274,7 +1288,7 @@ function createErrorState(message, onRetry) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "ghost-btn";
-    button.textContent = "Повторить";
+    button.textContent = "РџРѕРІС‚РѕСЂРёС‚СЊ";
     button.addEventListener("click", onRetry);
     node.appendChild(button);
   }
@@ -1465,11 +1479,11 @@ function buildProgressRelease(progress) {
   return {
     id: progress.alias,
     alias: progress.alias,
-    title: progress.title || "Без названия",
+    title: progress.title || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ",
     year: "",
-    type: "Аниме",
+    type: "РђРЅРёРјРµ",
     age: "",
-    statusLabel: "Продолжить",
+    statusLabel: "РџСЂРѕРґРѕР»Р¶РёС‚СЊ",
     publishDay: "",
       poster: progress.poster || "/mc-icon-512.png?v=5",
       cardPoster: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=5",
@@ -1496,9 +1510,9 @@ function progressPercent(progress) {
 
 function progressHeadline(progress) {
   const percent = progressPercent(progress);
-  if (percent >= 99) return "Почти досмотрено";
-  if (percent >= 75) return "Финальные минуты";
-  return progress.episodeLabel || "Продолжить просмотр";
+  if (percent >= 99) return "РџРѕС‡С‚Рё РґРѕСЃРјРѕС‚СЂРµРЅРѕ";
+  if (percent >= 75) return "Р¤РёРЅР°Р»СЊРЅС‹Рµ РјРёРЅСѓС‚С‹";
+  return progress.episodeLabel || "РџСЂРѕРґРѕР»Р¶РёС‚СЊ РїСЂРѕСЃРјРѕС‚СЂ";
 }
 
 function createSkeletonCard() {
@@ -1531,8 +1545,8 @@ function decorateCardProgress(node, release) {
   progressNode.className = "anime-card__progress";
   progressNode.setAttribute(
     "aria-label",
-    `${progressHeadline(progress)}. ${percent}% просмотра. ${formatClock(progress.time || 0)}${
-      progress.duration ? ` из ${formatClock(progress.duration)}` : ""
+    `${progressHeadline(progress)}. ${percent}% РїСЂРѕСЃРјРѕС‚СЂР°. ${formatClock(progress.time || 0)}${
+      progress.duration ? ` РёР· ${formatClock(progress.duration)}` : ""
     }.`
   );
 
@@ -1556,8 +1570,8 @@ function decorateCardProgress(node, release) {
 
   const meta = document.createElement("div");
   meta.className = "anime-card__progress-meta";
-  meta.textContent = `${progress.episodeLabel || "Продолжить просмотр"} • ${formatClock(progress.time || 0)}${
-    progress.duration ? ` из ${formatClock(progress.duration)}` : ""
+  meta.textContent = `${progress.episodeLabel || "РџСЂРѕРґРѕР»Р¶РёС‚СЊ РїСЂРѕСЃРјРѕС‚СЂ"} вЂў ${formatClock(progress.time || 0)}${
+    progress.duration ? ` РёР· ${formatClock(progress.duration)}` : ""
   }`;
 
   progressNode.append(topRow, bar, meta);
@@ -1568,14 +1582,14 @@ function decorateCardProgress(node, release) {
 function renderContinueWatchingSections() {
   const releases = getContinueWatchingReleases();
   const summary = releases.length
-    ? `Недосмотренных релизов: ${formatNumber(releases.length)}. Быстрый возврат к серии и времени просмотра.`
-    : "Когда начнете смотреть аниме, здесь появится быстрый возврат к серии.";
+    ? `РќРµРґРѕСЃРјРѕС‚СЂРµРЅРЅС‹С… СЂРµР»РёР·РѕРІ: ${formatNumber(releases.length)}. Р‘С‹СЃС‚СЂС‹Р№ РІРѕР·РІСЂР°С‚ Рє СЃРµСЂРёРё Рё РІСЂРµРјРµРЅРё РїСЂРѕСЃРјРѕС‚СЂР°.`
+    : "РљРѕРіРґР° РЅР°С‡РЅРµС‚Рµ СЃРјРѕС‚СЂРµС‚СЊ Р°РЅРёРјРµ, Р·РґРµСЃСЊ РїРѕСЏРІРёС‚СЃСЏ Р±С‹СЃС‚СЂС‹Р№ РІРѕР·РІСЂР°С‚ Рє СЃРµСЂРёРё.";
 
   if (els.continueSummary) els.continueSummary.textContent = summary;
   if (els.profileProgressSummary) els.profileProgressSummary.textContent = summary;
 
-  updateGrid(els.continueGrid, releases, "Продолжение просмотра пока пусто.");
-  updateGrid(els.profileProgressGrid, releases, "Продолжение просмотра пока пусто.");
+  updateGrid(els.continueGrid, releases, "РџСЂРѕРґРѕР»Р¶РµРЅРёРµ РїСЂРѕСЃРјРѕС‚СЂР° РїРѕРєР° РїСѓСЃС‚Рѕ.");
+  updateGrid(els.profileProgressGrid, releases, "РџСЂРѕРґРѕР»Р¶РµРЅРёРµ РїСЂРѕСЃРјРѕС‚СЂР° РїРѕРєР° РїСѓСЃС‚Рѕ.");
 }
 
 function scheduleProgressUiRefresh() {
@@ -1619,7 +1633,7 @@ function decorateEpisodeProgress(release) {
     if (!button.querySelector(".episode-progress-meta")) {
       const meta = document.createElement("small");
       meta.className = "episode-progress-meta";
-      meta.textContent = `Продолжить с ${formatClock(progress.time || 0)}`;
+      meta.textContent = `РџСЂРѕРґРѕР»Р¶РёС‚СЊ СЃ ${formatClock(progress.time || 0)}`;
       button.appendChild(meta);
     }
   });
@@ -1631,17 +1645,17 @@ function syncHeroOpenLink() {
   }
 }
 
-function renderHeroFallback(message = "Загружаем лучшие релизы...") {
+function renderHeroFallback(message = "Р—Р°РіСЂСѓР¶Р°РµРј Р»СѓС‡С€РёРµ СЂРµР»РёР·С‹...") {
   if (els.heroTitle) els.heroTitle.textContent = "AnimeCloud";
   if (els.heroDescription) {
     els.heroDescription.textContent =
-      "Русская озвучка, быстрый каталог, расписание, рекомендации и удобный мобильный просмотр.";
+      "Р СѓСЃСЃРєР°СЏ РѕР·РІСѓС‡РєР°, Р±С‹СЃС‚СЂС‹Р№ РєР°С‚Р°Р»РѕРі, СЂР°СЃРїРёСЃР°РЅРёРµ, СЂРµРєРѕРјРµРЅРґР°С†РёРё Рё СѓРґРѕР±РЅС‹Р№ РјРѕР±РёР»СЊРЅС‹Р№ РїСЂРѕСЃРјРѕС‚СЂ.";
   }
   if (els.heroMeta) {
     els.heroMeta.replaceChildren(
-      createMetaPill("Каталог аниме"),
-      createMetaPill("Русская озвучка"),
-      createMetaPill("Быстрый старт")
+      createMetaPill("РљР°С‚Р°Р»РѕРі Р°РЅРёРјРµ"),
+      createMetaPill("Р СѓСЃСЃРєР°СЏ РѕР·РІСѓС‡РєР°"),
+      createMetaPill("Р‘С‹СЃС‚СЂС‹Р№ СЃС‚Р°СЂС‚")
     );
   }
   if (els.heroPoster) {
@@ -1897,9 +1911,9 @@ async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
 
 function syncCatalogPager() {
   const currentPageLabel = Math.max(1, state.catalogPage || 1);
-  const loadingSuffix = state.catalogLoading ? " · загрузка…" : "";
+  const loadingSuffix = state.catalogLoading ? " В· Р·Р°РіСЂСѓР·РєР°вЂ¦" : "";
   if (els.catalogPageLabel) {
-    els.catalogPageLabel.textContent = `Страница ${currentPageLabel} из ${Math.max(
+    els.catalogPageLabel.textContent = `РЎС‚СЂР°РЅРёС†Р° ${currentPageLabel} РёР· ${Math.max(
       1,
       state.catalogTotalPages || 1
     )}${loadingSuffix}`;
@@ -1954,27 +1968,27 @@ function refreshCatalogView(pagination = null) {
   const items = getFilteredCatalogItems();
   const currentPage = pagination?.current_page || state.catalogPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.catalogTotalPages || 0, currentPage ? 1 : 0);
-  const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
+  const pageLabel = currentPage ? ` РЎС‚СЂР°РЅРёС†Р° ${currentPage} РёР· ${totalPages || 1}.` : "";
   const genreLabels = [...new Set([state.catalogGenre, ...state.catalogGenres].filter(Boolean))];
-  const activeFilters = [...(genreLabels.length ? [`жанры: ${genreLabels.join(", ")}`] : [])];
+  const activeFilters = [...(genreLabels.length ? [`Р¶Р°РЅСЂС‹: ${genreLabels.join(", ")}`] : [])];
 
   if (els.catalogSummary) {
     if (activeFilters.length) {
-      const totalLabel = `Найдено ${formatNumber(
+      const totalLabel = `РќР°Р№РґРµРЅРѕ ${formatNumber(
         state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
-      )} релизов по фильтрам.${pageLabel}`;
-      els.catalogSummary.textContent = `Активные фильтры: ${activeFilters.join(" • ")}. ${totalLabel}`;
+      )} СЂРµР»РёР·РѕРІ РїРѕ С„РёР»СЊС‚СЂР°Рј.${pageLabel}`;
+      els.catalogSummary.textContent = `РђРєС‚РёРІРЅС‹Рµ С„РёР»СЊС‚СЂС‹: ${activeFilters.join(" вЂў ")}. ${totalLabel}`;
     } else {
       els.catalogSummary.textContent = `${formatNumber(
         state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
-      )} тайтлов в полной базе Kodik.${pageLabel}`;
+      )} С‚Р°Р№С‚Р»РѕРІ РІ РїРѕР»РЅРѕР№ Р±Р°Р·Рµ Kodik.${pageLabel}`;
     }
   }
 
   updateGrid(
     els.catalogGrid,
     items,
-    activeFilters.length ? "По выбранным фильтрам пока ничего не найдено." : "Каталог пуст."
+    activeFilters.length ? "РџРѕ РІС‹Р±СЂР°РЅРЅС‹Рј С„РёР»СЊС‚СЂР°Рј РїРѕРєР° РЅРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ." : "РљР°С‚Р°Р»РѕРі РїСѓСЃС‚."
   );
   syncCatalogPager();
 }
@@ -1983,20 +1997,20 @@ function refreshOngoingSummary(pagination = null) {
   if (!els.ongoingSummary) return;
   const currentPage = pagination?.current_page || state.ongoingPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.ongoingTotalPages || 0, currentPage ? 1 : 0);
-  const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
+  const pageLabel = currentPage ? ` РЎС‚СЂР°РЅРёС†Р° ${currentPage} РёР· ${totalPages || 1}.` : "";
   els.ongoingSummary.textContent = `${formatNumber(
     state.ongoingMergedTotal || state.ongoingTotal || state.ongoingItems.length
-  )} активных релизов.${pageLabel}`;
+  )} Р°РєС‚РёРІРЅС‹С… СЂРµР»РёР·РѕРІ.${pageLabel}`;
 }
 
 function refreshTopSummary(pagination = null) {
   if (!els.topSummary) return;
   const currentPage = pagination?.current_page || state.topPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.topTotalPages || 0, currentPage ? 1 : 0);
-  const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
+  const pageLabel = currentPage ? ` РЎС‚СЂР°РЅРёС†Р° ${currentPage} РёР· ${totalPages || 1}.` : "";
   els.topSummary.textContent = `${formatNumber(
     state.topMergedTotal || state.topTotal || state.topItems.length
-  )} релизов в рейтинге.${pageLabel}`;
+  )} СЂРµР»РёР·РѕРІ РІ СЂРµР№С‚РёРЅРіРµ.${pageLabel}`;
 }
 
 function isAdminUser() {
@@ -2159,7 +2173,7 @@ function toggleFavorite(release) {
 function renderFavoriteButton() {
   if (!els.detailFavoriteBtn) return;
   const active = Boolean(state.currentAnime && isFavorite(state.currentAnime.alias));
-  els.detailFavoriteBtn.textContent = active ? "В списках" : "Добавить в список";
+  els.detailFavoriteBtn.textContent = active ? "Р’ СЃРїРёСЃРєР°С…" : "Р”РѕР±Р°РІРёС‚СЊ РІ СЃРїРёСЃРѕРє";
   els.detailFavoriteBtn.classList.toggle("is-active", active);
   updateListButtons();
 }
@@ -2235,22 +2249,22 @@ function renderPersonalRecommendations() {
   const hasSignals = Boolean(genres.length || state.favorites.length || Object.keys(readProgressMap() || {}).length);
   if (!state.personalizedRecommendations.length) {
     els.profileRecommendationsSummary.textContent = genres.length
-      ? `По вашим жанрам (${genres.join(", ")}) пока не удалось собрать устойчивую подборку.`
-      : "Добавьте тайтлы в списки или начните смотреть аниме, и здесь появится персональная подборка.";
+      ? `РџРѕ РІР°С€РёРј Р¶Р°РЅСЂР°Рј (${genres.join(", ")}) РїРѕРєР° РЅРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР±СЂР°С‚СЊ СѓСЃС‚РѕР№С‡РёРІСѓСЋ РїРѕРґР±РѕСЂРєСѓ.`
+      : "Р”РѕР±Р°РІСЊС‚Рµ С‚Р°Р№С‚Р»С‹ РІ СЃРїРёСЃРєРё РёР»Рё РЅР°С‡РЅРёС‚Рµ СЃРјРѕС‚СЂРµС‚СЊ Р°РЅРёРјРµ, Рё Р·РґРµСЃСЊ РїРѕСЏРІРёС‚СЃСЏ РїРµСЂСЃРѕРЅР°Р»СЊРЅР°СЏ РїРѕРґР±РѕСЂРєР°.";
     updateGrid(
       els.profileRecommendationsGrid,
       [],
-      genres.length ? "По вашим жанрам пока ничего не найдено." : "Подборка появится после первых действий в профиле."
+      genres.length ? "РџРѕ РІР°С€РёРј Р¶Р°РЅСЂР°Рј РїРѕРєР° РЅРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ." : "РџРѕРґР±РѕСЂРєР° РїРѕСЏРІРёС‚СЃСЏ РїРѕСЃР»Рµ РїРµСЂРІС‹С… РґРµР№СЃС‚РІРёР№ РІ РїСЂРѕС„РёР»Рµ."
     );
     return;
   }
 
   els.profileRecommendationsSummary.textContent = genres.length
-    ? `Собрано на основе ваших жанров: ${genres.join(", ")}.`
+    ? `РЎРѕР±СЂР°РЅРѕ РЅР° РѕСЃРЅРѕРІРµ РІР°С€РёС… Р¶Р°РЅСЂРѕРІ: ${genres.join(", ")}.`
     : hasSignals
-      ? "Подборка собрана по вашим действиям и ближайшим похожим релизам."
-      : "Стартовая подборка: популярные релизы, с которых удобно начать.";
-  updateGrid(els.profileRecommendationsGrid, state.personalizedRecommendations, "Подборка пока пуста.");
+      ? "РџРѕРґР±РѕСЂРєР° СЃРѕР±СЂР°РЅР° РїРѕ РІР°С€РёРј РґРµР№СЃС‚РІРёСЏРј Рё Р±Р»РёР¶Р°Р№С€РёРј РїРѕС…РѕР¶РёРј СЂРµР»РёР·Р°Рј."
+      : "РЎС‚Р°СЂС‚РѕРІР°СЏ РїРѕРґР±РѕСЂРєР°: РїРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹, СЃ РєРѕС‚РѕСЂС‹С… СѓРґРѕР±РЅРѕ РЅР°С‡Р°С‚СЊ.";
+  updateGrid(els.profileRecommendationsGrid, state.personalizedRecommendations, "РџРѕРґР±РѕСЂРєР° РїРѕРєР° РїСѓСЃС‚Р°.");
 }
 
 async function loadPersonalRecommendations(options = {}) {
@@ -2279,13 +2293,13 @@ async function loadPersonalRecommendations(options = {}) {
   renderSkeletonGrid(els.profileRecommendationsGrid, 6);
   if (els.profileRecommendationsSummary) {
     els.profileRecommendationsSummary.textContent = profile.topGenres.length
-      ? `Обновляем подборку по жанрам: ${profile.topGenres.join(", ")}…`
-      : "Собираем базовую персональную подборку…";
+      ? `РћР±РЅРѕРІР»СЏРµРј РїРѕРґР±РѕСЂРєСѓ РїРѕ Р¶Р°РЅСЂР°Рј: ${profile.topGenres.join(", ")}вЂ¦`
+      : "РЎРѕР±РёСЂР°РµРј Р±Р°Р·РѕРІСѓСЋ РїРµСЂСЃРѕРЅР°Р»СЊРЅСѓСЋ РїРѕРґР±РѕСЂРєСѓвЂ¦";
   }
 
   if (els.profileRecommendationsRefreshBtn) {
     els.profileRecommendationsRefreshBtn.disabled = true;
-    els.profileRecommendationsRefreshBtn.textContent = "Обновляем…";
+    els.profileRecommendationsRefreshBtn.textContent = "РћР±РЅРѕРІР»СЏРµРјвЂ¦";
   }
 
   state.personalizedPromise = (async () => {
@@ -2332,7 +2346,7 @@ async function loadPersonalRecommendations(options = {}) {
       }
       if (els.profileRecommendationsRefreshBtn) {
         els.profileRecommendationsRefreshBtn.disabled = false;
-        els.profileRecommendationsRefreshBtn.textContent = "Обновить подборку";
+        els.profileRecommendationsRefreshBtn.textContent = "РћР±РЅРѕРІРёС‚СЊ РїРѕРґР±РѕСЂРєСѓ";
       }
     });
 
@@ -2346,8 +2360,8 @@ function normalizeNotificationPayload(item = {}) {
     id: String(item.id || "").trim(),
     type: String(item.type || "new_anime").trim() || "new_anime",
     alias: String(item.alias || "").trim(),
-    title: String(item.title || "").trim() || "Обновление каталога",
-    body: String(item.body || "").trim() || "Появилось новое обновление.",
+    title: String(item.title || "").trim() || "РћР±РЅРѕРІР»РµРЅРёРµ РєР°С‚Р°Р»РѕРіР°",
+    body: String(item.body || "").trim() || "РџРѕСЏРІРёР»РѕСЃСЊ РЅРѕРІРѕРµ РѕР±РЅРѕРІР»РµРЅРёРµ.",
     createdAt: Number.isFinite(createdAt) && createdAt > 0 ? createdAt : Date.now(),
     readAt: Number.isFinite(readAt) && readAt > 0 ? readAt : 0,
     episode: Math.max(0, Number(item.episode || 0)),
@@ -2372,7 +2386,7 @@ function mergeNotifications(...lists) {
 
 function formatNotificationTime(timestamp) {
   const value = Number(timestamp || 0);
-  if (!value) return "только что";
+  if (!value) return "С‚РѕР»СЊРєРѕ С‡С‚Рѕ";
   const diffMs = value - Date.now();
   const diffMinutes = Math.round(diffMs / 60000);
   const rtf = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
@@ -2387,6 +2401,44 @@ function unreadNotificationCount() {
   return state.notifications.filter((item) => !item.readAt).length;
 }
 
+function positionNotificationPopover() {
+  if (!els.notificationPopover || !els.notificationBtn || els.notificationPopover.hidden) return;
+  const rect = els.notificationBtn.getBoundingClientRect();
+  const width = Math.min(380, Math.max(280, window.innerWidth - 24));
+  const right = Math.max(12, window.innerWidth - rect.right);
+  els.notificationPopover.style.top = `${Math.max(16, rect.bottom + 10)}px`;
+  els.notificationPopover.style.right = `${right}px`;
+  els.notificationPopover.style.width = `${Math.min(width, window.innerWidth - 24)}px`;
+}
+
+function closeNotificationPopover() {
+  state.notificationPopoverOpen = false;
+  if (els.notificationPopover) {
+    els.notificationPopover.hidden = true;
+  }
+  if (els.notificationBtn) {
+    els.notificationBtn.setAttribute("aria-expanded", "false");
+  }
+}
+
+function openNotificationPopover() {
+  if (!state.authUser?.localId || !els.notificationPopover) return;
+  state.notificationPopoverOpen = true;
+  els.notificationPopover.hidden = false;
+  if (els.notificationBtn) {
+    els.notificationBtn.setAttribute("aria-expanded", "true");
+  }
+  positionNotificationPopover();
+}
+
+function toggleNotificationPopover() {
+  if (state.notificationPopoverOpen) {
+    closeNotificationPopover();
+    return;
+  }
+  openNotificationPopover();
+}
+
 function syncNotificationButton() {
   const signedIn = Boolean(state.authUser?.localId);
   if (els.notificationBtn) {
@@ -2399,6 +2451,12 @@ function syncNotificationButton() {
   }
   if (els.notificationsMarkAllBtn) {
     els.notificationsMarkAllBtn.hidden = !signedIn || unread <= 0;
+  }
+  if (els.notificationPopoverMarkAllBtn) {
+    els.notificationPopoverMarkAllBtn.hidden = !signedIn || unread <= 0;
+  }
+  if (!signedIn) {
+    closeNotificationPopover();
   }
 }
 
@@ -2450,19 +2508,19 @@ function renderNotifications() {
   if (!els.notificationsList || !els.notificationsSummary) return;
 
   if (!state.authUser?.localId) {
-    els.notificationsSummary.textContent = "Войдите, чтобы получать облачные уведомления о новых тайтлах и сериях.";
-    els.notificationsList.replaceChildren(createEmptyState("Уведомления появятся после входа в аккаунт."));
+    els.notificationsSummary.textContent = "Р’РѕР№РґРёС‚Рµ, С‡С‚РѕР±С‹ РїРѕР»СѓС‡Р°С‚СЊ РѕР±Р»Р°С‡РЅС‹Рµ СѓРІРµРґРѕРјР»РµРЅРёСЏ Рѕ РЅРѕРІС‹С… С‚Р°Р№С‚Р»Р°С… Рё СЃРµСЂРёСЏС….";
+    els.notificationsList.replaceChildren(createEmptyState("РЈРІРµРґРѕРјР»РµРЅРёСЏ РїРѕСЏРІСЏС‚СЃСЏ РїРѕСЃР»Рµ РІС…РѕРґР° РІ Р°РєРєР°СѓРЅС‚."));
     syncNotificationButton();
     return;
   }
 
   const unread = unreadNotificationCount();
   els.notificationsSummary.textContent = unread
-    ? `Непрочитанных уведомлений: ${formatNumber(unread)}. Новые серии отмечаются только для списка «Смотрю».`
-    : "Здесь появятся новые тайтлы и свежие серии для аниме из списка «Смотрю».";
+    ? `РќРµРїСЂРѕС‡РёС‚Р°РЅРЅС‹С… СѓРІРµРґРѕРјР»РµРЅРёР№: ${formatNumber(unread)}. РќРѕРІС‹Рµ СЃРµСЂРёРё РѕС‚РјРµС‡Р°СЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РґР»СЏ СЃРїРёСЃРєР° В«РЎРјРѕС‚СЂСЋВ».`
+    : "Р—РґРµСЃСЊ РїРѕСЏРІСЏС‚СЃСЏ РЅРѕРІС‹Рµ С‚Р°Р№С‚Р»С‹ Рё СЃРІРµР¶РёРµ СЃРµСЂРёРё РґР»СЏ Р°РЅРёРјРµ РёР· СЃРїРёСЃРєР° В«РЎРјРѕС‚СЂСЋВ».";
 
   if (!state.notifications.length) {
-    els.notificationsList.replaceChildren(createEmptyState("Пока уведомлений нет."));
+    els.notificationsList.replaceChildren(createEmptyState("РџРѕРєР° СѓРІРµРґРѕРјР»РµРЅРёР№ РЅРµС‚."));
     syncNotificationButton();
     return;
   }
@@ -2495,7 +2553,7 @@ function renderNotifications() {
     const openButton = document.createElement("button");
     openButton.type = "button";
     openButton.className = "ghost-btn";
-    openButton.textContent = item.actionLabel || "Открыть";
+    openButton.textContent = item.actionLabel || "РћС‚РєСЂС‹С‚СЊ";
     openButton.addEventListener("click", () => {
       markNotificationIdsRead([item.id]).catch(console.error);
       openRelease(item.alias).catch(console.error);
@@ -2506,7 +2564,7 @@ function renderNotifications() {
       const readButton = document.createElement("button");
       readButton.type = "button";
       readButton.className = "ghost-btn";
-      readButton.textContent = "Прочитано";
+      readButton.textContent = "РџСЂРѕС‡РёС‚Р°РЅРѕ";
       readButton.addEventListener("click", () => {
         markNotificationIdsRead([item.id]).catch(console.error);
       });
@@ -2519,12 +2577,79 @@ function renderNotifications() {
 
   els.notificationsList.replaceChildren(fragment);
   syncNotificationButton();
+  renderNotificationPopover();
+}
+
+function renderNotificationPopover() {
+  if (!els.notificationPopoverList || !els.notificationPopoverSummary) return;
+
+  if (!state.authUser?.localId) {
+    els.notificationPopoverSummary.textContent = "Р’РѕР№РґРёС‚Рµ, С‡С‚РѕР±С‹ РїРѕР»СѓС‡Р°С‚СЊ СѓРІРµРґРѕРјР»РµРЅРёСЏ.";
+    els.notificationPopoverList.replaceChildren(createEmptyState("РЈРІРµРґРѕРјР»РµРЅРёСЏ РїРѕСЏРІСЏС‚СЃСЏ РїРѕСЃР»Рµ РІС…РѕРґР° РІ Р°РєРєР°СѓРЅС‚."));
+    syncNotificationButton();
+    return;
+  }
+
+  const unread = unreadNotificationCount();
+  els.notificationPopoverSummary.textContent = unread
+    ? `РќРµРїСЂРѕС‡РёС‚Р°РЅРЅС‹С…: ${formatNumber(unread)}`
+    : "РќРѕРІС‹Рµ СЃРµСЂРёРё Рё РЅРѕРІС‹Рµ С‚Р°Р№С‚Р»С‹ РїРѕСЏРІСЏС‚СЃСЏ Р·РґРµСЃСЊ.";
+
+  if (!state.notifications.length) {
+    els.notificationPopoverList.replaceChildren(createEmptyState("РџРѕРєР° СѓРІРµРґРѕРјР»РµРЅРёР№ РЅРµС‚."));
+    syncNotificationButton();
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  state.notifications.slice(0, 6).forEach((item) => {
+    const node = document.createElement("article");
+    node.className = `notification-item${item.readAt ? "" : " is-unread"}`;
+
+    const top = document.createElement("div");
+    top.className = "notification-item__top";
+
+    const title = document.createElement("h4");
+    title.className = "notification-item__title";
+    title.textContent = item.title;
+
+    const meta = document.createElement("span");
+    meta.className = "notification-item__meta";
+    meta.textContent = formatNotificationTime(item.createdAt);
+
+    const body = document.createElement("p");
+    body.className = "notification-item__body";
+    body.textContent = item.body;
+
+    const actions = document.createElement("div");
+    actions.className = "notification-item__actions";
+
+    const openButton = document.createElement("button");
+    openButton.type = "button";
+    openButton.className = "ghost-btn";
+    openButton.textContent = item.actionLabel || "РћС‚РєСЂС‹С‚СЊ";
+    openButton.addEventListener("click", () => {
+      markNotificationIdsRead([item.id]).catch(console.error);
+      closeNotificationPopover();
+      openRelease(item.alias).catch(console.error);
+    });
+    actions.appendChild(openButton);
+
+    node.append(top, body, actions);
+    top.append(title, meta);
+    fragment.appendChild(node);
+  });
+
+  els.notificationPopoverList.replaceChildren(fragment);
+  syncNotificationButton();
+  positionNotificationPopover();
 }
 
 function applyNotifications(items, options = {}) {
   const previousIds = new Set(state.notifications.map((item) => item.id));
   state.notifications = mergeNotifications(items);
   renderNotifications();
+  renderNotificationPopover();
 
   if (!state.notificationPrimed) {
     state.notificationKnownIds = new Set(state.notifications.map((item) => item.id));
@@ -2541,7 +2666,7 @@ function applyNotifications(items, options = {}) {
       state.notificationKnownIds.add(item.id);
       createToast(item.title, item.body, [
         {
-          label: "Открыть",
+          label: "РћС‚РєСЂС‹С‚СЊ",
           onClick: () => {
             markNotificationIdsRead([item.id]).catch(console.error);
             openRelease(item.alias).catch(console.error);
@@ -2634,6 +2759,7 @@ function bindNotificationLiveSync() {
     state.notificationKnownIds = new Set();
     applyNotifications([], { silent: true });
     renderNotifications();
+    renderNotificationPopover();
     return;
   }
 
@@ -2671,38 +2797,39 @@ function renderProfile() {
   syncInstallButton();
 
   if (els.profileAvatar) els.profileAvatar.src = user?.photoUrl || "/mc-icon-192.png?v=5";
-  if (els.profileName) els.profileName.textContent = user?.displayName || user?.email?.split("@")[0] || "Гость";
+  if (els.profileName) els.profileName.textContent = user?.displayName || user?.email?.split("@")[0] || "Р“РѕСЃС‚СЊ";
   if (els.profileRoleBadge) {
     els.profileRoleBadge.hidden = !admin;
     if (admin) {
-      els.profileRoleBadge.textContent = String(user?.role || "Админ");
+      els.profileRoleBadge.textContent = String(user?.role || "РђРґРјРёРЅ");
     }
   }
-  if (els.profileEmail) els.profileEmail.textContent = user?.email || "Вход не выполнен";
+  if (els.profileEmail) els.profileEmail.textContent = user?.email || "Р’С…РѕРґ РЅРµ РІС‹РїРѕР»РЅРµРЅ";
   if (els.favoritesCount) els.favoritesCount.textContent = formatNumber(state.favorites.length);
   if (els.favoritesMode) {
-    els.favoritesMode.textContent = admin ? String(user?.role || "Админ") : user?.localId ? "Облако" : "Локально";
+    els.favoritesMode.textContent = admin ? String(user?.role || "РђРґРјРёРЅ") : user?.localId ? "РћР±Р»Р°РєРѕ" : "Р›РѕРєР°Р»СЊРЅРѕ";
   }
   if (els.profileSummary) {
     els.profileSummary.textContent = user?.localId
-      ? "Списки, прогресс и комментарии синхронизируются через Firebase для текущего аккаунта."
-      : "Без входа данные хранятся только в этом браузере.";
+      ? "РЎРїРёСЃРєРё, РїСЂРѕРіСЂРµСЃСЃ Рё РєРѕРјРјРµРЅС‚Р°СЂРёРё СЃРёРЅС…СЂРѕРЅРёР·РёСЂСѓСЋС‚СЃСЏ С‡РµСЂРµР· Firebase РґР»СЏ С‚РµРєСѓС‰РµРіРѕ Р°РєРєР°СѓРЅС‚Р°."
+      : "Р‘РµР· РІС…РѕРґР° РґР°РЅРЅС‹Рµ С…СЂР°РЅСЏС‚СЃСЏ С‚РѕР»СЊРєРѕ РІ СЌС‚РѕРј Р±СЂР°СѓР·РµСЂРµ.";
   }
   if (els.adminPanel) els.adminPanel.hidden = !admin;
   if (els.adminNote) {
     els.adminNote.textContent = admin
-      ? "Локальные инструменты владельца действуют только в этой сборке сайта."
-      : "Панель видна только владельцу.";
+      ? "Р›РѕРєР°Р»СЊРЅС‹Рµ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹ РІР»Р°РґРµР»СЊС†Р° РґРµР№СЃС‚РІСѓСЋС‚ С‚РѕР»СЊРєРѕ РІ СЌС‚РѕР№ СЃР±РѕСЂРєРµ СЃР°Р№С‚Р°."
+      : "РџР°РЅРµР»СЊ РІРёРґРЅР° С‚РѕР»СЊРєРѕ РІР»Р°РґРµР»СЊС†Сѓ.";
   }
 
-  updateGrid(els.listWatchingGrid, getListItems("watching"), "Список «Смотрю» пока пуст.");
-  updateGrid(els.listPlannedGrid, getListItems("planned"), "Пока ничего не запланировано.");
-  updateGrid(els.listCompletedGrid, getListItems("completed"), "Просмотренные тайтлы пока не отмечены.");
-  updateGrid(els.listPausedGrid, getListItems("paused"), "Отложенных тайтлов пока нет.");
-  updateGrid(els.favoritesGrid, state.favorites, "В избранном пока пусто.");
+  updateGrid(els.listWatchingGrid, getListItems("watching"), "РЎРїРёСЃРѕРє В«РЎРјРѕС‚СЂСЋВ» РїРѕРєР° РїСѓСЃС‚.");
+  updateGrid(els.listPlannedGrid, getListItems("planned"), "РџРѕРєР° РЅРёС‡РµРіРѕ РЅРµ Р·Р°РїР»Р°РЅРёСЂРѕРІР°РЅРѕ.");
+  updateGrid(els.listCompletedGrid, getListItems("completed"), "РџСЂРѕСЃРјРѕС‚СЂРµРЅРЅС‹Рµ С‚Р°Р№С‚Р»С‹ РїРѕРєР° РЅРµ РѕС‚РјРµС‡РµРЅС‹.");
+  updateGrid(els.listPausedGrid, getListItems("paused"), "РћС‚Р»РѕР¶РµРЅРЅС‹С… С‚Р°Р№С‚Р»РѕРІ РїРѕРєР° РЅРµС‚.");
+  updateGrid(els.favoritesGrid, state.favorites, "Р’ РёР·Р±СЂР°РЅРЅРѕРј РїРѕРєР° РїСѓСЃС‚Рѕ.");
   renderContinueWatchingSections();
   renderPersonalRecommendations();
   renderNotifications();
+  renderNotificationPopover();
   safeIdle(() => loadPersonalRecommendations().catch(console.error));
   updateListButtons();
   syncNotificationButton();
@@ -2785,10 +2912,10 @@ function renderHero(release) {
   renderHeroPoster();
 
   const meta = [
-    `${release.type} • ${release.year}`,
+    `${release.type} вЂў ${release.year}`,
     release.season,
-    `${release.episodesTotal || "?"} эп.`,
-    release.publishDay ? `Выходит: ${release.publishDay}` : "",
+    `${release.episodesTotal || "?"} СЌРї.`,
+    release.publishDay ? `Р’С‹С…РѕРґРёС‚: ${release.publishDay}` : "",
     release.age
   ].filter(Boolean);
 
@@ -2839,10 +2966,10 @@ async function loadContentStats(force = false) {
       } else if (els.catalogSummary) {
         const currentPage = state.catalogPage || 0;
         const totalPages = Math.max(state.catalogTotalPages || 0, currentPage ? 1 : 0);
-        const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
+        const pageLabel = currentPage ? ` РЎС‚СЂР°РЅРёС†Р° ${currentPage} РёР· ${totalPages || 1}.` : "";
         els.catalogSummary.textContent = `${formatNumber(
           state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
-        )} тайтлов в полной базе Kodik.${pageLabel}`;
+        )} С‚Р°Р№С‚Р»РѕРІ РІ РїРѕР»РЅРѕР№ Р±Р°Р·Рµ Kodik.${pageLabel}`;
       }
     }
     if (state.ongoingLoaded) refreshOngoingSummary();
@@ -2928,8 +3055,8 @@ async function loadReferences(force = false) {
 
 function renderCatalogControls() {
   els.catalogSort.innerHTML = "";
-  els.catalogType.innerHTML = '<option value="">Все форматы</option>';
-  els.catalogGenre.innerHTML = '<option value="">Все жанры</option>';
+  els.catalogType.innerHTML = '<option value="">Р’СЃРµ С„РѕСЂРјР°С‚С‹</option>';
+  els.catalogGenre.innerHTML = '<option value="">Р’СЃРµ Р¶Р°РЅСЂС‹</option>';
 
   state.sortingOptions.forEach((option) => {
     const node = document.createElement("option");
@@ -3022,9 +3149,9 @@ async function loadHome(force = false) {
       safeIdle(() => loadPersonalRecommendations({ force: true }).catch(console.error));
     }
     requestAnimationFrame(() => {
-      updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
-      updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
-      updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
+      updateGrid(els.latestGrid, state.latest, "РЎРІРµР¶РёРµ СЂРµР»РёР·С‹ РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅС‹.");
+      updateGrid(els.recommendedGrid, state.recommended, "РџРѕРґР±РѕСЂРєР° РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅР°.");
+      updateGrid(els.popularGrid, state.popular, "РџРѕРїСѓР»СЏСЂРЅС‹Рµ СЂРµР»РёР·С‹ РїРѕРєР° РЅРµ РЅР°Р№РґРµРЅС‹.");
       startHeroCarousel();
     });
     if (state.authUser?.localId) {
@@ -3033,7 +3160,7 @@ async function loadHome(force = false) {
   } catch (error) {
     console.error("loadHome failed", error);
     state.homeLoaded = false;
-    const message = getKodikUnavailableMessage(error, "Не удалось загрузить главную витрину.");
+    const message = getKodikUnavailableMessage(error, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РіР»Р°РІРЅСѓСЋ РІРёС‚СЂРёРЅСѓ.");
     renderHeroFallback(message);
     replaceWithErrorState(els.latestGrid, message, () => loadHome(true).catch(console.error));
     replaceWithErrorState(els.recommendedGrid, message, () => loadHome(true).catch(console.error));
@@ -3115,7 +3242,7 @@ async function loadCatalog(options = {}) {
     state.catalogTotal = mergedCatalogTotal;
     state.catalogTotalPages = 0;
     state.catalogHasMore = false;
-    if (els.catalogSummary) els.catalogSummary.textContent = "Загружаем каталог…";
+    if (els.catalogSummary) els.catalogSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј РєР°С‚Р°Р»РѕРівЂ¦";
     renderSkeletonGrid(els.catalogGrid, 8);
     syncCatalogPager();
   }
@@ -3175,23 +3302,23 @@ async function loadCatalog(options = {}) {
     state.catalogLoaded = true;
 
     if (hasClientFilters) {
-      const filters = [...(hasGenreFilters ? [`жанры: ${[...new Set(activeGenres)].join(", ")}`] : [])];
+      const filters = [...(hasGenreFilters ? [`Р¶Р°РЅСЂС‹: ${[...new Set(activeGenres)].join(", ")}`] : [])];
 
       if (els.catalogSummary) {
-        els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Найдено ${formatNumber(
+        els.catalogSummary.textContent = `РђРєС‚РёРІРЅС‹Рµ С„РёР»СЊС‚СЂС‹: ${filters.join(" вЂў ")}. РќР°Р№РґРµРЅРѕ ${formatNumber(
           state.catalogTotal || state.catalogItems.length
-        )} релизов по фильтрам.`;
+        )} СЂРµР»РёР·РѕРІ РїРѕ С„РёР»СЊС‚СЂР°Рј.`;
       }
       refreshCatalogView(pagination);
     } else {
       if (els.catalogSummary) {
         els.catalogSummary.textContent = `${formatNumber(
           state.catalogMergedTotal || state.catalogTotal
-        )} тайтлов в полной базе Kodik. Страница ${state.catalogPage} из ${
+        )} С‚Р°Р№С‚Р»РѕРІ РІ РїРѕР»РЅРѕР№ Р±Р°Р·Рµ Kodik. РЎС‚СЂР°РЅРёС†Р° ${state.catalogPage} РёР· ${
           state.catalogTotalPages || 1
         }.`;
       }
-      updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
+      updateGrid(els.catalogGrid, state.catalogItems, "РљР°С‚Р°Р»РѕРі РїСѓСЃС‚.");
     }
     syncCatalogPager();
     updateStats();
@@ -3199,7 +3326,7 @@ async function loadCatalog(options = {}) {
     if (state.catalogRequestToken !== requestToken) return;
     console.error("loadCatalog failed", error);
     syncCatalogPager();
-    const message = getKodikUnavailableMessage(error, "Каталог временно недоступен.");
+    const message = getKodikUnavailableMessage(error, "РљР°С‚Р°Р»РѕРі РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
     if (els.catalogSummary) els.catalogSummary.textContent = message;
     replaceWithErrorState(els.catalogGrid, message, () => loadCatalog({ reset: true }).catch(console.error));
     throw error;
@@ -3225,7 +3352,7 @@ async function loadOngoing(options = {}) {
     state.ongoingTotal = mergedOngoingTotal;
     state.ongoingTotalPages = 0;
     state.ongoingHasMore = false;
-    els.ongoingSummary.textContent = "Загружаем онгоинги…";
+    els.ongoingSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј РѕРЅРіРѕРёРЅРіРёвЂ¦";
     renderSkeletonGrid(els.ongoingGrid, 8);
   }
 
@@ -3255,9 +3382,9 @@ async function loadOngoing(options = {}) {
 
     refreshOngoingSummary();
     if (reset) {
-      updateGrid(els.ongoingGrid, state.ongoingItems, "Онгоинги не найдены.");
+      updateGrid(els.ongoingGrid, state.ongoingItems, "РћРЅРіРѕРёРЅРіРё РЅРµ РЅР°Р№РґРµРЅС‹.");
     } else if (appendedReleases.length) {
-      updateGrid(els.ongoingGrid, appendedReleases, "Онгоинги не найдены.", {
+      updateGrid(els.ongoingGrid, appendedReleases, "РћРЅРіРѕРёРЅРіРё РЅРµ РЅР°Р№РґРµРЅС‹.", {
         append: true,
         offset: previousCount
       });
@@ -3271,7 +3398,7 @@ async function loadOngoing(options = {}) {
     console.error("loadOngoing failed", error);
     els.ongoingMoreBtn.hidden = true;
     els.ongoingMoreBtn.disabled = false;
-    const message = getKodikUnavailableMessage(error, "Раздел онгоингов временно недоступен.");
+    const message = getKodikUnavailableMessage(error, "Р Р°Р·РґРµР» РѕРЅРіРѕРёРЅРіРѕРІ РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
     els.ongoingSummary.textContent = message;
     replaceWithErrorState(els.ongoingGrid, message, () => loadOngoing({ reset: true }).catch(console.error));
     throw error;
@@ -3291,7 +3418,7 @@ async function loadTop(options = {}) {
     state.topTotal = mergedTopTotal;
     state.topTotalPages = 0;
     state.topHasMore = false;
-    els.topSummary.textContent = "Загружаем топ каталога…";
+    els.topSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј С‚РѕРї РєР°С‚Р°Р»РѕРіР°вЂ¦";
     renderSkeletonGrid(els.topGrid, 8);
   }
 
@@ -3321,9 +3448,9 @@ async function loadTop(options = {}) {
 
     refreshTopSummary();
     if (reset) {
-      updateGrid(els.topGrid, state.topItems, "Топ пока не заполнен.");
+      updateGrid(els.topGrid, state.topItems, "РўРѕРї РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅ.");
     } else if (appendedReleases.length) {
-      updateGrid(els.topGrid, appendedReleases, "Топ пока не заполнен.", {
+      updateGrid(els.topGrid, appendedReleases, "РўРѕРї РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅ.", {
         append: true,
         offset: previousCount
       });
@@ -3337,7 +3464,7 @@ async function loadTop(options = {}) {
     console.error("loadTop failed", error);
     els.topMoreBtn.hidden = true;
     els.topMoreBtn.disabled = false;
-    const message = getKodikUnavailableMessage(error, "Топ временно недоступен.");
+    const message = getKodikUnavailableMessage(error, "РўРѕРї РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
     els.topSummary.textContent = message;
     replaceWithErrorState(els.topGrid, message, () => loadTop({ reset: true }).catch(console.error));
     throw error;
@@ -3347,21 +3474,21 @@ async function loadTop(options = {}) {
 async function loadSchedule() {
   try {
     state.scheduleLoaded = true;
-    els.scheduleGrid.replaceChildren(createEmptyState("Загружаем расписание…"));
+    els.scheduleGrid.replaceChildren(createEmptyState("Р—Р°РіСЂСѓР¶Р°РµРј СЂР°СЃРїРёСЃР°РЅРёРµвЂ¦"));
     const payload = await fetchKodikDiscover("ongoing", 1, 72, { ttl: 60000 });
     state.scheduleItems = buildReleases(payload);
     renderSchedule();
   } catch (error) {
     console.error("loadSchedule failed", error);
     state.scheduleLoaded = false;
-    replaceWithErrorState(els.scheduleGrid, "Не удалось загрузить расписание.", () => loadSchedule().catch(console.error));
+    replaceWithErrorState(els.scheduleGrid, "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЂР°СЃРїРёСЃР°РЅРёРµ.", () => loadSchedule().catch(console.error));
     throw error;
   }
 }
 
 function renderSchedule() {
   if (!state.scheduleItems.length) {
-    els.scheduleGrid.replaceChildren(createEmptyState("Расписание пока недоступно."));
+    els.scheduleGrid.replaceChildren(createEmptyState("Р Р°СЃРїРёСЃР°РЅРёРµ РїРѕРєР° РЅРµРґРѕСЃС‚СѓРїРЅРѕ."));
     return;
   }
 
@@ -3373,7 +3500,7 @@ function renderSchedule() {
       return dayDiff !== 0 ? dayDiff : left.title.localeCompare(right.title, "ru");
     })
     .forEach((release) => {
-      const key = release.publishDay || "Сейчас доступно в Kodik";
+      const key = release.publishDay || "РЎРµР№С‡Р°СЃ РґРѕСЃС‚СѓРїРЅРѕ РІ Kodik";
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(release);
     });
@@ -3398,12 +3525,12 @@ function renderSchedule() {
         release.title
       )}" loading="lazy" decoding="async"><div class="schedule-item__body"><strong>${escapeHtml(
         release.title
-      )}</strong><span>${escapeHtml(`${release.type} • ${release.year}`)}</span><small>${escapeHtml(
+      )}</strong><span>${escapeHtml(`${release.type} вЂў ${release.year}`)}</span><small>${escapeHtml(
         release.publishedEpisode
-          ? `Доступна ${release.publishedEpisode.ordinal} серия`
+          ? `Р”РѕСЃС‚СѓРїРЅР° ${release.publishedEpisode.ordinal} СЃРµСЂРёСЏ`
           : release.nextEpisodeNumber
-            ? `Следующая серия: ${release.nextEpisodeNumber}`
-            : `${release.episodesTotal || "?"} эп.`
+            ? `РЎР»РµРґСѓСЋС‰Р°СЏ СЃРµСЂРёСЏ: ${release.nextEpisodeNumber}`
+            : `${release.episodesTotal || "?"} СЌРї.`
       )}</small></div>`;
       button.addEventListener("click", () => openRelease(release.alias).catch(console.error));
       list.appendChild(button);
@@ -3418,8 +3545,8 @@ function renderSchedule() {
 }
 
 function renderSearchEmpty() {
-  updateGrid(els.searchGrid, [], "Введите название аниме, чтобы увидеть результаты.");
-  els.searchSummary.textContent = "Введите название сверху, чтобы найти релиз.";
+  updateGrid(els.searchGrid, [], "Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ Р°РЅРёРјРµ, С‡С‚РѕР±С‹ СѓРІРёРґРµС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹.");
+  els.searchSummary.textContent = "Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ СЃРІРµСЂС…Сѓ, С‡С‚РѕР±С‹ РЅР°Р№С‚Рё СЂРµР»РёР·.";
 }
 
 function searchLocalReleases(query) {
@@ -3486,7 +3613,7 @@ async function runSearch(query, options = {}) {
     replaceHistory:
       options.replaceHistory ?? normalizePath(location.pathname) === "/search"
   });
-  els.searchSummary.textContent = "Ищем релизы…";
+  els.searchSummary.textContent = "РС‰РµРј СЂРµР»РёР·С‹вЂ¦";
   renderSkeletonGrid(els.searchGrid, 8);
 
   try {
@@ -3511,13 +3638,13 @@ async function runSearch(query, options = {}) {
     ).slice(0, 48);
     registerVoices(state.searchResults);
     els.searchSummary.textContent = state.searchResults.length
-      ? `Найдено ${formatNumber(state.searchResults.length)} релизов по запросу «${cleanQuery}».`
-      : `По запросу «${cleanQuery}» ничего не найдено.`;
-    updateGrid(els.searchGrid, state.searchResults, "Ничего не найдено.");
+      ? `РќР°Р№РґРµРЅРѕ ${formatNumber(state.searchResults.length)} СЂРµР»РёР·РѕРІ РїРѕ Р·Р°РїСЂРѕСЃСѓ В«${cleanQuery}В».`
+      : `РџРѕ Р·Р°РїСЂРѕСЃСѓ В«${cleanQuery}В» РЅРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ.`;
+    updateGrid(els.searchGrid, state.searchResults, "РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ.");
   } catch (error) {
     if (error.name === "AbortError") return;
     console.error(error);
-    const message = getKodikUnavailableMessage(error, "Поиск временно недоступен.");
+    const message = getKodikUnavailableMessage(error, "РџРѕРёСЃРє РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
     els.searchSummary.textContent = message;
     updateGrid(els.searchGrid, [], message);
   } finally {
@@ -3547,9 +3674,9 @@ function createAnimeCard(release, index) {
   node.querySelector(".anime-card__age").textContent = release.age;
   node.querySelector(".anime-card__status").textContent = release.statusLabel;
   node.querySelector(".anime-card__title").textContent = release.title;
-  node.querySelector(".anime-card__meta").textContent = [release.type, release.year, `${release.episodesTotal || "?"} эп.`]
+  node.querySelector(".anime-card__meta").textContent = [release.type, release.year, `${release.episodesTotal || "?"} СЌРї.`]
     .filter(Boolean)
-    .join(" • ");
+    .join(" вЂў ");
 
   poster.src = cardSrc;
   poster.alt = release.title;
@@ -3569,7 +3696,7 @@ function createAnimeCard(release, index) {
 
   action.href = getAnimePath(release.alias);
   action.dataset.releaseAlias = release.alias;
-  action.setAttribute("aria-label", `${release.title}: открыть релиз`);
+  action.setAttribute("aria-label", `${release.title}: РѕС‚РєСЂС‹С‚СЊ СЂРµР»РёР·`);
 
   return decorateCardProgress(node, release);
 }
@@ -3713,7 +3840,7 @@ function showExternalSurface(url) {
   els.player.hidden = true;
   els.externalPlayer.hidden = false;
   if (!externalUrl) {
-    els.playerNote.textContent = "Для этого источника внешний плеер сейчас недоступен.";
+    els.playerNote.textContent = "Р”Р»СЏ СЌС‚РѕРіРѕ РёСЃС‚РѕС‡РЅРёРєР° РІРЅРµС€РЅРёР№ РїР»РµРµСЂ СЃРµР№С‡Р°СЃ РЅРµРґРѕСЃС‚СѓРїРµРЅ.";
     return;
   }
   els.externalPlayer.src = "about:blank";
@@ -3724,7 +3851,7 @@ function showExternalSurface(url) {
   state.externalPlayerAssistTimer = setTimeout(() => {
     if (state.externalPlayerUrl !== externalUrl || els.externalPlayer.hidden) return;
     els.playerNote.textContent =
-      "Внешний Kodik-плеер долго не отвечает. Попробуйте открыть источник напрямую или повторить загрузку.";
+      "Р’РЅРµС€РЅРёР№ Kodik-РїР»РµРµСЂ РґРѕР»РіРѕ РЅРµ РѕС‚РІРµС‡Р°РµС‚. РџРѕРїСЂРѕР±СѓР№С‚Рµ РѕС‚РєСЂС‹С‚СЊ РёСЃС‚РѕС‡РЅРёРє РЅР°РїСЂСЏРјСѓСЋ РёР»Рё РїРѕРІС‚РѕСЂРёС‚СЊ Р·Р°РіСЂСѓР·РєСѓ.";
     if (els.externalPlayerActions) {
       els.externalPlayerActions.hidden = false;
     }
@@ -3744,7 +3871,7 @@ function fallbackToEmbeddedSource(message) {
   renderEpisodes(state.currentAnime);
   els.qualitySwitch.innerHTML = "";
   els.playerTitle.textContent = fallbackSource.title;
-  els.playerNote.textContent = message || "Поток не ответил. Открыли встроенный внешний плеер.";
+  els.playerNote.textContent = message || "РџРѕС‚РѕРє РЅРµ РѕС‚РІРµС‚РёР». РћС‚РєСЂС‹Р»Рё РІСЃС‚СЂРѕРµРЅРЅС‹Р№ РІРЅРµС€РЅРёР№ РїР»РµРµСЂ.";
   showExternalSurface(fallbackSource.externalUrl);
   return true;
 }
@@ -3788,7 +3915,7 @@ function isActiveVideoSource() {
 function syncPlayerReadyState() {
   clearPlayerStartupTimer();
   if (isActiveVideoSource() && !els.player.hidden) {
-    els.playerNote.textContent = "Поток подключён.";
+    els.playerNote.textContent = "РџРѕС‚РѕРє РїРѕРґРєР»СЋС‡С‘РЅ.";
   }
 }
 
@@ -3806,14 +3933,14 @@ function armPlayerStartupTimer(selectionToken, episode, qualityKey) {
     }
 
     if (qualityKey !== "480" && episode?.hls_480 && state.currentQuality !== "480") {
-      els.playerNote.textContent = "Поток долго стартует. Переключаемся на 480p…";
+      els.playerNote.textContent = "РџРѕС‚РѕРє РґРѕР»РіРѕ СЃС‚Р°СЂС‚СѓРµС‚. РџРµСЂРµРєР»СЋС‡Р°РµРјСЃСЏ РЅР° 480pвЂ¦";
       state.currentQuality = "480";
       selectEpisode(episode, { preserveSource: true, forceReload: true }).catch(console.error);
       return;
     }
 
     destroyPlayer();
-    els.playerNote.textContent = "Поток не загрузился. Попробуйте 480p, другую серию или обновите страницу.";
+    els.playerNote.textContent = "РџРѕС‚РѕРє РЅРµ Р·Р°РіСЂСѓР·РёР»СЃСЏ. РџРѕРїСЂРѕР±СѓР№С‚Рµ 480p, РґСЂСѓРіСѓСЋ СЃРµСЂРёСЋ РёР»Рё РѕР±РЅРѕРІРёС‚Рµ СЃС‚СЂР°РЅРёС†Сѓ.";
   }, timeoutMs);
 }
 
@@ -3874,7 +4001,7 @@ async function attachPlayer(manifestUrl) {
     });
     state.hls.on(HlsLib.Events.MANIFEST_PARSED, () => {
       if (!els.player.hidden) {
-        els.playerNote.textContent = "Буферизуем поток…";
+        els.playerNote.textContent = "Р‘СѓС„РµСЂРёР·СѓРµРј РїРѕС‚РѕРєвЂ¦";
       }
     });
     state.hls.on(HlsLib.Events.ERROR, (_, data) => {
@@ -3882,7 +4009,7 @@ async function attachPlayer(manifestUrl) {
       console.error("HLS fatal error", data);
       if (data.type === HlsLib.ErrorTypes.NETWORK_ERROR && !state.hlsRecoveryTried) {
         state.hlsRecoveryTried = true;
-        els.playerNote.textContent = "Поток не отвечает. Перезагружаем соединение…";
+        els.playerNote.textContent = "РџРѕС‚РѕРє РЅРµ РѕС‚РІРµС‡Р°РµС‚. РџРµСЂРµР·Р°РіСЂСѓР¶Р°РµРј СЃРѕРµРґРёРЅРµРЅРёРµвЂ¦";
         try {
           state.hls.startLoad(-1);
           return;
@@ -3890,11 +4017,11 @@ async function attachPlayer(manifestUrl) {
       }
       destroyPlayer();
       if (
-        fallbackToEmbeddedSource("Поток не ответил. Открыли встроенный внешний плеер с альтернативным источником.")
+        fallbackToEmbeddedSource("РџРѕС‚РѕРє РЅРµ РѕС‚РІРµС‚РёР». РћС‚РєСЂС‹Р»Рё РІСЃС‚СЂРѕРµРЅРЅС‹Р№ РІРЅРµС€РЅРёР№ РїР»РµРµСЂ СЃ Р°Р»СЊС‚РµСЂРЅР°С‚РёРІРЅС‹Рј РёСЃС‚РѕС‡РЅРёРєРѕРј.")
       ) {
         return;
       }
-      els.playerNote.textContent = "Не удалось загрузить поток. Попробуйте другую серию или обновите страницу.";
+      els.playerNote.textContent = "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїРѕС‚РѕРє. РџРѕРїСЂРѕР±СѓР№С‚Рµ РґСЂСѓРіСѓСЋ СЃРµСЂРёСЋ РёР»Рё РѕР±РЅРѕРІРёС‚Рµ СЃС‚СЂР°РЅРёС†Сѓ.";
     });
     state.hls.loadSource(playableManifestUrl);
     state.hls.attachMedia(els.player);
@@ -3957,15 +4084,15 @@ function createSourceNode(source) {
 }
 
 function createEpisodeNode(episode) {
-  const label = episode.ordinal ? `${episode.ordinal} серия` : episode.name || "Фильм";
+  const label = episode.ordinal ? `${episode.ordinal} СЃРµСЂРёСЏ` : episode.name || "Р¤РёР»СЊРј";
   const button = document.createElement("button");
   button.type = "button";
   button.className = `episode-btn${state.currentEpisode?.id === episode.id ? " is-active" : ""}`;
   button.dataset.episodeId = episode.id || "";
   button.dataset.ordinal = String(episode.ordinal || "");
   button.innerHTML = `<strong>${escapeHtml(label)}</strong><span>${escapeHtml(
-    episode.name || "Без названия"
-  )}</span><small>${escapeHtml(formatEpisodeDuration(episode.duration) || "Длительность не указана")}</small>`;
+    episode.name || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ"
+  )}</span><small>${escapeHtml(formatEpisodeDuration(episode.duration) || "Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РЅРµ СѓРєР°Р·Р°РЅР°")}</small>`;
   button.addEventListener("click", () => selectEpisode(episode).catch(console.error));
   return button;
 }
@@ -3973,7 +4100,7 @@ function createEpisodeNode(episode) {
 function createVoiceNode(name) {
   const pill = document.createElement("div");
   pill.className = "voice-pill";
-  pill.innerHTML = `<strong>${escapeHtml(name)}</strong><small>озвучка</small>`;
+  pill.innerHTML = `<strong>${escapeHtml(name)}</strong><small>РѕР·РІСѓС‡РєР°</small>`;
   return pill;
 }
 
@@ -3989,7 +4116,7 @@ function renderSourceSwitch(release) {
   els.sourceSwitch.innerHTML = "";
   const sources = buildSourceList(release);
   if (!sources.length) {
-    els.sourceSwitch.appendChild(createEmptyState("Источники пока недоступны."));
+    els.sourceSwitch.appendChild(createEmptyState("РСЃС‚РѕС‡РЅРёРєРё РїРѕРєР° РЅРµРґРѕСЃС‚СѓРїРЅС‹."));
     return;
   }
   scheduleChunkRender(els.sourceSwitch, sources, createSourceNode, { batchSize: 2 });
@@ -4004,8 +4131,8 @@ function renderEpisodes(release) {
     els.episodesList.appendChild(
       createEmptyState(
         source?.kind === "iframe"
-          ? "Серии выбираются прямо внутри этого плеера."
-          : "У этого релиза пока нет опубликованных серий."
+          ? "РЎРµСЂРёРё РІС‹Р±РёСЂР°СЋС‚СЃСЏ РїСЂСЏРјРѕ РІРЅСѓС‚СЂРё СЌС‚РѕРіРѕ РїР»РµРµСЂР°."
+          : "РЈ СЌС‚РѕРіРѕ СЂРµР»РёР·Р° РїРѕРєР° РЅРµС‚ РѕРїСѓР±Р»РёРєРѕРІР°РЅРЅС‹С… СЃРµСЂРёР№."
       )
     );
     return;
@@ -4025,7 +4152,7 @@ function renderVoices(release) {
   els.voiceList.innerHTML = "";
   const voices = release?.voices || [];
   if (!voices.length) {
-    els.voiceList.appendChild(createEmptyState("Команда озвучки не указана."));
+    els.voiceList.appendChild(createEmptyState("РљРѕРјР°РЅРґР° РѕР·РІСѓС‡РєРё РЅРµ СѓРєР°Р·Р°РЅР°."));
     return;
   }
   scheduleChunkRender(els.voiceList, voices, createVoiceNode, { batchSize: 6 });
@@ -4036,7 +4163,7 @@ function renderCrew(release) {
   els.crewList.innerHTML = "";
   const crew = release?.crew || [];
   if (!crew.length) {
-    els.crewList.appendChild(createEmptyState("Команда релиза не указана."));
+    els.crewList.appendChild(createEmptyState("РљРѕРјР°РЅРґР° СЂРµР»РёР·Р° РЅРµ СѓРєР°Р·Р°РЅР°."));
     return;
   }
   scheduleChunkRender(els.crewList, crew, createCrewNode, { batchSize: 6 });
@@ -4044,13 +4171,13 @@ function renderCrew(release) {
 
 function renderDetailLoadingState() {
   if (els.sourceSwitch) {
-    els.sourceSwitch.replaceChildren(createEmptyState("Подготавливаем источники..."));
+    els.sourceSwitch.replaceChildren(createEmptyState("РџРѕРґРіРѕС‚Р°РІР»РёРІР°РµРј РёСЃС‚РѕС‡РЅРёРєРё..."));
   }
   if (els.episodesList) {
-    els.episodesList.replaceChildren(createEmptyState("Подготавливаем список серий..."));
+    els.episodesList.replaceChildren(createEmptyState("РџРѕРґРіРѕС‚Р°РІР»РёРІР°РµРј СЃРїРёСЃРѕРє СЃРµСЂРёР№..."));
   }
   if (els.crewList) {
-    els.crewList.replaceChildren(createEmptyState("Подготавливаем команду релиза..."));
+    els.crewList.replaceChildren(createEmptyState("РџРѕРґРіРѕС‚Р°РІР»РёРІР°РµРј РєРѕРјР°РЅРґСѓ СЂРµР»РёР·Р°..."));
   }
 }
 
@@ -4068,15 +4195,21 @@ function renderDetailShell(release) {
   }
   if (els.detailTitle) els.detailTitle.textContent = release.title;
   if (els.detailDescription) els.detailDescription.textContent = release.description;
+  const kodikRatingValue = Number(release?.sortRating || 0);
+  const kodikRating =
+    Number.isFinite(kodikRatingValue) && kodikRatingValue > 0 && kodikRatingValue <= 10.1
+      ? String(kodikRatingValue).replace(/\.0$/, "")
+      : "";
 
   const meta = [
     release.type,
     release.year,
+    kodikRating ? `\u0420\u0435\u0439\u0442\u0438\u043d\u0433: ${kodikRating}` : "",
     release.season,
-    `${release.episodesTotal || "?"} эп.`,
+    `${release.episodesTotal || "?"} СЌРї.`,
     formatDurationMinutes(release.averageDuration),
-    release.publishDay ? `Выходит: ${release.publishDay}` : "",
-    release.favorites ? `${formatNumber(release.favorites)} в избранном` : "",
+    release.publishDay ? `Р’С‹С…РѕРґРёС‚: ${release.publishDay}` : "",
+    release.favorites ? `${formatNumber(release.favorites)} РІ РёР·Р±СЂР°РЅРЅРѕРј` : "",
     release.age
   ].filter(Boolean);
 
@@ -4090,7 +4223,7 @@ function renderDetailShell(release) {
     els.detailAdminPinBtn.hidden = !isAdminUser();
     if (isAdminUser()) {
       els.detailAdminPinBtn.textContent =
-        readAdminHeroAlias() === release.alias ? "Локальный баннер выбран" : "Закрепить как локальный баннер";
+        readAdminHeroAlias() === release.alias ? "Р›РѕРєР°Р»СЊРЅС‹Р№ Р±Р°РЅРЅРµСЂ РІС‹Р±СЂР°РЅ" : "Р—Р°РєСЂРµРїРёС‚СЊ РєР°Рє Р»РѕРєР°Р»СЊРЅС‹Р№ Р±Р°РЅРЅРµСЂ";
     }
   }
 
@@ -4201,8 +4334,8 @@ async function selectEpisode(episode, options = {}) {
 
   syncRenderedEpisodeState();
   syncRenderedSourceState();
-  els.playerTitle.textContent = `${episode.ordinal ? `${episode.ordinal} серия` : "Фильм"}${
-    episode.name ? ` • ${episode.name}` : ""
+  els.playerTitle.textContent = `${episode.ordinal ? `${episode.ordinal} СЃРµСЂРёСЏ` : "Р¤РёР»СЊРј"}${
+    episode.name ? ` вЂў ${episode.name}` : ""
   }`;
   window.dispatchEvent(
     new CustomEvent("animecloud:episode-selected", {
@@ -4217,8 +4350,8 @@ async function selectEpisode(episode, options = {}) {
     showExternalSurface(episode.externalUrl || source?.externalUrl || state.currentAnime.externalPlayer);
     els.playerNote.textContent =
       source?.kind === "iframe-episodes"
-        ? "Эта озвучка открыта во встроенном внешнем плеере. Серии и качество задаются там. Если загрузка зависнет, откройте источник напрямую."
-        : "Этот источник открывается во встроенном внешнем плеере. Если загрузка зависнет, откройте источник напрямую.";
+        ? "Р­С‚Р° РѕР·РІСѓС‡РєР° РѕС‚РєСЂС‹С‚Р° РІРѕ РІСЃС‚СЂРѕРµРЅРЅРѕРј РІРЅРµС€РЅРµРј РїР»РµРµСЂРµ. РЎРµСЂРёРё Рё РєР°С‡РµСЃС‚РІРѕ Р·Р°РґР°СЋС‚СЃСЏ С‚Р°Рј. Р•СЃР»Рё Р·Р°РіСЂСѓР·РєР° Р·Р°РІРёСЃРЅРµС‚, РѕС‚РєСЂРѕР№С‚Рµ РёСЃС‚РѕС‡РЅРёРє РЅР°РїСЂСЏРјСѓСЋ."
+        : "Р­С‚РѕС‚ РёСЃС‚РѕС‡РЅРёРє РѕС‚РєСЂС‹РІР°РµС‚СЃСЏ РІРѕ РІСЃС‚СЂРѕРµРЅРЅРѕРј РІРЅРµС€РЅРµРј РїР»РµРµСЂРµ. Р•СЃР»Рё Р·Р°РіСЂСѓР·РєР° Р·Р°РІРёСЃРЅРµС‚, РѕС‚РєСЂРѕР№С‚Рµ РёСЃС‚РѕС‡РЅРёРє РЅР°РїСЂСЏРјСѓСЋ.";
     return;
   }
 
@@ -4230,11 +4363,11 @@ async function selectEpisode(episode, options = {}) {
 
   if (!selected) {
     destroyPlayer();
-    els.playerNote.textContent = "У этой серии пока нет доступного потока.";
+    els.playerNote.textContent = "РЈ СЌС‚РѕР№ СЃРµСЂРёРё РїРѕРєР° РЅРµС‚ РґРѕСЃС‚СѓРїРЅРѕРіРѕ РїРѕС‚РѕРєР°.";
     return;
   }
 
-  els.playerNote.textContent = `Плеер подготавливает поток через ваш домен. Стартовое качество: ${selected.label}. При необходимости переключите его вручную.`;
+  els.playerNote.textContent = `РџР»РµРµСЂ РїРѕРґРіРѕС‚Р°РІР»РёРІР°РµС‚ РїРѕС‚РѕРє С‡РµСЂРµР· РІР°С€ РґРѕРјРµРЅ. РЎС‚Р°СЂС‚РѕРІРѕРµ РєР°С‡РµСЃС‚РІРѕ: ${selected.label}. РџСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РїРµСЂРµРєР»СЋС‡РёС‚Рµ РµРіРѕ РІСЂСѓС‡РЅСѓСЋ.`;
 
   await afterNextPaint();
   if (state.playerSelectionToken !== selectionToken || state.currentEpisode?.id !== episode.id) return;
@@ -4249,7 +4382,7 @@ async function selectEpisode(episode, options = {}) {
     console.error(error);
     if (state.playerSelectionToken === selectionToken) {
       clearPlayerStartupTimer();
-      els.playerNote.textContent = "Не удалось загрузить поток. Попробуйте другое качество или другую серию.";
+      els.playerNote.textContent = "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїРѕС‚РѕРє. РџРѕРїСЂРѕР±СѓР№С‚Рµ РґСЂСѓРіРѕРµ РєР°С‡РµСЃС‚РІРѕ РёР»Рё РґСЂСѓРіСѓСЋ СЃРµСЂРёСЋ.";
     }
   }
 }
@@ -4274,7 +4407,7 @@ function switchSource(sourceId) {
     els.qualitySwitch.innerHTML = "";
     els.playerTitle.textContent = source.title;
     els.playerNote.textContent =
-      source.note || "Этот источник открывается во встроенном внешнем плеере. Если загрузка зависнет, откройте источник напрямую.";
+      source.note || "Р­С‚РѕС‚ РёСЃС‚РѕС‡РЅРёРє РѕС‚РєСЂС‹РІР°РµС‚СЃСЏ РІРѕ РІСЃС‚СЂРѕРµРЅРЅРѕРј РІРЅРµС€РЅРµРј РїР»РµРµСЂРµ. Р•СЃР»Рё Р·Р°РіСЂСѓР·РєР° Р·Р°РІРёСЃРЅРµС‚, РѕС‚РєСЂРѕР№С‚Рµ РёСЃС‚РѕС‡РЅРёРє РЅР°РїСЂСЏРјСѓСЋ.";
     return;
   }
 
@@ -4290,8 +4423,8 @@ function switchSource(sourceId) {
   els.playerTitle.textContent = source.title;
   els.playerNote.textContent =
     source.kind === "iframe"
-      ? "Серии выбираются внутри этого плеера."
-      : "Для этого источника пока нет опубликованных эпизодов.";
+      ? "РЎРµСЂРёРё РІС‹Р±РёСЂР°СЋС‚СЃСЏ РІРЅСѓС‚СЂРё СЌС‚РѕРіРѕ РїР»РµРµСЂР°."
+      : "Р”Р»СЏ СЌС‚РѕРіРѕ РёСЃС‚РѕС‡РЅРёРєР° РїРѕРєР° РЅРµС‚ РѕРїСѓР±Р»РёРєРѕРІР°РЅРЅС‹С… СЌРїРёР·РѕРґРѕРІ.";
 }
 
 async function openRelease(alias, options = {}) {
@@ -4379,8 +4512,8 @@ async function openRelease(alias, options = {}) {
     destroyPlayer();
     stopExternalPlayer();
     els.qualitySwitch.innerHTML = "";
-    els.playerTitle.textContent = "Серии отсутствуют";
-    els.playerNote.textContent = "Для этого релиза пока нет опубликованных эпизодов.";
+    els.playerTitle.textContent = "РЎРµСЂРёРё РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‚";
+    els.playerNote.textContent = "Р”Р»СЏ СЌС‚РѕРіРѕ СЂРµР»РёР·Р° РїРѕРєР° РЅРµС‚ РѕРїСѓР±Р»РёРєРѕРІР°РЅРЅС‹С… СЌРїРёР·РѕРґРѕРІ.";
     return release;
   })().finally(() => {
     if (state.releaseOpenAlias === alias) {
@@ -4454,7 +4587,7 @@ function registerServiceWorker() {
     if (!registration?.waiting || !navigator.serviceWorker.controller) return;
 
     const shouldReload = window.confirm(
-      "Доступна новая версия AnimeCloud. Обновить страницу сейчас, чтобы применить свежие фиксы и убрать старый кэш?"
+      "Р”РѕСЃС‚СѓРїРЅР° РЅРѕРІР°СЏ РІРµСЂСЃРёСЏ AnimeCloud. РћР±РЅРѕРІРёС‚СЊ СЃС‚СЂР°РЅРёС†Сѓ СЃРµР№С‡Р°СЃ, С‡С‚РѕР±С‹ РїСЂРёРјРµРЅРёС‚СЊ СЃРІРµР¶РёРµ С„РёРєСЃС‹ Рё СѓР±СЂР°С‚СЊ СЃС‚Р°СЂС‹Р№ РєСЌС€?"
     );
     if (!shouldReload) return;
 
@@ -4591,7 +4724,7 @@ function setShareButtonFeedback(label, timeout = 1600) {
     clearTimeout(state.shareFeedbackTimer);
   }
   state.shareFeedbackTimer = setTimeout(() => {
-    button.textContent = "Поделиться";
+    button.textContent = "РџРѕРґРµР»РёС‚СЊСЃСЏ";
     state.shareFeedbackTimer = 0;
   }, timeout);
 }
@@ -4618,7 +4751,7 @@ async function copyTextFallback(value) {
     textarea.remove();
   }
   if (!success) {
-    window.prompt("Скопируйте ссылку на тайтл", value);
+    window.prompt("РЎРєРѕРїРёСЂСѓР№С‚Рµ СЃСЃС‹Р»РєСѓ РЅР° С‚Р°Р№С‚Р»", value);
   }
   return success;
 }
@@ -4628,8 +4761,8 @@ async function handleShareClick() {
   const button = els.detailShareBtn;
   const url = `${location.origin}${getAnimePath(state.currentAnime.alias)}`;
   const shareData = {
-    title: `${state.currentAnime.title} — AnimeCloud`,
-    text: `Смотрите ${state.currentAnime.title} в AnimeCloud`,
+    title: `${state.currentAnime.title} вЂ” AnimeCloud`,
+    text: `РЎРјРѕС‚СЂРёС‚Рµ ${state.currentAnime.title} РІ AnimeCloud`,
     url
   };
 
@@ -4638,24 +4771,24 @@ async function handleShareClick() {
   try {
     if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
       await navigator.share(shareData);
-      setShareButtonFeedback("Ссылка отправлена");
+      setShareButtonFeedback("РЎСЃС‹Р»РєР° РѕС‚РїСЂР°РІР»РµРЅР°");
       return;
     }
 
     await copyTextFallback(url);
-    setShareButtonFeedback("Ссылка скопирована");
+    setShareButtonFeedback("РЎСЃС‹Р»РєР° СЃРєРѕРїРёСЂРѕРІР°РЅР°");
   } catch (error) {
     const code = String(error?.name || error?.code || "").toLowerCase();
     if (code.includes("abort")) {
-      setShareButtonFeedback("Поделиться", 400);
+      setShareButtonFeedback("РџРѕРґРµР»РёС‚СЊСЃСЏ", 400);
       return;
     }
 
     try {
       await copyTextFallback(url);
-      setShareButtonFeedback("Ссылка скопирована");
+      setShareButtonFeedback("РЎСЃС‹Р»РєР° СЃРєРѕРїРёСЂРѕРІР°РЅР°");
     } catch {
-      setShareButtonFeedback("Не удалось поделиться");
+      setShareButtonFeedback("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРµР»РёС‚СЊСЃСЏ");
     }
   } finally {
     if (button) button.disabled = false;
@@ -4681,12 +4814,12 @@ function bindListButtons() {
 function setLoadMoreButtonLoading(button, loading) {
   if (!button) return;
   if (!button.dataset.labelDefault) {
-    button.dataset.labelDefault = button.textContent.trim() || "Показать ещё";
+    button.dataset.labelDefault = button.textContent.trim() || "РџРѕРєР°Р·Р°С‚СЊ РµС‰С‘";
   }
 
   button.classList.toggle("is-loading", loading);
   button.setAttribute("aria-busy", loading ? "true" : "false");
-  button.textContent = loading ? "Загружаем ещё…" : button.dataset.labelDefault;
+  button.textContent = loading ? "Р—Р°РіСЂСѓР¶Р°РµРј РµС‰С‘вЂ¦" : button.dataset.labelDefault;
 }
 
 function bindLoadMoreButton(button, action) {
@@ -4771,10 +4904,15 @@ function bindEvents() {
   els.installBtn?.addEventListener("click", () => {
     handleInstallClick().catch(console.error);
   });
-  els.notificationBtn?.addEventListener("click", () => {
-    setView("profile");
+  els.notificationBtn?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleNotificationPopover();
   });
   els.notificationsMarkAllBtn?.addEventListener("click", () => {
+    markAllNotificationsRead().catch(console.error);
+  });
+  els.notificationPopoverMarkAllBtn?.addEventListener("click", () => {
     markAllNotificationsRead().catch(console.error);
   });
   els.externalPlayerOpenBtn?.addEventListener("click", () => {
@@ -4840,7 +4978,7 @@ function bindEvents() {
     state.heroCarouselIndex = 0;
     renderHero(state.currentAnime);
     startHeroCarousel();
-    els.detailAdminPinBtn.textContent = "Локальный баннер выбран";
+    els.detailAdminPinBtn.textContent = "Р›РѕРєР°Р»СЊРЅС‹Р№ Р±Р°РЅРЅРµСЂ РІС‹Р±СЂР°РЅ";
   });
 
   els.adminRefreshBtn?.addEventListener("click", () => refreshAll().catch(console.error));
@@ -4889,7 +5027,31 @@ function bindEvents() {
     if (event.key === "Escape" && els.drawer.classList.contains("is-open")) {
       closeDrawer();
     }
+    if (event.key === "Escape" && state.notificationPopoverOpen) {
+      closeNotificationPopover();
+    }
   });
+
+  document.addEventListener("pointerdown", (event) => {
+    if (!state.notificationPopoverOpen) return;
+    const target = event.target;
+    if (els.notificationBtn?.contains(target) || els.notificationPopover?.contains(target)) {
+      return;
+    }
+    closeNotificationPopover();
+  });
+
+  window.addEventListener("resize", () => {
+    if (state.notificationPopoverOpen) {
+      positionNotificationPopover();
+    }
+  });
+
+  window.addEventListener("scroll", () => {
+    if (state.notificationPopoverOpen) {
+      positionNotificationPopover();
+    }
+  }, { passive: true });
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -4925,13 +5087,13 @@ function bindEvents() {
   });
   els.player?.addEventListener("waiting", () => {
     if (isActiveVideoSource() && !els.player.hidden && els.player.readyState < 2) {
-      els.playerNote.textContent = "Буферизуем поток…";
+      els.playerNote.textContent = "Р‘СѓС„РµСЂРёР·СѓРµРј РїРѕС‚РѕРєвЂ¦";
     }
   });
   els.player?.addEventListener("error", () => {
     clearPlayerStartupTimer();
     if (isActiveVideoSource()) {
-      els.playerNote.textContent = "Не удалось воспроизвести видео. Попробуйте 480p или другую серию.";
+      els.playerNote.textContent = "РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕСЃРїСЂРѕРёР·РІРµСЃС‚Рё РІРёРґРµРѕ. РџРѕРїСЂРѕР±СѓР№С‚Рµ 480p РёР»Рё РґСЂСѓРіСѓСЋ СЃРµСЂРёСЋ.";
     }
   });
 }
@@ -4957,6 +5119,7 @@ async function init() {
   renderSearchEmpty();
   syncInstallButton();
   renderNotifications();
+  renderNotificationPopover();
   syncNotificationButton();
 
   try {
@@ -4988,9 +5151,9 @@ async function init() {
     });
   } catch (error) {
     console.error(error);
-    updateGrid(els.latestGrid, [], "Не удалось загрузить домашнюю страницу.");
-    updateGrid(els.recommendedGrid, [], "Не удалось загрузить домашнюю страницу.");
-    updateGrid(els.popularGrid, [], "Не удалось загрузить домашнюю страницу.");
+    updateGrid(els.latestGrid, [], "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РґРѕРјР°С€РЅСЋСЋ СЃС‚СЂР°РЅРёС†Сѓ.");
+    updateGrid(els.recommendedGrid, [], "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РґРѕРјР°С€РЅСЋСЋ СЃС‚СЂР°РЅРёС†Сѓ.");
+    updateGrid(els.popularGrid, [], "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РґРѕРјР°С€РЅСЋСЋ СЃС‚СЂР°РЅРёС†Сѓ.");
   }
 }
 

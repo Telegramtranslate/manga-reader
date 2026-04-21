@@ -482,12 +482,36 @@
     }
   }
 
+  async function waitForRedirectUser(auth, onAuthStateChanged, timeoutMs = 6000) {
+    if (auth?.currentUser) return auth.currentUser;
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (user) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        try {
+          unsubscribe?.();
+        } catch {}
+        resolve(user || null);
+      };
+
+      const timer = setTimeout(() => finish(auth?.currentUser || null), timeoutMs);
+      const unsubscribe = typeof onAuthStateChanged === "function"
+        ? onAuthStateChanged(auth, (user) => {
+            if (user) finish(user);
+          })
+        : null;
+    });
+  }
+
   async function finalizeGoogleRedirect() {
     const redirectWasPending = isGoogleRedirectPending();
     const context = await getFirebaseContext();
     if (!context) return false;
 
-    const { auth, getRedirectResult } = context;
+    const { auth, getRedirectResult, onAuthStateChanged } = context;
     const result = await getRedirectResult(auth);
     if (result?.user) {
       await applyFirebaseUserSession(result.user);
@@ -501,6 +525,16 @@
       setGoogleRedirectPending(false);
       if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
       return true;
+    }
+
+    if (redirectWasPending) {
+      const redirectedUser = await waitForRedirectUser(auth, onAuthStateChanged);
+      if (redirectedUser) {
+        await applyFirebaseUserSession(redirectedUser);
+        setGoogleRedirectPending(false);
+        if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
+        return true;
+      }
     }
 
     if (redirectWasPending) {

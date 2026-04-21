@@ -3788,31 +3788,84 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-width: 0;
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
+  gap: 0;
+  z-index: 3;
 }
 
 .notification-btn__icon {
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1;
 }
 
 .notification-btn__text {
-  white-space: nowrap;
+  display: none;
 }
 
 .notification-btn__badge {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  display: inline-flex;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   background: linear-gradient(180deg, #ffbb4a 0%, #f39c12 100%);
   color: #1b1208;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 900;
+  box-shadow: 0 10px 18px rgba(243, 156, 18, 0.22);
+}
+
+.notification-popover {
+  position: fixed;
+  top: 92px;
+  right: 24px;
+  z-index: 125;
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(70vh, 560px);
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(243, 156, 18, 0.14);
+  border-radius: 22px;
+  background: rgba(14, 14, 14, 0.97);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.notification-popover__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.notification-popover__head strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-strong);
+}
+
+.notification-popover__head small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.notification-popover__mark-all {
+  white-space: nowrap;
+}
+
+.notification-popover__list {
+  display: grid;
+  gap: 10px;
 }
 
 .notification-list {
@@ -3936,19 +3989,24 @@ body.is-scrolling .primary-btn {
 }
 
 @media (max-width: 860px) {
-  .notification-btn__text {
-    display: none;
-  }
-
   .toast-viewport {
     right: 10px;
     bottom: 84px;
     width: min(340px, calc(100vw - 20px));
   }
+
+  .notification-popover {
+    top: 74px;
+    right: 10px;
+    width: min(360px, calc(100vw - 20px));
+    max-height: min(72vh, 520px);
+    padding: 12px;
+  }
 }
 
 :root[data-theme="light"] .notification-item,
-:root[data-theme="light"] .toast-card {
+:root[data-theme="light"] .toast-card,
+:root[data-theme="light"] .notification-popover {
   border-color: rgba(111, 84, 56, 0.12);
   background: linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(246, 238, 228, 0.98));
   box-shadow: 0 10px 24px rgba(105, 69, 25, 0.10);
