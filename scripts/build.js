@@ -27,10 +27,8 @@ const STATIC_FILES = [
   "content-stats.json",
   "sw.js",
   "mc-icon-192.png",
-  "mc-icon-192.svg",
   "mc-icon-192-maskable.png",
   "mc-icon-512.png",
-  "mc-icon-512.svg",
   "mc-icon-512-maskable.png"
 ];
 const HASHED_PUBLIC_FILES = [

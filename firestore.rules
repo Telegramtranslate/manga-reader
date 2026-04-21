@@ -59,6 +59,27 @@ service cloud.firestore {
         );
     }
 
+    function validNotifications(userId) {
+      return ownerBaseShape(userId) &&
+        request.resource.data.keys().hasAll(['uid', 'email', 'items', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'items', 'updatedAt']) &&
+        request.resource.data.items is list &&
+        request.resource.data.items.size() <= 120;
+    }
+
+    function validNotificationState(userId) {
+      return ownerBaseShape(userId) &&
+        request.resource.data.keys().hasAll(['uid', 'email', 'item', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'item', 'updatedAt']) &&
+        request.resource.data.item is map &&
+        request.resource.data.item.keys().hasAll(['seenNewAnimeAliases', 'lastEpisodeByAlias']) &&
+        request.resource.data.item.keys().hasOnly(['seenNewAnimeAliases', 'lastEpisodeByAlias', 'initializedAt', 'lastScanAt']) &&
+        request.resource.data.item.seenNewAnimeAliases is list &&
+        request.resource.data.item.seenNewAnimeAliases.size() <= 240 &&
+        request.resource.data.item.lastEpisodeByAlias is map &&
+        request.resource.data.item.lastEpisodeByAlias.keys().size() <= 240;
+    }
+
     function adminClaim() {
       return signedIn() && request.auth.token.admin == true;
     }
@@ -105,7 +126,9 @@ service cloud.firestore {
       allow create, update: if owner(userId) && (
         (docId == 'favorites' && validFavorites(userId)) ||
         (docId == 'progress' && validProgress(userId)) ||
-        (docId == 'settings' && validSettings(userId))
+        (docId == 'settings' && validSettings(userId)) ||
+        (docId == 'notifications' && validNotifications(userId)) ||
+        (docId == 'notification_state' && validNotificationState(userId))
       );
 
       allow delete: if owner(userId);

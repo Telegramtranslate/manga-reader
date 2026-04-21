@@ -9,6 +9,7 @@ const CLOUD_COMMENTS_KEY = CLOUD_STORAGE_KEYS.comments || "animecloud_comments_v
 const CLOUD_LISTS_KEY = CLOUD_STORAGE_KEYS.lists || "animecloud_lists_v1";
 const CLOUD_RATINGS_KEY = CLOUD_STORAGE_KEYS.ratings || "animecloud_ratings_v1";
 const CLOUD_SETTINGS_KEY = CLOUD_STORAGE_KEYS.settings || "animecloud_settings_v1";
+const CLOUD_NOTIFICATIONS_LIMIT = 120;
 const CLOUD_FAVORITES_LIMIT = 120;
 const CLOUD_COMMENTS_LIMIT = 200;
 const CLOUD_DB_NAME = "animecloud-db";
@@ -29,6 +30,7 @@ const cloudState = {
   progressUnsubscribe: null,
   commentsUnsubscribers: new Map(),
   ratingsUnsubscribers: new Map(),
+  notificationsUnsubscribe: null,
   syncRegistrationPromise: null
 };
 
@@ -205,6 +207,81 @@ function normalizeRatingMap(map = {}) {
     };
     return accumulator;
   }, {});
+}
+
+function normalizeNotificationAlias(alias) {
+  return String(alias || "").trim();
+}
+
+function normalizeNotificationEpisodeValue(value) {
+  const numeric = Number(value || 0);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.max(0, Math.round(numeric));
+}
+
+function uniqueNotificationStrings(values = []) {
+  const seen = new Set();
+  const result = [];
+  values.forEach((value) => {
+    const safeValue = String(value || "").trim();
+    if (!safeValue) return;
+    const key = safeValue.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(safeValue);
+  });
+  return result;
+}
+
+function normalizeNotificationItem(item = {}) {
+  const alias = normalizeNotificationAlias(item.alias);
+  const type = item.type === "new_episode" ? "new_episode" : "new_anime";
+  const id =
+    String(item.id || "").trim() ||
+    `${type}:${alias}:${normalizeNotificationEpisodeValue(item.episode)}:${normalizeTimestampValue(item.createdAt) || Date.now()}`;
+  return {
+    id,
+    type,
+    alias,
+    title: String(item.title || "").trim() || "Обновление каталога",
+    body: String(item.body || "").trim() || "Появилось новое обновление.",
+    createdAt: normalizeTimestampValue(item.createdAt) || Date.now(),
+    readAt: normalizeTimestampValue(item.readAt),
+    episode: normalizeNotificationEpisodeValue(item.episode),
+    actionLabel: String(item.actionLabel || "").trim() || "Открыть"
+  };
+}
+
+function mergeNotificationLists(...lists) {
+  const seen = new Set();
+  return lists
+    .flat()
+    .map((item) => normalizeNotificationItem(item))
+    .filter((item) => item.id && item.alias)
+    .filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    })
+    .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))
+    .slice(0, CLOUD_NOTIFICATIONS_LIMIT);
+}
+
+function normalizeNotificationState(item = {}) {
+  const normalizedAliases = uniqueNotificationStrings(Array.isArray(item.seenNewAnimeAliases) ? item.seenNewAnimeAliases : []).slice(-240);
+  const lastEpisodeByAlias = Object.entries(item.lastEpisodeByAlias || {}).reduce((accumulator, [alias, value]) => {
+    const safeAlias = normalizeNotificationAlias(alias);
+    if (!safeAlias) return accumulator;
+    accumulator[safeAlias] = normalizeNotificationEpisodeValue(value);
+    return accumulator;
+  }, {});
+
+  return {
+    seenNewAnimeAliases: normalizedAliases,
+    lastEpisodeByAlias,
+    initializedAt: normalizeTimestampValue(item.initializedAt),
+    lastScanAt: normalizeTimestampValue(item.lastScanAt)
+  };
 }
 
 function normalizeRatingVoteData(id, data = {}) {
@@ -816,6 +893,267 @@ async function saveSettings(session = cloudReadSession(), settings = {}) {
   return true;
 }
 
+async function loadNotifications(session = cloudReadSession()) {
+  if (!session?.localId) return [];
+
+  try {
+    const docData = await readCloudDoc(["users", session.localId, "private", "notifications"], {
+      items: []
+    });
+    return mergeNotificationLists(docData?.items || []);
+  } catch (error) {
+    if (!isPermissionDeniedError(error)) {
+      console.error(error);
+    }
+    return [];
+  }
+}
+
+async function saveNotifications(session = cloudReadSession(), items = []) {
+  if (!session?.localId) return [];
+  const next = mergeNotificationLists(items);
+
+  try {
+    await writeCloudDocQueued(["users", session.localId, "private", "notifications"], {
+      uid: session.localId,
+      email: session.email || "",
+      items: next
+    });
+  } catch (error) {
+    if (!isPermissionDeniedError(error)) {
+      console.error(error);
+    }
+  }
+
+  return next;
+}
+
+async function loadNotificationState(session = cloudReadSession()) {
+  if (!session?.localId) return normalizeNotificationState();
+
+  try {
+    const docData = await readCloudDoc(["users", session.localId, "private", "notification_state"], {
+      item: {}
+    });
+    return normalizeNotificationState(docData?.item || {});
+  } catch (error) {
+    if (!isPermissionDeniedError(error)) {
+      console.error(error);
+    }
+    return normalizeNotificationState();
+  }
+}
+
+async function saveNotificationState(session = cloudReadSession(), item = {}) {
+  if (!session?.localId) return normalizeNotificationState(item);
+  const next = normalizeNotificationState(item);
+
+  try {
+    await writeCloudDocQueued(["users", session.localId, "private", "notification_state"], {
+      uid: session.localId,
+      email: session.email || "",
+      item: next
+    });
+  } catch (error) {
+    if (!isPermissionDeniedError(error)) {
+      console.error(error);
+    }
+  }
+
+  return next;
+}
+
+function buildNotificationWatchingMap(watching = [], latestByAlias = new Map()) {
+  return (Array.isArray(watching) ? watching : []).reduce((accumulator, item) => {
+    const alias = normalizeNotificationAlias(item?.alias);
+    if (!alias) return accumulator;
+
+    const liveRelease = latestByAlias.get(alias);
+    const episodeValue = normalizeNotificationEpisodeValue(
+      liveRelease?.publishedEpisode?.ordinal ||
+        liveRelease?.episodesTotal ||
+        item?.publishedEpisode?.ordinal ||
+        item?.episodesTotal
+    );
+
+    accumulator[alias] = episodeValue;
+    return accumulator;
+  }, {});
+}
+
+function buildNewAnimeNotification(release, createdAt) {
+  const alias = normalizeNotificationAlias(release?.alias);
+  const title = String(release?.title || "").trim() || "Новый тайтл";
+  return normalizeNotificationItem({
+    id: `new_anime:${alias}:${createdAt}`,
+    type: "new_anime",
+    alias,
+    title,
+    body: `В каталоге появился новый тайтл: ${title}.`,
+    createdAt,
+    actionLabel: "Открыть"
+  });
+}
+
+function buildNewEpisodeNotification(release, episodeNumber, createdAt) {
+  const alias = normalizeNotificationAlias(release?.alias);
+  const title = String(release?.title || "").trim() || "Новое обновление";
+  const safeEpisode = normalizeNotificationEpisodeValue(episodeNumber);
+  return normalizeNotificationItem({
+    id: `new_episode:${alias}:${safeEpisode}:${createdAt}`,
+    type: "new_episode",
+    alias,
+    title,
+    body: safeEpisode
+      ? `Вышла ${safeEpisode} серия для «${title}».`
+      : `Для «${title}» появилось новое обновление.`,
+    createdAt,
+    episode: safeEpisode,
+    actionLabel: "Открыть"
+  });
+}
+
+async function markNotificationsRead(ids = [], session = cloudReadSession()) {
+  const safeIds = [...new Set((Array.isArray(ids) ? ids : []).map((item) => String(item || "").trim()).filter(Boolean))];
+  if (!safeIds.length || !session?.localId) {
+    return loadNotifications(session);
+  }
+
+  const current = await loadNotifications(session);
+  const idSet = new Set(safeIds);
+  let changed = false;
+  const timestamp = Date.now();
+  const next = current.map((item) => {
+    if (!idSet.has(item.id) || item.readAt) return item;
+    changed = true;
+    return normalizeNotificationItem({
+      ...item,
+      readAt: timestamp
+    });
+  });
+
+  if (changed) {
+    await saveNotifications(session, next);
+  }
+
+  return next;
+}
+
+async function syncNotifications(session = cloudReadSession(), payload = {}) {
+  if (!session?.localId) {
+    return { items: [], created: [] };
+  }
+
+  const latestReleases = Array.isArray(payload?.latestReleases)
+    ? payload.latestReleases.filter((release) => normalizeNotificationAlias(release?.alias))
+    : [];
+  const latestByAlias = new Map(
+    latestReleases.map((release) => [normalizeNotificationAlias(release.alias), release]).filter(([alias]) => Boolean(alias))
+  );
+  const now = Date.now();
+  const [existingItems, currentState] = await Promise.all([
+    loadNotifications(session),
+    loadNotificationState(session)
+  ]);
+  const watchingEpisodeMap = buildNotificationWatchingMap(payload?.watching, latestByAlias);
+
+  if (!currentState.initializedAt) {
+    await saveNotificationState(session, {
+      seenNewAnimeAliases: uniqueNotificationStrings(latestReleases.map((release) => release.alias)).slice(-240),
+      lastEpisodeByAlias: watchingEpisodeMap,
+      initializedAt: now,
+      lastScanAt: now
+    });
+    return { items: existingItems, created: [] };
+  }
+
+  const created = [];
+  const seenAliases = new Set(uniqueNotificationStrings(currentState.seenNewAnimeAliases));
+  latestReleases.forEach((release, index) => {
+    const alias = normalizeNotificationAlias(release.alias);
+    if (!alias || seenAliases.has(alias)) return;
+    seenAliases.add(alias);
+    created.push(buildNewAnimeNotification(release, now + index));
+  });
+
+  const nextEpisodeState = { ...(currentState.lastEpisodeByAlias || {}) };
+  Object.entries(watchingEpisodeMap).forEach(([alias, episodeValue]) => {
+    const currentEpisode = normalizeNotificationEpisodeValue(episodeValue);
+    const previousEpisode = normalizeNotificationEpisodeValue(nextEpisodeState[alias]);
+    if (!previousEpisode) {
+      nextEpisodeState[alias] = currentEpisode;
+      return;
+    }
+    if (!latestByAlias.has(alias) || currentEpisode <= previousEpisode) return;
+    created.push(
+      buildNewEpisodeNotification(
+        latestByAlias.get(alias),
+        currentEpisode,
+        now + latestReleases.length + created.length
+      )
+    );
+    nextEpisodeState[alias] = currentEpisode;
+  });
+
+  const nextItems = created.length ? mergeNotificationLists(created, existingItems) : existingItems;
+  const nextState = normalizeNotificationState({
+    seenNewAnimeAliases: uniqueNotificationStrings([...seenAliases]).slice(-240),
+    lastEpisodeByAlias: nextEpisodeState,
+    initializedAt: currentState.initializedAt || now,
+    lastScanAt: now
+  });
+
+  await saveNotificationState(session, nextState);
+  if (created.length) {
+    await saveNotifications(session, nextItems);
+  }
+
+  return {
+    items: nextItems,
+    created
+  };
+}
+
+function subscribeNotifications(session, callback) {
+  if (!session?.localId || typeof callback !== "function") return () => {};
+
+  const current = cloudState.notificationsUnsubscribe;
+  if (typeof current === "function") {
+    current();
+  }
+
+  let active = true;
+  const unsubscribe = subscribeDoc(
+    ["users", session.localId, "private", "notifications"],
+    { items: [] },
+    (data) => {
+      if (!active) return;
+      callback(mergeNotificationLists(data?.items || []));
+    }
+  );
+
+  loadNotifications(session)
+    .then((items) => {
+      if (active) callback(items);
+    })
+    .catch((error) => {
+      if (!isPermissionDeniedError(error)) {
+        console.error(error);
+      }
+    });
+
+  const stop = () => {
+    active = false;
+    unsubscribe();
+    if (cloudState.notificationsUnsubscribe === stop) {
+      cloudState.notificationsUnsubscribe = null;
+    }
+  };
+
+  cloudState.notificationsUnsubscribe = stop;
+  return stop;
+}
+
 async function readRatingMap(session = cloudReadSession()) {
   if (session?.localId) return {};
   const localRatings = await cloudReadJson(CLOUD_RATINGS_KEY, {}, { session: null });
@@ -1173,6 +1511,8 @@ function bootSyncListeners() {
       cloudState.hydrationPromises.clear();
       cloudState.progressUnsubscribe?.();
       cloudState.progressUnsubscribe = null;
+      cloudState.notificationsUnsubscribe?.();
+      cloudState.notificationsUnsubscribe = null;
       return;
     }
     flushPendingSync().catch(console.error);
@@ -1201,6 +1541,10 @@ window.animeCloudSync = {
   saveProgress,
   loadSettings,
   saveSettings,
+  loadNotifications,
+  markNotificationsRead,
+  subscribeNotifications,
+  syncNotifications,
   loadRatingSummary,
   saveRating,
   subscribeRatings,

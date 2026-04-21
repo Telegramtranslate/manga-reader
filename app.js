@@ -161,11 +161,18 @@ const state = {
   playerStartupTimer: null,
   externalPlayerAssistTimer: null,
   externalPlayerUrl: "",
+  scrollPerfTimer: 0,
   installPromptEvent: null,
   progressUiFrame: 0,
   shareFeedbackTimer: 0,
   catalogRequestToken: "",
-  catalogLoading: false
+  catalogLoading: false,
+  notifications: [],
+  notificationSyncTimer: 0,
+  notificationSyncInFlight: null,
+  notificationPrimed: false,
+  notificationLiveStop: null,
+  notificationKnownIds: new Set()
 };
 
 const els = {
@@ -184,6 +191,8 @@ const els = {
   heroOpenBtn: document.getElementById("hero-open-btn"),
   heroRandomBtn: document.getElementById("hero-random-btn"),
   heroDots: document.getElementById("hero-dots"),
+  notificationBtn: document.getElementById("notification-btn"),
+  notificationBadge: document.getElementById("notification-badge"),
   statsRow: document.querySelector(".stats-row"),
   latestCount: document.getElementById("latest-count"),
   catalogCount: document.getElementById("catalog-count"),
@@ -218,6 +227,9 @@ const els = {
   profileEmail: document.getElementById("profile-email"),
   favoritesCount: document.getElementById("favorites-count"),
   favoritesMode: document.getElementById("favorites-mode"),
+  notificationsSummary: document.getElementById("notifications-summary"),
+  notificationsList: document.getElementById("notifications-list"),
+  notificationsMarkAllBtn: document.getElementById("notifications-mark-all-btn"),
   adminPanel: document.getElementById("admin-panel"),
   adminNote: document.getElementById("admin-note"),
   adminRefreshBtn: document.getElementById("admin-refresh-btn"),
@@ -276,7 +288,8 @@ const els = {
   twitterDescription: document.getElementById("twitter-description"),
   twitterImage: document.getElementById("twitter-image"),
   structuredData: document.getElementById("structured-data"),
-  homePanel: document.querySelector('[data-view-panel="home"]')
+  homePanel: document.querySelector('[data-view-panel="home"]'),
+  toastViewport: document.getElementById("toast-viewport")
 };
 
 const STATIC_UI_TEXT = Object.freeze({
@@ -2116,6 +2129,7 @@ function persistFavoriteState() {
 
   if (state.authUser?.localId && window.animeCloudSync?.saveFavorites) {
     window.animeCloudSync.saveFavorites(state.authUser, state.favorites).catch(console.error);
+    scheduleNotificationSync(600);
   }
 }
 
@@ -2325,6 +2339,331 @@ async function loadPersonalRecommendations(options = {}) {
   return state.personalizedPromise;
 }
 
+function normalizeNotificationPayload(item = {}) {
+  const createdAt = Number(item.createdAt || 0);
+  const readAt = Number(item.readAt || 0);
+  return {
+    id: String(item.id || "").trim(),
+    type: String(item.type || "new_anime").trim() || "new_anime",
+    alias: String(item.alias || "").trim(),
+    title: String(item.title || "").trim() || "Обновление каталога",
+    body: String(item.body || "").trim() || "Появилось новое обновление.",
+    createdAt: Number.isFinite(createdAt) && createdAt > 0 ? createdAt : Date.now(),
+    readAt: Number.isFinite(readAt) && readAt > 0 ? readAt : 0,
+    episode: Math.max(0, Number(item.episode || 0)),
+    actionLabel: String(item.actionLabel || "").trim()
+  };
+}
+
+function mergeNotifications(...lists) {
+  const seen = new Set();
+  return lists
+    .flat()
+    .map((item) => normalizeNotificationPayload(item))
+    .filter((item) => item.id && item.alias)
+    .filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    })
+    .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))
+    .slice(0, 120);
+}
+
+function formatNotificationTime(timestamp) {
+  const value = Number(timestamp || 0);
+  if (!value) return "только что";
+  const diffMs = value - Date.now();
+  const diffMinutes = Math.round(diffMs / 60000);
+  const rtf = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
+  if (Math.abs(diffMinutes) < 60) return rtf.format(diffMinutes, "minute");
+  const diffHours = Math.round(diffMinutes / 60);
+  if (Math.abs(diffHours) < 24) return rtf.format(diffHours, "hour");
+  const diffDays = Math.round(diffHours / 24);
+  return rtf.format(diffDays, "day");
+}
+
+function unreadNotificationCount() {
+  return state.notifications.filter((item) => !item.readAt).length;
+}
+
+function syncNotificationButton() {
+  const signedIn = Boolean(state.authUser?.localId);
+  if (els.notificationBtn) {
+    els.notificationBtn.hidden = !signedIn;
+  }
+  const unread = unreadNotificationCount();
+  if (els.notificationBadge) {
+    els.notificationBadge.hidden = !signedIn || unread <= 0;
+    els.notificationBadge.textContent = String(Math.min(unread, 99));
+  }
+  if (els.notificationsMarkAllBtn) {
+    els.notificationsMarkAllBtn.hidden = !signedIn || unread <= 0;
+  }
+}
+
+function createToast(title, body, actions = []) {
+  if (!els.toastViewport) return;
+  const toast = document.createElement("article");
+  toast.className = "toast-card";
+
+  const heading = document.createElement("h4");
+  heading.className = "toast-card__title";
+  heading.textContent = title;
+
+  const text = document.createElement("p");
+  text.className = "toast-card__body";
+  text.textContent = body;
+
+  toast.append(heading, text);
+
+  if (Array.isArray(actions) && actions.length) {
+    const actionsRow = document.createElement("div");
+    actionsRow.className = "toast-card__actions";
+    actions.forEach((action) => {
+      if (!action?.label || typeof action.onClick !== "function") return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "ghost-btn";
+      button.textContent = action.label;
+      button.addEventListener("click", () => {
+        action.onClick();
+        dismiss();
+      });
+      actionsRow.appendChild(button);
+    });
+    if (actionsRow.childElementCount) {
+      toast.appendChild(actionsRow);
+    }
+  }
+
+  const dismiss = () => {
+    toast.classList.add("is-leaving");
+    setTimeout(() => toast.remove(), 180);
+  };
+
+  els.toastViewport.appendChild(toast);
+  setTimeout(dismiss, 5200);
+}
+
+function renderNotifications() {
+  if (!els.notificationsList || !els.notificationsSummary) return;
+
+  if (!state.authUser?.localId) {
+    els.notificationsSummary.textContent = "Войдите, чтобы получать облачные уведомления о новых тайтлах и сериях.";
+    els.notificationsList.replaceChildren(createEmptyState("Уведомления появятся после входа в аккаунт."));
+    syncNotificationButton();
+    return;
+  }
+
+  const unread = unreadNotificationCount();
+  els.notificationsSummary.textContent = unread
+    ? `Непрочитанных уведомлений: ${formatNumber(unread)}. Новые серии отмечаются только для списка «Смотрю».`
+    : "Здесь появятся новые тайтлы и свежие серии для аниме из списка «Смотрю».";
+
+  if (!state.notifications.length) {
+    els.notificationsList.replaceChildren(createEmptyState("Пока уведомлений нет."));
+    syncNotificationButton();
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  state.notifications.forEach((item) => {
+    const node = document.createElement("article");
+    node.className = `notification-item${item.readAt ? "" : " is-unread"}`;
+
+    const top = document.createElement("div");
+    top.className = "notification-item__top";
+
+    const title = document.createElement("h4");
+    title.className = "notification-item__title";
+    title.textContent = item.title;
+
+    const meta = document.createElement("span");
+    meta.className = "notification-item__meta";
+    meta.textContent = formatNotificationTime(item.createdAt);
+
+    top.append(title, meta);
+
+    const body = document.createElement("p");
+    body.className = "notification-item__body";
+    body.textContent = item.body;
+
+    const actions = document.createElement("div");
+    actions.className = "notification-item__actions";
+
+    const openButton = document.createElement("button");
+    openButton.type = "button";
+    openButton.className = "ghost-btn";
+    openButton.textContent = item.actionLabel || "Открыть";
+    openButton.addEventListener("click", () => {
+      markNotificationIdsRead([item.id]).catch(console.error);
+      openRelease(item.alias).catch(console.error);
+    });
+    actions.appendChild(openButton);
+
+    if (!item.readAt) {
+      const readButton = document.createElement("button");
+      readButton.type = "button";
+      readButton.className = "ghost-btn";
+      readButton.textContent = "Прочитано";
+      readButton.addEventListener("click", () => {
+        markNotificationIdsRead([item.id]).catch(console.error);
+      });
+      actions.appendChild(readButton);
+    }
+
+    node.append(top, body, actions);
+    fragment.appendChild(node);
+  });
+
+  els.notificationsList.replaceChildren(fragment);
+  syncNotificationButton();
+}
+
+function applyNotifications(items, options = {}) {
+  const previousIds = new Set(state.notifications.map((item) => item.id));
+  state.notifications = mergeNotifications(items);
+  renderNotifications();
+
+  if (!state.notificationPrimed) {
+    state.notificationKnownIds = new Set(state.notifications.map((item) => item.id));
+    state.notificationPrimed = true;
+    return;
+  }
+
+  if (options.silent) return;
+
+  state.notifications
+    .filter((item) => !item.readAt && !previousIds.has(item.id) && !state.notificationKnownIds.has(item.id))
+    .slice(0, 3)
+    .forEach((item) => {
+      state.notificationKnownIds.add(item.id);
+      createToast(item.title, item.body, [
+        {
+          label: "Открыть",
+          onClick: () => {
+            markNotificationIdsRead([item.id]).catch(console.error);
+            openRelease(item.alias).catch(console.error);
+          }
+        }
+      ]);
+    });
+
+  state.notificationKnownIds = new Set(state.notifications.map((item) => item.id));
+}
+
+async function markNotificationIdsRead(ids = []) {
+  const unreadIds = [...new Set(ids.filter(Boolean))];
+  if (!unreadIds.length || !state.authUser?.localId || !window.animeCloudSync?.markNotificationsRead) return;
+  const next = await window.animeCloudSync.markNotificationsRead(unreadIds, state.authUser);
+  applyNotifications(next, { silent: true });
+}
+
+async function markAllNotificationsRead() {
+  const unreadIds = state.notifications.filter((item) => !item.readAt).map((item) => item.id);
+  if (!unreadIds.length) return;
+  await markNotificationIdsRead(unreadIds);
+}
+
+async function syncCloudNotifications(options = {}) {
+  if (!state.authUser?.localId || !window.animeCloudSync?.syncNotifications) {
+    return { items: [], created: [] };
+  }
+
+  if (state.notificationSyncInFlight && !options.force) {
+    return state.notificationSyncInFlight;
+  }
+
+  state.notificationSyncInFlight = (async () => {
+    const latestPayload = await fetchJson(
+      KODIK_API_BASE,
+      { action: "discover", mode: "latest", page: 1, limit: 48 },
+      { ttl: options.force ? 0 : 120000, retries: 1 }
+    );
+    const latestReleases = uniqueReleases(buildReleases(latestPayload));
+    const result = await window.animeCloudSync.syncNotifications(state.authUser, {
+      latestReleases,
+      watching: getListItems("watching")
+    });
+    if (result?.items) {
+      applyNotifications(result.items, { silent: !result.created?.length });
+    }
+    return result || { items: [], created: [] };
+  })().finally(() => {
+    state.notificationSyncInFlight = null;
+  });
+
+  return state.notificationSyncInFlight;
+}
+
+function stopNotificationLiveSync() {
+  if (typeof state.notificationLiveStop === "function") {
+    state.notificationLiveStop();
+  }
+  state.notificationLiveStop = null;
+}
+
+function scheduleNotificationSync(delayMs = 0) {
+  if (state.notificationSyncTimer) {
+    clearTimeout(state.notificationSyncTimer);
+    state.notificationSyncTimer = 0;
+  }
+  if (!state.authUser?.localId) return;
+
+  state.notificationSyncTimer = window.setTimeout(() => {
+    state.notificationSyncTimer = 0;
+    if (document.hidden || !navigator.onLine) {
+      scheduleNotificationSync(180000);
+      return;
+    }
+    syncCloudNotifications().catch(console.error).finally(() => {
+      scheduleNotificationSync(240000);
+    });
+  }, Math.max(0, Number(delayMs || 0)));
+}
+
+function bindNotificationLiveSync() {
+  stopNotificationLiveSync();
+  if (!state.authUser?.localId || !window.animeCloudSync?.subscribeNotifications) {
+    if (state.notificationSyncTimer) {
+      clearTimeout(state.notificationSyncTimer);
+      state.notificationSyncTimer = 0;
+    }
+    state.notificationPrimed = false;
+    state.notificationKnownIds = new Set();
+    applyNotifications([], { silent: true });
+    renderNotifications();
+    return;
+  }
+
+  state.notificationPrimed = false;
+  state.notificationKnownIds = new Set();
+  state.notificationLiveStop = window.animeCloudSync.subscribeNotifications(state.authUser, (items) => {
+    applyNotifications(items || []);
+  });
+}
+
+function setupScrollPerformanceMode() {
+  let enabled = false;
+  const handleScroll = () => {
+    if (!enabled) {
+      document.body.classList.add("is-scrolling");
+      enabled = true;
+    }
+    if (state.scrollPerfTimer) {
+      clearTimeout(state.scrollPerfTimer);
+    }
+    state.scrollPerfTimer = window.setTimeout(() => {
+      document.body.classList.remove("is-scrolling");
+      enabled = false;
+      state.scrollPerfTimer = 0;
+    }, 140);
+  };
+
+  window.addEventListener("scroll", handleScroll, { passive: true });
+}
+
 function renderProfile() {
   if (!els.favoritesGrid) return;
   const user = state.authUser;
@@ -2363,8 +2702,10 @@ function renderProfile() {
   updateGrid(els.favoritesGrid, state.favorites, "В избранном пока пусто.");
   renderContinueWatchingSections();
   renderPersonalRecommendations();
+  renderNotifications();
   safeIdle(() => loadPersonalRecommendations().catch(console.error));
   updateListButtons();
+  syncNotificationButton();
 }
 
 function uniqueReleases(list) {
@@ -2686,6 +3027,9 @@ async function loadHome(force = false) {
       updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
       startHeroCarousel();
     });
+    if (state.authUser?.localId) {
+      scheduleNotificationSync(1200);
+    }
   } catch (error) {
     console.error("loadHome failed", error);
     state.homeLoaded = false;
@@ -2813,7 +3157,7 @@ async function loadCatalog(options = {}) {
     if (state.catalogRequestToken !== requestToken) return;
 
     const pagination = extractPagination(kodikPayload);
-    const releases = sortCatalogReleases(buildReleases(kodikPayload), state.catalogSort);
+    const releases = uniqueReleases(sortCatalogReleases(buildReleases(kodikPayload), state.catalogSort));
 
     registerGenres(releases);
     registerVoices(releases);
@@ -2890,7 +3234,7 @@ async function loadOngoing(options = {}) {
     const kodikPayload = await fetchKodikDiscover("ongoing", nextPage, GRID_PAGE_SIZE, {
       ttl: 120000
     });
-    const releases = buildReleases(kodikPayload);
+    const releases = uniqueReleases(buildReleases(kodikPayload));
     const pagination = extractPagination(kodikPayload);
     const appendedReleases = reset
       ? releases
@@ -2956,7 +3300,7 @@ async function loadTop(options = {}) {
     const kodikPayload = await fetchKodikDiscover("top", nextPage, GRID_PAGE_SIZE, {
       ttl: 120000
     });
-    const releases = buildReleases(kodikPayload);
+    const releases = uniqueReleases(buildReleases(kodikPayload));
     const pagination = extractPagination(kodikPayload);
     const appendedReleases = reset
       ? releases
@@ -3224,20 +3568,8 @@ function createAnimeCard(release, index) {
   values.forEach((value) => tags.appendChild(createTag(value)));
 
   action.href = getAnimePath(release.alias);
+  action.dataset.releaseAlias = release.alias;
   action.setAttribute("aria-label", `${release.title}: открыть релиз`);
-  action.addEventListener("click", (event) => {
-    event.preventDefault();
-    openRelease(release.alias).catch(console.error);
-  });
-
-  const warmRelease = () => {
-    prefetchRelease(release.alias);
-    ensureHlsLibrary().catch(() => {});
-  };
-
-  action.addEventListener("mouseenter", warmRelease, { once: true });
-  action.addEventListener("focus", warmRelease, { once: true });
-  action.addEventListener("touchstart", warmRelease, { once: true, passive: true });
 
   return decorateCardProgress(node, release);
 }
@@ -4374,6 +4706,16 @@ function bindLoadMoreButton(button, action) {
 }
 
 function bindNavigationDelegates() {
+  const warmCardAction = (target) => {
+    const action = target?.closest?.(".anime-card__action[data-release-alias]");
+    if (!action || action.dataset.warmed === "1") return;
+    action.dataset.warmed = "1";
+    const alias = action.dataset.releaseAlias || "";
+    if (!alias) return;
+    prefetchRelease(alias);
+    ensureHlsLibrary().catch(() => {});
+  };
+
   document.addEventListener("click", (event) => {
     const link = event.target.closest("a");
     if (!link) return;
@@ -4398,6 +4740,20 @@ function bindNavigationDelegates() {
     }
   });
 
+  document.addEventListener("pointerover", (event) => {
+    warmCardAction(event.target);
+  });
+  document.addEventListener("focusin", (event) => {
+    warmCardAction(event.target);
+  });
+  document.addEventListener(
+    "touchstart",
+    (event) => {
+      warmCardAction(event.target);
+    },
+    { passive: true }
+  );
+
   window.addEventListener("popstate", handleRoute);
   window.addEventListener("hashchange", handleRoute);
 }
@@ -4414,6 +4770,12 @@ function bindEvents() {
   els.heroRandomBtn?.addEventListener("click", pickRandomRelease);
   els.installBtn?.addEventListener("click", () => {
     handleInstallClick().catch(console.error);
+  });
+  els.notificationBtn?.addEventListener("click", () => {
+    setView("profile");
+  });
+  els.notificationsMarkAllBtn?.addEventListener("click", () => {
+    markAllNotificationsRead().catch(console.error);
   });
   els.externalPlayerOpenBtn?.addEventListener("click", () => {
     if (!state.externalPlayerUrl) return;
@@ -4502,11 +4864,15 @@ function bindEvents() {
   window.addEventListener("animecloud:auth", (event) => {
     state.authUser = event.detail?.user || null;
     loadFavorites();
+    bindNotificationLiveSync();
     renderProfile();
     renderFavoriteButton();
     if (state.authUser?.localId && event.detail?.ready) {
       hydrateCloudSessionData(state.authUser).catch(console.error);
+      scheduleNotificationSync(900);
     } else {
+      stopNotificationLiveSync();
+      applyNotifications([], { silent: true });
       renderContinueWatchingSections();
     }
     if (state.currentAnime) {
@@ -4529,6 +4895,18 @@ function bindEvents() {
     event.preventDefault();
     state.installPromptEvent = event;
     syncInstallButton();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && state.authUser?.localId) {
+      scheduleNotificationSync(800);
+    }
+  });
+
+  window.addEventListener("online", () => {
+    if (state.authUser?.localId) {
+      scheduleNotificationSync(400);
+    }
   });
 
   window.addEventListener("appinstalled", () => {
@@ -4561,6 +4939,7 @@ function bindEvents() {
 async function init() {
   relocateInjectedControls();
   bindEvents();
+  setupScrollPerformanceMode();
   repairStaticUiText();
   registerServiceWorker();
   releaseViewportLocks();
@@ -4571,11 +4950,14 @@ async function init() {
     state.authUser = null;
   }
 
+  bindNotificationLiveSync();
   loadFavorites();
   renderProfile();
   renderFavoriteButton();
   renderSearchEmpty();
   syncInstallButton();
+  renderNotifications();
+  syncNotificationButton();
 
   try {
     const initialRoute = routeFromLocation();

@@ -119,6 +119,12 @@
           <button class="ghost-btn" type="button" id="refresh-btn">Обновить</button>
           <button class="ghost-btn" type="button" id="install-btn" hidden>Установить</button>
 
+          <button class="ghost-btn notification-btn" type="button" id="notification-btn" hidden aria-label="Уведомления">
+            <span class="notification-btn__icon" aria-hidden="true">🔔</span>
+            <span class="notification-btn__text">Уведомления</span>
+            <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
+          </button>
+
           <div class="auth-slot">
             <button class="ghost-btn auth-open-btn" type="button" id="auth-open-btn">Войти</button>
 
@@ -148,6 +154,20 @@
     <main class="layout">
       <noscript>
         <section class="section-shell">
+          <section class="profile-shelf profile-shelf--notifications">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Обновления</div>
+                <h3>Уведомления</h3>
+                <p class="section-summary" id="notifications-summary">
+                  Войдите, чтобы получать облачные уведомления о новых тайтлах и сериях.
+                </p>
+              </div>
+              <button class="ghost-btn" type="button" id="notifications-mark-all-btn" hidden>Отметить всё прочитанным</button>
+            </div>
+            <div class="notification-list" id="notifications-list"></div>
+          </section>
+
           <div class="section-head">
             <div>
               <div class="section-kicker">AnimeCloud</div>
@@ -761,6 +781,8 @@
       <a class="seo-footer__link" href="/schedule">Расписание выхода</a>
     </div>
   </footer>
+
+  <div class="toast-viewport" id="toast-viewport" aria-live="polite" aria-atomic="true"></div>
 
   <template id="anime-card-template">
     <article class="anime-card">
