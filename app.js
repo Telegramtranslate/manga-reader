@@ -2684,6 +2684,7 @@ function openNotificationPopover() {
     els.notificationBtn.setAttribute("aria-expanded", "true");
   }
   positionNotificationPopover();
+  syncCloudNotifications({ force: true }).catch(console.error);
 }
 
 function toggleNotificationPopover() {
@@ -2947,7 +2948,7 @@ function renderNotificationPopover() {
   }
 
   const fragment = document.createDocumentFragment();
-  state.notifications.slice(0, 6).forEach((item) => {
+  state.notifications.forEach((item) => {
     const node = document.createElement("article");
     node.className = `notification-item${item.readAt ? "" : " is-unread"}`;
 
@@ -2991,7 +2992,6 @@ function renderNotificationPopover() {
 }
 
 function applyNotifications(items, options = {}) {
-  const previousIds = new Set(state.notifications.map((item) => item.id));
   state.notifications = mergeNotifications(items);
   renderNotifications();
   renderNotificationPopover();
@@ -3001,24 +3001,6 @@ function applyNotifications(items, options = {}) {
     state.notificationPrimed = true;
     return;
   }
-
-  if (options.silent) return;
-
-  state.notifications
-    .filter((item) => !item.readAt && !previousIds.has(item.id) && !state.notificationKnownIds.has(item.id))
-    .slice(0, 3)
-    .forEach((item) => {
-      state.notificationKnownIds.add(item.id);
-      createToast(item.title, item.body, [
-        {
-          label: "Открыть",
-          onClick: () => {
-            markNotificationIdsRead([item.id]).catch(console.error);
-            openRelease(item.alias).catch(console.error);
-          }
-        }
-      ]);
-    });
 
   state.notificationKnownIds = new Set(state.notifications.map((item) => item.id));
 }
