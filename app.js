@@ -2288,6 +2288,8 @@ function snapshotRelease(release) {
     id: release.id,
     alias: release.alias,
     title: release.title,
+    originalTitle: release.originalTitle || "",
+    alternateTitles: Array.isArray(release.alternateTitles) ? release.alternateTitles.slice(0, 6) : [],
     year: release.year,
     type: release.type,
     age: release.age,
@@ -2297,7 +2299,23 @@ function snapshotRelease(release) {
     cardPoster: release.cardPoster,
     thumb: release.thumb,
     genres: release.genres || [],
-    episodesTotal: release.episodesTotal || 0
+    episodesTotal: release.episodesTotal || 0,
+    publishedEpisode: release.publishedEpisode
+      ? {
+          ordinal: Number(release.publishedEpisode.ordinal || 0),
+          name: String(release.publishedEpisode.name || ""),
+          duration: Number(release.publishedEpisode.duration || 0)
+        }
+      : null,
+    identifiers: release.identifiers
+      ? {
+          shikimoriId: String(release.identifiers.shikimoriId || ""),
+          kinopoiskId: String(release.identifiers.kinopoiskId || ""),
+          imdbId: String(release.identifiers.imdbId || ""),
+          kodikId: String(release.identifiers.kodikId || "")
+        }
+      : {},
+    kodikIdentity: String(release.kodikIdentity || "")
   };
 }
 
@@ -2366,6 +2384,7 @@ async function hydrateCloudSessionData(session = state.authUser) {
     if (state.currentAnime) {
       renderDetails(state.currentAnime, { deferHeavy: false });
     }
+    syncCloudNotifications({ force: true, deep: true }).catch(console.error);
     window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { hydrated: true } }));
   } catch (error) {
     if (!isPermissionDeniedError(error)) {
@@ -2684,7 +2703,7 @@ function openNotificationPopover() {
     els.notificationBtn.setAttribute("aria-expanded", "true");
   }
   positionNotificationPopover();
-  syncCloudNotifications({ force: true }).catch(console.error);
+  syncCloudNotifications({ force: true, deep: true }).catch(console.error);
 }
 
 function toggleNotificationPopover() {
@@ -2862,8 +2881,8 @@ function renderNotifications() {
 
   const unread = unreadNotificationCount();
   els.notificationsSummary.textContent = unread
-    ? `Непрочитанных уведомлений: ${formatNumber(unread)}. Новые серии отмечаются только для списка «Смотрю».`
-    : "Здесь появятся новые тайтлы и свежие серии для аниме из списка «Смотрю».";
+    ? `Непрочитанных уведомлений: ${formatNumber(unread)}. Новые серии отслеживаются по вашим сохранённым тайтлам.`
+    : "Здесь появятся новые тайтлы и свежие серии для аниме из ваших списков.";
 
   if (!state.notifications.length) {
     els.notificationsList.replaceChildren(createEmptyState("Пока уведомлений нет."));
@@ -3033,6 +3052,40 @@ async function markAllNotificationsRead() {
   await markNotificationIdsRead(unreadIds);
 }
 
+function getTrackedNotificationItems() {
+  return uniqueReleases((Array.isArray(state.favorites) ? state.favorites : []).filter((item) => item?.alias));
+}
+
+async function fetchTrackedNotificationReleases(items = [], options = {}) {
+  const trackedItems = uniqueReleases((Array.isArray(items) ? items : []).filter((item) => item?.alias));
+  if (!trackedItems.length) return [];
+
+  const releases = [];
+  let cursor = 0;
+  const concurrency = Math.min(4, trackedItems.length);
+
+  async function worker() {
+    while (cursor < trackedItems.length) {
+      const currentIndex = cursor;
+      cursor += 1;
+      const item = trackedItems[currentIndex];
+      try {
+        const payload = await fetchKodikRelease(item, {
+          ttl: options.force ? 0 : 10 * 60 * 1000,
+          retries: 1
+        });
+        const release = payload ? buildRelease(payload) : null;
+        if (release?.alias) {
+          releases.push(release);
+        }
+      } catch {}
+    }
+  }
+
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
+  return uniqueReleases(releases);
+}
+
 async function syncCloudNotifications(options = {}) {
   if (!state.authUser?.localId || !window.animeCloudSync?.syncNotifications) {
     return { items: [], created: [] };
@@ -3049,9 +3102,16 @@ async function syncCloudNotifications(options = {}) {
       { ttl: options.force ? 0 : 120000, retries: 1 }
     );
     const latestReleases = uniqueReleases(buildReleases(latestPayload));
+    const trackedItems = getTrackedNotificationItems();
+    const trackedReleases =
+      options.deep || options.force || !state.notificationPrimed
+        ? await fetchTrackedNotificationReleases(trackedItems, { force: options.force })
+        : [];
     const result = await window.animeCloudSync.syncNotifications(state.authUser, {
       latestReleases,
-      watching: getListItems("watching")
+      watching: getListItems("watching"),
+      tracked: trackedItems,
+      trackedReleases
     });
     if (result?.items) {
       applyNotifications(result.items, { silent: !result.created?.length });

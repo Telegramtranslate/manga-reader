@@ -963,12 +963,12 @@ async function saveNotificationState(session = cloudReadSession(), item = {}) {
   return next;
 }
 
-function buildNotificationWatchingMap(watching = [], latestByAlias = new Map()) {
-  return (Array.isArray(watching) ? watching : []).reduce((accumulator, item) => {
+function buildNotificationTrackedEpisodeMap(trackedItems = [], liveByAlias = new Map()) {
+  return (Array.isArray(trackedItems) ? trackedItems : []).reduce((accumulator, item) => {
     const alias = normalizeNotificationAlias(item?.alias);
     if (!alias) return accumulator;
 
-    const liveRelease = latestByAlias.get(alias);
+    const liveRelease = liveByAlias.get(alias);
     const episodeValue = normalizeNotificationEpisodeValue(
       liveRelease?.publishedEpisode?.ordinal ||
         liveRelease?.episodesTotal ||
@@ -1047,24 +1047,62 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
   const latestReleases = Array.isArray(payload?.latestReleases)
     ? payload.latestReleases.filter((release) => normalizeNotificationAlias(release?.alias))
     : [];
-  const latestByAlias = new Map(
-    latestReleases.map((release) => [normalizeNotificationAlias(release.alias), release]).filter(([alias]) => Boolean(alias))
-  );
+  const trackedItems = Array.isArray(payload?.tracked)
+    ? payload.tracked.filter((item) => normalizeNotificationAlias(item?.alias))
+    : Array.isArray(payload?.watching)
+      ? payload.watching.filter((item) => normalizeNotificationAlias(item?.alias))
+      : [];
+  const trackedReleases = Array.isArray(payload?.trackedReleases)
+    ? payload.trackedReleases.filter((release) => normalizeNotificationAlias(release?.alias))
+    : [];
+  const liveByAlias = new Map();
+  [...latestReleases, ...trackedReleases].forEach((release) => {
+    const alias = normalizeNotificationAlias(release?.alias);
+    if (!alias) return;
+    liveByAlias.set(alias, release);
+  });
   const now = Date.now();
   const [existingItems, currentState] = await Promise.all([
     loadNotifications(session),
     loadNotificationState(session)
   ]);
-  const watchingEpisodeMap = buildNotificationWatchingMap(payload?.watching, latestByAlias);
+  const trackedEpisodeMap = buildNotificationTrackedEpisodeMap(trackedItems, liveByAlias);
 
   if (!currentState.initializedAt) {
-    await saveNotificationState(session, {
+    const created = [];
+    latestReleases.slice(0, 12).forEach((release, index) => {
+      created.push(buildNewAnimeNotification(release, now + index));
+    });
+
+    trackedItems.forEach((item, index) => {
+      const alias = normalizeNotificationAlias(item?.alias);
+      if (!alias) return;
+      const currentEpisode = normalizeNotificationEpisodeValue(trackedEpisodeMap[alias]);
+      const baselineEpisode = normalizeNotificationEpisodeValue(
+        item?.publishedEpisode?.ordinal || item?.episodesTotal
+      );
+      if (!currentEpisode || currentEpisode <= baselineEpisode || !liveByAlias.has(alias)) return;
+      created.push(
+        buildNewEpisodeNotification(
+          liveByAlias.get(alias),
+          currentEpisode,
+          now + latestReleases.length + index + created.length
+        )
+      );
+    });
+
+    const nextState = {
       seenNewAnimeAliases: uniqueNotificationStrings(latestReleases.map((release) => release.alias)).slice(-240),
-      lastEpisodeByAlias: watchingEpisodeMap,
+      lastEpisodeByAlias: trackedEpisodeMap,
       initializedAt: now,
       lastScanAt: now
-    });
-    return { items: existingItems, created: [] };
+    };
+    const nextItems = created.length ? mergeNotificationLists(created, existingItems) : existingItems;
+    await saveNotificationState(session, nextState);
+    if (created.length) {
+      await saveNotifications(session, nextItems);
+    }
+    return { items: nextItems, created };
   }
 
   const created = [];
@@ -1077,17 +1115,26 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
   });
 
   const nextEpisodeState = { ...(currentState.lastEpisodeByAlias || {}) };
-  Object.entries(watchingEpisodeMap).forEach(([alias, episodeValue]) => {
+  const trackedItemMap = new Map(
+    trackedItems
+      .map((item) => [normalizeNotificationAlias(item?.alias), item])
+      .filter(([alias]) => Boolean(alias))
+  );
+  Object.entries(trackedEpisodeMap).forEach(([alias, episodeValue]) => {
     const currentEpisode = normalizeNotificationEpisodeValue(episodeValue);
-    const previousEpisode = normalizeNotificationEpisodeValue(nextEpisodeState[alias]);
+    const fallbackBaseline = normalizeNotificationEpisodeValue(
+      trackedItemMap.get(alias)?.publishedEpisode?.ordinal ||
+        trackedItemMap.get(alias)?.episodesTotal
+    );
+    const previousEpisode = normalizeNotificationEpisodeValue(nextEpisodeState[alias]) || fallbackBaseline;
     if (!previousEpisode) {
       nextEpisodeState[alias] = currentEpisode;
       return;
     }
-    if (!latestByAlias.has(alias) || currentEpisode <= previousEpisode) return;
+    if (!liveByAlias.has(alias) || currentEpisode <= previousEpisode) return;
     created.push(
       buildNewEpisodeNotification(
-        latestByAlias.get(alias),
+        liveByAlias.get(alias),
         currentEpisode,
         now + latestReleases.length + created.length
       )
