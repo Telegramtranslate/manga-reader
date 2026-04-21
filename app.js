@@ -299,20 +299,22 @@ const els = {
 
 const STATIC_UI_TEXT = Object.freeze({
   homeStats: [
-    "СЂРµР»РёР·РѕРІ РІ Р±Р°Р·Рµ",
-    "С‚Р°Р№С‚Р»РѕРІ РІ РєР°С‚Р°Р»РѕРіРµ",
-    "РѕРЅРіРѕРёРЅРіРѕРІ",
-    "РІ СЂРµР№С‚РёРЅРіРµ"
+    "релизов в базе",
+    "тайтлов в каталоге",
+    "онгоингов",
+    "в рейтинге"
   ],
-  latestKicker: "Р›РµРЅС‚Р°",
-  latestTitle: "РџРѕСЃР»РµРґРЅРёРµ СЂРµР»РёР·С‹",
-  latestSummary: "РЎРІРµР¶РёРµ СЃРµСЂРёРё Рё РѕР±РЅРѕРІР»РµРЅРёСЏ, РєРѕС‚РѕСЂС‹Рµ СЃРµР№С‡Р°СЃ РІС‹С…РѕРґСЏС‚ Р±С‹СЃС‚СЂРµРµ РІСЃРµРіРѕ.",
-  recommendedKicker: "РџРѕРґР±РѕСЂРєР°",
-  recommendedTitle: "Р§С‚Рѕ РїРѕСЃРјРѕС‚СЂРµС‚СЊ СЃРµРіРѕРґРЅСЏ",
-  recommendedSummary: "Р РµРєРѕРјРµРЅРґР°С†РёРё РґР»СЏ РІРµС‡РµСЂРЅРµРіРѕ РїСЂРѕСЃРјРѕС‚СЂР° Р±РµР· РїРµСЂРµРіСЂСѓР¶РµРЅРЅРѕРіРѕ РёРЅС‚РµСЂС„РµР№СЃР°.",
-  popularKicker: "РўРѕРї",
-  popularTitle: "РџРѕРїСѓР»СЏСЂРЅРѕРµ СЃРµР№С‡Р°СЃ",
-  popularSummary: "РўР°Р№С‚Р»С‹, РєРѕС‚РѕСЂС‹Рµ С‡Р°С‰Рµ РІСЃРµРіРѕ РѕС‚РєСЂС‹РІР°СЋС‚ Рё РґРѕР±Р°РІР»СЏСЋС‚ РІ РёР·Р±СЂР°РЅРЅРѕРµ."
+  continueKicker: "Продолжить",
+  continueTitle: "Продолжить просмотр",
+  latestKicker: "Лента",
+  latestTitle: "Последние релизы",
+  latestSummary: "Свежие серии и обновления, которые сейчас выходят быстрее всего.",
+  recommendedKicker: "Подборка",
+  recommendedTitle: "Что посмотреть сегодня",
+  recommendedSummary: "Рекомендации для вечернего просмотра без перегруженного интерфейса.",
+  popularKicker: "Топ",
+  popularTitle: "Популярное сейчас",
+  popularSummary: "Тайтлы, которые чаще всего открывают и добавляют в избранное."
 });
 
 function ensureDynamicInterface() {
@@ -366,6 +368,8 @@ function repairStaticUiText() {
   setStaticText("#latest-shell .section-kicker", STATIC_UI_TEXT.latestKicker);
   setStaticText("#latest-shell h2", STATIC_UI_TEXT.latestTitle);
   setStaticText("#latest-shell .section-summary", STATIC_UI_TEXT.latestSummary);
+  setStaticText("#continue-shell .section-kicker", STATIC_UI_TEXT.continueKicker);
+  setStaticText("#continue-shell h2", STATIC_UI_TEXT.continueTitle);
   setStaticText("#recommended-shell .section-kicker", STATIC_UI_TEXT.recommendedKicker);
   setStaticText("#recommended-shell h2", STATIC_UI_TEXT.recommendedTitle);
   setStaticText("#recommended-shell .section-summary", STATIC_UI_TEXT.recommendedSummary);
@@ -1479,11 +1483,11 @@ function buildProgressRelease(progress) {
   return {
     id: progress.alias,
     alias: progress.alias,
-    title: progress.title || "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ",
+    title: progress.title || "Без названия",
     year: "",
-    type: "РђРЅРёРјРµ",
+    type: "Аниме",
     age: "",
-    statusLabel: "РџСЂРѕРґРѕР»Р¶РёС‚СЊ",
+    statusLabel: "Продолжить",
     publishDay: "",
       poster: progress.poster || "/mc-icon-512.png?v=5",
       cardPoster: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=5",
@@ -1510,9 +1514,9 @@ function progressPercent(progress) {
 
 function progressHeadline(progress) {
   const percent = progressPercent(progress);
-  if (percent >= 99) return "РџРѕС‡С‚Рё РґРѕСЃРјРѕС‚СЂРµРЅРѕ";
-  if (percent >= 75) return "Р¤РёРЅР°Р»СЊРЅС‹Рµ РјРёРЅСѓС‚С‹";
-  return progress.episodeLabel || "РџСЂРѕРґРѕР»Р¶РёС‚СЊ РїСЂРѕСЃРјРѕС‚СЂ";
+  if (percent >= 99) return "Почти досмотрено";
+  if (percent >= 75) return "Финальные минуты";
+  return progress.episodeLabel || "Продолжить просмотр";
 }
 
 function createSkeletonCard() {
@@ -1545,8 +1549,8 @@ function decorateCardProgress(node, release) {
   progressNode.className = "anime-card__progress";
   progressNode.setAttribute(
     "aria-label",
-    `${progressHeadline(progress)}. ${percent}% РїСЂРѕСЃРјРѕС‚СЂР°. ${formatClock(progress.time || 0)}${
-      progress.duration ? ` РёР· ${formatClock(progress.duration)}` : ""
+    `${progressHeadline(progress)}. ${percent}% просмотра. ${formatClock(progress.time || 0)}${
+      progress.duration ? ` из ${formatClock(progress.duration)}` : ""
     }.`
   );
 
@@ -1570,8 +1574,8 @@ function decorateCardProgress(node, release) {
 
   const meta = document.createElement("div");
   meta.className = "anime-card__progress-meta";
-  meta.textContent = `${progress.episodeLabel || "РџСЂРѕРґРѕР»Р¶РёС‚СЊ РїСЂРѕСЃРјРѕС‚СЂ"} вЂў ${formatClock(progress.time || 0)}${
-    progress.duration ? ` РёР· ${formatClock(progress.duration)}` : ""
+  meta.textContent = `${progress.episodeLabel || "Продолжить просмотр"} • ${formatClock(progress.time || 0)}${
+    progress.duration ? ` из ${formatClock(progress.duration)}` : ""
   }`;
 
   progressNode.append(topRow, bar, meta);
@@ -1582,14 +1586,14 @@ function decorateCardProgress(node, release) {
 function renderContinueWatchingSections() {
   const releases = getContinueWatchingReleases();
   const summary = releases.length
-    ? `РќРµРґРѕСЃРјРѕС‚СЂРµРЅРЅС‹С… СЂРµР»РёР·РѕРІ: ${formatNumber(releases.length)}. Р‘С‹СЃС‚СЂС‹Р№ РІРѕР·РІСЂР°С‚ Рє СЃРµСЂРёРё Рё РІСЂРµРјРµРЅРё РїСЂРѕСЃРјРѕС‚СЂР°.`
-    : "РљРѕРіРґР° РЅР°С‡РЅРµС‚Рµ СЃРјРѕС‚СЂРµС‚СЊ Р°РЅРёРјРµ, Р·РґРµСЃСЊ РїРѕСЏРІРёС‚СЃСЏ Р±С‹СЃС‚СЂС‹Р№ РІРѕР·РІСЂР°С‚ Рє СЃРµСЂРёРё.";
+    ? `Недосмотренных релизов: ${formatNumber(releases.length)}. Быстрый возврат к серии и времени просмотра.`
+    : "Когда начнёте смотреть аниме, здесь появится быстрый возврат к серии.";
 
   if (els.continueSummary) els.continueSummary.textContent = summary;
   if (els.profileProgressSummary) els.profileProgressSummary.textContent = summary;
 
-  updateGrid(els.continueGrid, releases, "РџСЂРѕРґРѕР»Р¶РµРЅРёРµ РїСЂРѕСЃРјРѕС‚СЂР° РїРѕРєР° РїСѓСЃС‚Рѕ.");
-  updateGrid(els.profileProgressGrid, releases, "РџСЂРѕРґРѕР»Р¶РµРЅРёРµ РїСЂРѕСЃРјРѕС‚СЂР° РїРѕРєР° РїСѓСЃС‚Рѕ.");
+  updateGrid(els.continueGrid, releases, "Продолжение просмотра пока пусто.");
+  updateGrid(els.profileProgressGrid, releases, "Продолжение просмотра пока пусто.");
 }
 
 function scheduleProgressUiRefresh() {
@@ -1645,17 +1649,17 @@ function syncHeroOpenLink() {
   }
 }
 
-function renderHeroFallback(message = "Р—Р°РіСЂСѓР¶Р°РµРј Р»СѓС‡С€РёРµ СЂРµР»РёР·С‹...") {
+function renderHeroFallback(message = "Загружаем лучшие релизы...") {
   if (els.heroTitle) els.heroTitle.textContent = "AnimeCloud";
   if (els.heroDescription) {
     els.heroDescription.textContent =
-      "Р СѓСЃСЃРєР°СЏ РѕР·РІСѓС‡РєР°, Р±С‹СЃС‚СЂС‹Р№ РєР°С‚Р°Р»РѕРі, СЂР°СЃРїРёСЃР°РЅРёРµ, СЂРµРєРѕРјРµРЅРґР°С†РёРё Рё СѓРґРѕР±РЅС‹Р№ РјРѕР±РёР»СЊРЅС‹Р№ РїСЂРѕСЃРјРѕС‚СЂ.";
+      "Русская озвучка, быстрый каталог, расписание, рекомендации и удобный мобильный просмотр.";
   }
   if (els.heroMeta) {
     els.heroMeta.replaceChildren(
-      createMetaPill("РљР°С‚Р°Р»РѕРі Р°РЅРёРјРµ"),
-      createMetaPill("Р СѓСЃСЃРєР°СЏ РѕР·РІСѓС‡РєР°"),
-      createMetaPill("Р‘С‹СЃС‚СЂС‹Р№ СЃС‚Р°СЂС‚")
+      createMetaPill("Каталог аниме"),
+      createMetaPill("Русская озвучка"),
+      createMetaPill("Быстрый старт")
     );
   }
   if (els.heroPoster) {
@@ -1911,9 +1915,9 @@ async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
 
 function syncCatalogPager() {
   const currentPageLabel = Math.max(1, state.catalogPage || 1);
-  const loadingSuffix = state.catalogLoading ? " В· Р·Р°РіСЂСѓР·РєР°вЂ¦" : "";
+  const loadingSuffix = state.catalogLoading ? " • загрузка…" : "";
   if (els.catalogPageLabel) {
-    els.catalogPageLabel.textContent = `РЎС‚СЂР°РЅРёС†Р° ${currentPageLabel} РёР· ${Math.max(
+    els.catalogPageLabel.textContent = `Страница ${currentPageLabel} из ${Math.max(
       1,
       state.catalogTotalPages || 1
     )}${loadingSuffix}`;
@@ -1968,27 +1972,27 @@ function refreshCatalogView(pagination = null) {
   const items = getFilteredCatalogItems();
   const currentPage = pagination?.current_page || state.catalogPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.catalogTotalPages || 0, currentPage ? 1 : 0);
-  const pageLabel = currentPage ? ` РЎС‚СЂР°РЅРёС†Р° ${currentPage} РёР· ${totalPages || 1}.` : "";
+  const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
   const genreLabels = [...new Set([state.catalogGenre, ...state.catalogGenres].filter(Boolean))];
-  const activeFilters = [...(genreLabels.length ? [`Р¶Р°РЅСЂС‹: ${genreLabels.join(", ")}`] : [])];
+  const activeFilters = [...(genreLabels.length ? [`жанры: ${genreLabels.join(", ")}`] : [])];
 
   if (els.catalogSummary) {
     if (activeFilters.length) {
-      const totalLabel = `РќР°Р№РґРµРЅРѕ ${formatNumber(
+      const totalLabel = `Найдено ${formatNumber(
         state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
-      )} СЂРµР»РёР·РѕРІ РїРѕ С„РёР»СЊС‚СЂР°Рј.${pageLabel}`;
-      els.catalogSummary.textContent = `РђРєС‚РёРІРЅС‹Рµ С„РёР»СЊС‚СЂС‹: ${activeFilters.join(" вЂў ")}. ${totalLabel}`;
+      )} релизов по фильтрам.${pageLabel}`;
+      els.catalogSummary.textContent = `Активные фильтры: ${activeFilters.join(" • ")}. ${totalLabel}`;
     } else {
       els.catalogSummary.textContent = `${formatNumber(
         state.catalogMergedTotal || state.catalogTotal || state.catalogItems.length
-      )} С‚Р°Р№С‚Р»РѕРІ РІ РїРѕР»РЅРѕР№ Р±Р°Р·Рµ Kodik.${pageLabel}`;
+      )} тайтлов в полной базе Kodik.${pageLabel}`;
     }
   }
 
   updateGrid(
     els.catalogGrid,
     items,
-    activeFilters.length ? "РџРѕ РІС‹Р±СЂР°РЅРЅС‹Рј С„РёР»СЊС‚СЂР°Рј РїРѕРєР° РЅРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ." : "РљР°С‚Р°Р»РѕРі РїСѓСЃС‚."
+    activeFilters.length ? "По выбранным фильтрам пока ничего не найдено." : "Каталог пуст."
   );
   syncCatalogPager();
 }
@@ -1997,20 +2001,20 @@ function refreshOngoingSummary(pagination = null) {
   if (!els.ongoingSummary) return;
   const currentPage = pagination?.current_page || state.ongoingPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.ongoingTotalPages || 0, currentPage ? 1 : 0);
-  const pageLabel = currentPage ? ` РЎС‚СЂР°РЅРёС†Р° ${currentPage} РёР· ${totalPages || 1}.` : "";
+  const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
   els.ongoingSummary.textContent = `${formatNumber(
     state.ongoingMergedTotal || state.ongoingTotal || state.ongoingItems.length
-  )} Р°РєС‚РёРІРЅС‹С… СЂРµР»РёР·РѕРІ.${pageLabel}`;
+  )} активных релизов.${pageLabel}`;
 }
 
 function refreshTopSummary(pagination = null) {
   if (!els.topSummary) return;
   const currentPage = pagination?.current_page || state.topPage || 0;
   const totalPages = Math.max(pagination?.total_pages || 0, state.topTotalPages || 0, currentPage ? 1 : 0);
-  const pageLabel = currentPage ? ` РЎС‚СЂР°РЅРёС†Р° ${currentPage} РёР· ${totalPages || 1}.` : "";
+  const pageLabel = currentPage ? ` Страница ${currentPage} из ${totalPages || 1}.` : "";
   els.topSummary.textContent = `${formatNumber(
     state.topMergedTotal || state.topTotal || state.topItems.length
-  )} СЂРµР»РёР·РѕРІ РІ СЂРµР№С‚РёРЅРіРµ.${pageLabel}`;
+  )} релизов в рейтинге.${pageLabel}`;
 }
 
 function isAdminUser() {
@@ -2386,7 +2390,7 @@ function mergeNotifications(...lists) {
 
 function formatNotificationTime(timestamp) {
   const value = Number(timestamp || 0);
-  if (!value) return "С‚РѕР»СЊРєРѕ С‡С‚Рѕ";
+  if (!value) return "только что";
   const diffMs = value - Date.now();
   const diffMinutes = Math.round(diffMs / 60000);
   const rtf = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
@@ -2405,9 +2409,10 @@ function positionNotificationPopover() {
   if (!els.notificationPopover || !els.notificationBtn || els.notificationPopover.hidden) return;
   const rect = els.notificationBtn.getBoundingClientRect();
   const width = Math.min(380, Math.max(280, window.innerWidth - 24));
-  const right = Math.max(12, window.innerWidth - rect.right);
+  const left = Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12));
   els.notificationPopover.style.top = `${Math.max(16, rect.bottom + 10)}px`;
-  els.notificationPopover.style.right = `${right}px`;
+  els.notificationPopover.style.left = `${left}px`;
+  els.notificationPopover.style.right = "auto";
   els.notificationPopover.style.width = `${Math.min(width, window.innerWidth - 24)}px`;
 }
 
@@ -2504,23 +2509,104 @@ function createToast(title, body, actions = []) {
   setTimeout(dismiss, 5200);
 }
 
+const confirmDialogState = {
+  root: null,
+  title: null,
+  body: null,
+  confirmBtn: null,
+  cancelBtn: null,
+  resolver: null
+};
+
+function ensureConfirmDialog() {
+  if (confirmDialogState.root) return confirmDialogState;
+
+  const root = document.createElement("div");
+  root.className = "confirm-modal";
+  root.hidden = true;
+  root.innerHTML = `
+    <div class="confirm-modal__backdrop" data-confirm-dismiss></div>
+    <section class="confirm-modal__panel" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
+      <p class="confirm-modal__kicker">AnimeCloud</p>
+      <h3 class="confirm-modal__title" id="confirm-dialog-title"></h3>
+      <p class="confirm-modal__body" id="confirm-dialog-body"></p>
+      <div class="confirm-modal__actions">
+        <button class="ghost-btn" type="button" data-confirm-cancel>Позже</button>
+        <button class="primary-btn" type="button" data-confirm-accept>Обновить</button>
+      </div>
+    </section>
+  `;
+
+  const resolveAndClose = (value) => {
+    const resolver = confirmDialogState.resolver;
+    confirmDialogState.resolver = null;
+    root.hidden = true;
+    document.body.classList.remove("is-dialog-open");
+    if (resolver) resolver(value);
+  };
+
+  root.addEventListener("click", (event) => {
+    const target = event.target;
+    if (target instanceof HTMLElement && target.hasAttribute("data-confirm-dismiss")) {
+      resolveAndClose(false);
+    }
+  });
+
+  root.querySelector("[data-confirm-cancel]")?.addEventListener("click", () => resolveAndClose(false));
+  root.querySelector("[data-confirm-accept]")?.addEventListener("click", () => resolveAndClose(true));
+  document.addEventListener("keydown", (event) => {
+    if (!confirmDialogState.root || confirmDialogState.root.hidden) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      resolveAndClose(false);
+    }
+  });
+
+  document.body.appendChild(root);
+  confirmDialogState.root = root;
+  confirmDialogState.title = root.querySelector("#confirm-dialog-title");
+  confirmDialogState.body = root.querySelector("#confirm-dialog-body");
+  confirmDialogState.confirmBtn = root.querySelector("[data-confirm-accept]");
+  confirmDialogState.cancelBtn = root.querySelector("[data-confirm-cancel]");
+  return confirmDialogState;
+}
+
+function showConfirmDialog({
+  title = "Подтвердите действие",
+  message = "",
+  confirmLabel = "Подтвердить",
+  cancelLabel = "Отмена"
+} = {}) {
+  const dialog = ensureConfirmDialog();
+  dialog.title.textContent = title;
+  dialog.body.textContent = message;
+  dialog.confirmBtn.textContent = confirmLabel;
+  dialog.cancelBtn.textContent = cancelLabel;
+  dialog.root.hidden = false;
+  document.body.classList.add("is-dialog-open");
+  dialog.confirmBtn.focus();
+  return new Promise((resolve) => {
+    dialog.resolver = resolve;
+  });
+}
+
 function renderNotifications() {
   if (!els.notificationsList || !els.notificationsSummary) return;
 
   if (!state.authUser?.localId) {
-    els.notificationsSummary.textContent = "Р’РѕР№РґРёС‚Рµ, С‡С‚РѕР±С‹ РїРѕР»СѓС‡Р°С‚СЊ РѕР±Р»Р°С‡РЅС‹Рµ СѓРІРµРґРѕРјР»РµРЅРёСЏ Рѕ РЅРѕРІС‹С… С‚Р°Р№С‚Р»Р°С… Рё СЃРµСЂРёСЏС….";
-    els.notificationsList.replaceChildren(createEmptyState("РЈРІРµРґРѕРјР»РµРЅРёСЏ РїРѕСЏРІСЏС‚СЃСЏ РїРѕСЃР»Рµ РІС…РѕРґР° РІ Р°РєРєР°СѓРЅС‚."));
+    els.notificationsSummary.textContent = "Войдите, чтобы получать облачные уведомления о новых тайтлах и сериях.";
+    els.notificationsList.replaceChildren(createEmptyState("Уведомления появятся после входа в аккаунт."));
     syncNotificationButton();
     return;
   }
 
   const unread = unreadNotificationCount();
   els.notificationsSummary.textContent = unread
-    ? `РќРµРїСЂРѕС‡РёС‚Р°РЅРЅС‹С… СѓРІРµРґРѕРјР»РµРЅРёР№: ${formatNumber(unread)}. РќРѕРІС‹Рµ СЃРµСЂРёРё РѕС‚РјРµС‡Р°СЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РґР»СЏ СЃРїРёСЃРєР° В«РЎРјРѕС‚СЂСЋВ».`
-    : "Р—РґРµСЃСЊ РїРѕСЏРІСЏС‚СЃСЏ РЅРѕРІС‹Рµ С‚Р°Р№С‚Р»С‹ Рё СЃРІРµР¶РёРµ СЃРµСЂРёРё РґР»СЏ Р°РЅРёРјРµ РёР· СЃРїРёСЃРєР° В«РЎРјРѕС‚СЂСЋВ».";
+    ? `Непрочитанных уведомлений: ${formatNumber(unread)}. Новые серии отмечаются только для списка «Смотрю».`
+    : "Здесь появятся новые тайтлы и свежие серии для аниме из списка «Смотрю».";
 
   if (!state.notifications.length) {
-    els.notificationsList.replaceChildren(createEmptyState("РџРѕРєР° СѓРІРµРґРѕРјР»РµРЅРёР№ РЅРµС‚."));
+    els.notificationsList.replaceChildren(createEmptyState("Пока уведомлений нет."));
     syncNotificationButton();
     return;
   }
@@ -2553,7 +2639,7 @@ function renderNotifications() {
     const openButton = document.createElement("button");
     openButton.type = "button";
     openButton.className = "ghost-btn";
-    openButton.textContent = item.actionLabel || "РћС‚РєСЂС‹С‚СЊ";
+    openButton.textContent = item.actionLabel || "Открыть";
     openButton.addEventListener("click", () => {
       markNotificationIdsRead([item.id]).catch(console.error);
       openRelease(item.alias).catch(console.error);
@@ -2564,7 +2650,7 @@ function renderNotifications() {
       const readButton = document.createElement("button");
       readButton.type = "button";
       readButton.className = "ghost-btn";
-      readButton.textContent = "РџСЂРѕС‡РёС‚Р°РЅРѕ";
+      readButton.textContent = "Прочитано";
       readButton.addEventListener("click", () => {
         markNotificationIdsRead([item.id]).catch(console.error);
       });
@@ -2584,19 +2670,19 @@ function renderNotificationPopover() {
   if (!els.notificationPopoverList || !els.notificationPopoverSummary) return;
 
   if (!state.authUser?.localId) {
-    els.notificationPopoverSummary.textContent = "Р’РѕР№РґРёС‚Рµ, С‡С‚РѕР±С‹ РїРѕР»СѓС‡Р°С‚СЊ СѓРІРµРґРѕРјР»РµРЅРёСЏ.";
-    els.notificationPopoverList.replaceChildren(createEmptyState("РЈРІРµРґРѕРјР»РµРЅРёСЏ РїРѕСЏРІСЏС‚СЃСЏ РїРѕСЃР»Рµ РІС…РѕРґР° РІ Р°РєРєР°СѓРЅС‚."));
+    els.notificationPopoverSummary.textContent = "Войдите, чтобы получать уведомления.";
+    els.notificationPopoverList.replaceChildren(createEmptyState("Уведомления появятся после входа в аккаунт."));
     syncNotificationButton();
     return;
   }
 
   const unread = unreadNotificationCount();
   els.notificationPopoverSummary.textContent = unread
-    ? `РќРµРїСЂРѕС‡РёС‚Р°РЅРЅС‹С…: ${formatNumber(unread)}`
-    : "РќРѕРІС‹Рµ СЃРµСЂРёРё Рё РЅРѕРІС‹Рµ С‚Р°Р№С‚Р»С‹ РїРѕСЏРІСЏС‚СЃСЏ Р·РґРµСЃСЊ.";
+    ? `Непрочитанных: ${formatNumber(unread)}`
+    : "Новые серии и новые тайтлы появятся здесь.";
 
   if (!state.notifications.length) {
-    els.notificationPopoverList.replaceChildren(createEmptyState("РџРѕРєР° СѓРІРµРґРѕРјР»РµРЅРёР№ РЅРµС‚."));
+    els.notificationPopoverList.replaceChildren(createEmptyState("Пока уведомлений нет."));
     syncNotificationButton();
     return;
   }
@@ -2627,7 +2713,7 @@ function renderNotificationPopover() {
     const openButton = document.createElement("button");
     openButton.type = "button";
     openButton.className = "ghost-btn";
-    openButton.textContent = item.actionLabel || "РћС‚РєСЂС‹С‚СЊ";
+    openButton.textContent = item.actionLabel || "Открыть";
     openButton.addEventListener("click", () => {
       markNotificationIdsRead([item.id]).catch(console.error);
       closeNotificationPopover();
@@ -3120,23 +3206,24 @@ async function loadHome(force = false) {
     state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
     state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
     state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
-    state.latestTotal = Math.max(state.catalogMergedTotal || 0, state.latestTotal || 0, state.latest.length);
-    state.catalogTotal = Math.max(state.catalogMergedTotal || 0, extractPagination(topPayload).total || 0, state.catalogTotal, state.popular.length);
+    state.latestTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.latestTotal || 0), state.latest.length);
+    state.catalogTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.catalogTotal || 0), state.popular.length);
     state.catalogTotalPages = Math.max(
       state.catalogTotalPages || 0,
-      extractPagination(topPayload).total_pages || 0,
       Math.ceil((state.catalogTotal || state.popular.length) / GRID_PAGE_SIZE)
     );
-    state.ongoingTotal = Math.max(state.ongoingMergedTotal || 0, extractPagination(ongoingPayload).total || 0, state.ongoingTotal, ongoingPayload?.items?.length || 0);
+    state.ongoingTotal = Math.max(
+      Number(state.ongoingMergedTotal || 0),
+      Number(state.ongoingTotal || 0),
+      ongoingPayload?.items?.length || 0
+    );
     state.ongoingTotalPages = Math.max(
       state.ongoingTotalPages || 0,
-      extractPagination(ongoingPayload).total_pages || 0,
       Math.ceil((state.ongoingTotal || 0) / GRID_PAGE_SIZE)
     );
-    state.topTotal = Math.max(state.topMergedTotal || 0, extractPagination(topPayload).total || 0, state.topTotal, state.recommended.length);
+    state.topTotal = Math.max(Number(state.topMergedTotal || 0), Number(state.topTotal || 0), state.recommended.length);
     state.topTotalPages = Math.max(
       state.topTotalPages || 0,
-      extractPagination(topPayload).total_pages || 0,
       Math.ceil((state.topTotal || state.recommended.length) / GRID_PAGE_SIZE)
     );
     state.homeLoaded = true;
@@ -3242,7 +3329,7 @@ async function loadCatalog(options = {}) {
     state.catalogTotal = mergedCatalogTotal;
     state.catalogTotalPages = 0;
     state.catalogHasMore = false;
-    if (els.catalogSummary) els.catalogSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј РєР°С‚Р°Р»РѕРівЂ¦";
+    if (els.catalogSummary) els.catalogSummary.textContent = "Загружаем каталог…";
     renderSkeletonGrid(els.catalogGrid, 8);
     syncCatalogPager();
   }
@@ -3291,8 +3378,8 @@ async function loadCatalog(options = {}) {
     state.catalogItems = releases;
     state.catalogPage = Math.max(pagination.current_page || 0, requestedPage);
     state.catalogTotal = hasGenreFilters
-      ? Math.max(state.catalogItems.length, pagination.total || 0)
-      : Math.max(mergedCatalogTotal || 0, pagination.total || 0, state.catalogItems.length);
+      ? Math.max(state.catalogItems.length, state.catalogTotal || 0)
+      : Math.max(mergedCatalogTotal || 0, state.catalogItems.length);
     state.catalogTotalPages = Math.max(
       pagination.total_pages || 0,
       Math.ceil((state.catalogTotal || state.catalogItems.length) / GRID_PAGE_SIZE),
@@ -3302,23 +3389,23 @@ async function loadCatalog(options = {}) {
     state.catalogLoaded = true;
 
     if (hasClientFilters) {
-      const filters = [...(hasGenreFilters ? [`Р¶Р°РЅСЂС‹: ${[...new Set(activeGenres)].join(", ")}`] : [])];
+      const filters = [...(hasGenreFilters ? [`жанры: ${[...new Set(activeGenres)].join(", ")}`] : [])];
 
       if (els.catalogSummary) {
-        els.catalogSummary.textContent = `РђРєС‚РёРІРЅС‹Рµ С„РёР»СЊС‚СЂС‹: ${filters.join(" вЂў ")}. РќР°Р№РґРµРЅРѕ ${formatNumber(
+        els.catalogSummary.textContent = `Активные фильтры: ${filters.join(" • ")}. Найдено ${formatNumber(
           state.catalogTotal || state.catalogItems.length
-        )} СЂРµР»РёР·РѕРІ РїРѕ С„РёР»СЊС‚СЂР°Рј.`;
+        )} релизов по фильтрам.`;
       }
       refreshCatalogView(pagination);
     } else {
       if (els.catalogSummary) {
         els.catalogSummary.textContent = `${formatNumber(
           state.catalogMergedTotal || state.catalogTotal
-        )} С‚Р°Р№С‚Р»РѕРІ РІ РїРѕР»РЅРѕР№ Р±Р°Р·Рµ Kodik. РЎС‚СЂР°РЅРёС†Р° ${state.catalogPage} РёР· ${
+        )} тайтлов в полной базе Kodik. Страница ${state.catalogPage} из ${
           state.catalogTotalPages || 1
         }.`;
       }
-      updateGrid(els.catalogGrid, state.catalogItems, "РљР°С‚Р°Р»РѕРі РїСѓСЃС‚.");
+      updateGrid(els.catalogGrid, state.catalogItems, "Каталог пуст.");
     }
     syncCatalogPager();
     updateStats();
@@ -3326,7 +3413,7 @@ async function loadCatalog(options = {}) {
     if (state.catalogRequestToken !== requestToken) return;
     console.error("loadCatalog failed", error);
     syncCatalogPager();
-    const message = getKodikUnavailableMessage(error, "РљР°С‚Р°Р»РѕРі РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
+    const message = getKodikUnavailableMessage(error, "Каталог временно недоступен.");
     if (els.catalogSummary) els.catalogSummary.textContent = message;
     replaceWithErrorState(els.catalogGrid, message, () => loadCatalog({ reset: true }).catch(console.error));
     throw error;
@@ -3352,7 +3439,7 @@ async function loadOngoing(options = {}) {
     state.ongoingTotal = mergedOngoingTotal;
     state.ongoingTotalPages = 0;
     state.ongoingHasMore = false;
-    els.ongoingSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј РѕРЅРіРѕРёРЅРіРёвЂ¦";
+    els.ongoingSummary.textContent = "Загружаем онгоинги…";
     renderSkeletonGrid(els.ongoingGrid, 8);
   }
 
@@ -3371,7 +3458,7 @@ async function loadOngoing(options = {}) {
     registerVoices(releases);
     state.ongoingItems = reset ? releases : mergeReleaseCollections(state.ongoingItems, releases);
     state.ongoingPage = Math.max(pagination.current_page || 0, nextPage);
-    state.ongoingTotal = Math.max(mergedOngoingTotal || 0, pagination.total || 0, state.ongoingItems.length);
+    state.ongoingTotal = Math.max(mergedOngoingTotal || 0, state.ongoingItems.length);
     state.ongoingTotalPages = Math.max(
       pagination.total_pages || 0,
       Math.ceil((Math.max(state.ongoingTotal || 0, state.ongoingItems.length) || 0) / GRID_PAGE_SIZE),
@@ -3382,9 +3469,9 @@ async function loadOngoing(options = {}) {
 
     refreshOngoingSummary();
     if (reset) {
-      updateGrid(els.ongoingGrid, state.ongoingItems, "РћРЅРіРѕРёРЅРіРё РЅРµ РЅР°Р№РґРµРЅС‹.");
+      updateGrid(els.ongoingGrid, state.ongoingItems, "Онгоинги не найдены.");
     } else if (appendedReleases.length) {
-      updateGrid(els.ongoingGrid, appendedReleases, "РћРЅРіРѕРёРЅРіРё РЅРµ РЅР°Р№РґРµРЅС‹.", {
+      updateGrid(els.ongoingGrid, appendedReleases, "Онгоинги не найдены.", {
         append: true,
         offset: previousCount
       });
@@ -3398,7 +3485,7 @@ async function loadOngoing(options = {}) {
     console.error("loadOngoing failed", error);
     els.ongoingMoreBtn.hidden = true;
     els.ongoingMoreBtn.disabled = false;
-    const message = getKodikUnavailableMessage(error, "Р Р°Р·РґРµР» РѕРЅРіРѕРёРЅРіРѕРІ РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
+    const message = getKodikUnavailableMessage(error, "Раздел онгоингов временно недоступен.");
     els.ongoingSummary.textContent = message;
     replaceWithErrorState(els.ongoingGrid, message, () => loadOngoing({ reset: true }).catch(console.error));
     throw error;
@@ -3418,7 +3505,7 @@ async function loadTop(options = {}) {
     state.topTotal = mergedTopTotal;
     state.topTotalPages = 0;
     state.topHasMore = false;
-    els.topSummary.textContent = "Р—Р°РіСЂСѓР¶Р°РµРј С‚РѕРї РєР°С‚Р°Р»РѕРіР°вЂ¦";
+    els.topSummary.textContent = "Загружаем топ каталога…";
     renderSkeletonGrid(els.topGrid, 8);
   }
 
@@ -3437,7 +3524,7 @@ async function loadTop(options = {}) {
     registerVoices(releases);
     state.topItems = reset ? releases : mergeReleaseCollections(state.topItems, releases);
     state.topPage = Math.max(pagination.current_page || 0, nextPage);
-    state.topTotal = Math.max(mergedTopTotal || 0, pagination.total || 0, state.topItems.length);
+    state.topTotal = Math.max(mergedTopTotal || 0, state.topItems.length);
     state.topTotalPages = Math.max(
       pagination.total_pages || 0,
       Math.ceil((Math.max(state.topTotal || 0, state.topItems.length) || 0) / GRID_PAGE_SIZE),
@@ -3448,9 +3535,9 @@ async function loadTop(options = {}) {
 
     refreshTopSummary();
     if (reset) {
-      updateGrid(els.topGrid, state.topItems, "РўРѕРї РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅ.");
+      updateGrid(els.topGrid, state.topItems, "Топ пока не заполнен.");
     } else if (appendedReleases.length) {
-      updateGrid(els.topGrid, appendedReleases, "РўРѕРї РїРѕРєР° РЅРµ Р·Р°РїРѕР»РЅРµРЅ.", {
+      updateGrid(els.topGrid, appendedReleases, "Топ пока не заполнен.", {
         append: true,
         offset: previousCount
       });
@@ -3464,7 +3551,7 @@ async function loadTop(options = {}) {
     console.error("loadTop failed", error);
     els.topMoreBtn.hidden = true;
     els.topMoreBtn.disabled = false;
-    const message = getKodikUnavailableMessage(error, "РўРѕРї РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.");
+    const message = getKodikUnavailableMessage(error, "Топ временно недоступен.");
     els.topSummary.textContent = message;
     replaceWithErrorState(els.topGrid, message, () => loadTop({ reset: true }).catch(console.error));
     throw error;
@@ -4586,9 +4673,12 @@ function registerServiceWorker() {
   async function promptForWorkerUpdate(registration) {
     if (!registration?.waiting || !navigator.serviceWorker.controller) return;
 
-    const shouldReload = window.confirm(
-      "Р”РѕСЃС‚СѓРїРЅР° РЅРѕРІР°СЏ РІРµСЂСЃРёСЏ AnimeCloud. РћР±РЅРѕРІРёС‚СЊ СЃС‚СЂР°РЅРёС†Сѓ СЃРµР№С‡Р°СЃ, С‡С‚РѕР±С‹ РїСЂРёРјРµРЅРёС‚СЊ СЃРІРµР¶РёРµ С„РёРєСЃС‹ Рё СѓР±СЂР°С‚СЊ СЃС‚Р°СЂС‹Р№ РєСЌС€?"
-    );
+    const shouldReload = await showConfirmDialog({
+      title: "Доступна новая версия AnimeCloud",
+      message: "Обновить страницу сейчас, чтобы применить свежие исправления и убрать старый кэш?",
+      confirmLabel: "Обновить",
+      cancelLabel: "Позже"
+    });
     if (!shouldReload) return;
 
     try {

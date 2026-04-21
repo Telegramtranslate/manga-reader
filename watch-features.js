@@ -298,7 +298,7 @@ function renderDubBox() {
   });
 
   watchEls.dubNote.textContent =
-    "Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РѕР·РІСѓС‡РєРё Рё РёСЃС‚РѕС‡РЅРёРєРё РґРѕСЃС‚СѓРїРЅС‹ РІРѕ РІРЅРµС€РЅРµРј РІСЃС‚СЂРѕРµРЅРЅРѕРј РїР»РµРµСЂРµ, РµСЃР»Рё РєРѕРЅРєСЂРµС‚РЅС‹Р№ РїСЂРѕРІР°Р№РґРµСЂ РёС… РґРµР№СЃС‚РІРёС‚РµР»СЊРЅРѕ РѕС‚РґР°С‘С‚.";
+    "Дополнительные озвучки и источники доступны во внешнем встроенном плеере, если конкретный провайдер их действительно отдаёт.";
 }
 
 function currentDisplayName() {
@@ -481,7 +481,7 @@ async function saveProgress(force = false) {
     cardPoster: watchState.release.cardPoster || watchState.release.poster,
     episodeId: watchState.episode.id,
     episodeOrdinal: watchState.episode.ordinal || 0,
-    episodeLabel: `${watchState.episode.ordinal || "?"} СЃРµСЂРёСЏ`,
+    episodeLabel: `${watchState.episode.ordinal || "?"} серия`,
     time: currentTime,
     duration,
     updatedAt: now
@@ -506,7 +506,7 @@ async function saveEpisodeSelectionProgress() {
     cardPoster: watchState.release.cardPoster || watchState.release.poster,
     episodeId: watchState.episode.id,
     episodeOrdinal: watchState.episode.ordinal || 0,
-    episodeLabel: `${watchState.episode.ordinal || "?"} СЃРµСЂРёСЏ`,
+    episodeLabel: `${watchState.episode.ordinal || "?"} серия`,
     time: Number(currentMap[watchState.release.alias]?.time || 0),
     duration: Number(currentMap[watchState.release.alias]?.duration || 0),
     updatedAt: Date.now()
@@ -607,7 +607,7 @@ function handleCommentSubmit(event) {
   const now = Date.now();
   if (now - watchState.lastCommentSubmitAt < WATCH_COMMENT_MIN_INTERVAL) {
     const secondsLeft = Math.max(1, Math.ceil((WATCH_COMMENT_MIN_INTERVAL - (now - watchState.lastCommentSubmitAt)) / 1000));
-    watchEls.commentInput.setCustomValidity(`РџРѕРґРѕР¶РґРёС‚Рµ ${secondsLeft} СЃРµРє. РїРµСЂРµРґ СЃР»РµРґСѓСЋС‰РёРј РєРѕРјРјРµРЅС‚Р°СЂРёРµРј.`);
+    watchEls.commentInput.setCustomValidity(`Подождите ${secondsLeft} сек. перед следующим комментарием.`);
     watchEls.commentInput.reportValidity();
     setTimeout(() => watchEls.commentInput.setCustomValidity(""), 50);
     return;
