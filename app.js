@@ -173,7 +173,9 @@ const state = {
   notificationPrimed: false,
   notificationLiveStop: null,
   notificationKnownIds: new Set(),
-  notificationPopoverOpen: false
+  notificationPopoverOpen: false,
+  quickMenuOpen: false,
+  catalogFiltersOpen: false
 };
 
 const els = {
@@ -184,6 +186,13 @@ const els = {
   refreshBtn: document.getElementById("refresh-btn"),
   installBtn: document.getElementById("install-btn"),
   searchInput: document.getElementById("search-input"),
+  authOpenBtn: document.getElementById("auth-open-btn"),
+  userMenu: document.getElementById("user-menu"),
+  userChip: document.getElementById("user-chip"),
+  logoutBtn: document.getElementById("logout-btn"),
+  quickMenuBtn: document.getElementById("quick-menu-btn"),
+  quickMenu: document.getElementById("quick-menu"),
+  quickMenuProfileBtn: document.getElementById("quick-menu-profile-btn"),
   heroCard: document.getElementById("hero-card"),
   heroTitle: document.getElementById("hero-title"),
   heroDescription: document.getElementById("hero-description"),
@@ -241,6 +250,10 @@ const els = {
   adminClearCacheBtn: document.getElementById("admin-clear-cache-btn"),
   adminClearCommentsBtn: document.getElementById("admin-clear-comments-btn"),
   adminClearProgressBtn: document.getElementById("admin-clear-progress-btn"),
+  catalogLayout: document.getElementById("catalog-layout"),
+  catalogFiltersToggleBtn: document.getElementById("catalog-filters-toggle"),
+  catalogFiltersPanel: document.getElementById("catalog-filters-panel"),
+  catalogFiltersCloseBtn: document.getElementById("catalog-filters-close"),
   catalogSort: document.getElementById("catalog-sort"),
   catalogType: document.getElementById("catalog-type"),
   catalogGenre: document.getElementById("catalog-genre"),
@@ -386,7 +399,7 @@ const STATIC_UI_TEXT = Object.freeze({
     storageMode: "режим хранения",
     historyKicker: "История",
     historyTitle: "Продолжить просмотр",
-    historySummary: "Ваш недосмотр и быстрый возврат к серии.",
+    historySummary: "Ваша история просмотра, быстрый возврат к серии и ручная очистка.",
     shelfKicker: "Мои списки",
     watching: "Смотрю",
     planned: "Запланировано",
@@ -546,8 +559,6 @@ function repairStaticUiText() {
   setStaticText('.mobile-nav__btn[data-view="search"]', STATIC_UI_TEXT.mobileTabs.search);
   setStaticText(".search-box__label", STATIC_UI_TEXT.topbar.searchLabel);
   setStaticAttr("#search-input", "placeholder", STATIC_UI_TEXT.topbar.searchPlaceholder);
-  setStaticText("#refresh-btn", STATIC_UI_TEXT.topbar.refresh);
-  setStaticText("#install-btn", STATIC_UI_TEXT.topbar.install);
   setStaticText("#auth-open-btn", STATIC_UI_TEXT.topbar.login);
   setStaticText("#logout-btn", STATIC_UI_TEXT.topbar.logout);
   setStaticText("#notification-popover-summary", STATIC_UI_TEXT.topbar.notificationSummary);
@@ -1829,14 +1840,61 @@ function decorateCardProgress(node, release) {
 function renderContinueWatchingSections() {
   const releases = getContinueWatchingReleases();
   const summary = releases.length
-    ? `Недосмотренных релизов: ${formatNumber(releases.length)}. Быстрый возврат к серии и времени просмотра.`
-    : "Когда начнёте смотреть аниме, здесь появится быстрый возврат к серии.";
+    ? `В истории: ${formatNumber(releases.length)}. Можно быстро вернуться к серии или удалить лишнее.`
+    : "Когда начнёте смотреть аниме, здесь появится история просмотра.";
 
   if (els.continueSummary) els.continueSummary.textContent = summary;
   if (els.profileProgressSummary) els.profileProgressSummary.textContent = summary;
 
-  updateGrid(els.continueGrid, releases, "Продолжение просмотра пока пусто.");
-  updateGrid(els.profileProgressGrid, releases, "Продолжение просмотра пока пусто.");
+  updateGrid(els.profileProgressGrid, releases, "История просмотра пока пуста.", {
+    cardOptions: {
+      historyCard: true
+    }
+  });
+}
+
+async function removeProgressHistoryEntry(alias, title = "") {
+  if (!alias) return;
+  const confirmed = await showConfirmDialog({
+    title: "Удалить из истории",
+    message: title
+      ? `Удалить «${title}» из истории просмотра?`
+      : "Удалить этот тайтл из истории просмотра?",
+    confirmLabel: "Удалить",
+    cancelLabel: "Оставить"
+  });
+  if (!confirmed) return;
+
+  if (window.animeCloudWatchState?.removeProgress) {
+    await window.animeCloudWatchState.removeProgress(alias);
+    return;
+  }
+
+  const progressMap = { ...readProgressMap() };
+  delete progressMap[alias];
+  try {
+    localStorage.setItem(WATCH_PROGRESS_KEY, JSON.stringify(progressMap));
+  } catch {}
+  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { alias } }));
+}
+
+function decorateHistoryCardControls(node, release) {
+  if (!node || !release?.alias) return node;
+  node.classList.add("anime-card--history");
+
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "anime-card__remove";
+  removeButton.textContent = "Удалить";
+  removeButton.setAttribute("aria-label", `Удалить ${release.title} из истории`);
+  removeButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    removeProgressHistoryEntry(release.alias, release.title).catch(console.error);
+  });
+
+  node.appendChild(removeButton);
+  return node;
 }
 
 function scheduleProgressUiRefresh() {
@@ -1847,7 +1905,7 @@ function scheduleProgressUiRefresh() {
   state.progressUiFrame = requestAnimationFrame(() => {
     state.progressUiFrame = 0;
 
-    if (state.currentView === "home" || state.currentView === "profile") {
+    if (state.currentView === "profile") {
       renderContinueWatchingSections();
     }
     if (state.currentAnime) {
@@ -2714,6 +2772,52 @@ function toggleNotificationPopover() {
   openNotificationPopover();
 }
 
+function closeQuickMenu() {
+  state.quickMenuOpen = false;
+  if (els.quickMenu) {
+    els.quickMenu.hidden = true;
+  }
+  if (els.quickMenuBtn) {
+    els.quickMenuBtn.setAttribute("aria-expanded", "false");
+  }
+}
+
+function openQuickMenu() {
+  if (!els.quickMenu) return;
+  closeNotificationPopover();
+  syncInstallButton();
+  state.quickMenuOpen = true;
+  els.quickMenu.hidden = false;
+  if (els.quickMenuBtn) {
+    els.quickMenuBtn.setAttribute("aria-expanded", "true");
+  }
+}
+
+function toggleQuickMenu() {
+  if (state.quickMenuOpen) {
+    closeQuickMenu();
+    return;
+  }
+  openQuickMenu();
+}
+
+function setCatalogFiltersOpen(open) {
+  state.catalogFiltersOpen = Boolean(open && els.catalogLayout && els.catalogFiltersPanel);
+  if (els.catalogLayout) {
+    els.catalogLayout.classList.toggle("is-filters-open", state.catalogFiltersOpen);
+  }
+  if (els.catalogFiltersPanel) {
+    els.catalogFiltersPanel.hidden = !state.catalogFiltersOpen;
+  }
+  if (els.catalogFiltersToggleBtn) {
+    els.catalogFiltersToggleBtn.setAttribute("aria-expanded", state.catalogFiltersOpen ? "true" : "false");
+  }
+}
+
+function toggleCatalogFilters() {
+  setCatalogFiltersOpen(!state.catalogFiltersOpen);
+}
+
 function syncNotificationButton() {
   const signedIn = Boolean(state.authUser?.localId);
   if (els.notificationBtn) {
@@ -3388,6 +3492,11 @@ function syncHomeChrome(view) {
 function setView(view, options = {}) {
   releaseViewportLocks();
   const previousView = state.currentView;
+  closeQuickMenu();
+  closeNotificationPopover();
+  if (view !== "catalog") {
+    setCatalogFiltersOpen(false);
+  }
 
   if (els.drawer?.classList.contains("is-open")) {
     closeDrawer({ updateHistory: false });
@@ -4062,7 +4171,7 @@ const prefetchRelease = (alias) => {
   return fetchKodikRelease(preview || { alias, kodikIdentity: guessKodikIdentityFromAlias(alias) }, { ttl: DETAIL_TTL }).catch(() => {});
 };
 
-function createAnimeCard(release, index) {
+function createAnimeCard(release, index, options = {}) {
   const node = els.cardTemplate.content.firstElementChild.cloneNode(true);
   const action = node.querySelector(".anime-card__action");
   const poster = node.querySelector(".anime-card__poster");
@@ -4101,7 +4210,11 @@ function createAnimeCard(release, index) {
   action.dataset.releaseAlias = release.alias;
   action.setAttribute("aria-label", `${release.title}: открыть релиз`);
 
-  return decorateCardProgress(node, release);
+  const decoratedNode = decorateCardProgress(node, release);
+  if (options.historyCard) {
+    return decorateHistoryCardControls(decoratedNode, release);
+  }
+  return decoratedNode;
 }
 
 function updateGrid(target, releases, emptyMessage, options = {}) {
@@ -4118,9 +4231,14 @@ function updateGrid(target, releases, emptyMessage, options = {}) {
     return;
   }
 
-  scheduleChunkRender(target, releases, (release, index) => createAnimeCard(release, offset + index), {
+  scheduleChunkRender(
+    target,
+    releases,
+    (release, index) => createAnimeCard(release, offset + index, options.cardOptions || {}),
+    {
     onComplete: options.onComplete
-  });
+    }
+  );
 }
 
 function bindPosterFallback(image, release, options = {}) {
@@ -5309,15 +5427,29 @@ function bindEvents() {
   bindListButtons();
 
   els.brandBtn?.addEventListener("click", () => setView("home"));
-  els.refreshBtn?.addEventListener("click", () => refreshAll().catch(console.error));
+  els.refreshBtn?.addEventListener("click", () => {
+    closeQuickMenu();
+    refreshAll().catch(console.error);
+  });
   els.heroOpenBtn?.addEventListener("click", () => state.featured && openRelease(state.featured.alias).catch(console.error));
   els.heroRandomBtn?.addEventListener("click", pickRandomRelease);
   els.installBtn?.addEventListener("click", () => {
+    closeQuickMenu();
     handleInstallClick().catch(console.error);
+  });
+  els.quickMenuBtn?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleQuickMenu();
+  });
+  els.quickMenuProfileBtn?.addEventListener("click", () => {
+    closeQuickMenu();
+    setView("profile");
   });
   els.notificationBtn?.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
+    closeQuickMenu();
     toggleNotificationPopover();
   });
   els.notificationsMarkAllBtn?.addEventListener("click", () => {
@@ -5347,6 +5479,12 @@ function bindEvents() {
   els.catalogNextBtn?.addEventListener("click", () => {
     if (!state.catalogHasMore) return;
     loadCatalog({ page: state.catalogPage + 1 }).catch(console.error);
+  });
+  els.catalogFiltersToggleBtn?.addEventListener("click", () => {
+    toggleCatalogFilters();
+  });
+  els.catalogFiltersCloseBtn?.addEventListener("click", () => {
+    setCatalogFiltersOpen(false);
   });
 
   els.catalogSort?.addEventListener("change", () => {
@@ -5441,15 +5579,37 @@ function bindEvents() {
     if (event.key === "Escape" && state.notificationPopoverOpen) {
       closeNotificationPopover();
     }
+    if (event.key === "Escape" && state.quickMenuOpen) {
+      closeQuickMenu();
+    }
+    if (event.key === "Escape" && state.catalogFiltersOpen) {
+      setCatalogFiltersOpen(false);
+    }
   });
 
   document.addEventListener("pointerdown", (event) => {
-    if (!state.notificationPopoverOpen) return;
     const target = event.target;
-    if (els.notificationBtn?.contains(target) || els.notificationPopover?.contains(target)) {
-      return;
+
+    if (state.notificationPopoverOpen) {
+      if (els.notificationBtn?.contains(target) || els.notificationPopover?.contains(target)) {
+        return;
+      }
+      closeNotificationPopover();
     }
-    closeNotificationPopover();
+
+    if (state.quickMenuOpen) {
+      if (els.quickMenuBtn?.contains(target) || els.quickMenu?.contains(target)) {
+        return;
+      }
+      closeQuickMenu();
+    }
+
+    if (state.catalogFiltersOpen) {
+      if (els.catalogFiltersToggleBtn?.contains(target) || els.catalogFiltersPanel?.contains(target)) {
+        return;
+      }
+      setCatalogFiltersOpen(false);
+    }
   });
 
   window.addEventListener("resize", () => {

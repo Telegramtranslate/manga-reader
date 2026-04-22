@@ -20,6 +20,7 @@ const watchEls = {
   dubNote: document.getElementById("dub-note"),
   commentForm: document.getElementById("comment-form"),
   commentInput: document.getElementById("comment-input"),
+  commentSubmit: document.getElementById("comment-submit"),
   commentUser: document.getElementById("comment-user"),
   commentsSummary: document.getElementById("comments-summary"),
   commentsList: document.getElementById("comments-list"),
@@ -306,16 +307,34 @@ function currentDisplayName() {
   return user?.displayName || user?.email?.split("@")[0] || "\u0413\u043e\u0441\u0442\u044c";
 }
 
+function syncCommentComposer() {
+  const user = getAuthUserSafe();
+  const signedIn = Boolean(user?.localId);
+  const ready = Boolean(watchState.release?.alias);
+
+  if (watchEls.commentInput) {
+    watchEls.commentInput.disabled = !signedIn || !ready;
+    watchEls.commentInput.placeholder = signedIn
+      ? "\u041d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439 \u043f\u043e \u0442\u0430\u0439\u0442\u043b\u0443 \u0438\u043b\u0438 \u0442\u0435\u043a\u0443\u0449\u0435\u0439 \u0441\u0435\u0440\u0438\u0438\u2026"
+      : "\u0412\u043e\u0439\u0434\u0438\u0442\u0435 \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442, \u0447\u0442\u043e\u0431\u044b \u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439.";
+  }
+
+  if (watchEls.commentSubmit) {
+    watchEls.commentSubmit.disabled = !signedIn || !ready;
+  }
+}
+
 function renderCommentUser() {
   if (!watchEls.commentUser) return;
   const user = getAuthUserSafe();
   watchEls.commentUser.textContent = user?.localId
     ? `\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0438\u0440\u0443\u0435\u0442\u0435 \u043a\u0430\u043a ${currentDisplayName()}`
-    : "\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0438\u0440\u0443\u0435\u0442\u0435 \u043a\u0430\u043a \u0433\u043e\u0441\u0442\u044c";
+    : "\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0438 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e\u0441\u043b\u0435 \u0432\u0445\u043e\u0434\u0430 \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442";
 }
 
 function renderComments() {
   renderCommentUser();
+  syncCommentComposer();
 
   if (!watchState.release?.alias) {
     watchEls.commentsList.innerHTML = "";
@@ -325,9 +344,12 @@ function renderComments() {
   }
 
   const comments = getCommentsForCurrentRelease();
+  const signedIn = Boolean(getAuthUserSafe()?.localId);
   watchEls.commentsSummary.textContent = comments.length
     ? `\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0435\u0432: ${comments.length}. \u041d\u043e\u0432\u044b\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f \u043f\u0440\u0438\u0445\u043e\u0434\u044f\u0442 \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c \u0432\u0440\u0435\u043c\u0435\u043d\u0438.`
-    : "\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0435\u0432 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442. \u0411\u0443\u0434\u044c\u0442\u0435 \u043f\u0435\u0440\u0432\u044b\u043c.";
+    : signedIn
+      ? "\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0435\u0432 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442. \u0411\u0443\u0434\u044c\u0442\u0435 \u043f\u0435\u0440\u0432\u044b\u043c."
+      : "\u0427\u0438\u0442\u0430\u0442\u044c \u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0438 \u043c\u043e\u0436\u043d\u043e \u0438 \u0431\u0435\u0437 \u0432\u0445\u043e\u0434\u0430, \u043d\u043e \u043f\u0438\u0441\u0430\u0442\u044c \u2014 \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e\u0441\u043b\u0435 \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u0438.";
 
   watchEls.commentsList.innerHTML = "";
   if (!comments.length) return;
@@ -600,6 +622,14 @@ function handleCommentSubmit(event) {
   event.preventDefault();
 
   if (!watchState.release?.alias) return;
+  const user = getAuthUserSafe();
+  if (!user?.localId) {
+    watchEls.commentInput?.setCustomValidity("\u0412\u043e\u0439\u0434\u0438\u0442\u0435 \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442, \u0447\u0442\u043e\u0431\u044b \u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439.");
+    watchEls.commentInput?.reportValidity();
+    setTimeout(() => watchEls.commentInput?.setCustomValidity(""), 80);
+    syncCommentComposer();
+    return;
+  }
 
   const body = escapeText(watchEls.commentInput.value);
   if (!body) return;
@@ -616,7 +646,6 @@ function handleCommentSubmit(event) {
   watchEls.commentInput.setCustomValidity("");
   watchState.lastCommentSubmitAt = now;
 
-  const user = getAuthUserSafe();
   const map = { ...getCommentsMap() };
   const list = Array.isArray(map[watchState.release.alias]) ? [...map[watchState.release.alias]] : [];
 
@@ -872,6 +901,17 @@ async function initWatchFeatures() {
 window.animeCloudWatchState = {
   getProgressMap() {
     return watchState.progressMap || {};
+  },
+  async removeProgress(alias) {
+    if (!alias) return false;
+    const nextMap = { ...(watchState.progressMap || {}) };
+    delete nextMap[alias];
+    await saveProgressMap(nextMap, { broadcast: true });
+    if (watchState.release?.alias === alias) {
+      watchState.pendingResume = null;
+      renderResumeBox();
+    }
+    return true;
   },
   getCommentsMap() {
     return watchState.commentsMap || {};
