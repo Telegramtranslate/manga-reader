@@ -22,6 +22,13 @@
     userRoleBadge: document.getElementById("user-role-badge"),
     userEmail: document.getElementById("user-email"),
     logoutBtn: document.getElementById("logout-btn"),
+    quickMenuAccountBtn: document.getElementById("quick-menu-account-btn"),
+    quickMenuAvatar: document.getElementById("quick-menu-avatar"),
+    quickMenuName: document.getElementById("quick-menu-name"),
+    quickMenuRoleBadge: document.getElementById("quick-menu-role-badge"),
+    quickMenuEmail: document.getElementById("quick-menu-email"),
+    quickMenuLoginBtn: document.getElementById("quick-menu-login-btn"),
+    quickMenuLogoutBtn: document.getElementById("quick-menu-logout-btn"),
     modal: document.getElementById("auth-modal"),
     backdrop: document.getElementById("auth-backdrop"),
     closeBtn: document.getElementById("auth-close"),
@@ -85,18 +92,35 @@
   function renderAuthState() {
     const session = authState.session;
     const loggedIn = Boolean(session?.localId);
+    const displayName = deriveName(session);
+    const email = session?.email || "Вход не выполнен";
+    const avatar = session?.photoUrl || "/mc-icon-192.png?v=4";
+    const admin = isAdminSession(session);
 
-    if (authEls.openBtn) authEls.openBtn.hidden = loggedIn;
-    if (authEls.userMenu) authEls.userMenu.hidden = !loggedIn;
-    if (authEls.userName) authEls.userName.textContent = deriveName(session);
+    if (authEls.openBtn) authEls.openBtn.hidden = true;
+    if (authEls.userMenu) authEls.userMenu.hidden = true;
+    if (authEls.userName) authEls.userName.textContent = displayName;
     if (authEls.userRoleBadge) {
-      authEls.userRoleBadge.hidden = !isAdminSession(session);
-      if (isAdminSession(session)) {
+      authEls.userRoleBadge.hidden = !admin;
+      if (admin) {
         authEls.userRoleBadge.textContent = String(session?.role || "Админ");
       }
     }
-    if (authEls.userEmail) authEls.userEmail.textContent = session?.email || "Вход не выполнен";
-    if (authEls.userAvatar) authEls.userAvatar.src = session?.photoUrl || "/mc-icon-192.png?v=4";
+    if (authEls.userEmail) authEls.userEmail.textContent = email;
+    if (authEls.userAvatar) authEls.userAvatar.src = avatar;
+
+    if (authEls.quickMenuAccountBtn) authEls.quickMenuAccountBtn.hidden = !loggedIn;
+    if (authEls.quickMenuAvatar) authEls.quickMenuAvatar.src = avatar;
+    if (authEls.quickMenuName) authEls.quickMenuName.textContent = displayName;
+    if (authEls.quickMenuRoleBadge) {
+      authEls.quickMenuRoleBadge.hidden = !admin;
+      if (admin) {
+        authEls.quickMenuRoleBadge.textContent = String(session?.role || "Админ");
+      }
+    }
+    if (authEls.quickMenuEmail) authEls.quickMenuEmail.textContent = email;
+    if (authEls.quickMenuLoginBtn) authEls.quickMenuLoginBtn.hidden = loggedIn;
+    if (authEls.quickMenuLogoutBtn) authEls.quickMenuLogoutBtn.hidden = !loggedIn;
   }
 
   function writeSession(session, options = {}) {
@@ -566,9 +590,11 @@
 
   function bindAuthEvents() {
     authEls.openBtn?.addEventListener("click", openAuthModal);
+    authEls.quickMenuLoginBtn?.addEventListener("click", openAuthModal);
     authEls.closeBtn?.addEventListener("click", closeAuthModal);
     authEls.backdrop?.addEventListener("click", closeAuthModal);
     authEls.logoutBtn?.addEventListener("click", () => clearSession());
+    authEls.quickMenuLogoutBtn?.addEventListener("click", () => clearSession());
     authEls.userChip?.addEventListener("click", () => {
       window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
     });

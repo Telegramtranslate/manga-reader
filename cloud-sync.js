@@ -257,7 +257,7 @@ function mergeNotificationLists(...lists) {
   return lists
     .flat()
     .map((item) => normalizeNotificationItem(item))
-    .filter((item) => item.id && item.alias)
+    .filter((item) => item.id && item.alias && !item.readAt)
     .filter((item) => {
       if (seen.has(item.id)) return false;
       seen.add(item.id);
@@ -1036,7 +1036,7 @@ async function markNotificationsRead(ids = [], session = cloudReadSession()) {
     await saveNotifications(session, next);
   }
 
-  return next;
+  return mergeNotificationLists(next);
 }
 
 async function syncNotifications(session = cloudReadSession(), payload = {}) {

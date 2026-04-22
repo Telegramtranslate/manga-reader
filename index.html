@@ -115,13 +115,13 @@
           </label>
 
           <div class="auth-slot">
-            <button class="ghost-btn auth-open-btn" type="button" id="auth-open-btn">Войти</button>
+            <button class="ghost-btn auth-open-btn" type="button" id="auth-open-btn" hidden>Войти</button>
             <button class="ghost-btn notification-btn" type="button" id="notification-btn" hidden aria-label="Уведомления">
               <span class="notification-btn__icon" aria-hidden="true">🔔</span>
               <span class="notification-btn__text">Уведомления</span>
               <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
             </button>
-            <button class="ghost-btn menu-btn" type="button" id="quick-menu-btn" aria-label="Меню" aria-expanded="false">
+            <button class="ghost-btn menu-btn" type="button" id="quick-menu-btn" aria-label="Меню" aria-expanded="false" aria-controls="quick-menu">
               <span class="menu-btn__line"></span>
               <span class="menu-btn__line"></span>
               <span class="menu-btn__line"></span>
@@ -141,7 +141,26 @@
                 <strong>Меню</strong>
                 <small>Профиль и действия сайта.</small>
               </div>
+              <button class="quick-menu__account" type="button" id="quick-menu-account-btn" hidden>
+                <img
+                  class="quick-menu__avatar"
+                  id="quick-menu-avatar"
+                  src="/mc-icon-192.png?v=5"
+                  alt="Профиль"
+                  width="44"
+                  height="44"
+                >
+                <span class="quick-menu__account-copy">
+                  <strong id="quick-menu-name">Гость</strong>
+                  <span class="user-role-badge" id="quick-menu-role-badge" hidden>Админ</span>
+                  <small id="quick-menu-email">Вход не выполнен</small>
+                </span>
+              </button>
               <div class="quick-menu__list">
+                <button class="quick-menu__item" type="button" id="quick-menu-login-btn">
+                  <span class="quick-menu__item-title">Войти в аккаунт</span>
+                  <small>Открыть вход и синхронизировать списки</small>
+                </button>
                 <button class="quick-menu__item" type="button" id="quick-menu-profile-btn">
                   <span class="quick-menu__item-title">Мой профиль</span>
                   <small>Списки, история и уведомления</small>
@@ -153,6 +172,10 @@
                 <button class="quick-menu__item" type="button" id="install-btn" hidden>
                   <span class="quick-menu__item-title">Скачать на устройство</span>
                   <small>Установить AnimeCloud как приложение</small>
+                </button>
+                <button class="quick-menu__item quick-menu__item--danger" type="button" id="quick-menu-logout-btn" hidden>
+                  <span class="quick-menu__item-title">Выйти</span>
+                  <small>Завершить сеанс в текущем браузере</small>
                 </button>
               </div>
             </section>
@@ -317,7 +340,7 @@
                   <h3>Фильтры каталога</h3>
                 </div>
                 <button class="ghost-btn catalog-filters-close" type="button" id="catalog-filters-close" aria-label="Закрыть фильтры">
-                  ×
+                  <span aria-hidden="true">×</span>
                 </button>
               </div>
 

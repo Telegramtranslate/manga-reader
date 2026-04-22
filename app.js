@@ -173,6 +173,7 @@ const state = {
   notificationPrimed: false,
   notificationLiveStop: null,
   notificationKnownIds: new Set(),
+  notificationDismissedIds: new Set(),
   notificationPopoverOpen: false,
   quickMenuOpen: false,
   catalogFiltersOpen: false
@@ -192,7 +193,10 @@ const els = {
   logoutBtn: document.getElementById("logout-btn"),
   quickMenuBtn: document.getElementById("quick-menu-btn"),
   quickMenu: document.getElementById("quick-menu"),
+  quickMenuAccountBtn: document.getElementById("quick-menu-account-btn"),
   quickMenuProfileBtn: document.getElementById("quick-menu-profile-btn"),
+  quickMenuLoginBtn: document.getElementById("quick-menu-login-btn"),
+  quickMenuLogoutBtn: document.getElementById("quick-menu-logout-btn"),
   heroCard: document.getElementById("hero-card"),
   heroTitle: document.getElementById("hero-title"),
   heroDescription: document.getElementById("hero-description"),
@@ -458,6 +462,9 @@ const STATIC_UI_TEXT = Object.freeze({
   }
 });
 
+const customSelectControllers = new WeakMap();
+let activeCustomSelect = null;
+
 function ensureDynamicInterface() {
   const profileProgressGrid = document.getElementById("profile-progress-grid");
   if (profileProgressGrid && !document.getElementById("profile-recommendations-shell")) {
@@ -514,6 +521,9 @@ function mountFloatingUi() {
   if (els.notificationPopover && els.notificationPopover.parentElement !== document.body) {
     document.body.appendChild(els.notificationPopover);
   }
+  if (els.quickMenu && els.quickMenu.parentElement !== document.body) {
+    document.body.appendChild(els.quickMenu);
+  }
   document.getElementById("next-episode-btn")?.remove();
   document.getElementById("resume-clear-btn")?.remove();
   document.getElementById("rating-box")?.remove();
@@ -561,6 +571,8 @@ function repairStaticUiText() {
   setStaticAttr("#search-input", "placeholder", STATIC_UI_TEXT.topbar.searchPlaceholder);
   setStaticText("#auth-open-btn", STATIC_UI_TEXT.topbar.login);
   setStaticText("#logout-btn", STATIC_UI_TEXT.topbar.logout);
+  setStaticText("#quick-menu-login-btn .quick-menu__item-title", STATIC_UI_TEXT.topbar.login);
+  setStaticText("#quick-menu-logout-btn .quick-menu__item-title", STATIC_UI_TEXT.topbar.logout);
   setStaticText("#notification-popover-summary", STATIC_UI_TEXT.topbar.notificationSummary);
   setStaticText("#notification-popover-mark-all-btn", STATIC_UI_TEXT.topbar.notificationMarkAll);
   setStaticText("#catalog-summary", STATIC_UI_TEXT.catalog.summary);
@@ -639,6 +651,128 @@ function repairStaticUiText() {
   if (notificationText && notificationText.textContent !== "Уведомления") {
     notificationText.textContent = "Уведомления";
   }
+}
+
+function ensureCustomSelect(select) {
+  if (!(select instanceof HTMLSelectElement)) return null;
+  const wrapper = select.closest(".select-control");
+  if (!(wrapper instanceof HTMLElement)) return null;
+
+  let controller = customSelectControllers.get(select);
+  if (controller) return controller;
+
+  wrapper.classList.add("select-control--enhanced");
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "select-control__trigger";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+
+  const value = document.createElement("span");
+  value.className = "select-control__value";
+
+  const caret = document.createElement("span");
+  caret.className = "select-control__caret";
+  caret.setAttribute("aria-hidden", "true");
+  caret.textContent = "⌄";
+
+  trigger.append(value, caret);
+
+  const menu = document.createElement("div");
+  menu.className = "select-control__menu";
+  menu.hidden = true;
+
+  select.insertAdjacentElement("afterend", trigger);
+  trigger.insertAdjacentElement("afterend", menu);
+
+  controller = { select, wrapper, trigger, value, menu };
+  customSelectControllers.set(select, controller);
+
+  trigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (activeCustomSelect === controller) {
+      closeCustomSelect(controller);
+      return;
+    }
+    openCustomSelect(controller);
+  });
+
+  menu.addEventListener("click", (event) => {
+    const optionButton = event.target instanceof HTMLElement ? event.target.closest(".select-control__option") : null;
+    if (!(optionButton instanceof HTMLButtonElement)) return;
+    const nextValue = optionButton.dataset.value ?? "";
+    if (select.value !== nextValue) {
+      select.value = nextValue;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    } else {
+      syncCustomSelect(controller);
+    }
+    closeCustomSelect(controller);
+  });
+
+  select.addEventListener("change", () => {
+    syncCustomSelect(controller);
+  });
+
+  syncCustomSelect(controller);
+  return controller;
+}
+
+function syncCustomSelect(controller) {
+  if (!controller) return;
+  const selectedOption = controller.select.options[controller.select.selectedIndex] || controller.select.options[0];
+  controller.value.textContent = selectedOption?.textContent?.trim() || "Выбрать";
+  controller.trigger.setAttribute("aria-label", `${controller.wrapper.querySelector("span")?.textContent || "Поле"}: ${controller.value.textContent}`);
+  renderCustomSelectOptions(controller);
+}
+
+function renderCustomSelectOptions(controller) {
+  if (!controller) return;
+  const fragment = document.createDocumentFragment();
+  [...controller.select.options].forEach((option) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `select-control__option${option.selected ? " is-active" : ""}`;
+    button.dataset.value = option.value;
+    button.textContent = option.textContent?.trim() || option.value || "Без названия";
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", option.selected ? "true" : "false");
+    if (option.disabled) {
+      button.disabled = true;
+    }
+    fragment.appendChild(button);
+  });
+  controller.menu.replaceChildren(fragment);
+}
+
+function closeCustomSelect(controller = activeCustomSelect) {
+  if (!controller) return;
+  controller.wrapper.classList.remove("is-open");
+  controller.menu.hidden = true;
+  controller.trigger.setAttribute("aria-expanded", "false");
+  if (activeCustomSelect === controller) {
+    activeCustomSelect = null;
+  }
+}
+
+function openCustomSelect(controller) {
+  if (!controller) return;
+  if (activeCustomSelect && activeCustomSelect !== controller) {
+    closeCustomSelect(activeCustomSelect);
+  }
+  renderCustomSelectOptions(controller);
+  controller.wrapper.classList.add("is-open");
+  controller.menu.hidden = false;
+  controller.trigger.setAttribute("aria-expanded", "true");
+  activeCustomSelect = controller;
+}
+
+function refreshCustomCatalogSelects() {
+  [els.catalogSort, els.catalogType, els.catalogGenre].forEach((select) => {
+    const controller = ensureCustomSelect(select);
+    syncCustomSelect(controller);
+  });
 }
 
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
@@ -2722,7 +2856,13 @@ function formatNotificationTime(timestamp) {
 }
 
 function unreadNotificationCount() {
-  return state.notifications.filter((item) => !item.readAt).length;
+  return getVisibleNotifications().length;
+}
+
+function getVisibleNotifications() {
+  return state.notifications.filter(
+    (item) => !item.readAt && !state.notificationDismissedIds.has(item.id)
+  );
 }
 
 function positionNotificationPopover() {
@@ -2740,6 +2880,23 @@ function positionNotificationPopover() {
   els.notificationPopover.style.left = `${left}px`;
   els.notificationPopover.style.right = "auto";
   els.notificationPopover.style.width = `${Math.min(width, window.innerWidth - 24)}px`;
+}
+
+function positionQuickMenu() {
+  if (!els.quickMenu || !els.quickMenuBtn || els.quickMenu.hidden) return;
+  const rect = els.quickMenuBtn.getBoundingClientRect();
+  const width = Math.min(320, Math.max(280, window.innerWidth - 24));
+  const maxHeight = Math.min(560, window.innerHeight - 24);
+  els.quickMenu.style.maxHeight = `${maxHeight}px`;
+  const estimatedHeight = Math.min(maxHeight, Math.max(240, els.quickMenu.scrollHeight || 0));
+  const belowTop = rect.bottom + 10;
+  const aboveTop = rect.top - estimatedHeight - 10;
+  const top = belowTop + estimatedHeight > window.innerHeight - 12 && aboveTop >= 12 ? aboveTop : Math.max(12, belowTop);
+  const left = Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12));
+  els.quickMenu.style.top = `${top}px`;
+  els.quickMenu.style.left = `${left}px`;
+  els.quickMenu.style.right = "auto";
+  els.quickMenu.style.width = `${Math.min(width, window.innerWidth - 24)}px`;
 }
 
 function closeNotificationPopover() {
@@ -2785,12 +2942,14 @@ function closeQuickMenu() {
 function openQuickMenu() {
   if (!els.quickMenu) return;
   closeNotificationPopover();
+  closeCustomSelect();
   syncInstallButton();
   state.quickMenuOpen = true;
   els.quickMenu.hidden = false;
   if (els.quickMenuBtn) {
     els.quickMenuBtn.setAttribute("aria-expanded", "true");
   }
+  positionQuickMenu();
 }
 
 function toggleQuickMenu() {
@@ -2811,6 +2970,9 @@ function setCatalogFiltersOpen(open) {
   }
   if (els.catalogFiltersToggleBtn) {
     els.catalogFiltersToggleBtn.setAttribute("aria-expanded", state.catalogFiltersOpen ? "true" : "false");
+  }
+  if (!state.catalogFiltersOpen) {
+    closeCustomSelect();
   }
 }
 
@@ -2983,21 +3145,22 @@ function renderNotifications() {
     return;
   }
 
-  const unread = unreadNotificationCount();
+  const visibleNotifications = getVisibleNotifications();
+  const unread = visibleNotifications.length;
   els.notificationsSummary.textContent = unread
     ? `Непрочитанных уведомлений: ${formatNumber(unread)}. Новые серии отслеживаются по вашим сохранённым тайтлам.`
     : "Здесь появятся новые тайтлы и свежие серии для аниме из ваших списков.";
 
-  if (!state.notifications.length) {
+  if (!visibleNotifications.length) {
     els.notificationsList.replaceChildren(createEmptyState("Пока уведомлений нет."));
     syncNotificationButton();
     return;
   }
 
   const fragment = document.createDocumentFragment();
-  state.notifications.forEach((item) => {
+  visibleNotifications.forEach((item) => {
     const node = document.createElement("article");
-    node.className = `notification-item${item.readAt ? "" : " is-unread"}`;
+    node.className = "notification-item is-unread";
 
     const top = document.createElement("div");
     top.className = "notification-item__top";
@@ -3029,16 +3192,14 @@ function renderNotifications() {
     });
     actions.appendChild(openButton);
 
-    if (!item.readAt) {
-      const readButton = document.createElement("button");
-      readButton.type = "button";
-      readButton.className = "ghost-btn";
-      readButton.textContent = "Прочитано";
-      readButton.addEventListener("click", () => {
-        markNotificationIdsRead([item.id]).catch(console.error);
-      });
-      actions.appendChild(readButton);
-    }
+    const readButton = document.createElement("button");
+    readButton.type = "button";
+    readButton.className = "ghost-btn";
+    readButton.textContent = "Прочитано";
+    readButton.addEventListener("click", () => {
+      markNotificationIdsRead([item.id]).catch(console.error);
+    });
+    actions.appendChild(readButton);
 
     node.append(top, body, actions);
     fragment.appendChild(node);
@@ -3059,21 +3220,22 @@ function renderNotificationPopover() {
     return;
   }
 
-  const unread = unreadNotificationCount();
+  const visibleNotifications = getVisibleNotifications();
+  const unread = visibleNotifications.length;
   els.notificationPopoverSummary.textContent = unread
     ? `Непрочитанных: ${formatNumber(unread)}`
     : "Новые серии и новые тайтлы появятся здесь.";
 
-  if (!state.notifications.length) {
+  if (!visibleNotifications.length) {
     els.notificationPopoverList.replaceChildren(createEmptyState("Пока уведомлений нет."));
     syncNotificationButton();
     return;
   }
 
   const fragment = document.createDocumentFragment();
-  state.notifications.forEach((item) => {
+  visibleNotifications.forEach((item) => {
     const node = document.createElement("article");
-    node.className = `notification-item${item.readAt ? "" : " is-unread"}`;
+    node.className = "notification-item is-unread";
 
     const top = document.createElement("div");
     top.className = "notification-item__top";
@@ -3104,6 +3266,15 @@ function renderNotificationPopover() {
     });
     actions.appendChild(openButton);
 
+    const readButton = document.createElement("button");
+    readButton.type = "button";
+    readButton.className = "ghost-btn";
+    readButton.textContent = "Прочитано";
+    readButton.addEventListener("click", () => {
+      markNotificationIdsRead([item.id]).catch(console.error);
+    });
+    actions.appendChild(readButton);
+
     node.append(top, body, actions);
     top.append(title, meta);
     fragment.appendChild(node);
@@ -3115,7 +3286,11 @@ function renderNotificationPopover() {
 }
 
 function applyNotifications(items, options = {}) {
-  const nextItems = mergeNotifications(items);
+  if (options.reset) {
+    state.notificationDismissedIds.clear();
+  }
+
+  const nextItems = mergeNotifications(items).filter((item) => !state.notificationDismissedIds.has(item.id));
   const shouldPreserveExisting =
     !options.reset &&
     state.authUser?.localId &&
@@ -3145,13 +3320,20 @@ function applyNotifications(items, options = {}) {
 
 async function markNotificationIdsRead(ids = []) {
   const unreadIds = [...new Set(ids.filter(Boolean))];
-  if (!unreadIds.length || !state.authUser?.localId || !window.animeCloudSync?.markNotificationsRead) return;
+  if (!unreadIds.length) return;
+
+  unreadIds.forEach((id) => state.notificationDismissedIds.add(id));
+  state.notifications = state.notifications.filter((item) => !state.notificationDismissedIds.has(item.id));
+  renderNotifications();
+  renderNotificationPopover();
+
+  if (!state.authUser?.localId || !window.animeCloudSync?.markNotificationsRead) return;
   const next = await window.animeCloudSync.markNotificationsRead(unreadIds, state.authUser);
   applyNotifications(next, { silent: true });
 }
 
 async function markAllNotificationsRead() {
-  const unreadIds = state.notifications.filter((item) => !item.readAt).map((item) => item.id);
+  const unreadIds = getVisibleNotifications().map((item) => item.id);
   if (!unreadIds.length) return;
   await markNotificationIdsRead(unreadIds);
 }
@@ -3263,6 +3445,7 @@ function bindNotificationLiveSync() {
     }
     state.notificationPrimed = false;
     state.notificationKnownIds = new Set();
+    state.notificationDismissedIds.clear();
     applyNotifications([], { reset: true, silent: true });
     renderNotifications();
     renderNotificationPopover();
@@ -3594,6 +3777,7 @@ function renderCatalogControls() {
   });
 
   renderGenreChips();
+  refreshCustomCatalogSelects();
 }
 
 async function loadHome(force = false) {
@@ -5442,9 +5626,19 @@ function bindEvents() {
     event.stopPropagation();
     toggleQuickMenu();
   });
+  els.quickMenuAccountBtn?.addEventListener("click", () => {
+    closeQuickMenu();
+    setView("profile");
+  });
+  els.quickMenuLoginBtn?.addEventListener("click", () => {
+    closeQuickMenu();
+  });
   els.quickMenuProfileBtn?.addEventListener("click", () => {
     closeQuickMenu();
     setView("profile");
+  });
+  els.quickMenuLogoutBtn?.addEventListener("click", () => {
+    closeQuickMenu();
   });
   els.notificationBtn?.addEventListener("click", (event) => {
     event.preventDefault();
@@ -5549,7 +5743,11 @@ function bindEvents() {
   });
 
   window.addEventListener("animecloud:auth", (event) => {
+    const previousUserId = state.authUser?.localId || "";
     state.authUser = event.detail?.user || null;
+    if ((state.authUser?.localId || "") !== previousUserId) {
+      state.notificationDismissedIds.clear();
+    }
     loadFavorites();
     bindNotificationLiveSync();
     renderProfile();
@@ -5582,6 +5780,9 @@ function bindEvents() {
     if (event.key === "Escape" && state.quickMenuOpen) {
       closeQuickMenu();
     }
+    if (event.key === "Escape" && activeCustomSelect) {
+      closeCustomSelect();
+    }
     if (event.key === "Escape" && state.catalogFiltersOpen) {
       setCatalogFiltersOpen(false);
     }
@@ -5604,6 +5805,14 @@ function bindEvents() {
       closeQuickMenu();
     }
 
+    if (activeCustomSelect) {
+      const { wrapper, menu, trigger } = activeCustomSelect;
+      if (wrapper.contains(target) || menu.contains(target) || trigger.contains(target)) {
+        return;
+      }
+      closeCustomSelect();
+    }
+
     if (state.catalogFiltersOpen) {
       if (els.catalogFiltersToggleBtn?.contains(target) || els.catalogFiltersPanel?.contains(target)) {
         return;
@@ -5616,11 +5825,17 @@ function bindEvents() {
     if (state.notificationPopoverOpen) {
       positionNotificationPopover();
     }
+    if (state.quickMenuOpen) {
+      positionQuickMenu();
+    }
   });
 
   window.addEventListener("scroll", () => {
     if (state.notificationPopoverOpen) {
       positionNotificationPopover();
+    }
+    if (state.quickMenuOpen) {
+      positionQuickMenu();
     }
   }, { passive: true });
 

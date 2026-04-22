@@ -298,7 +298,7 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .search-box {
@@ -335,6 +335,7 @@ button {
 .select-control {
   position: relative;
   color-scheme: dark;
+  overflow: visible;
 }
 
 .select-control::after {
@@ -350,6 +351,10 @@ button {
   pointer-events: none;
 }
 
+.select-control--enhanced::after {
+  display: none;
+}
+
 .select-control select {
   appearance: none;
   -webkit-appearance: none;
@@ -358,6 +363,97 @@ button {
   font-weight: 700;
   color: var(--text-strong);
   background: transparent;
+}
+
+.select-control--enhanced select {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.select-control__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-strong);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.select-control__value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-control__caret {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.select-control.is-open .select-control__caret {
+  transform: rotate(180deg);
+  color: var(--text-strong);
+}
+
+.select-control__menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 6px;
+  max-height: min(280px, 48vh);
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid rgba(243, 156, 18, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(13, 18, 30, 0.98), rgba(8, 12, 22, 0.98));
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.34);
+}
+
+.select-control__option {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-strong);
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.select-control__option:hover,
+.select-control__option:focus-visible {
+  border-color: rgba(122, 225, 255, 0.18);
+  background: rgba(27, 40, 68, 0.84);
+  outline: none;
+}
+
+.select-control__option.is-active {
+  border-color: rgba(243, 156, 18, 0.24);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.18), rgba(122, 225, 255, 0.12));
+}
+
+.select-control__option:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .select-control select option,
@@ -663,8 +759,16 @@ button {
   min-width: 44px;
   height: 44px;
   padding: 0;
-  font-size: 1.4rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.65rem;
   line-height: 1;
+}
+
+.catalog-filters-close span {
+  display: block;
+  line-height: 1;
+  transform: translateY(-1px);
 }
 
 .catalog-filters-panel__chips {
@@ -1689,10 +1793,12 @@ button {
   justify-content: flex-end;
   position: relative;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   width: auto;
   min-width: 0;
   margin-left: auto;
+  justify-self: end;
+  align-self: start;
 }
 
 .auth-open-btn {
@@ -1700,7 +1806,7 @@ button {
 }
 
 .user-menu {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 10px;
   margin-left: auto;
@@ -3226,12 +3332,7 @@ body {
   }
 
   .quick-menu {
-    position: fixed;
-    left: 10px;
-    right: 10px;
-    top: auto;
-    bottom: calc(84px + env(safe-area-inset-bottom));
-    width: auto;
+    max-width: min(320px, calc(100vw - 20px));
   }
 
   .catalog-layout {
@@ -3938,6 +4039,7 @@ body {
 .auth-slot .menu-btn {
   flex: 0 0 auto;
   align-self: center;
+  justify-self: end;
 }
 
 .notification-btn__icon {
@@ -3968,16 +4070,20 @@ body {
 }
 
 .quick-menu {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
+  position: fixed;
+  top: 92px;
+  left: 24px;
   z-index: 220;
-  width: min(290px, calc(100vw - 24px));
+  width: min(320px, calc(100vw - 24px));
+  max-height: min(72vh, 560px);
   padding: 14px;
+  overflow: auto;
   border: 1px solid rgba(243, 156, 18, 0.14);
   border-radius: 22px;
   background: rgba(14, 14, 14, 0.97);
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .quick-menu__head {
@@ -3998,6 +4104,57 @@ body {
 .quick-menu__list {
   display: grid;
   gap: 10px;
+}
+
+.quick-menu__account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(18, 29, 47, 0.88);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.quick-menu__account:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(122, 225, 255, 0.12), 0 0 18px rgba(122, 225, 255, 0.18);
+}
+
+.quick-menu__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(28, 43, 74, 0.9);
+  flex: 0 0 auto;
+}
+
+.quick-menu__account-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.quick-menu__account-copy strong,
+.quick-menu__account-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-menu__account-copy strong {
+  color: var(--text-strong);
+  font-size: 1rem;
+}
+
+.quick-menu__account-copy small {
+  color: var(--muted-strong);
 }
 
 .quick-menu__item {
@@ -4025,6 +4182,14 @@ body {
 .quick-menu__item small {
   color: var(--muted);
   line-height: 1.45;
+}
+
+.quick-menu__item--danger {
+  border-color: rgba(255, 129, 129, 0.16);
+}
+
+.quick-menu__item--danger .quick-menu__item-title {
+  color: #ffd0c8;
 }
 
 .notification-popover {
@@ -4330,9 +4495,16 @@ body.is-dialog-open {
 }
 
 :root[data-theme="light"] .quick-menu__item,
+:root[data-theme="light"] .quick-menu__account,
+:root[data-theme="light"] .select-control__menu,
 :root[data-theme="light"] .anime-card__remove {
   border-color: rgba(111, 84, 56, 0.12);
   background: rgba(255, 252, 247, 0.92);
+}
+
+:root[data-theme="light"] .select-control__option:hover,
+:root[data-theme="light"] .select-control__option:focus-visible {
+  background: rgba(255, 244, 225, 0.92);
 }
 
 @media (max-width: 860px) {
