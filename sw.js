@@ -95,7 +95,9 @@ async function staleWhileRevalidate(request, cacheName, cacheKey = request) {
 
   const network = await networkPromise;
   if (network) return network;
-  throw new Error("Network unavailable");
+  if (cached) return cached;
+  const shellFallback = await caches.match("/index.html");
+  return shellFallback || new Response("Offline", { status: 503, statusText: "Offline" });
 }
 
 async function cacheFirst(request, cacheName, cacheKey = request) {
@@ -122,7 +124,8 @@ async function networkFirst(request, cacheName, cacheKey = request) {
   } catch {
     const cached = await cache.match(cacheKey);
     if (cached) return cached;
-    throw new Error("Network unavailable");
+    const shellFallback = await caches.match("/index.html");
+    return shellFallback || new Response("Offline", { status: 503, statusText: "Offline" });
   }
 }
 

@@ -4571,6 +4571,227 @@ body.is-dialog-open {
   margin-top: 6px;
 }
 
+.user-menu {
+  display: none !important;
+}
+
+.auth-slot {
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.auth-slot .menu-btn {
+  align-self: start;
+}
+
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  min-width: 50px;
+  height: 50px;
+  border-radius: 18px;
+}
+
+.menu-btn__icon {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 18px;
+  height: 18px;
+}
+
+.menu-btn__line {
+  width: 18px;
+  height: 2px;
+}
+
+.drawer-close {
+  font-size: 0;
+}
+
+.drawer-close__icon {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.drawer-close__icon::before,
+.drawer-close__icon::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 0;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.drawer-close__icon::before {
+  transform: rotate(45deg);
+}
+
+.drawer-close__icon::after {
+  transform: rotate(-45deg);
+}
+
+.catalog-filters-panel .section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 12px;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.catalog-filters-panel .select-control {
+  min-width: 178px;
+  max-width: 220px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(12, 18, 30, 0.9);
+}
+
+.catalog-filters-panel .select-control__trigger {
+  min-height: 28px;
+  font-size: 0.98rem;
+}
+
+.catalog-filters-panel .select-control__menu {
+  left: 0;
+  right: auto;
+  min-width: 100%;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 8px;
+  border-radius: 16px;
+}
+
+.catalog-filters-panel .select-control__option {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.catalog-filters-panel__chips,
+#catalog-genre-chips {
+  display: none !important;
+}
+
+.episodes-inline {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.episodes-list--inline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+  gap: 8px;
+  margin-top: 0;
+}
+
+.episodes-list--inline .episode-btn {
+  position: relative;
+  min-height: 52px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(18, 28, 46, 0.96), rgba(11, 16, 28, 0.98));
+}
+
+.episodes-list--inline .episode-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, rgba(155, 109, 255, 0.72), transparent 58%);
+  pointer-events: none;
+}
+
+.episodes-list--inline .episode-btn strong {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.episodes-list--inline .episode-btn span,
+.episodes-list--inline .episode-btn small {
+  display: none;
+}
+
+.episodes-list--inline .episode-progress {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 6px;
+  width: auto;
+  margin-top: 0;
+  height: 4px;
+}
+
+.episodes-list--inline .episode-progress-meta {
+  display: none;
+}
+
+.player-surface {
+  margin-top: 14px;
+}
+
+.external-player-actions {
+  justify-content: flex-start;
+}
+
+.anime-card--history .anime-card__remove {
+  position: static !important;
+  margin-top: 0 !important;
+}
+
+.anime-card--history .anime-card__history-actions {
+  margin-top: 10px;
+  padding: 0 4px 4px;
+}
+
+@media (max-width: 900px) {
+  .catalog-filters-panel .select-control {
+    min-width: calc(50% - 6px);
+    max-width: none;
+  }
+
+  .episodes-list--inline {
+    grid-template-columns: repeat(auto-fit, minmax(46px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .catalog-filters-panel .section-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-filters-panel .select-control {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .menu-btn {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+  }
+}
+
 @media (max-width: 860px) {
   .rating-box__summary {
     align-items: flex-start;

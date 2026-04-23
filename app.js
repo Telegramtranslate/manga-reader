@@ -432,7 +432,7 @@ const STATIC_UI_TEXT = Object.freeze({
     playerKicker: "Плеер",
     playerTitle: "Серия не выбрана",
     sourceLabel: "Озвучка и источник",
-    playerNote: "Выберите релиз и серию справа.",
+    playerNote: "Выберите релиз и серию выше.",
     openExternal: "Открыть источник напрямую",
     retryExternal: "Попробовать ещё раз",
     resumeLabel: "Продолжить просмотр",
@@ -788,7 +788,7 @@ function openCustomSelect(controller) {
 function refreshCustomCatalogSelects() {
   [els.catalogSort, els.catalogType, els.catalogGenre].forEach((select) => {
     if (select instanceof HTMLSelectElement) {
-      destroyCustomSelect(select);
+      ensureCustomSelect(select);
     }
   });
 }
@@ -2411,27 +2411,8 @@ function syncCatalogPager() {
 function renderGenreChips() {
   if (!els.catalogGenreChips) return;
   els.catalogGenreChips.innerHTML = "";
-
-  const fragment = document.createDocumentFragment();
-  state.genreOptions.forEach((genre) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `genre-chip-btn${state.catalogGenres.includes(genre) ? " is-active" : ""}`;
-    button.textContent = genre;
-    button.addEventListener("click", () => {
-      if (state.catalogGenres.includes(genre)) {
-        state.catalogGenres = state.catalogGenres.filter((item) => item !== genre);
-      } else {
-        state.catalogGenres = [...state.catalogGenres, genre];
-      }
-      renderGenreChips();
-      state.catalogLoaded = false;
-      loadCatalog({ reset: true }).catch(console.error);
-    });
-    fragment.appendChild(button);
-  });
-
-  els.catalogGenreChips.appendChild(fragment);
+  state.catalogGenres = [];
+  els.catalogGenreChips.closest(".catalog-filters-panel__chips")?.setAttribute("hidden", "hidden");
 }
 
 function getFilteredCatalogItems() {
@@ -4602,7 +4583,7 @@ function showExternalSurface(url) {
   state.externalPlayerAssistTimer = setTimeout(() => {
     if (state.externalPlayerUrl !== externalUrl || els.externalPlayer.hidden) return;
     els.playerNote.textContent =
-      "Внешний Kodik-плеер долго не отвечает. Попробуйте открыть источник напрямую или повторить загрузку.";
+      "Внешний Kodik-плеер долго не отвечает. Попробуйте повторить загрузку.";
     if (els.externalPlayerActions) {
       els.externalPlayerActions.hidden = false;
     }
@@ -4835,15 +4816,17 @@ function createSourceNode(source) {
 }
 
 function createEpisodeNode(episode) {
-  const label = episode.ordinal ? `${episode.ordinal} серия` : episode.name || "Фильм";
+  const compactLabel = episode.ordinal ? String(episode.ordinal) : episode.name || "Фильм";
+  const fullLabel = episode.ordinal ? `${episode.ordinal} серия` : episode.name || "Фильм";
+  const durationLabel = formatEpisodeDuration(episode.duration) || "Длительность не указана";
   const button = document.createElement("button");
   button.type = "button";
   button.className = `episode-btn${state.currentEpisode?.id === episode.id ? " is-active" : ""}`;
   button.dataset.episodeId = episode.id || "";
   button.dataset.ordinal = String(episode.ordinal || "");
-  button.innerHTML = `<strong>${escapeHtml(label)}</strong><span>${escapeHtml(
-    episode.name || "Без названия"
-  )}</span><small>${escapeHtml(formatEpisodeDuration(episode.duration) || "Длительность не указана")}</small>`;
+  button.title = `${fullLabel} • ${durationLabel}`;
+  button.setAttribute("aria-label", `${fullLabel}. ${durationLabel}`);
+  button.innerHTML = `<strong>${escapeHtml(compactLabel)}</strong><span>${escapeHtml(fullLabel)}</span><small>${escapeHtml(durationLabel)}</small>`;
   button.addEventListener("click", () => selectEpisode(episode).catch(console.error));
   return button;
 }
@@ -5102,8 +5085,8 @@ async function selectEpisode(episode, options = {}) {
     showExternalSurface(episode.externalUrl || source?.externalUrl || state.currentAnime.externalPlayer);
     els.playerNote.textContent =
       source?.kind === "iframe-episodes"
-        ? "Серии и качество выбираются прямо во встроенном плеере. Если загрузка зависнет, откройте источник напрямую."
-        : "Этот плеер загружается во встроенном окне. Если загрузка зависнет, откройте источник напрямую.";
+        ? "Серии и качество выбираются прямо во встроенном плеере. Если загрузка зависнет, попробуйте повторить загрузку."
+        : "Этот плеер загружается во встроенном окне. Если загрузка зависнет, попробуйте повторить загрузку.";
     return;
   }
 
@@ -5161,7 +5144,7 @@ function switchSource(sourceId, options = {}) {
     els.qualitySwitch.innerHTML = "";
     els.playerTitle.textContent = source.title;
     els.playerNote.textContent =
-      source.note || "Этот источник открывается во встроенном внешнем плеере. Если загрузка зависнет, откройте источник напрямую.";
+      source.note || "Этот источник открывается во встроенном Kodik-плеере. Если загрузка зависнет, попробуйте повторить загрузку.";
     return;
   }
 
