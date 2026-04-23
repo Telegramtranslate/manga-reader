@@ -421,7 +421,7 @@ const STATIC_UI_TEXT = Object.freeze({
     posterAlt: "Постер выбранного тайтла",
     kicker: "Карточка релиза",
     emptyTitle: "Выберите тайтл",
-    emptyDescription: "Откройте любое аниме, чтобы увидеть эпизоды, качество и доступные источники.",
+    emptyDescription: "Откройте любое аниме, чтобы увидеть описание, серии и встроенный плеер.",
     favorite: "В избранное",
     share: "Поделиться",
     adminPin: "Закрепить как локальный баннер",
@@ -538,6 +538,7 @@ function mountFloatingUi() {
     voiceBlock.remove();
     els.voiceList = null;
   }
+  document.getElementById("dub-box")?.remove();
 }
 
 function repairStaticUiText() {
@@ -623,15 +624,12 @@ function repairStaticUiText() {
   setStaticText("#list-pause-btn", STATIC_UI_TEXT.drawer.pause);
   setStaticText(".player-toolbar .section-kicker", STATIC_UI_TEXT.drawer.playerKicker);
   setStaticText("#player-title", STATIC_UI_TEXT.drawer.playerTitle);
-  setStaticText(".source-wrap .detail-label", STATIC_UI_TEXT.drawer.sourceLabel);
   setStaticText("#player-note", STATIC_UI_TEXT.drawer.playerNote);
   setStaticText("#external-player-open-btn", STATIC_UI_TEXT.drawer.openExternal);
   setStaticText("#external-player-retry-btn", STATIC_UI_TEXT.drawer.retryExternal);
   setStaticText("#resume-box .detail-label", STATIC_UI_TEXT.drawer.resumeLabel);
   setStaticText("#resume-text", STATIC_UI_TEXT.drawer.resumeEmpty);
   setStaticText("#resume-btn", STATIC_UI_TEXT.drawer.resumeButton);
-  setStaticText("#dub-box .detail-label", STATIC_UI_TEXT.drawer.dubsLabel);
-  setStaticText("#dub-note", STATIC_UI_TEXT.drawer.dubNote);
   setStaticText(".side-card .detail-label", STATIC_UI_TEXT.drawer.episodesLabel);
   setStaticText(".side-card + .side-card .detail-label", STATIC_UI_TEXT.drawer.crewLabel);
   setStaticText(".comments-card .section-kicker", STATIC_UI_TEXT.comments.kicker);
@@ -724,6 +722,20 @@ function ensureCustomSelect(select) {
   return controller;
 }
 
+function destroyCustomSelect(select) {
+  const controller = customSelectControllers.get(select);
+  if (!controller) return;
+
+  if (activeCustomSelect === controller) {
+    activeCustomSelect = null;
+  }
+
+  controller.trigger.remove();
+  controller.menu.remove();
+  controller.wrapper.classList.remove("select-control--enhanced", "is-open");
+  customSelectControllers.delete(select);
+}
+
 function syncCustomSelect(controller) {
   if (!controller) return;
   const selectedOption = controller.select.options[controller.select.selectedIndex] || controller.select.options[0];
@@ -775,8 +787,9 @@ function openCustomSelect(controller) {
 
 function refreshCustomCatalogSelects() {
   [els.catalogSort, els.catalogType, els.catalogGenre].forEach((select) => {
-    const controller = ensureCustomSelect(select);
-    syncCustomSelect(controller);
+    if (select instanceof HTMLSelectElement) {
+      destroyCustomSelect(select);
+    }
   });
 }
 
@@ -1039,6 +1052,22 @@ function normalizePreparedSource(source) {
   };
 }
 
+function prettifyReleaseTitle(value) {
+  const safeValue = String(value || "").trim();
+  if (!safeValue) return "Без названия";
+
+  const seasonMatch = safeValue.match(/^(.*?)(?:\s*[\[(](?:TV|ТВ)\s*[- ]?\s*(\d+)[\])])\s*$/iu);
+  if (!seasonMatch) return safeValue;
+
+  const baseTitle = String(seasonMatch[1] || "").trim();
+  const seasonNumber = Number(seasonMatch[2] || 0);
+  if (!baseTitle || !Number.isFinite(seasonNumber) || seasonNumber <= 0) {
+    return safeValue;
+  }
+
+  return `${baseTitle} · ${seasonNumber} сезон`;
+}
+
 function normalizePreparedRelease(item) {
   const posterSources = uniqueStrings([
     ...(Array.isArray(item?.posterSources) ? item.posterSources : []),
@@ -1062,17 +1091,21 @@ function normalizePreparedRelease(item) {
   const externalPlayer = normalizeExternalPlayer(
     item?.externalPlayer || sourceItems.find((source) => source.externalUrl)?.externalUrl || ""
   );
+  const rawTitle = String(item?.title || "").trim() || "Без названия";
+  const displayTitle = prettifyReleaseTitle(rawTitle);
+  const rawOriginalTitle = String(item?.originalTitle || "").trim();
 
   return {
     provider: String(item?.provider || "kodik"),
     providerSet: uniqueStrings(Array.isArray(item?.providerSet) ? item.providerSet : [item?.provider || "kodik"]),
     id: item?.id || item?.alias,
     alias: item?.alias || "",
-    title: item?.title || "Без названия",
-    originalTitle: item?.originalTitle || "",
+    title: displayTitle,
+    originalTitle: rawOriginalTitle,
     alternateTitles: uniqueStrings([
-      item?.title,
-      item?.originalTitle,
+      rawTitle,
+      displayTitle,
+      rawOriginalTitle,
       ...(Array.isArray(item?.alternateTitles) ? item.alternateTitles : [])
     ]),
     year: item?.year || "-",
@@ -2032,7 +2065,10 @@ function decorateHistoryCardControls(node, release) {
     removeProgressHistoryEntry(release.alias, release.title).catch(console.error);
   });
 
-  node.appendChild(removeButton);
+  const actions = document.createElement("div");
+  actions.className = "anime-card__history-actions";
+  actions.appendChild(removeButton);
+  node.appendChild(actions);
   return node;
 }
 
@@ -2966,19 +3002,18 @@ function toggleQuickMenu() {
 }
 
 function setCatalogFiltersOpen(open) {
-  state.catalogFiltersOpen = Boolean(open && els.catalogLayout && els.catalogFiltersPanel);
+  state.catalogFiltersOpen = false;
   if (els.catalogLayout) {
-    els.catalogLayout.classList.toggle("is-filters-open", state.catalogFiltersOpen);
+    els.catalogLayout.classList.remove("is-filters-open");
   }
   if (els.catalogFiltersPanel) {
-    els.catalogFiltersPanel.hidden = !state.catalogFiltersOpen;
+    els.catalogFiltersPanel.hidden = false;
   }
   if (els.catalogFiltersToggleBtn) {
-    els.catalogFiltersToggleBtn.setAttribute("aria-expanded", state.catalogFiltersOpen ? "true" : "false");
+    els.catalogFiltersToggleBtn.hidden = true;
+    els.catalogFiltersToggleBtn.setAttribute("aria-expanded", "false");
   }
-  if (!state.catalogFiltersOpen) {
-    closeCustomSelect();
-  }
+  closeCustomSelect();
 }
 
 function toggleCatalogFilters() {
@@ -3753,6 +3788,12 @@ async function loadReferences(force = false) {
 }
 
 function renderCatalogControls() {
+  if (els.catalogFiltersPanel) {
+    els.catalogFiltersPanel.hidden = false;
+  }
+  if (els.catalogFiltersToggleBtn) {
+    els.catalogFiltersToggleBtn.hidden = true;
+  }
   els.catalogSort.innerHTML = "";
   els.catalogType.innerHTML = '<option value="">Все форматы</option>';
   els.catalogGenre.innerHTML = '<option value="">Все жанры</option>';
@@ -4366,7 +4407,7 @@ function createAnimeCard(release, index, options = {}) {
   const poster = node.querySelector(".anime-card__poster");
   const cardSrc = release.cardPoster || release.thumb || release.poster;
   const card2x = release.poster || release.cardPoster || cardSrc;
-  const cardFallback = release.cardPosterDirect || release.thumbDirect || release.posterDirect || "/mc-icon-192.png?v=5";
+  const cardFallback = release.cardPoster || release.thumb || release.poster || "/mc-icon-192.png?v=5";
   const shouldPrioritize =
     (state.currentView === "catalog" || state.currentView === "ongoing" || state.currentView === "top") &&
     index < 2 &&
@@ -4435,10 +4476,10 @@ function bindPosterFallback(image, release, options = {}) {
   const initialSrc = String(options.initialSrc || image.currentSrc || image.src || "").trim();
   const queue = uniqueStrings([
     ...(Array.isArray(release.posterCandidateQueue) ? release.posterCandidateQueue : []),
-    ...(Array.isArray(release.posterDirectQueue) ? release.posterDirectQueue : []),
-    release.cardPosterDirect,
-    release.thumbDirect,
-    release.posterDirect,
+    ...(Array.isArray(release.posterDirectQueue) ? release.posterDirectQueue.map((src) => proxiedImageUrl(src)) : []),
+    proxiedImageUrl(release.cardPosterDirect),
+    proxiedImageUrl(release.thumbDirect),
+    proxiedImageUrl(release.posterDirect),
     options.placeholder || "/mc-icon-192.png?v=5"
   ]).filter((src) => src && src !== initialSrc);
 
@@ -4753,8 +4794,8 @@ function getDefaultSourceId(release) {
   const sources = getReleaseSources(release);
   if (!sources.length) return "kodik";
   return (
-    sources.find((source) => source.episodes?.length)?.id ||
     sources.find((source) => source.externalUrl)?.id ||
+    sources.find((source) => source.episodes?.length)?.id ||
     sources[0].id
   );
 }
@@ -4984,6 +5025,7 @@ function renderDetails(release, options = {}) {
 }
 
 function syncRenderedSourceState() {
+  if (!els.sourceSwitch) return;
   els.sourceSwitch.querySelectorAll(".source-btn").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.sourceId === state.currentSource);
   });
@@ -5060,8 +5102,8 @@ async function selectEpisode(episode, options = {}) {
     showExternalSurface(episode.externalUrl || source?.externalUrl || state.currentAnime.externalPlayer);
     els.playerNote.textContent =
       source?.kind === "iframe-episodes"
-        ? "Эта озвучка открыта во встроенном внешнем плеере. Серии и качество задаются там. Если загрузка зависнет, откройте источник напрямую."
-        : "Этот источник открывается во встроенном внешнем плеере. Если загрузка зависнет, откройте источник напрямую.";
+        ? "Серии и качество выбираются прямо во встроенном плеере. Если загрузка зависнет, откройте источник напрямую."
+        : "Этот плеер загружается во встроенном окне. Если загрузка зависнет, откройте источник напрямую.";
     return;
   }
 
@@ -5097,8 +5139,10 @@ async function selectEpisode(episode, options = {}) {
   }
 }
 
-function switchSource(sourceId) {
-  if (!state.currentAnime || sourceId === state.currentSource) return;
+function switchSource(sourceId, options = {}) {
+  if (!state.currentAnime) return;
+  const force = Boolean(options.force);
+  if (!force && sourceId === state.currentSource) return;
   const source = getSourceById(state.currentAnime, sourceId);
   if (!source) return;
 
@@ -5214,7 +5258,7 @@ async function openRelease(alias, options = {}) {
     if (defaultSource?.externalUrl || release.externalPlayer) {
       await afterNextPaint();
       if (state.currentAnime?.alias === release.alias) {
-        switchSource(defaultSource?.id || "external");
+        switchSource(defaultSource?.id || "external", { force: true });
       }
       return release;
     }

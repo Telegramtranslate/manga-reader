@@ -14,6 +14,8 @@ test("service worker source keeps build placeholder and kodik-only api matcher",
 
 test("index source no longer contains mojibake markers", () => {
   const source = fs.readFileSync("C:/manga-reader/index.html", "utf8");
-  assert.ok(source.includes("Каталог аниме из базы Kodik"));
-  assert.doesNotMatch(source, /Р°Р|Ð|Ñ|�|\?{4,}/);
+  assert.ok(source.includes("\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u0440\u0435\u043B\u0438\u0437\u044B"));
+  assert.ok(source.includes("\u041A\u0430\u0442\u0430\u043B\u043E\u0433 AnimeCloud"));
+  assert.doesNotMatch(source, /Рџ|РЎ|вЂ|Ð|Ñ|�|\?{4,}/);
+  assert.doesNotMatch(source, /source-wrap|dub-box|catalog-filters-toggle/);
 });

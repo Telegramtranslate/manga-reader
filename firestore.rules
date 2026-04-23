@@ -73,9 +73,16 @@ service cloud.firestore {
         request.resource.data.keys().hasOnly(['uid', 'email', 'item', 'updatedAt']) &&
         request.resource.data.item is map &&
         request.resource.data.item.keys().hasAll(['seenNewAnimeAliases', 'lastEpisodeByAlias']) &&
-        request.resource.data.item.keys().hasOnly(['seenNewAnimeAliases', 'lastEpisodeByAlias', 'initializedAt', 'lastScanAt']) &&
+        request.resource.data.item.keys().hasOnly(['seenNewAnimeAliases', 'dismissedIds', 'lastEpisodeByAlias', 'initializedAt', 'lastScanAt']) &&
         request.resource.data.item.seenNewAnimeAliases is list &&
         request.resource.data.item.seenNewAnimeAliases.size() <= 240 &&
+        (
+          !('dismissedIds' in request.resource.data.item) ||
+          (
+            request.resource.data.item.dismissedIds is list &&
+            request.resource.data.item.dismissedIds.size() <= 480
+          )
+        ) &&
         request.resource.data.item.lastEpisodeByAlias is map &&
         request.resource.data.item.lastEpisodeByAlias.keys().size() <= 240;
     }

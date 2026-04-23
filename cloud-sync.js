@@ -269,6 +269,7 @@ function mergeNotificationLists(...lists) {
 
 function normalizeNotificationState(item = {}) {
   const normalizedAliases = uniqueNotificationStrings(Array.isArray(item.seenNewAnimeAliases) ? item.seenNewAnimeAliases : []).slice(-240);
+  const dismissedIds = uniqueNotificationStrings(Array.isArray(item.dismissedIds) ? item.dismissedIds : []).slice(-480);
   const lastEpisodeByAlias = Object.entries(item.lastEpisodeByAlias || {}).reduce((accumulator, [alias, value]) => {
     const safeAlias = normalizeNotificationAlias(alias);
     if (!safeAlias) return accumulator;
@@ -278,6 +279,7 @@ function normalizeNotificationState(item = {}) {
 
   return {
     seenNewAnimeAliases: normalizedAliases,
+    dismissedIds,
     lastEpisodeByAlias,
     initializedAt: normalizeTimestampValue(item.initializedAt),
     lastScanAt: normalizeTimestampValue(item.lastScanAt)
@@ -1019,7 +1021,7 @@ async function markNotificationsRead(ids = [], session = cloudReadSession()) {
     return loadNotifications(session);
   }
 
-  const current = await loadNotifications(session);
+  const [current, currentState] = await Promise.all([loadNotifications(session), loadNotificationState(session)]);
   const idSet = new Set(safeIds);
   let changed = false;
   const timestamp = Date.now();
@@ -1033,10 +1035,16 @@ async function markNotificationsRead(ids = [], session = cloudReadSession()) {
   });
 
   if (changed) {
-    await saveNotifications(session, next);
+    const nextState = normalizeNotificationState({
+      ...currentState,
+      dismissedIds: [...(currentState.dismissedIds || []), ...safeIds],
+      lastScanAt: timestamp
+    });
+    await Promise.all([saveNotificationState(session, nextState), saveNotifications(session, next)]);
   }
 
-  return mergeNotificationLists(next);
+  const dismissedIds = new Set((currentState.dismissedIds || []).concat(safeIds));
+  return mergeNotificationLists(next).filter((item) => !dismissedIds.has(item.id));
 }
 
 async function syncNotifications(session = cloudReadSession(), payload = {}) {
@@ -1067,11 +1075,15 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
     loadNotificationState(session)
   ]);
   const trackedEpisodeMap = buildNotificationTrackedEpisodeMap(trackedItems, liveByAlias);
+  const dismissedIds = new Set(currentState.dismissedIds || []);
 
   if (!currentState.initializedAt) {
     const created = [];
     latestReleases.slice(0, 12).forEach((release, index) => {
-      created.push(buildNewAnimeNotification(release, now + index));
+      const notification = buildNewAnimeNotification(release, now + index);
+      if (!dismissedIds.has(notification.id)) {
+        created.push(notification);
+      }
     });
 
     trackedItems.forEach((item, index) => {
@@ -1082,22 +1094,26 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
         item?.publishedEpisode?.ordinal || item?.episodesTotal
       );
       if (!currentEpisode || currentEpisode <= baselineEpisode || !liveByAlias.has(alias)) return;
-      created.push(
-        buildNewEpisodeNotification(
-          liveByAlias.get(alias),
-          currentEpisode,
-          now + latestReleases.length + index + created.length
-        )
+      const notification = buildNewEpisodeNotification(
+        liveByAlias.get(alias),
+        currentEpisode,
+        now + latestReleases.length + index + created.length
       );
+      if (!dismissedIds.has(notification.id)) {
+        created.push(notification);
+      }
     });
 
     const nextState = {
       seenNewAnimeAliases: uniqueNotificationStrings(latestReleases.map((release) => release.alias)).slice(-240),
+      dismissedIds: currentState.dismissedIds || [],
       lastEpisodeByAlias: trackedEpisodeMap,
       initializedAt: now,
       lastScanAt: now
     };
-    const nextItems = created.length ? mergeNotificationLists(created, existingItems) : existingItems;
+    const nextItems = (created.length ? mergeNotificationLists(created, existingItems) : existingItems).filter(
+      (item) => !dismissedIds.has(item.id)
+    );
     await saveNotificationState(session, nextState);
     if (created.length) {
       await saveNotifications(session, nextItems);
@@ -1111,7 +1127,10 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
     const alias = normalizeNotificationAlias(release.alias);
     if (!alias || seenAliases.has(alias)) return;
     seenAliases.add(alias);
-    created.push(buildNewAnimeNotification(release, now + index));
+    const notification = buildNewAnimeNotification(release, now + index);
+    if (!dismissedIds.has(notification.id)) {
+      created.push(notification);
+    }
   });
 
   const nextEpisodeState = { ...(currentState.lastEpisodeByAlias || {}) };
@@ -1132,19 +1151,23 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
       return;
     }
     if (!liveByAlias.has(alias) || currentEpisode <= previousEpisode) return;
-    created.push(
-      buildNewEpisodeNotification(
-        liveByAlias.get(alias),
-        currentEpisode,
-        now + latestReleases.length + created.length
-      )
+    const notification = buildNewEpisodeNotification(
+      liveByAlias.get(alias),
+      currentEpisode,
+      now + latestReleases.length + created.length
     );
+    if (!dismissedIds.has(notification.id)) {
+      created.push(notification);
+    }
     nextEpisodeState[alias] = currentEpisode;
   });
 
-  const nextItems = created.length ? mergeNotificationLists(created, existingItems) : existingItems;
+  const nextItems = (created.length ? mergeNotificationLists(created, existingItems) : existingItems).filter(
+    (item) => !dismissedIds.has(item.id)
+  );
   const nextState = normalizeNotificationState({
     seenNewAnimeAliases: uniqueNotificationStrings([...seenAliases]).slice(-240),
+    dismissedIds: currentState.dismissedIds || [],
     lastEpisodeByAlias: nextEpisodeState,
     initializedAt: currentState.initializedAt || now,
     lastScanAt: now

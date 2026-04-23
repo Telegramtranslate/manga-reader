@@ -4507,6 +4507,70 @@ body.is-dialog-open {
   background: rgba(255, 244, 225, 0.92);
 }
 
+.catalog-inline-filters,
+.catalog-layout {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  overflow: visible;
+  border-radius: 0;
+}
+
+.catalog-filters-toggle,
+.catalog-filters-close,
+.catalog-filters-panel__head {
+  display: none !important;
+}
+
+.catalog-filters-panel {
+  position: static;
+  inset: auto;
+  width: auto;
+  transform: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  overflow: visible;
+}
+
+.catalog-filters-panel[hidden] {
+  display: block !important;
+}
+
+.catalog-layout__content {
+  margin-right: 0 !important;
+}
+
+.catalog-inline-filters__chips,
+.catalog-filters-panel__chips {
+  display: grid;
+  gap: 10px;
+}
+
+.anime-card--history {
+  display: grid;
+  gap: 10px;
+}
+
+.anime-card__history-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.anime-card__remove {
+  position: static;
+  z-index: auto;
+  margin-top: 6px;
+}
+
 @media (max-width: 860px) {
   .rating-box__summary {
     align-items: flex-start;
