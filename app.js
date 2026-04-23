@@ -528,6 +528,11 @@ function mountFloatingUi() {
   document.getElementById("resume-clear-btn")?.remove();
   document.getElementById("rating-box")?.remove();
   document.getElementById("settings-autoplay-next")?.closest(".settings-toggle")?.remove();
+  const sourceWrap = document.querySelector(".source-wrap");
+  if (sourceWrap) {
+    sourceWrap.remove();
+    els.sourceSwitch = null;
+  }
   const voiceBlock = document.querySelector(".voice-block");
   if (voiceBlock) {
     voiceBlock.remove();
@@ -4172,7 +4177,7 @@ async function loadSchedule() {
     state.scheduleLoaded = true;
     els.scheduleGrid.replaceChildren(createEmptyState("Загружаем расписание…"));
     const payload = await fetchKodikDiscover("ongoing", 1, 72, { ttl: 60000 });
-    state.scheduleItems = buildReleases(payload);
+    state.scheduleItems = uniqueReleases(buildReleases(payload));
     renderSchedule();
   } catch (error) {
     console.error("loadSchedule failed", error);
@@ -4223,10 +4228,10 @@ function renderSchedule() {
         release.title
       )}</strong><span>${escapeHtml(`${release.type} • ${release.year}`)}</span><small>${escapeHtml(
         release.publishedEpisode
-          ? `Доступна ${release.publishedEpisode.ordinal} серия`
+          ? `Вышла ${release.publishedEpisode.ordinal} серия`
           : release.nextEpisodeNumber
             ? `Следующая серия: ${release.nextEpisodeNumber}`
-            : `${release.episodesTotal || "?"} СЌРї.`
+            : `${release.episodesTotal || "?"} эп.`
       )}</small></div>`;
       button.addEventListener("click", () => openRelease(release.alias).catch(console.error));
       list.appendChild(button);
@@ -4370,7 +4375,7 @@ function createAnimeCard(release, index, options = {}) {
   node.querySelector(".anime-card__age").textContent = release.age;
   node.querySelector(".anime-card__status").textContent = release.statusLabel;
   node.querySelector(".anime-card__title").textContent = release.title;
-  node.querySelector(".anime-card__meta").textContent = [release.type, release.year, `${release.episodesTotal || "?"} СЌРї.`]
+  node.querySelector(".anime-card__meta").textContent = [release.type, release.year, `${release.episodesTotal || "?"} эп.`]
     .filter(Boolean)
     .join(" • ");
 

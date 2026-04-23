@@ -985,7 +985,7 @@ function buildNewAnimeNotification(release, createdAt) {
   const alias = normalizeNotificationAlias(release?.alias);
   const title = String(release?.title || "").trim() || "Новый тайтл";
   return normalizeNotificationItem({
-    id: `new_anime:${alias}:${createdAt}`,
+    id: `new_anime:${alias}`,
     type: "new_anime",
     alias,
     title,
@@ -1000,13 +1000,13 @@ function buildNewEpisodeNotification(release, episodeNumber, createdAt) {
   const title = String(release?.title || "").trim() || "Новое обновление";
   const safeEpisode = normalizeNotificationEpisodeValue(episodeNumber);
   return normalizeNotificationItem({
-    id: `new_episode:${alias}:${safeEpisode}:${createdAt}`,
+    id: `new_episode:${alias}:${safeEpisode || "latest"}`,
     type: "new_episode",
     alias,
     title,
     body: safeEpisode
       ? `Вышла ${safeEpisode} серия для «${title}».`
-      : `Для «${title}» появилось новое обновление.`,
+      : `Для «${title}» вышла новая серия.`,
     createdAt,
     episode: safeEpisode,
     actionLabel: "Открыть"
