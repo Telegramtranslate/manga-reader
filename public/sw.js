@@ -1,4 +1,4 @@
-const CACHE_VERSION = "f48d3a6234";
+const CACHE_VERSION = "38b69c7182";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,18 +6,18 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const CORE_APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=ba7fc18d26",
-  "/api/runtime-config.js?v=f48d3a6234",
+  "/style.css?v=6c6cba434a",
+  "/api/runtime-config.js?v=38b69c7182",
   "/app-constants.min.js?v=7f5bd79a51",
   "/firebase-config.min.js?v=d0b5fb95e7",
-  "/cloud-sync.min.js?v=0e5735ce3e",
+  "/cloud-sync.min.js?v=aba194e212",
   "/app-api-client.min.js?v=e8305d4d50",
   "/app-seo.min.js?v=89e2c3501b",
   "/app-stats.min.js?v=0dba658ff4",
   "/app-player-utils.min.js?v=25dfbdad16",
-  "/app.min.js?v=fbc07139c1",
-  "/auth.min.js?v=420eec33de",
-  "/watch-features.min.js?v=7dd9a6ea7f",
+  "/app.min.js?v=a5f6b6ce8d",
+  "/auth.min.js?v=1cc27a4b99",
+  "/watch-features.min.js?v=310d11661c",
   "/manifest.webmanifest?v=3a11887700",
   "/robots.txt",
   "/mc-icon-192.png?v=af9b2b4f14",

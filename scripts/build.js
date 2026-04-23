@@ -16,6 +16,7 @@ const FILES = [
   "app-seo.js",
   "app-stats.js",
   "app-player-utils.js",
+  "analytics.js",
   "app.js",
   "auth.js",
   "watch-features.js"
@@ -42,6 +43,7 @@ const HASHED_PUBLIC_FILES = [
   "app-seo.min.js",
   "app-stats.min.js",
   "app-player-utils.min.js",
+  "analytics.min.js",
   "app.min.js",
   "auth.min.js",
   "watch-features.min.js",
@@ -154,7 +156,8 @@ async function rewritePublicAssetReferences(referenceMap) {
     "firebase-config.min.js",
     "cloud-sync.min.js",
     "watch-features.min.js",
-    "app-constants.min.js"
+    "app-constants.min.js",
+    "analytics.min.js"
   ].map((filename) => path.join(PUBLIC_DIR, filename));
 
   for (const filePath of textFiles) {
