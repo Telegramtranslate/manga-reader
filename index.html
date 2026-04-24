@@ -83,6 +83,14 @@
 </head>
 
 <body>
+  <script>
+    window.va =
+      window.va ||
+      function () {
+        (window.vaq = window.vaq || []).push(arguments);
+      };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
   <div class="page-glow" aria-hidden="true"></div>
 
   <div class="site-shell">
@@ -122,9 +130,11 @@
               <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
             </button>
             <button class="ghost-btn menu-btn" type="button" id="quick-menu-btn" aria-label="Меню" aria-expanded="false" aria-controls="quick-menu">
-              <span class="menu-btn__line"></span>
-              <span class="menu-btn__line"></span>
-              <span class="menu-btn__line"></span>
+              <span class="menu-btn__icon" aria-hidden="true">
+                <span class="menu-btn__line"></span>
+                <span class="menu-btn__line"></span>
+                <span class="menu-btn__line"></span>
+              </span>
             </button>
             <section class="notification-popover" id="notification-popover" hidden aria-label="Уведомления">
               <div class="notification-popover__head">
@@ -350,11 +360,6 @@
                     <option value="">Все жанры</option>
                   </select>
                 </label>
-              </div>
-
-              <div class="catalog-filters-panel__chips">
-                <div class="section-kicker">Быстрый жанр</div>
-                <div class="genre-chip-row" id="catalog-genre-chips" aria-label="Быстрый фильтр по жанрам"></div>
               </div>
             </aside>
 
@@ -585,7 +590,9 @@
     <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
     <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
-      <button class="drawer-close" type="button" id="drawer-close" aria-label="Закрыть">×</button>
+      <button class="drawer-close" type="button" id="drawer-close" aria-label="Закрыть">
+        <span class="drawer-close__icon" aria-hidden="true"></span>
+      </button>
 
       <div class="drawer-scroll">
         <section class="detail-hero">
@@ -632,6 +639,11 @@
               <div class="quality-switch" id="quality-switch"></div>
             </div>
 
+            <section class="episodes-inline">
+              <div class="detail-label">Серии</div>
+              <div class="episodes-list episodes-list--inline" id="episodes-list"></div>
+            </section>
+
             <div class="player-surface">
               <video id="anime-player" class="anime-player" controls playsinline preload="metadata"></video>
               <iframe
@@ -649,7 +661,6 @@
 
             <p class="player-note" id="player-note">Выберите релиз и серию справа.</p>
             <div class="external-player-actions" id="external-player-actions" hidden>
-              <button class="ghost-btn" type="button" id="external-player-open-btn">Открыть источник напрямую</button>
               <button class="ghost-btn" type="button" id="external-player-retry-btn">Попробовать ещё раз</button>
             </div>
 
@@ -665,11 +676,6 @@
           </div>
 
           <div class="side-pane">
-            <section class="side-card">
-              <div class="detail-label">Серии</div>
-              <div class="episodes-list" id="episodes-list"></div>
-            </section>
-
             <section class="side-card">
               <div class="detail-label">Команда релиза</div>
               <div class="crew-list" id="crew-list"></div>

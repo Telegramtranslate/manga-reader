@@ -43,9 +43,9 @@
   <link rel="preconnect" href="https://kodik-api.com" crossorigin>
   <link rel="preconnect" href="https://kodikplayer.com" crossorigin>
   <link rel="preconnect" href="https://apis.google.com" crossorigin>
-  <link rel="preload" href="/style.css?v=5311ce3e33" as="style">
-  <link rel="preload" href="/app.min.js?v=4a1503a7db" as="script">
-  <link rel="stylesheet" href="/style.css?v=5311ce3e33">
+  <link rel="preload" href="/style.css?v=5819ff3817" as="style">
+  <link rel="preload" href="/app.min.js?v=c170d51cbc" as="script">
+  <link rel="stylesheet" href="/style.css?v=5819ff3817">
   <script id="structured-data" type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -83,6 +83,14 @@
 </head>
 
 <body>
+  <script>
+    window.va =
+      window.va ||
+      function () {
+        (window.vaq = window.vaq || []).push(arguments);
+      };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
   <div class="page-glow" aria-hidden="true"></div>
 
   <div class="site-shell">
@@ -122,9 +130,11 @@
               <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
             </button>
             <button class="ghost-btn menu-btn" type="button" id="quick-menu-btn" aria-label="Меню" aria-expanded="false" aria-controls="quick-menu">
-              <span class="menu-btn__line"></span>
-              <span class="menu-btn__line"></span>
-              <span class="menu-btn__line"></span>
+              <span class="menu-btn__icon" aria-hidden="true">
+                <span class="menu-btn__line"></span>
+                <span class="menu-btn__line"></span>
+                <span class="menu-btn__line"></span>
+              </span>
             </button>
             <section class="notification-popover" id="notification-popover" hidden aria-label="Уведомления">
               <div class="notification-popover__head">
@@ -350,11 +360,6 @@
                     <option value="">Все жанры</option>
                   </select>
                 </label>
-              </div>
-
-              <div class="catalog-filters-panel__chips">
-                <div class="section-kicker">Быстрый жанр</div>
-                <div class="genre-chip-row" id="catalog-genre-chips" aria-label="Быстрый фильтр по жанрам"></div>
               </div>
             </aside>
 
@@ -585,7 +590,9 @@
     <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
     <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
-      <button class="drawer-close" type="button" id="drawer-close" aria-label="Закрыть">×</button>
+      <button class="drawer-close" type="button" id="drawer-close" aria-label="Закрыть">
+        <span class="drawer-close__icon" aria-hidden="true"></span>
+      </button>
 
       <div class="drawer-scroll">
         <section class="detail-hero">
@@ -632,6 +639,11 @@
               <div class="quality-switch" id="quality-switch"></div>
             </div>
 
+            <section class="episodes-inline">
+              <div class="detail-label">Серии</div>
+              <div class="episodes-list episodes-list--inline" id="episodes-list"></div>
+            </section>
+
             <div class="player-surface">
               <video id="anime-player" class="anime-player" controls playsinline preload="metadata"></video>
               <iframe
@@ -649,7 +661,6 @@
 
             <p class="player-note" id="player-note">Выберите релиз и серию справа.</p>
             <div class="external-player-actions" id="external-player-actions" hidden>
-              <button class="ghost-btn" type="button" id="external-player-open-btn">Открыть источник напрямую</button>
               <button class="ghost-btn" type="button" id="external-player-retry-btn">Попробовать ещё раз</button>
             </div>
 
@@ -665,11 +676,6 @@
           </div>
 
           <div class="side-pane">
-            <section class="side-card">
-              <div class="detail-label">Серии</div>
-              <div class="episodes-list" id="episodes-list"></div>
-            </section>
-
             <section class="side-card">
               <div class="detail-label">Команда релиза</div>
               <div class="crew-list" id="crew-list"></div>
@@ -812,7 +818,7 @@
     </article>
   </template>
 
-<script src="/api/runtime-config.js?v=bb3875ad09" defer></script>
+<script src="/api/runtime-config.js?v=95c5ab492a" defer></script>
 <script src="/app-constants.min.js?v=7f5bd79a51" defer></script>
 <script src="/firebase-config.min.js?v=d0b5fb95e7" defer></script>
 <script src="/cloud-sync.min.js?v=2c616fb080" defer></script>
@@ -820,7 +826,7 @@
 <script src="/app-seo.min.js?v=89e2c3501b" defer></script>
 <script src="/app-stats.min.js?v=0dba658ff4" defer></script>
 <script src="/app-player-utils.min.js?v=25dfbdad16" defer></script>
-<script src="/app.min.js?v=4a1503a7db" defer></script>
+<script src="/app.min.js?v=c170d51cbc" defer></script>
 <script src="/auth.min.js?v=1cc27a4b99" defer></script>
 <script src="/watch-features.min.js?v=310d11661c" defer></script>
 </body>
