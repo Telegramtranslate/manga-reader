@@ -2019,7 +2019,7 @@ button {
   bottom: calc(12px + env(safe-area-inset-bottom));
   z-index: 40;
   display: none;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   padding: 10px;
   border: 1px solid var(--line);
@@ -4551,26 +4551,6 @@ body.is-dialog-open {
   gap: 10px;
 }
 
-.anime-card--history {
-  display: grid;
-  gap: 10px;
-}
-
-.anime-card__history-actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: auto;
-  position: relative;
-  z-index: 2;
-}
-
-.anime-card__remove {
-  position: static;
-  z-index: auto;
-  margin-top: 6px;
-}
-
 .user-menu {
   display: none !important;
 }
@@ -4629,7 +4609,7 @@ body.is-dialog-open {
   width: 18px;
   height: 2px;
   border-radius: 999px;
-  background: currentColor;
+  background: var(--text-strong);
 }
 
 .drawer-close__icon::before {
@@ -4751,16 +4731,6 @@ body.is-dialog-open {
 
 .external-player-actions {
   justify-content: flex-start;
-}
-
-.anime-card--history .anime-card__remove {
-  position: static !important;
-  margin-top: 0 !important;
-}
-
-.anime-card--history .anime-card__history-actions {
-  margin-top: 10px;
-  padding: 0 4px 4px;
 }
 
 @media (max-width: 900px) {

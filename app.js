@@ -1,4 +1,4 @@
-﻿const MEDIA_PROXY_BASE = "/api/anilibria-stream";
+const MEDIA_PROXY_BASE = "/api/anilibria-stream";
 const IMAGE_PROXY_BASE = "/api/anilibria-image";
 const KODIK_API_BASE = "/api/kodik";
 const APP_CONSTANTS = window.ANIMECLOUD_CONSTANTS || {};
@@ -2065,10 +2065,7 @@ function decorateHistoryCardControls(node, release) {
     removeProgressHistoryEntry(release.alias, release.title).catch(console.error);
   });
 
-  const actions = document.createElement("div");
-  actions.className = "anime-card__history-actions";
-  actions.appendChild(removeButton);
-  node.appendChild(actions);
+  node.appendChild(removeButton);
   return node;
 }
 
