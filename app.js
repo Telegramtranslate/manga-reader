@@ -4823,7 +4823,7 @@ function createEpisodeNode(episode) {
   button.dataset.ordinal = String(episode.ordinal || "");
   button.title = `${fullLabel} • ${durationLabel}`;
   button.setAttribute("aria-label", `${fullLabel}. ${durationLabel}`);
-  button.innerHTML = `<strong>${escapeHtml(compactLabel)}</strong><span>${escapeHtml(fullLabel)}</span><small>${escapeHtml(durationLabel)}</small>`;
+  button.innerHTML = `<strong>${escapeHtml(compactLabel)}</strong><span>${escapeHtml(durationLabel)}</span><small>${escapeHtml(durationLabel)}</small>`;
   button.addEventListener("click", () => selectEpisode(episode).catch(console.error));
   return button;
 }
@@ -4868,9 +4868,32 @@ function renderEpisodes(release) {
     );
     return;
   }
-  scheduleChunkRender(els.episodesList, episodes, createEpisodeNode, {
+  
+  const displayLimit = 12;
+  const initialEpisodes = episodes.slice(0, displayLimit);
+  const remainingEpisodes = episodes.slice(displayLimit);
+
+  scheduleChunkRender(els.episodesList, initialEpisodes, createEpisodeNode, {
     batchSize: shouldPreferFastStart() ? 4 : 10,
     onComplete: () => {
+      if (remainingEpisodes.length > 0) {
+        const moreBtn = document.createElement("button");
+        moreBtn.type = "button";
+        moreBtn.className = "episode-btn";
+        moreBtn.innerHTML = `<strong>...</strong><span>Ещё ${remainingEpisodes.length}</span>`;
+        moreBtn.addEventListener("click", () => {
+          moreBtn.remove();
+          scheduleChunkRender(els.episodesList, remainingEpisodes, createEpisodeNode, {
+            batchSize: 10,
+            onComplete: () => {
+              if (state.currentAnime?.alias === release.alias) {
+                decorateEpisodeProgress(release);
+              }
+            }
+          });
+        });
+        els.episodesList.appendChild(moreBtn);
+      }
       if (state.currentAnime?.alias === release.alias) {
         decorateEpisodeProgress(release);
       }
@@ -5067,7 +5090,7 @@ async function selectEpisode(episode, options = {}) {
   syncRenderedEpisodeState();
   syncRenderedSourceState();
   els.playerTitle.textContent = `${episode.ordinal ? `${episode.ordinal} серия` : "Фильм"}${
-    episode.name ? ` • ${episode.name}` : ""
+    episode.name && episode.name !== `${episode.ordinal} серия` ? ` • ${episode.name}` : ""
   }`;
   window.dispatchEvent(
     new CustomEvent("animecloud:episode-selected", {
