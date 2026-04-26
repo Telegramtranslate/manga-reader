@@ -1081,6 +1081,10 @@ button {
   border: 1px solid var(--line);
   background: rgba(18, 29, 47, 0.88);
   color: var(--text-strong);
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
 }
 
 .tag,
@@ -4258,12 +4262,20 @@ body {
   position: relative;
 }
 
+.anime-card__history-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 10px;
+}
+
 .anime-card__remove {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 3;
+  position: static;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 8px 12px;
+  min-height: 36px;
   border: 1px solid rgba(243, 156, 18, 0.24);
   border-radius: 999px;
   background: rgba(10, 14, 24, 0.92);

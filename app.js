@@ -805,7 +805,14 @@ function refreshCustomCatalogSelects() {
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const uniqueStrings = (values = []) => [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
+const EXCLUDED_GENRE_KEYS = new Set(["\u0430\u043d\u0438\u043c\u0435"]);
 const GENRE_LABEL_ALIASES = new Map([
+  ["\u0431\u043e\u0435\u0432\u0438\u043a", "\u042d\u043a\u0448\u0435\u043d"],
+  ["\u0432\u043e\u0435\u043d\u043d\u044b\u0439", "\u0412\u043e\u0435\u043d\u043d\u043e\u0435"],
+  ["\u0434\u0437\u0435\u0441\u0435\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["\u0434\u0437\u0435\u0441\u044d\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["\u0434\u0437\u0451\u0441\u0435\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["\u0434\u0437\u0451\u0441\u044d\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
   ["сенен", "Сёнен"],
   ["сёнен", "Сёнен"],
   ["седзе", "Сёдзё"],
@@ -1103,6 +1110,15 @@ function normalizePreparedRelease(item) {
   const rawTitle = String(item?.title || "").trim() || "Без названия";
   const displayTitle = prettifyReleaseTitle(rawTitle);
   const rawOriginalTitle = String(item?.originalTitle || "").trim();
+  const normalizedGenres = sanitizeReleaseGenres(
+    Array.isArray(item?.genres) ? item.genres : [],
+    [
+      rawTitle,
+      displayTitle,
+      rawOriginalTitle,
+      ...(Array.isArray(item?.alternateTitles) ? item.alternateTitles : [])
+    ]
+  );
 
   return {
     provider: String(item?.provider || "kodik"),
@@ -1141,7 +1157,7 @@ function normalizePreparedRelease(item) {
     cardPosterDirect,
     thumb: proxiedImageUrl(thumbDirect),
     thumbDirect,
-    genres: normalizeGenreList(Array.isArray(item?.genres) ? item.genres : []),
+    genres: normalizedGenres,
     episodesTotal: Number(item?.episodesTotal || episodes.length || 0),
     averageDuration: Number(item?.averageDuration || 0),
     favorites: Number(item?.favorites || 0),
@@ -1248,6 +1264,31 @@ function normalizeGenreList(values = []) {
   });
 
   return [...map.values()];
+}
+
+function isAllowedGenreLabel(value) {
+  const key = normalizeGenreKey(value);
+  return Boolean(key) && !EXCLUDED_GENRE_KEYS.has(key);
+}
+
+function sanitizeReleaseGenres(values = [], titleVariants = []) {
+  const blockedKeys = new Set(
+    uniqueStrings(Array.isArray(titleVariants) ? titleVariants : [titleVariants])
+      .map(normalizeGenreKey)
+      .filter(Boolean)
+  );
+
+  return normalizeGenreList(values).filter((label) => {
+    const key = normalizeGenreKey(label);
+    return key && !EXCLUDED_GENRE_KEYS.has(key) && !blockedKeys.has(key);
+  });
+}
+
+function normalizeSelectedCatalogGenres(values = [], options = state.genreOptions) {
+  const availableKeys = new Set((options || []).map(normalizeGenreKey).filter(Boolean));
+  return normalizeGenreList(Array.isArray(values) ? values : [values]).filter((label) =>
+    availableKeys.has(normalizeGenreKey(label))
+  );
 }
 
 function getReleaseGenreKeys(release) {
@@ -2074,7 +2115,18 @@ function decorateHistoryCardControls(node, release) {
     removeProgressHistoryEntry(release.alias, release.title).catch(console.error);
   });
 
-  node.appendChild(removeButton);
+  const body = node.querySelector(".anime-card__body");
+  if (body) {
+    let toolbar = body.querySelector(".anime-card__history-toolbar");
+    if (!toolbar) {
+      toolbar = document.createElement("div");
+      toolbar.className = "anime-card__history-toolbar";
+      body.prepend(toolbar);
+    }
+    toolbar.replaceChildren(removeButton);
+  } else {
+    node.appendChild(removeButton);
+  }
   return node;
 }
 
@@ -2240,11 +2292,26 @@ function setupInfiniteScroll() {
 }
 
 function registerGenres(releases) {
+  const previousPrimaryGenre = state.catalogGenre;
+  const previousExtraGenresKey = JSON.stringify(state.catalogGenres || []);
   const sorted = normalizeGenreList([
     ...state.genreOptions,
     ...(releases || []).flatMap((release) => release.genres || [])
-  ]).sort((left, right) => left.localeCompare(right, "ru"));
+  ])
+    .filter(isAllowedGenreLabel)
+    .sort((left, right) => left.localeCompare(right, "ru"));
+
+  const normalizedSelectedGenres = normalizeSelectedCatalogGenres(
+    [state.catalogGenre, ...(Array.isArray(state.catalogGenres) ? state.catalogGenres : [])],
+    sorted
+  );
+  state.catalogGenre = normalizedSelectedGenres[0] || "";
+  state.catalogGenres = normalizedSelectedGenres.slice(1);
+  const selectionChanged =
+    previousPrimaryGenre !== state.catalogGenre ||
+    previousExtraGenresKey !== JSON.stringify(state.catalogGenres || []);
   if (
+    !selectionChanged &&
     sorted.length === state.genreOptions.length &&
     sorted.every((value, index) => value === state.genreOptions[index])
   ) {
@@ -3809,6 +3876,9 @@ function renderCatalogControls() {
     els.catalogGenre.appendChild(node);
   });
 
+  state.catalogGenre = normalizeSelectedCatalogGenres([state.catalogGenre], state.genreOptions)[0] || "";
+  state.catalogGenres = normalizeSelectedCatalogGenres(state.catalogGenres, state.genreOptions);
+
   renderGenreChips();
   refreshCustomCatalogSelects();
 }
@@ -4408,6 +4478,12 @@ function createAnimeCard(release, index, options = {}) {
     .join(" • ");
 
   poster.src = cardSrc;
+  const metaNode = node.querySelector(".anime-card__meta");
+  if (metaNode) {
+    metaNode.textContent = [release.type, release.year, `${release.episodesTotal || "?"} \u044d\u043f.`]
+      .filter(Boolean)
+      .join(" • ");
+  }
   poster.alt = release.title;
   poster.loading = shouldPrioritize ? "eager" : "lazy";
   poster.decoding = "async";
@@ -4425,6 +4501,7 @@ function createAnimeCard(release, index, options = {}) {
 
   action.href = getAnimePath(release.alias);
   action.dataset.releaseAlias = release.alias;
+  action.setAttribute("aria-label", `${release.title}: \u043e\u0442\u043a\u0440\u044b\u0442\u044c \u0440\u0435\u043b\u0438\u0437`);
   action.setAttribute("aria-label", `${release.title}: открыть релиз`);
 
   const decoratedNode = decorateCardProgress(node, release);

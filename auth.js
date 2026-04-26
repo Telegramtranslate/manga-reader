@@ -291,7 +291,6 @@
           getRedirectResult,
           getAuth,
           indexedDBLocalPersistence,
-          initializeAuth,
           inMemoryPersistence,
           GoogleAuthProvider,
           onAuthStateChanged,
@@ -313,26 +312,7 @@
         browserSessionPersistence,
         inMemoryPersistence
       ].filter(Boolean);
-
-      let auth = null;
-      if (typeof initializeAuth === "function") {
-        try {
-          auth = initializeAuth(app, { persistence: persistenceChain });
-        } catch (error) {
-          const code = String(error?.code || "");
-          const message = String(error?.message || "").toLowerCase();
-          if (
-            code === "auth/already-initialized" ||
-            (message.includes("already") && message.includes("initialized"))
-          ) {
-            auth = getAuth(app);
-          } else {
-            throw error;
-          }
-        }
-      } else {
-        auth = getAuth(app);
-      }
+      const auth = getAuth(app);
 
       if (auth && typeof setPersistence === "function" && !auth._initialPersistenceSet) {
         for (const persistence of persistenceChain) {
