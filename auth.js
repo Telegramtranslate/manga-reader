@@ -51,7 +51,8 @@
     googleLoading: false,
     ready: false,
     redirectResolving: false,
-    redirectGraceUntil: 0
+    redirectGraceUntil: 0,
+    redirectCleanupTimer: null
   };
 
   const firebaseState = {
@@ -175,7 +176,24 @@
     authState.redirectGraceUntil = Date.now() + durationMs;
   }
 
+  function scheduleGoogleRedirectCleanup(delayMs = 30000) {
+    if (authState.redirectCleanupTimer) {
+      clearTimeout(authState.redirectCleanupTimer);
+    }
+    authState.redirectCleanupTimer = setTimeout(() => {
+      authState.redirectCleanupTimer = null;
+      if (!authState.session?.localId && isGoogleRedirectPending()) {
+        setGoogleRedirectPending(false);
+        clearGoogleRedirectGrace();
+      }
+    }, delayMs);
+  }
+
   function clearGoogleRedirectGrace() {
+    if (authState.redirectCleanupTimer) {
+      clearTimeout(authState.redirectCleanupTimer);
+      authState.redirectCleanupTimer = null;
+    }
     authState.redirectResolving = false;
     authState.redirectGraceUntil = 0;
   }
@@ -329,6 +347,7 @@
         async (user) => {
           try {
             authState.ready = true;
+            const redirectFlowActive = isGoogleRedirectPending() || isGoogleRedirectGraceActive();
             if (!user) {
               if (isGoogleRedirectPending()) {
                 return;
@@ -341,6 +360,11 @@
               clearGoogleRedirectGrace();
             }
             await applyFirebaseUserSession(user);
+            if (user && redirectFlowActive) {
+              setGoogleRedirectPending(false);
+              closeAuthModal();
+              window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
+            }
           } catch (error) {
             console.error(error);
             writeSession(null);
@@ -588,7 +612,7 @@
     }
 
     if (redirectWasPending) {
-      const redirectedUser = await waitForRedirectUser(auth, onAuthStateChanged, 12000);
+      const redirectedUser = await waitForRedirectUser(auth, onAuthStateChanged, 25000);
       if (redirectedUser) {
         await applyFirebaseUserSession(redirectedUser);
         authState.redirectResolving = false;
@@ -600,8 +624,9 @@
     }
 
     if (redirectWasPending) {
-      setGoogleRedirectPending(false);
-      clearGoogleRedirectGrace();
+      authState.redirectResolving = true;
+      startGoogleRedirectGrace(30000);
+      scheduleGoogleRedirectCleanup(30000);
     }
 
     return false;
@@ -705,6 +730,9 @@
     renderGoogleButton();
 
     try {
+      if (isGoogleRedirectPending()) {
+        await bootstrapAuthObserver().catch(console.error);
+      }
       const handledRedirect = await finalizeGoogleRedirect();
       if (handledRedirect) {
         closeAuthModal();

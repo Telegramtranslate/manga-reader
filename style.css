@@ -4820,3 +4820,170 @@ body.is-dialog-open {
 :root[data-theme="light"] .rating-chip.is-active {
   color: #fff7ec;
 }
+
+:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .section-shell,
+:root[data-theme="light"] .stats-row,
+:root[data-theme="light"] .comments-card,
+:root[data-theme="light"] .profile-card,
+:root[data-theme="light"] .drawer-panel,
+:root[data-theme="light"] .player-pane {
+  background: linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(245, 236, 225, 0.96)) !important;
+  border-color: rgba(126, 94, 61, 0.14) !important;
+  box-shadow: 0 20px 38px rgba(114, 78, 36, 0.08) !important;
+}
+
+:root[data-theme="light"] .brand-column {
+  background:
+    radial-gradient(circle at top left, rgba(240, 154, 42, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(245, 236, 225, 0.96)) !important;
+  border-color: rgba(126, 94, 61, 0.14) !important;
+}
+
+:root[data-theme="light"] .brand-btn,
+:root[data-theme="light"] .hero-copy h1,
+:root[data-theme="light"] .section-shell .section-head h2,
+:root[data-theme="light"] .section-shell .anime-card__title,
+:root[data-theme="light"] .profile-card strong,
+:root[data-theme="light"] .profile-card .profile-user__meta strong,
+:root[data-theme="light"] .profile-card .profile-stat strong,
+:root[data-theme="light"] .stat-card span,
+:root[data-theme="light"] .player-toolbar h3 {
+  color: #4e321e !important;
+}
+
+:root[data-theme="light"] .brand-sub,
+:root[data-theme="light"] .hero-copy p,
+:root[data-theme="light"] .section-shell .section-summary,
+:root[data-theme="light"] .section-shell .anime-card__meta,
+:root[data-theme="light"] .section-shell .stat-card small,
+:root[data-theme="light"] .profile-card span,
+:root[data-theme="light"] .profile-card .profile-user__meta span,
+:root[data-theme="light"] .profile-card .profile-stat span,
+:root[data-theme="light"] .anime-card__progress-meta,
+:root[data-theme="light"] .episode-btn span,
+:root[data-theme="light"] .episode-btn small {
+  color: #7f6750 !important;
+}
+
+:root[data-theme="light"] .topbar .tab-btn,
+:root[data-theme="light"] .topbar .ghost-btn,
+:root[data-theme="light"] .topbar .mobile-nav__btn,
+:root[data-theme="light"] .topbar .user-chip,
+:root[data-theme="light"] .topbar .search-box,
+:root[data-theme="light"] .topbar .notification-btn,
+:root[data-theme="light"] .topbar .menu-btn {
+  background: rgba(255, 255, 255, 0.76) !important;
+  border-color: rgba(126, 94, 61, 0.12) !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="light"] .topbar .tab-btn,
+:root[data-theme="light"] .topbar .ghost-btn,
+:root[data-theme="light"] .topbar .mobile-nav__btn,
+:root[data-theme="light"] .topbar .user-chip__text strong,
+:root[data-theme="light"] .topbar .user-chip__text small,
+:root[data-theme="light"] .topbar .search-box input,
+:root[data-theme="light"] .topbar .search-box__label,
+:root[data-theme="light"] .topbar .notification-btn,
+:root[data-theme="light"] .topbar .menu-btn {
+  color: #4e321e !important;
+}
+
+:root[data-theme="light"] .topbar .search-box input::placeholder {
+  color: #917965 !important;
+}
+
+:root[data-theme="light"] .topbar .tab-btn.is-active,
+:root[data-theme="light"] .topbar .ghost-btn.is-active,
+:root[data-theme="light"] .topbar .mobile-nav__btn.is-active {
+  color: #3a2412 !important;
+  background: linear-gradient(180deg, rgba(255, 206, 126, 0.88), rgba(240, 154, 42, 0.38)) !important;
+  border-color: rgba(216, 137, 26, 0.26) !important;
+}
+
+.hero-poster-frame,
+.anime-card__poster-wrap {
+  display: grid;
+  place-items: center;
+}
+
+.hero-poster,
+.detail-poster,
+.anime-card__poster,
+.schedule-item__poster,
+.anime-grid--rail .anime-card__poster {
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+
+.hero-poster,
+.detail-poster,
+.anime-card__poster {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+@media (max-width: 860px) {
+  .topbar {
+    position: relative;
+  }
+
+  .brand-column {
+    padding-right: 72px;
+  }
+
+  .auth-slot {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: auto !important;
+    grid-column: auto !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    z-index: 8;
+  }
+
+  .auth-slot .menu-btn,
+  .auth-slot .notification-btn {
+    align-self: center !important;
+    margin: 0 !important;
+  }
+
+  .menu-btn {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    border-radius: 18px;
+  }
+
+  .menu-btn__icon {
+    width: 20px;
+    min-width: 20px;
+    height: 18px;
+    gap: 4px;
+  }
+
+  .menu-btn__line {
+    width: 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-column {
+    padding-right: 68px;
+  }
+
+  .auth-slot {
+    top: 12px;
+    right: 12px;
+  }
+
+  .menu-btn {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+  }
+}

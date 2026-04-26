@@ -528,6 +528,11 @@ function mountFloatingUi() {
   document.getElementById("resume-clear-btn")?.remove();
   document.getElementById("rating-box")?.remove();
   document.getElementById("settings-autoplay-next")?.closest(".settings-toggle")?.remove();
+  const sidePane = document.querySelector(".side-pane");
+  if (sidePane) {
+    sidePane.remove();
+    els.crewList = null;
+  }
   const sourceWrap = document.querySelector(".source-wrap");
   if (sourceWrap) {
     sourceWrap.remove();
