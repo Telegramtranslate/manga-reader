@@ -216,6 +216,10 @@
     setTimeout(callback, 220);
   }
 
+  function isLikelyMobileDevice() {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(String(navigator.userAgent || ""));
+  }
+
   function normalizeFirebaseUser(user, providerId = "", claims = {}) {
     const primaryProvider =
       providerId ||
@@ -236,6 +240,7 @@
 
   async function ensureFirebaseAppCheck(app) {
     if (!AUTH_APP_CHECK_ENABLED || !AUTH_APP_CHECK_SITE_KEY) return null;
+    if (isLikelyMobileDevice() || isGoogleRedirectPending() || isGoogleRedirectGraceActive()) return null;
     if (globalThis.__animeCloudAppCheckPromise) {
       return globalThis.__animeCloudAppCheckPromise;
     }
@@ -280,10 +285,14 @@
       const [
         { initializeApp, getApp, getApps },
         {
+          browserSessionPersistence,
           browserLocalPersistence,
           createUserWithEmailAndPassword,
           getRedirectResult,
           getAuth,
+          indexedDBLocalPersistence,
+          initializeAuth,
+          inMemoryPersistence,
           GoogleAuthProvider,
           onAuthStateChanged,
           setPersistence,
@@ -298,14 +307,50 @@
       ]);
 
       const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
-      const auth = getAuth(app);
-      await setPersistence(auth, browserLocalPersistence).catch(() => {});
+      const persistenceChain = [
+        indexedDBLocalPersistence,
+        browserLocalPersistence,
+        browserSessionPersistence,
+        inMemoryPersistence
+      ].filter(Boolean);
 
-      scheduleIdle(() => {
-        ensureFirebaseAppCheck(app).catch((error) => {
-          console.warn("AnimeCloud Auth App Check init skipped", error);
+      let auth = null;
+      if (typeof initializeAuth === "function") {
+        try {
+          auth = initializeAuth(app, { persistence: persistenceChain });
+        } catch (error) {
+          const code = String(error?.code || "");
+          const message = String(error?.message || "").toLowerCase();
+          if (
+            code === "auth/already-initialized" ||
+            (message.includes("already") && message.includes("initialized"))
+          ) {
+            auth = getAuth(app);
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        auth = getAuth(app);
+      }
+
+      if (auth && typeof setPersistence === "function" && !auth._initialPersistenceSet) {
+        for (const persistence of persistenceChain) {
+          try {
+            await setPersistence(auth, persistence);
+            auth._initialPersistenceSet = true;
+            break;
+          } catch {}
+        }
+      }
+
+      if (!isLikelyMobileDevice()) {
+        scheduleIdle(() => {
+          ensureFirebaseAppCheck(app).catch((error) => {
+            console.warn("AnimeCloud Auth App Check init skipped", error);
+          });
         });
-      });
+      }
 
       firebaseState.auth = auth;
       firebaseState.signOut = signOut;
@@ -511,8 +556,7 @@
       const { auth, GoogleAuthProvider, signInWithPopup, signInWithRedirect } = context;
       const provider = createGoogleProvider(GoogleAuthProvider);
       const preferRedirect =
-        /Android|iPhone|iPad|iPod|Mobile/i.test(String(navigator.userAgent || "")) ||
-        window.matchMedia?.("(display-mode: standalone)")?.matches;
+        isLikelyMobileDevice() || window.matchMedia?.("(display-mode: standalone)")?.matches;
 
       if (!preferRedirect) {
         try {
@@ -559,6 +603,13 @@
 
   async function waitForRedirectUser(auth, onAuthStateChanged, timeoutMs = 6000) {
     if (auth?.currentUser) return auth.currentUser;
+
+    if (typeof auth?.authStateReady === "function") {
+      try {
+        await auth.authStateReady();
+      } catch {}
+      if (auth?.currentUser) return auth.currentUser;
+    }
 
     return new Promise((resolve) => {
       let settled = false;
@@ -612,7 +663,7 @@
     }
 
     if (redirectWasPending) {
-      const redirectedUser = await waitForRedirectUser(auth, onAuthStateChanged, 25000);
+      const redirectedUser = await waitForRedirectUser(auth, onAuthStateChanged, 40000);
       if (redirectedUser) {
         await applyFirebaseUserSession(redirectedUser);
         authState.redirectResolving = false;
