@@ -602,8 +602,12 @@ button {
 }
 
 .detail-poster {
-  max-width: 260px;
-  margin-inline: auto;
+  width: min(100%, 244px);
+  max-width: 244px;
+  max-height: 366px;
+  margin-inline: 0;
+  justify-self: start;
+  align-self: start;
   border-radius: 24px;
 }
 
@@ -1415,13 +1419,18 @@ button {
   grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
   gap: 22px;
   margin-bottom: 22px;
+  align-items: start;
 }
 
 .detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 390px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+}
+
+.side-pane {
+  display: none !important;
 }
 
 .player-pane,
@@ -3594,7 +3603,8 @@ body {
   .detail-poster {
     width: min(176px, 46vw);
     max-width: none;
-    aspect-ratio: 1 / 1;
+    max-height: 252px;
+    aspect-ratio: 0.7 / 1;
     border-radius: 22px;
     justify-self: center;
     object-position: center 22%;
@@ -3639,6 +3649,8 @@ body {
 
   .detail-poster {
     width: min(160px, 50vw);
+    max-height: 228px;
+    aspect-ratio: 0.7 / 1;
     border-radius: 20px;
   }
 
@@ -4590,7 +4602,11 @@ body.is-dialog-open {
 }
 
 .drawer-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0;
+  color: var(--text-strong);
 }
 
 .drawer-close__icon {

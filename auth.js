@@ -49,7 +49,9 @@
     tab: "login",
     session: null,
     googleLoading: false,
-    ready: false
+    ready: false,
+    redirectResolving: false,
+    redirectGraceUntil: 0
   };
 
   const firebaseState = {
@@ -145,6 +147,7 @@
     try {
       localStorage.removeItem(AUTH_REDIRECT_PENDING_KEY);
     } catch {}
+    clearGoogleRedirectGrace();
     if (!options.skipFirebaseSignOut && firebaseState.auth && firebaseState.signOut) {
       firebaseState.signOut(firebaseState.auth).catch(() => {});
     }
@@ -166,6 +169,19 @@
     } catch {
       return false;
     }
+  }
+
+  function startGoogleRedirectGrace(durationMs = 12000) {
+    authState.redirectGraceUntil = Date.now() + durationMs;
+  }
+
+  function clearGoogleRedirectGrace() {
+    authState.redirectResolving = false;
+    authState.redirectGraceUntil = 0;
+  }
+
+  function isGoogleRedirectGraceActive() {
+    return authState.redirectResolving || authState.redirectGraceUntil > Date.now();
   }
 
   function getAuthUser() {
@@ -313,8 +329,16 @@
         async (user) => {
           try {
             authState.ready = true;
-            if (!user && isGoogleRedirectPending()) {
-              return;
+            if (!user) {
+              if (isGoogleRedirectPending()) {
+                return;
+              }
+              if (authState.session?.localId && isGoogleRedirectGraceActive()) {
+                return;
+              }
+            }
+            if (user) {
+              clearGoogleRedirectGrace();
             }
             await applyFirebaseUserSession(user);
           } catch (error) {
@@ -491,12 +515,15 @@
         }
       }
 
+      authState.redirectResolving = true;
+      startGoogleRedirectGrace(20000);
       setGoogleRedirectPending(true);
       if (authEls.googleNote) authEls.googleNote.textContent = "Открываем вход через Google…";
       await signInWithRedirect(auth, provider);
       return;
     } catch (error) {
       setGoogleRedirectPending(false);
+      clearGoogleRedirectGrace();
       console.error(error);
       if (authEls.googleNote) authEls.googleNote.textContent = "Не удалось выполнить вход через Google.";
       setStatus(mapAuthError(error), "is-error");
@@ -535,10 +562,17 @@
     const context = await getFirebaseContext();
     if (!context) return false;
 
+    if (redirectWasPending) {
+      authState.redirectResolving = true;
+      startGoogleRedirectGrace(20000);
+    }
+
     const { auth, getRedirectResult, onAuthStateChanged } = context;
     const result = await getRedirectResult(auth);
     if (result?.user) {
       await applyFirebaseUserSession(result.user);
+      authState.redirectResolving = false;
+      startGoogleRedirectGrace(12000);
       setGoogleRedirectPending(false);
       if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
       return true;
@@ -546,15 +580,19 @@
 
     if (redirectWasPending && auth.currentUser) {
       await applyFirebaseUserSession(auth.currentUser);
+      authState.redirectResolving = false;
+      startGoogleRedirectGrace(12000);
       setGoogleRedirectPending(false);
       if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
       return true;
     }
 
     if (redirectWasPending) {
-      const redirectedUser = await waitForRedirectUser(auth, onAuthStateChanged);
+      const redirectedUser = await waitForRedirectUser(auth, onAuthStateChanged, 12000);
       if (redirectedUser) {
         await applyFirebaseUserSession(redirectedUser);
+        authState.redirectResolving = false;
+        startGoogleRedirectGrace(12000);
         setGoogleRedirectPending(false);
         if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход выполнен.";
         return true;
@@ -563,6 +601,7 @@
 
     if (redirectWasPending) {
       setGoogleRedirectPending(false);
+      clearGoogleRedirectGrace();
     }
 
     return false;
@@ -673,6 +712,7 @@
       }
     } catch (error) {
       setGoogleRedirectPending(false);
+      clearGoogleRedirectGrace();
       if (error?.code) {
         setStatus(mapAuthError(error), "is-error");
       }

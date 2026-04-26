@@ -610,6 +610,10 @@ function repairStaticUiText() {
   setStaticText("#notifications-mark-all-btn", STATIC_UI_TEXT.profile.notificationsMarkAll);
   setStaticText("#profile-progress-summary", STATIC_UI_TEXT.profile.historySummary);
   setStaticText("#drawer-close", "×");
+  const drawerCloseButton = document.getElementById("drawer-close");
+  if (drawerCloseButton) {
+    drawerCloseButton.innerHTML = '<span class="drawer-close__icon" aria-hidden="true"></span>';
+  }
   setStaticAttr("#drawer-close", "aria-label", STATIC_UI_TEXT.drawer.close);
   setStaticAttr("#detail-poster", "alt", STATIC_UI_TEXT.drawer.posterAlt);
   setStaticText(".detail-hero .section-kicker", STATIC_UI_TEXT.drawer.kicker);
