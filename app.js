@@ -1147,6 +1147,7 @@ function normalizePreparedRelease(item) {
     sortRating: Number(item?.sortRating || item?.favorites || 0),
     description: item?.description || "Описание пока не заполнено.",
     posterSources,
+    description: buildReleaseDescription(item, normalizedGenres),
     posterCandidateQueue: uniqueStrings(posterSources.map((url) => proxiedImageUrl(url)).filter(Boolean)),
     posterDirectQueue: posterSources,
     poster: proxiedImageUrl(posterDirect),
@@ -1331,6 +1332,23 @@ function getReleaseTitleVariants(release) {
   ])
     .map(normalizeComparableText)
     .filter(Boolean);
+}
+
+function buildReleaseDescription(item = {}, genres = []) {
+  const directDescription = String(item?.description || "").trim();
+  if (directDescription) return directDescription;
+
+  const normalizedGenres = normalizeGenreList(Array.isArray(genres) ? genres : []).filter(isAllowedGenreLabel);
+  const summary = [
+    String(item?.type || "").trim(),
+    String(item?.year || "").trim() ? `${item.year} год` : "",
+    normalizedGenres.length ? `Жанры: ${normalizedGenres.slice(0, 4).join(", ")}` : "",
+    item?.ongoing ? "Сериал выходит." : ""
+  ]
+    .filter(Boolean)
+    .join(". ");
+
+  return summary || "Описание в источнике пока не указано.";
 }
 
 function normalizeVoiceLabel(value) {
@@ -2115,18 +2133,13 @@ function decorateHistoryCardControls(node, release) {
     removeProgressHistoryEntry(release.alias, release.title).catch(console.error);
   });
 
-  const body = node.querySelector(".anime-card__body");
-  if (body) {
-    let toolbar = body.querySelector(".anime-card__history-toolbar");
-    if (!toolbar) {
-      toolbar = document.createElement("div");
-      toolbar.className = "anime-card__history-toolbar";
-      body.prepend(toolbar);
-    }
-    toolbar.replaceChildren(removeButton);
-  } else {
-    node.appendChild(removeButton);
+  let footer = node.querySelector(".anime-card__history-footer");
+  if (!footer) {
+    footer = document.createElement("div");
+    footer.className = "anime-card__history-footer";
+    node.appendChild(footer);
   }
+  footer.replaceChildren(removeButton);
   return node;
 }
 
@@ -3878,6 +3891,9 @@ function renderCatalogControls() {
 
   state.catalogGenre = normalizeSelectedCatalogGenres([state.catalogGenre], state.genreOptions)[0] || "";
   state.catalogGenres = normalizeSelectedCatalogGenres(state.catalogGenres, state.genreOptions);
+  if (els.catalogGenre) {
+    els.catalogGenre.value = state.catalogGenre;
+  }
 
   renderGenreChips();
   refreshCustomCatalogSelects();

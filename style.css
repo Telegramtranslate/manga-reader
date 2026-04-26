@@ -4260,12 +4260,18 @@ body {
 
 .anime-card--history {
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.anime-card__history-toolbar {
+.anime-card--history .anime-card__action {
+  flex: 1 1 auto;
+}
+
+.anime-card__history-footer {
   display: flex;
   justify-content: flex-end;
-  margin: 0 0 10px;
+  padding: 0 14px 14px;
 }
 
 .anime-card__remove {
@@ -4664,6 +4670,7 @@ body.is-dialog-open {
 .catalog-filters-panel .select-control {
   min-width: 178px;
   max-width: 220px;
+  min-height: 58px;
   padding: 10px 14px;
   border-radius: 16px;
   background: rgba(12, 18, 30, 0.9);
@@ -4671,7 +4678,19 @@ body.is-dialog-open {
 
 .catalog-filters-panel .select-control__trigger {
   min-height: 28px;
+  align-items: flex-start;
   font-size: 0.98rem;
+}
+
+.catalog-filters-panel .select-control__value {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.22;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .catalog-filters-panel .select-control__menu {

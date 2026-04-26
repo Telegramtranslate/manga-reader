@@ -761,9 +761,7 @@
     renderGoogleButton();
 
     try {
-      if (isGoogleRedirectPending()) {
-        await bootstrapAuthObserver().catch(console.error);
-      }
+      await bootstrapAuthObserver().catch(console.error);
       const handledRedirect = await finalizeGoogleRedirect();
       if (handledRedirect) {
         closeAuthModal();

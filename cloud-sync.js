@@ -34,6 +34,10 @@ const cloudState = {
   syncRegistrationPromise: null
 };
 
+function isLikelyMobileDevice() {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(String(navigator.userAgent || ""));
+}
+
 function defaultCloudSettings() {
   return {
     autoplayNext: true,
@@ -54,6 +58,7 @@ function isPermissionDeniedError(error) {
 
 async function ensureFirebaseAppCheck(app) {
   if (!CLOUD_APP_CHECK_ENABLED || !CLOUD_APP_CHECK_SITE_KEY) return null;
+  if (isLikelyMobileDevice()) return null;
   if (globalThis.__animeCloudAppCheckPromise) {
     return globalThis.__animeCloudAppCheckPromise;
   }
