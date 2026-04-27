@@ -4266,12 +4266,13 @@ body {
 
 .anime-card--history .anime-card__action {
   flex: 1 1 auto;
+  min-height: auto;
 }
 
 .anime-card__history-footer {
   display: flex;
   justify-content: flex-end;
-  padding: 0 14px 14px;
+  padding: 4px 14px 14px;
 }
 
 .anime-card__remove {
@@ -4289,11 +4290,18 @@ body {
   font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
 }
 
 .anime-card__remove:hover {
   transform: translateY(-1px);
   box-shadow: 0 0 0 1px rgba(122, 225, 255, 0.12), 0 0 18px rgba(122, 225, 255, 0.18);
+}
+
+.anime-card__remove:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .notification-item {

@@ -1983,9 +1983,9 @@ function buildProgressRelease(progress) {
     age: "",
     statusLabel: "Продолжить",
     publishDay: "",
-      poster: progress.poster || "/mc-icon-512.png?v=5",
-      cardPoster: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=5",
-      thumb: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=5",
+    poster: progress.poster || "/mc-icon-512.png?v=5",
+    cardPoster: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=5",
+    thumb: progress.cardPoster || progress.poster || "/mc-icon-512.png?v=5",
     genres: [],
     episodesTotal: progress.episodeOrdinal || 0,
     __progress: progress
@@ -2133,11 +2133,12 @@ function decorateHistoryCardControls(node, release) {
     removeProgressHistoryEntry(release.alias, release.title).catch(console.error);
   });
 
-  let footer = node.querySelector(".anime-card__history-footer");
+  const action = node.querySelector(".anime-card__action");
+  let footer = (action || node).querySelector(".anime-card__history-footer");
   if (!footer) {
     footer = document.createElement("div");
     footer.className = "anime-card__history-footer";
-    node.appendChild(footer);
+    (action || node).appendChild(footer);
   }
   footer.replaceChildren(removeButton);
   return node;
@@ -2152,13 +2153,10 @@ function scheduleProgressUiRefresh() {
     state.progressUiFrame = 0;
 
     if (state.currentView === "profile") {
-      renderContinueWatchingSections();
+      renderProfile();
     }
     if (state.currentAnime) {
       decorateEpisodeProgress(state.currentAnime);
-    }
-    if (state.currentView === "profile") {
-      renderProfile();
     }
   });
 }
@@ -4494,12 +4492,6 @@ function createAnimeCard(release, index, options = {}) {
     .join(" • ");
 
   poster.src = cardSrc;
-  const metaNode = node.querySelector(".anime-card__meta");
-  if (metaNode) {
-    metaNode.textContent = [release.type, release.year, `${release.episodesTotal || "?"} \u044d\u043f.`]
-      .filter(Boolean)
-      .join(" • ");
-  }
   poster.alt = release.title;
   poster.loading = shouldPrioritize ? "eager" : "lazy";
   poster.decoding = "async";
@@ -4517,7 +4509,6 @@ function createAnimeCard(release, index, options = {}) {
 
   action.href = getAnimePath(release.alias);
   action.dataset.releaseAlias = release.alias;
-  action.setAttribute("aria-label", `${release.title}: \u043e\u0442\u043a\u0440\u044b\u0442\u044c \u0440\u0435\u043b\u0438\u0437`);
   action.setAttribute("aria-label", `${release.title}: открыть релиз`);
 
   const decoratedNode = decorateCardProgress(node, release);
