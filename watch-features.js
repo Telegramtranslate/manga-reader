@@ -228,7 +228,7 @@ function getSystemTheme() {
 
 function normalizeTheme(theme) {
   if (theme === "light" || theme === "dark") return theme;
-  return getSystemTheme();
+  return "dark";
 }
 
 function normalizeSettings(settings = {}) {

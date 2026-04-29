@@ -177,6 +177,7 @@ const state = {
   notificationDismissedIds: new Set(),
   notificationPopoverOpen: false,
   quickMenuOpen: false,
+  floatingUiFrame: 0,
   catalogFiltersOpen: false
 };
 
@@ -3124,6 +3125,19 @@ function positionQuickMenu() {
   els.quickMenu.style.left = `${left}px`;
   els.quickMenu.style.right = "auto";
   els.quickMenu.style.width = `${Math.min(width, window.innerWidth - 24)}px`;
+}
+
+function scheduleFloatingUiPosition() {
+  if (state.floatingUiFrame) return;
+  state.floatingUiFrame = requestAnimationFrame(() => {
+    state.floatingUiFrame = 0;
+    if (state.notificationPopoverOpen) {
+      positionNotificationPopover();
+    }
+    if (state.quickMenuOpen) {
+      positionQuickMenu();
+    }
+  });
 }
 
 function closeNotificationPopover() {
@@ -6183,22 +6197,10 @@ function bindEvents() {
   });
 
   window.addEventListener("resize", () => {
-    if (state.notificationPopoverOpen) {
-      positionNotificationPopover();
-    }
-    if (state.quickMenuOpen) {
-      positionQuickMenu();
-    }
+    scheduleFloatingUiPosition();
   });
 
-  window.addEventListener("scroll", () => {
-    if (state.notificationPopoverOpen) {
-      positionNotificationPopover();
-    }
-    if (state.quickMenuOpen) {
-      positionQuickMenu();
-    }
-  }, { passive: true });
+  window.addEventListener("scroll", scheduleFloatingUiPosition, { passive: true });
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();

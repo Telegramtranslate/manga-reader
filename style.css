@@ -5660,3 +5660,248 @@ body::before {
     padding: 13px;
   }
 }
+
+/* Header ergonomics and scroll-performance pass. */
+.top-controls {
+  min-width: 0;
+}
+
+.top-actions {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) auto;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.top-tabs {
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.top-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.auth-slot {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: max-content;
+}
+
+.auth-open-btn {
+  min-height: 56px;
+  min-width: 106px;
+}
+
+.notification-btn,
+.menu-btn {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  padding: 0;
+  flex: 0 0 56px;
+}
+
+.notification-btn__text {
+  display: none !important;
+}
+
+.notification-btn__icon {
+  font-size: 1.18rem;
+}
+
+.search-box {
+  min-width: 0;
+}
+
+.quick-menu,
+.notification-popover {
+  z-index: 80;
+}
+
+.anime-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 420px 210px;
+}
+
+.section-shell {
+  contain: layout paint style;
+}
+
+.section-shell:not(.section-shell--hero) {
+  content-visibility: auto;
+  contain-intrinsic-size: 760px;
+}
+
+.anime-grid {
+  contain: layout paint style;
+}
+
+.anime-card__action,
+.anime-card__poster,
+.ghost-btn,
+.tab-btn,
+.mobile-nav__btn,
+.primary-btn,
+.notification-btn,
+.menu-btn {
+  backface-visibility: hidden;
+}
+
+body.is-scrolling .topbar,
+body.is-scrolling .section-shell,
+body.is-scrolling .drawer-panel,
+body.is-scrolling .player-pane,
+body.is-scrolling .quick-menu,
+body.is-scrolling .notification-popover,
+body.is-scrolling .catalog-filters-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18) !important;
+}
+
+body.is-scrolling .anime-card__action,
+body.is-scrolling .anime-card__poster,
+body.is-scrolling .ghost-btn,
+body.is-scrolling .tab-btn,
+body.is-scrolling .mobile-nav__btn,
+body.is-scrolling .primary-btn,
+body.is-scrolling .notification-btn,
+body.is-scrolling .menu-btn {
+  transition: none !important;
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+@media (hover: none) {
+  .tab-btn:hover,
+  .mobile-nav__btn:hover,
+  .ghost-btn:hover,
+  .notification-btn:hover,
+  .menu-btn:hover,
+  .anime-card__action:hover {
+    transform: none;
+  }
+
+  .anime-card__action:hover .anime-card__poster {
+    transform: none;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .top-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 860px) {
+  .top-controls {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-actions {
+    order: 1;
+    display: block;
+  }
+
+  .top-tabs {
+    order: 2;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+    gap: 10px;
+  }
+
+  .tab-btn {
+    width: 100%;
+    min-height: 52px;
+    justify-content: center;
+  }
+
+  .auth-slot {
+    position: absolute !important;
+    top: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    min-width: 0;
+    grid-column: auto !important;
+  }
+
+  .auth-open-btn {
+    display: none !important;
+  }
+
+  .notification-btn,
+  .menu-btn {
+    width: 50px;
+    min-width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+    border-radius: 18px;
+  }
+
+  .search-box {
+    width: 100%;
+    min-height: 64px;
+    margin-top: 4px;
+  }
+
+  .quick-menu,
+  .notification-popover {
+    max-width: calc(100vw - 24px);
+  }
+
+  .topbar,
+  .section-shell,
+  .hero-card,
+  .stats-row,
+  .drawer-panel,
+  .player-pane {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .top-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .brand-column {
+    padding-right: 116px;
+  }
+
+  .notification-btn,
+  .menu-btn {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+}
