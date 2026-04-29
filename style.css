@@ -4272,7 +4272,11 @@ body {
 .anime-card__history-footer {
   display: flex;
   justify-content: flex-end;
-  padding: 4px 14px 14px;
+  margin-top: auto;
+  padding: 0 14px 14px;
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
 }
 
 .anime-card__remove {
@@ -4291,6 +4295,7 @@ body {
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
+  pointer-events: auto;
   transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
 }
 

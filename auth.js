@@ -535,8 +535,9 @@
       if (!context) throw new Error("Авторизация временно недоступна.");
       const { auth, GoogleAuthProvider, signInWithPopup, signInWithRedirect } = context;
       const provider = createGoogleProvider(GoogleAuthProvider);
+      const userAgent = String(navigator.userAgent || "");
       const preferRedirect =
-        isLikelyMobileDevice() || window.matchMedia?.("(display-mode: standalone)")?.matches;
+        /iPhone|iPad|iPod/i.test(userAgent) || window.matchMedia?.("(display-mode: standalone)")?.matches;
 
       if (!preferRedirect) {
         try {
@@ -554,6 +555,7 @@
           const canFallbackToRedirect =
             popupCode === "auth/popup-blocked" ||
             popupCode === "auth/cancelled-popup-request" ||
+            popupCode === "auth/argument-error" ||
             popupCode === "auth/internal-error" ||
             popupCode === "auth/operation-not-supported-in-this-environment";
 
@@ -791,5 +793,4 @@
     writeSession(readSession(), { broadcast: true });
   });
 })();
-
 

@@ -806,9 +806,17 @@ const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(val
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const uniqueStrings = (values = []) => [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 const EXCLUDED_GENRE_KEYS = new Set(["\u0430\u043d\u0438\u043c\u0435"]);
+const CLIENT_ONLY_CATALOG_GENRE_KEYS = new Set([
+  "\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430",
+  "\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043d\u043e\u0435",
+  "\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043d\u044b\u0439"
+]);
 const GENRE_LABEL_ALIASES = new Map([
   ["\u0431\u043e\u0435\u0432\u0438\u043a", "\u042d\u043a\u0448\u0435\u043d"],
   ["\u0432\u043e\u0435\u043d\u043d\u044b\u0439", "\u0412\u043e\u0435\u043d\u043d\u043e\u0435"],
+  ["\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043d\u043e\u0435", "\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430"],
+  ["\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043d\u044b\u0439", "\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430"],
+  ["short", "\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430"],
   ["\u0434\u0437\u0435\u0441\u0435\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
   ["\u0434\u0437\u0435\u0441\u044d\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
   ["\u0434\u0437\u0451\u0441\u0435\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
@@ -1286,10 +1294,22 @@ function sanitizeReleaseGenres(values = [], titleVariants = []) {
 }
 
 function normalizeSelectedCatalogGenres(values = [], options = state.genreOptions) {
-  const availableKeys = new Set((options || []).map(normalizeGenreKey).filter(Boolean));
-  return normalizeGenreList(Array.isArray(values) ? values : [values]).filter((label) =>
-    availableKeys.has(normalizeGenreKey(label))
-  );
+  const availableKeys = new Set();
+  (options || []).forEach((option) => {
+    const rawKey = normalizeGenreKey(option);
+    const aliasKey = normalizeGenreKey(normalizeGenreLabel(option));
+    if (rawKey) availableKeys.add(rawKey);
+    if (aliasKey) availableKeys.add(aliasKey);
+  });
+
+  return normalizeGenreList(Array.isArray(values) ? values : [values]).filter((label) => {
+    const key = normalizeGenreKey(label);
+    return key && (availableKeys.has(key) || isClientOnlyCatalogGenre(label));
+  });
+}
+
+function isClientOnlyCatalogGenre(value) {
+  return CLIENT_ONLY_CATALOG_GENRE_KEYS.has(normalizeGenreKey(value));
 }
 
 function getReleaseGenreKeys(release) {
@@ -2107,6 +2127,7 @@ async function removeProgressHistoryEntry(alias, title = "") {
 
   if (window.animeCloudWatchState?.removeProgress) {
     await window.animeCloudWatchState.removeProgress(alias);
+    renderContinueWatchingSections();
     return;
   }
 
@@ -2116,6 +2137,7 @@ async function removeProgressHistoryEntry(alias, title = "") {
     localStorage.setItem(WATCH_PROGRESS_KEY, JSON.stringify(progressMap));
   } catch {}
   window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { alias } }));
+  renderContinueWatchingSections();
 }
 
 function decorateHistoryCardControls(node, release) {
@@ -2133,12 +2155,11 @@ function decorateHistoryCardControls(node, release) {
     removeProgressHistoryEntry(release.alias, release.title).catch(console.error);
   });
 
-  const action = node.querySelector(".anime-card__action");
-  let footer = (action || node).querySelector(".anime-card__history-footer");
+  let footer = node.querySelector(":scope > .anime-card__history-footer");
   if (!footer) {
     footer = document.createElement("div");
     footer.className = "anime-card__history-footer";
-    (action || node).appendChild(footer);
+    node.appendChild(footer);
   }
   footer.replaceChildren(removeButton);
   return node;
@@ -2404,7 +2425,14 @@ function mergeUniqueAliases(list, extra = [], aliasSet = null) {
   return merged;
 }
 
-async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
+function releaseMatchesCatalogDeepFilters(release, activeGenres = []) {
+  if (!releaseMatchesCatalogTypeSelection(release, state.catalogType)) return false;
+  if (activeGenres.length && !releaseMatchesGenres(release, activeGenres)) return false;
+  if (state.catalogVoice && !releaseMatchesVoiceFilter(release, state.catalogVoice)) return false;
+  return true;
+}
+
+async function fetchCatalogVoicePage(page, requestOptions, requestToken = "", activeGenres = []) {
   const safePage = Math.max(1, Number(page || 1));
   const cachedPage = state.catalogFilterPageCache.get(safePage);
   if (cachedPage) {
@@ -2437,7 +2465,7 @@ async function fetchCatalogVoicePage(page, requestOptions, requestToken = "") {
       registerGenres(releases);
       registerVoices(releases);
 
-      const matched = releases.filter((release) => releaseMatchesVoiceFilter(release, state.catalogVoice));
+      const matched = releases.filter((release) => releaseMatchesCatalogDeepFilters(release, activeGenres));
       mergeUniqueAliases(state.catalogFilterPool, matched, state.catalogFilterAliasSet);
       state.catalogFilterCursor = rawPage;
       state.catalogFilterExhausted = rawPage >= Math.max(pagination.total_pages || 0, rawPage) || !releases.length;
@@ -4065,6 +4093,8 @@ async function loadCatalog(options = {}) {
     if (els.catalogNextBtn) els.catalogNextBtn.disabled = true;
     const activeGenres = normalizeGenreList([state.catalogGenre, ...state.catalogGenres].filter(Boolean));
     const hasGenreFilters = activeGenres.length > 0;
+    const serverGenres = activeGenres.filter((genre) => !isClientOnlyCatalogGenre(genre));
+    const needsDeepClientGenreFilter = hasGenreFilters && serverGenres.length !== activeGenres.length;
     const hasClientFilters = hasGenreFilters;
     const kodikTypeConfig = getKodikCatalogTypeConfig(state.catalogType);
     const shouldLoadKodik = kodikTypeConfig.enabled;
@@ -4081,13 +4111,15 @@ async function loadCatalog(options = {}) {
     const requestOptions = {
       ttl: 120000,
       ...getKodikSortConfig(state.catalogSort),
-      genres: activeGenres,
+      genres: serverGenres,
       animeKinds: kodikTypeConfig.animeKinds,
       mediaTypes: kodikTypeConfig.mediaTypes
     };
 
     const kodikPayload = shouldLoadKodik
-      ? await fetchKodikDiscover("catalog", requestedPage, GRID_PAGE_SIZE, requestOptions)
+      ? needsDeepClientGenreFilter
+        ? await fetchCatalogVoicePage(requestedPage, requestOptions, requestToken, activeGenres)
+        : await fetchKodikDiscover("catalog", requestedPage, GRID_PAGE_SIZE, requestOptions)
       : {
           items: [],
           pagination: { current_page: requestedPage, total_pages: requestedPage, total: 0 },
