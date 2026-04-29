@@ -50,6 +50,7 @@ const API_RETRY_ATTEMPTS = 3;
 const API_RETRY_BASE_DELAY = 350;
 const API_TIMEOUT_MS = 10000;
 const GRID_PAGE_SIZE = 24;
+const EPISODE_PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE = 260;
 const RENDER_BATCH_SIZE = 8;
 const VOICE_FILTER_PREFETCH_PAGES = 3;
@@ -243,6 +244,9 @@ const els = {
   profileName: document.getElementById("profile-name"),
   profileRoleBadge: document.getElementById("profile-role-badge"),
   profileEmail: document.getElementById("profile-email"),
+  profileNicknameForm: document.getElementById("profile-nickname-form"),
+  profileNicknameInput: document.getElementById("profile-nickname-input"),
+  profileNicknameStatus: document.getElementById("profile-nickname-status"),
   favoritesCount: document.getElementById("favorites-count"),
   favoritesMode: document.getElementById("favorites-mode"),
   notificationsSummary: document.getElementById("notifications-summary"),
@@ -489,7 +493,27 @@ function ensureDynamicInterface() {
     profileProgressGrid.insertAdjacentElement("afterend", shelf);
   }
 
+  const profileMeta = document.querySelector(".profile-user__meta");
+  if (profileMeta && !document.getElementById("profile-nickname-form")) {
+    const nicknameForm = document.createElement("form");
+    nicknameForm.className = "profile-nickname";
+    nicknameForm.id = "profile-nickname-form";
+    nicknameForm.hidden = true;
+    nicknameForm.innerHTML = `
+      <label for="profile-nickname-input">Ник на сайте</label>
+      <div class="profile-nickname__row">
+        <input id="profile-nickname-input" type="text" name="displayName" maxlength="32" autocomplete="nickname" placeholder="Например: Максим" />
+        <button class="ghost-btn" type="submit">Сохранить</button>
+      </div>
+      <small id="profile-nickname-status" class="profile-nickname__status" aria-live="polite"></small>
+    `;
+    profileMeta.insertAdjacentElement("afterend", nicknameForm);
+  }
+
   els.catalogVoice = document.getElementById("catalog-voice");
+  els.profileNicknameForm = document.getElementById("profile-nickname-form");
+  els.profileNicknameInput = document.getElementById("profile-nickname-input");
+  els.profileNicknameStatus = document.getElementById("profile-nickname-status");
   els.profileRecommendationsShell = document.getElementById("profile-recommendations-shell");
   els.profileRecommendationsGrid = document.getElementById("profile-recommendations-grid");
   els.profileRecommendationsSummary = document.getElementById("profile-recommendations-summary");
@@ -2114,30 +2138,30 @@ function renderContinueWatchingSections() {
 }
 
 async function removeProgressHistoryEntry(alias, title = "") {
-  if (!alias) return;
-  const confirmed = await showConfirmDialog({
-    title: "Удалить из истории",
-    message: title
-      ? `Удалить «${title}» из истории просмотра?`
-      : "Удалить этот тайтл из истории просмотра?",
-    confirmLabel: "Удалить",
-    cancelLabel: "Оставить"
-  });
-  if (!confirmed) return;
+  const safeAlias = String(alias || "").trim();
+  if (!safeAlias) return;
 
   if (window.animeCloudWatchState?.removeProgress) {
-    await window.animeCloudWatchState.removeProgress(alias);
+    await window.animeCloudWatchState.removeProgress(safeAlias);
     renderContinueWatchingSections();
+    createToast(
+      "Удалено из истории",
+      title ? `«${title}» убран из истории просмотра.` : "Тайтл убран из истории просмотра."
+    );
     return;
   }
 
   const progressMap = { ...readProgressMap() };
-  delete progressMap[alias];
+  delete progressMap[safeAlias];
   try {
     localStorage.setItem(WATCH_PROGRESS_KEY, JSON.stringify(progressMap));
   } catch {}
-  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { alias } }));
+  window.dispatchEvent(new CustomEvent("animecloud:progress-updated", { detail: { alias: safeAlias } }));
   renderContinueWatchingSections();
+  createToast(
+    "Удалено из истории",
+    title ? `«${title}» убран из истории просмотра.` : "Тайтл убран из истории просмотра."
+  );
 }
 
 function decorateHistoryCardControls(node, release) {
@@ -2148,10 +2172,12 @@ function decorateHistoryCardControls(node, release) {
   removeButton.type = "button";
   removeButton.className = "anime-card__remove";
   removeButton.textContent = "Удалить";
+  removeButton.dataset.historyAlias = release.alias;
+  removeButton.dataset.historyTitle = release.title || "";
   removeButton.setAttribute("aria-label", `Удалить ${release.title} из истории`);
   removeButton.addEventListener("click", (event) => {
     event.preventDefault();
-    event.stopPropagation();
+    event.stopImmediatePropagation();
     removeProgressHistoryEntry(release.alias, release.title).catch(console.error);
   });
 
@@ -2697,6 +2723,26 @@ function loadFavorites() {
   }
 }
 
+function normalizeProfileNickname(value) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 32);
+}
+
+function applyCloudProfile(profile = {}) {
+  const displayName = normalizeProfileNickname(profile.displayName);
+  if (!displayName || !state.authUser?.localId) return;
+  if (normalizeProfileNickname(state.authUser.displayName) === displayName) return;
+  state.authUser = {
+    ...state.authUser,
+    displayName
+  };
+  if (typeof window.updateAuthUserProfile === "function") {
+    window.updateAuthUserProfile({ displayName });
+  }
+}
+
 async function hydrateCloudSessionData(session = state.authUser) {
   if (!session?.localId || !window.animeCloudSync?.hydrateSessionData) return;
 
@@ -2704,6 +2750,9 @@ async function hydrateCloudSessionData(session = state.authUser) {
     const payload = await window.animeCloudSync.hydrateSessionData(session);
     if (Array.isArray(payload?.favorites)) {
       state.favorites = normalizeFavoriteItems(payload.favorites);
+    }
+    if (payload?.profile) {
+      applyCloudProfile(payload.profile);
     }
     renderProfile();
     renderFavoriteButton();
@@ -3472,7 +3521,7 @@ async function markAllNotificationsRead() {
 }
 
 function getTrackedNotificationItems() {
-  return uniqueReleases((Array.isArray(state.favorites) ? state.favorites : []).filter((item) => item?.alias));
+  return uniqueReleases(getListItems("watching").filter((item) => item?.alias));
 }
 
 async function fetchTrackedNotificationReleases(items = [], options = {}) {
@@ -3505,6 +3554,32 @@ async function fetchTrackedNotificationReleases(items = [], options = {}) {
   return uniqueReleases(releases);
 }
 
+function applyLiveLatestReleases(payload, releases = []) {
+  const liveReleases = uniqueReleases(releases);
+  if (!liveReleases.length) return;
+
+  const pagination = extractPagination(payload);
+  registerGenres(liveReleases);
+  registerVoices(liveReleases);
+  state.latest = uniqueReleases([...liveReleases, ...state.latest]).slice(0, Math.max(GRID_PAGE_SIZE, 24));
+  state.latestTotal = Math.max(
+    Number(state.latestTotal || 0),
+    Number(pagination.total || 0),
+    state.latest.length
+  );
+  state.catalogTotal = Math.max(Number(state.catalogTotal || 0), Number(pagination.total || 0), state.catalogItems.length);
+  state.catalogMergedTotal = Math.max(
+    Number(state.catalogMergedTotal || 0),
+    Number(pagination.total || 0),
+    state.catalogTotal
+  );
+
+  if (state.homeLoaded && els.latestGrid) {
+    updateGrid(els.latestGrid, state.latest.slice(0, GRID_PAGE_SIZE), "Свежие релизы пока не найдены.");
+  }
+  updateStats();
+}
+
 async function syncCloudNotifications(options = {}) {
   if (!state.authUser?.localId || !window.animeCloudSync?.syncNotifications) {
     return { items: [], created: [] };
@@ -3521,6 +3596,7 @@ async function syncCloudNotifications(options = {}) {
       { ttl: options.force ? 0 : 120000, retries: 1 }
     );
     const latestReleases = uniqueReleases(buildReleases(latestPayload));
+    applyLiveLatestReleases(latestPayload, latestReleases);
     const trackedItems = getTrackedNotificationItems();
     const trackedReleases =
       options.deep || options.force || !state.notificationPrimed
@@ -3612,6 +3688,41 @@ function setupScrollPerformanceMode() {
   window.addEventListener("scroll", handleScroll, { passive: true });
 }
 
+async function saveProfileNickname(event) {
+  event?.preventDefault?.();
+  if (!state.authUser?.localId) {
+    if (els.profileNicknameStatus) els.profileNicknameStatus.textContent = "Войдите в аккаунт, чтобы сохранить ник.";
+    return;
+  }
+
+  const nickname = normalizeProfileNickname(els.profileNicknameInput?.value || "");
+  if (nickname.length < 2) {
+    if (els.profileNicknameStatus) els.profileNicknameStatus.textContent = "Ник должен быть от 2 до 32 символов.";
+    return;
+  }
+  if (!window.animeCloudSync?.saveProfile) {
+    if (els.profileNicknameStatus) els.profileNicknameStatus.textContent = "Облачный профиль пока недоступен.";
+    return;
+  }
+
+  const submitButton = els.profileNicknameForm?.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  if (els.profileNicknameStatus) els.profileNicknameStatus.textContent = "Сохраняем ник в аккаунте...";
+
+  try {
+    const profile = await window.animeCloudSync.saveProfile(state.authUser, { displayName: nickname });
+    applyCloudProfile(profile || { displayName: nickname });
+    renderProfile();
+    if (els.profileNicknameStatus) els.profileNicknameStatus.textContent = "Ник сохранён в аккаунте.";
+    createToast("Ник обновлён", "Новое имя сохранено в Firebase и подтянется после входа на другом устройстве.");
+  } catch (error) {
+    console.error(error);
+    if (els.profileNicknameStatus) els.profileNicknameStatus.textContent = "Не удалось сохранить ник. Проверьте правила Firestore.";
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+}
+
 function renderProfile() {
   if (!els.favoritesGrid) return;
   const user = state.authUser;
@@ -3627,6 +3738,15 @@ function renderProfile() {
     }
   }
   if (els.profileEmail) els.profileEmail.textContent = user?.email || "Вход не выполнен";
+  if (els.profileNicknameForm) {
+    els.profileNicknameForm.hidden = !user?.localId;
+  }
+  if (els.profileNicknameInput && document.activeElement !== els.profileNicknameInput) {
+    els.profileNicknameInput.value = user?.localId ? normalizeProfileNickname(user.displayName || user.email?.split("@")[0] || "") : "";
+  }
+  if (els.profileNicknameStatus && !user?.localId) {
+    els.profileNicknameStatus.textContent = "";
+  }
   if (els.favoritesCount) els.favoritesCount.textContent = formatNumber(state.favorites.length);
   if (els.favoritesMode) {
     els.favoritesMode.textContent = admin ? String(user?.role || "Админ") : user?.localId ? "Облако" : "Локально";
@@ -4978,6 +5098,32 @@ function renderSourceSwitch(release) {
   scheduleChunkRender(els.sourceSwitch, sources, createSourceNode, { batchSize: 2 });
 }
 
+function appendEpisodeMoreButton(release, episodes, nextIndex) {
+  if (!els.episodesList || nextIndex >= episodes.length) return;
+
+  const remaining = episodes.length - nextIndex;
+  const nextCount = Math.min(EPISODE_PAGE_SIZE, remaining);
+  const moreBtn = document.createElement("button");
+  moreBtn.type = "button";
+  moreBtn.className = "episode-btn episode-btn--more";
+  moreBtn.innerHTML = `<strong>...</strong><span>Показать ещё ${nextCount} из ${remaining}</span>`;
+  moreBtn.addEventListener("click", () => {
+    moreBtn.remove();
+    const chunk = episodes.slice(nextIndex, nextIndex + EPISODE_PAGE_SIZE);
+    const nextCursor = nextIndex + chunk.length;
+    scheduleChunkRender(els.episodesList, chunk, createEpisodeNode, {
+      batchSize: shouldPreferFastStart() ? 4 : 10,
+      onComplete: () => {
+        appendEpisodeMoreButton(release, episodes, nextCursor);
+        if (state.currentAnime?.alias === release.alias) {
+          decorateEpisodeProgress(release);
+        }
+      }
+    });
+  });
+  els.episodesList.appendChild(moreBtn);
+}
+
 function renderEpisodes(release) {
   if (!els.episodesList) return;
   els.episodesList.innerHTML = "";
@@ -4994,31 +5140,13 @@ function renderEpisodes(release) {
     return;
   }
   
-  const displayLimit = 12;
+  const displayLimit = Math.min(12, episodes.length);
   const initialEpisodes = episodes.slice(0, displayLimit);
-  const remainingEpisodes = episodes.slice(displayLimit);
 
   scheduleChunkRender(els.episodesList, initialEpisodes, createEpisodeNode, {
     batchSize: shouldPreferFastStart() ? 4 : 10,
     onComplete: () => {
-      if (remainingEpisodes.length > 0) {
-        const moreBtn = document.createElement("button");
-        moreBtn.type = "button";
-        moreBtn.className = "episode-btn";
-        moreBtn.innerHTML = `<strong>...</strong><span>Ещё ${remainingEpisodes.length}</span>`;
-        moreBtn.addEventListener("click", () => {
-          moreBtn.remove();
-          scheduleChunkRender(els.episodesList, remainingEpisodes, createEpisodeNode, {
-            batchSize: 10,
-            onComplete: () => {
-              if (state.currentAnime?.alias === release.alias) {
-                decorateEpisodeProgress(release);
-              }
-            }
-          });
-        });
-        els.episodesList.appendChild(moreBtn);
-      }
+      appendEpisodeMoreButton(release, episodes, displayLimit);
       if (state.currentAnime?.alias === release.alias) {
         decorateEpisodeProgress(release);
       }
@@ -5829,6 +5957,13 @@ function bindEvents() {
   els.notificationPopoverMarkAllBtn?.addEventListener("click", () => {
     markAllNotificationsRead().catch(console.error);
   });
+  els.profileProgressGrid?.addEventListener("click", (event) => {
+    const button = event.target instanceof HTMLElement ? event.target.closest(".anime-card__remove") : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    removeProgressHistoryEntry(button.dataset.historyAlias || "", button.dataset.historyTitle || "").catch(console.error);
+  });
   els.externalPlayerOpenBtn?.addEventListener("click", () => {
     if (!state.externalPlayerUrl) return;
     const popup = window.open(state.externalPlayerUrl, "_blank", "noopener,noreferrer");
@@ -5875,6 +6010,9 @@ function bindEvents() {
   });
   els.profileRecommendationsRefreshBtn?.addEventListener("click", () => {
     loadPersonalRecommendations({ force: true }).catch(console.error);
+  });
+  els.profileNicknameForm?.addEventListener("submit", (event) => {
+    saveProfileNickname(event).catch(console.error);
   });
 
   els.searchInput?.addEventListener("input", (event) => {

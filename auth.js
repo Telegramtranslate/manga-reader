@@ -208,6 +208,22 @@
 
   window.getAuthUser = getAuthUser;
 
+  function updateAuthUserProfile(patch = {}, options = {}) {
+    if (!authState.session?.localId) return null;
+    const next = decorateSession({
+      ...authState.session,
+      ...patch
+    });
+    authState.session = next;
+    renderAuthState();
+    if (options.broadcast === true) {
+      dispatchAuthState(next);
+    }
+    return next;
+  }
+
+  window.updateAuthUserProfile = updateAuthUserProfile;
+
   function scheduleIdle(callback) {
     if ("requestIdleCallback" in window) {
       window.requestIdleCallback(callback, { timeout: 1800 });
@@ -793,4 +809,3 @@
     writeSession(readSession(), { broadcast: true });
   });
 })();
-

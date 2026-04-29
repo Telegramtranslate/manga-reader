@@ -59,6 +59,22 @@ service cloud.firestore {
         );
     }
 
+    function validProfile(userId) {
+      return ownerBaseShape(userId) &&
+        request.resource.data.keys().hasAll(['uid', 'email', 'item', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'item', 'updatedAt']) &&
+        request.resource.data.item is map &&
+        request.resource.data.item.keys().hasOnly(['displayName']) &&
+        (
+          !('displayName' in request.resource.data.item) ||
+          (
+            request.resource.data.item.displayName is string &&
+            request.resource.data.item.displayName.size() >= 2 &&
+            request.resource.data.item.displayName.size() <= 32
+          )
+        );
+    }
+
     function validNotifications(userId) {
       return ownerBaseShape(userId) &&
         request.resource.data.keys().hasAll(['uid', 'email', 'items', 'updatedAt']) &&
@@ -134,6 +150,7 @@ service cloud.firestore {
         (docId == 'favorites' && validFavorites(userId)) ||
         (docId == 'progress' && validProgress(userId)) ||
         (docId == 'settings' && validSettings(userId)) ||
+        (docId == 'profile' && validProfile(userId)) ||
         (docId == 'notifications' && validNotifications(userId)) ||
         (docId == 'notification_state' && validNotificationState(userId))
       );

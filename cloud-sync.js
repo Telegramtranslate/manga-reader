@@ -45,6 +45,23 @@ function defaultCloudSettings() {
   };
 }
 
+function defaultCloudProfile(session = cloudReadSession()) {
+  return {
+    displayName: String(session?.displayName || session?.email?.split("@")[0] || "").trim().slice(0, 32)
+  };
+}
+
+function normalizeCloudProfile(profile = {}, session = cloudReadSession()) {
+  const fallback = defaultCloudProfile(session);
+  const displayName = String(profile?.displayName || fallback.displayName || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 32);
+  return {
+    displayName
+  };
+}
+
 function sanitizeStoredSession(session) {
   if (!session || typeof session !== "object") return null;
   const { idToken, refreshToken, expiresAt, ...rest } = session;
@@ -740,7 +757,8 @@ async function runHydrateSessionData(session = cloudReadSession()) {
     return {
       favorites: (await cloudReadJson(cloudGuestFavoriteKey(), [], { session: null })) || [],
       progress: (await cloudReadJson(CLOUD_PROGRESS_KEY, {}, { session: null })) || {},
-      settings: (await cloudReadJson(CLOUD_SETTINGS_KEY, defaultCloudSettings(), { session: null })) || defaultCloudSettings()
+      settings: (await cloudReadJson(CLOUD_SETTINGS_KEY, defaultCloudSettings(), { session: null })) || defaultCloudSettings(),
+      profile: defaultCloudProfile(session)
     };
   }
 
@@ -751,10 +769,11 @@ async function runHydrateSessionData(session = cloudReadSession()) {
   const guestComments = await cloudReadJson(CLOUD_COMMENTS_KEY, {}, { forceLocal: true, session: null });
   const localSettings = await cloudReadJson(CLOUD_SETTINGS_KEY, defaultCloudSettings(), { forceLocal: true });
 
-  const [cloudFavoritesDoc, cloudProgressDoc, cloudSettingsDoc] = await Promise.all([
+  const [cloudFavoritesDoc, cloudProgressDoc, cloudSettingsDoc, cloudProfileDoc] = await Promise.all([
     readCloudDoc(["users", uid, "private", "favorites"], { items: [] }),
     readCloudDoc(["users", uid, "private", "progress"], { items: {} }),
-    readCloudDoc(["users", uid, "private", "settings"], { item: defaultCloudSettings() })
+    readCloudDoc(["users", uid, "private", "settings"], { item: defaultCloudSettings() }),
+    readCloudDoc(["users", uid, "private", "profile"], { item: defaultCloudProfile(session) })
   ]);
 
   const mergedFavorites = mergeFavorites(cloudFavoritesDoc?.items || [], localFavorites, guestFavorites);
@@ -764,6 +783,7 @@ async function runHydrateSessionData(session = cloudReadSession()) {
     ...(localSettings || {}),
     ...(cloudSettingsDoc?.item || {})
   };
+  const mergedProfile = normalizeCloudProfile(cloudProfileDoc?.item || {}, session);
 
   const remainingGuestComments = await migrateGuestCommentsToCloud(session, guestComments);
 
@@ -797,13 +817,23 @@ async function runHydrateSessionData(session = cloudReadSession()) {
     } catch {}
   }
 
+  if (!isSameJson(normalizeCloudProfile(cloudProfileDoc?.item || {}, session), mergedProfile)) {
+    try {
+      await writeCloudDocQueued(["users", uid, "private", "profile"], {
+        uid,
+        email: session.email || "",
+        item: mergedProfile
+      }, { queueOnFailure: false });
+    } catch {}
+  }
+
   await clearAccountLocalCaches(session);
 
   if (Object.keys(remainingGuestComments).length) {
     await cloudWriteJson(CLOUD_COMMENTS_KEY, remainingGuestComments, { forceLocal: true, session: null });
   }
 
-  return { favorites: mergedFavorites, progress: mergedProgress, settings: mergedSettings };
+  return { favorites: mergedFavorites, progress: mergedProgress, settings: mergedSettings, profile: mergedProfile };
 }
 
 async function hydrateSessionData(session = cloudReadSession()) {
@@ -898,6 +928,39 @@ async function saveSettings(session = cloudReadSession(), settings = {}) {
   } catch {}
 
   return true;
+}
+
+async function loadProfile(session = cloudReadSession()) {
+  if (!session?.localId) return defaultCloudProfile(session);
+
+  try {
+    const docData = await readCloudDoc(["users", session.localId, "private", "profile"], {
+      item: defaultCloudProfile(session)
+    });
+    return normalizeCloudProfile(docData?.item || {}, session);
+  } catch {
+    return defaultCloudProfile(session);
+  }
+}
+
+async function saveProfile(session = cloudReadSession(), profile = {}) {
+  const next = normalizeCloudProfile(profile, session);
+  if (!session?.localId) return next;
+
+  try {
+    await writeCloudDocQueued(["users", session.localId, "private", "profile"], {
+      uid: session.localId,
+      email: session.email || "",
+      item: next
+    }, { queueOnFailure: false });
+  } catch (error) {
+    if (!isPermissionDeniedError(error)) {
+      console.error(error);
+    }
+    throw error;
+  }
+
+  return next;
 }
 
 async function loadNotifications(session = cloudReadSession()) {
@@ -1616,6 +1679,8 @@ window.animeCloudSync = {
   saveProgress,
   loadSettings,
   saveSettings,
+  loadProfile,
+  saveProfile,
   loadNotifications,
   markNotificationsRead,
   subscribeNotifications,

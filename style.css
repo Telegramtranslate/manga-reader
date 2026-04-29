@@ -1241,6 +1241,54 @@ button {
   color: var(--muted);
 }
 
+.profile-nickname {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.profile-nickname[hidden] {
+  display: none !important;
+}
+
+.profile-nickname label {
+  color: var(--accent-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.profile-nickname__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.profile-nickname input {
+  flex: 1 1 180px;
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  background: rgba(7, 11, 20, 0.62);
+  color: var(--text-strong);
+  font: inherit;
+  outline: none;
+}
+
+.profile-nickname input:focus {
+  border-color: rgba(243, 156, 18, 0.52);
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.10);
+}
+
+.profile-nickname__status {
+  min-height: 1.25em;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .admin-panel {
   grid-column: 1 / -1;
 }
@@ -1697,6 +1745,11 @@ button {
 
 .episode-btn.has-progress {
   border-color: rgba(122, 225, 255, 0.28);
+}
+
+.episode-btn--more {
+  border-style: dashed;
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.14), rgba(122, 225, 255, 0.08));
 }
 
 .episode-progress {
@@ -4271,7 +4324,7 @@ body {
 
 .anime-card__history-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: stretch;
   margin-top: auto;
   padding: 0 14px 14px;
   position: relative;
@@ -4285,6 +4338,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   padding: 8px 12px;
   min-height: 36px;
   border: 1px solid rgba(243, 156, 18, 0.24);
@@ -4805,6 +4859,15 @@ body.is-dialog-open {
 }
 
 @media (max-width: 640px) {
+  .profile-nickname__row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .profile-nickname input {
+    flex-basis: auto;
+  }
+
   .catalog-filters-panel .section-actions {
     display: grid;
     grid-template-columns: 1fr;
