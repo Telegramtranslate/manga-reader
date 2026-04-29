@@ -2167,11 +2167,14 @@ async function removeProgressHistoryEntry(alias, title = "") {
 function decorateHistoryCardControls(node, release) {
   if (!node || !release?.alias) return node;
   node.classList.add("anime-card--history");
+  node.dataset.historyAlias = release.alias;
+  node.dataset.historyTitle = release.title || "";
 
   const removeButton = document.createElement("button");
   removeButton.type = "button";
   removeButton.className = "anime-card__remove";
   removeButton.textContent = "Удалить";
+  removeButton.dataset.historyDelete = "1";
   removeButton.dataset.historyAlias = release.alias;
   removeButton.dataset.historyTitle = release.title || "";
   removeButton.setAttribute("aria-label", `Удалить ${release.title} из истории`);
@@ -2189,6 +2192,47 @@ function decorateHistoryCardControls(node, release) {
   }
   footer.replaceChildren(removeButton);
   return node;
+}
+
+function getHistoryDeleteButton(target) {
+  if (!(target instanceof HTMLElement)) return null;
+  const button = target.closest("[data-history-delete]");
+  return button instanceof HTMLButtonElement ? button : null;
+}
+
+function getHistoryDeletePayload(button) {
+  const card = button.closest(".anime-card--history");
+  return {
+    alias: button.dataset.historyAlias || card?.dataset.historyAlias || "",
+    title: button.dataset.historyTitle || card?.dataset.historyTitle || ""
+  };
+}
+
+function blockHistoryDeletePointer(event) {
+  if (!getHistoryDeleteButton(event.target)) return;
+  event.stopPropagation();
+}
+
+function handleHistoryDeleteClick(event) {
+  const button = getHistoryDeleteButton(event.target);
+  if (!button) return;
+
+  const { alias, title } = getHistoryDeletePayload(button);
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+
+  if (!alias || button.dataset.pending === "1") return;
+  button.dataset.pending = "1";
+  button.disabled = true;
+
+  removeProgressHistoryEntry(alias, title)
+    .catch(console.error)
+    .finally(() => {
+      if (!button.isConnected) return;
+      button.disabled = false;
+      delete button.dataset.pending;
+    });
 }
 
 function scheduleProgressUiRefresh() {
@@ -5914,6 +5958,8 @@ function bindEvents() {
   bindViewButtons(els.mobileTabs);
   bindNavigationDelegates();
   bindListButtons();
+  document.addEventListener("pointerdown", blockHistoryDeletePointer, true);
+  document.addEventListener("click", handleHistoryDeleteClick, true);
 
   els.brandBtn?.addEventListener("click", () => setView("home"));
   els.refreshBtn?.addEventListener("click", () => {

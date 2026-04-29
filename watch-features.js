@@ -7,6 +7,8 @@ const WATCH_SETTINGS_KEY = WATCH_STORAGE_KEYS.settings || "animecloud_settings_v
 const WATCH_PROGRESS_MIN_INTERVAL = 15000;
 const WATCH_PROGRESS_MIN_DELTA = 15;
 const WATCH_COMMENT_MIN_INTERVAL = 10000;
+const WATCH_PROGRESS_DELETE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const WATCH_PROGRESS_DELETED_KEY = `${WATCH_FEATURES_PROGRESS_KEY}:deleted`;
 
 const watchEls = {
   player: document.getElementById("anime-player"),
@@ -35,6 +37,8 @@ const watchState = {
   lastProgressSave: 0,
   lastProgressPosition: 0,
   progressMap: {},
+  deletedProgressAliases: new Map(),
+  deletionMarkersHydrated: false,
   commentsMap: {},
   ratingMap: {},
   ratingSummary: {
@@ -82,6 +86,93 @@ function writeJson(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {}
   return value;
+}
+
+function readLocalJson(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeLocalJson(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+  return value;
+}
+
+function normalizeProgressAlias(alias) {
+  return String(alias || "").trim();
+}
+
+function hydrateProgressDeletionMarkers() {
+  if (watchState.deletionMarkersHydrated) return;
+  watchState.deletionMarkersHydrated = true;
+  const stored = readLocalJson(WATCH_PROGRESS_DELETED_KEY, {});
+  Object.entries(stored || {}).forEach(([alias, expiresAt]) => {
+    const safeAlias = normalizeProgressAlias(alias);
+    const safeExpiresAt = Number(expiresAt || 0);
+    if (safeAlias && safeExpiresAt > Date.now()) {
+      watchState.deletedProgressAliases.set(safeAlias, safeExpiresAt);
+    }
+  });
+}
+
+function persistProgressDeletionMarkers() {
+  const payload = {};
+  watchState.deletedProgressAliases.forEach((expiresAt, alias) => {
+    if (alias && Number(expiresAt || 0) > Date.now()) {
+      payload[alias] = Number(expiresAt);
+    }
+  });
+  writeLocalJson(WATCH_PROGRESS_DELETED_KEY, payload);
+}
+
+function pruneProgressDeletionMarkers() {
+  hydrateProgressDeletionMarkers();
+  const now = Date.now();
+  let changed = false;
+  for (const [alias, expiresAt] of watchState.deletedProgressAliases.entries()) {
+    if (Number(expiresAt || 0) <= now) {
+      watchState.deletedProgressAliases.delete(alias);
+      changed = true;
+    }
+  }
+  if (changed) {
+    persistProgressDeletionMarkers();
+  }
+}
+
+function rememberProgressDeletion(alias) {
+  const safeAlias = normalizeProgressAlias(alias);
+  if (!safeAlias) return;
+  pruneProgressDeletionMarkers();
+  watchState.deletedProgressAliases.set(safeAlias, Date.now() + WATCH_PROGRESS_DELETE_TTL_MS);
+  persistProgressDeletionMarkers();
+}
+
+function clearProgressDeletionMarkersForMap(map = {}) {
+  let changed = false;
+  Object.keys(map || {}).forEach((alias) => {
+    if (watchState.deletedProgressAliases.delete(alias)) {
+      changed = true;
+    }
+  });
+  if (changed) {
+    persistProgressDeletionMarkers();
+  }
+}
+
+function filterDeletedProgressMap(map = {}) {
+  pruneProgressDeletionMarkers();
+  return Object.entries(map || {}).reduce((accumulator, [alias, entry]) => {
+    if (!alias || !entry || watchState.deletedProgressAliases.has(alias)) return accumulator;
+    accumulator[alias] = entry;
+    return accumulator;
+  }, {});
 }
 
 function normalizeRatingValue(value) {
@@ -197,7 +288,10 @@ function getProgressMap() {
 }
 
 async function saveProgressMap(map, options = {}) {
-  watchState.progressMap = map || {};
+  if (!options.keepDeletedAliases) {
+    clearProgressDeletionMarkersForMap(map || {});
+  }
+  watchState.progressMap = filterDeletedProgressMap(map || {});
   writeJson(WATCH_FEATURES_PROGRESS_KEY, watchState.progressMap);
 
   const user = options.user || getAuthUserSafe();
@@ -575,7 +669,7 @@ async function hydrateLocalCachesFromIndexedDb() {
       )
     ]);
 
-    watchState.progressMap = progressMap || {};
+    watchState.progressMap = filterDeletedProgressMap(progressMap || {});
     watchState.commentsMap = commentsMap || {};
 
     writeJson(WATCH_FEATURES_PROGRESS_KEY, watchState.progressMap);
@@ -595,7 +689,7 @@ async function hydrateWatchPersistence() {
         window.animeCloudSync.loadSettings ? window.animeCloudSync.loadSettings(user) : Promise.resolve({})
       ]);
 
-      watchState.progressMap = payload?.progress || {};
+      watchState.progressMap = filterDeletedProgressMap(payload?.progress || {});
       watchState.commentsMap = {};
       watchState.settings = normalizeSettings(settings || payload?.settings || {});
     } catch (error) {
@@ -603,13 +697,13 @@ async function hydrateWatchPersistence() {
         console.error(error);
       }
       readSettings();
-      watchState.progressMap = readJson(WATCH_FEATURES_PROGRESS_KEY, {});
+      watchState.progressMap = filterDeletedProgressMap(readJson(WATCH_FEATURES_PROGRESS_KEY, {}));
       watchState.commentsMap = readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {});
       await hydrateLocalCachesFromIndexedDb();
     }
   } else {
     readSettings();
-    watchState.progressMap = readJson(WATCH_FEATURES_PROGRESS_KEY, {});
+    watchState.progressMap = filterDeletedProgressMap(readJson(WATCH_FEATURES_PROGRESS_KEY, {}));
     watchState.commentsMap = readJson(WATCH_FEATURES_COMMENTS_STORAGE_KEY, {});
     await hydrateLocalCachesFromIndexedDb();
   }
@@ -733,7 +827,7 @@ function bindRealtimeProgress() {
   if (!user?.localId || !window.animeCloudSync?.subscribeProgress) return;
 
   watchState.realtimeProgressStop = window.animeCloudSync.subscribeProgress(user, (map) => {
-    watchState.progressMap = map || {};
+    watchState.progressMap = filterDeletedProgressMap(map || {});
     writeJson(WATCH_FEATURES_PROGRESS_KEY, watchState.progressMap);
     renderResumeBox();
     renderNextEpisodeButton();
@@ -903,11 +997,13 @@ window.animeCloudWatchState = {
     return watchState.progressMap || {};
   },
   async removeProgress(alias) {
-    if (!alias) return false;
+    const safeAlias = normalizeProgressAlias(alias);
+    if (!safeAlias) return false;
+    rememberProgressDeletion(safeAlias);
     const nextMap = { ...(watchState.progressMap || {}) };
-    delete nextMap[alias];
-    await saveProgressMap(nextMap, { broadcast: true });
-    if (watchState.release?.alias === alias) {
+    delete nextMap[safeAlias];
+    await saveProgressMap(nextMap, { broadcast: true, keepDeletedAliases: true });
+    if (watchState.release?.alias === safeAlias) {
       watchState.pendingResume = null;
       renderResumeBox();
     }

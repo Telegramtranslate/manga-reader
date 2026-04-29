@@ -5072,3 +5072,591 @@ body.is-dialog-open {
     height: 46px;
   }
 }
+
+/* 2026 comfort redesign: cinematic, calmer, and easier to scan. */
+:root {
+  --bg: #05070b;
+  --bg-soft: #0a101a;
+  --surface: rgba(13, 17, 26, 0.88);
+  --surface-2: rgba(18, 24, 36, 0.92);
+  --surface-3: rgba(26, 33, 47, 0.9);
+  --line: rgba(255, 255, 255, 0.11);
+  --line-strong: rgba(255, 190, 88, 0.26);
+  --text: #d8d0c4;
+  --text-strong: #fff7ea;
+  --muted: #a99d8f;
+  --muted-strong: #cfc1ae;
+  --accent: #ffb33e;
+  --accent-2: #6fd7ff;
+  --accent-soft: rgba(255, 179, 62, 0.14);
+  --danger: #ff6b5f;
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --shadow-card: 0 22px 55px rgba(0, 0, 0, 0.32);
+  --shadow-glow: 0 22px 80px rgba(255, 162, 37, 0.12);
+}
+
+html,
+body {
+  background: var(--bg);
+}
+
+body {
+  color: var(--text);
+  background:
+    radial-gradient(circle at 10% -10%, rgba(255, 179, 62, 0.13), transparent 31rem),
+    radial-gradient(circle at 92% 6%, rgba(111, 215, 255, 0.1), transparent 28rem),
+    linear-gradient(135deg, #05070b 0%, #0a0d12 48%, #07090d 100%) !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.32;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 54px 54px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.78), transparent 72%);
+}
+
+.site-shell {
+  width: min(1540px, calc(100% - 32px));
+  padding-top: 18px;
+}
+
+.topbar,
+.hero-card,
+.stats-row,
+.section-shell,
+.comments-card,
+.profile-card,
+.drawer-panel,
+.player-pane,
+.quick-menu,
+.notification-popover,
+.catalog-filters-panel {
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(20, 26, 38, 0.9), rgba(9, 12, 18, 0.9)),
+    radial-gradient(circle at 12% 0%, rgba(255, 179, 62, 0.12), transparent 24rem);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(18px) saturate(125%);
+}
+
+.topbar {
+  grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
+  gap: 24px;
+  padding: 22px;
+  border-radius: 36px;
+}
+
+.brand-column {
+  min-height: 100%;
+  padding: 10px 8px;
+  border: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.brand-btn {
+  letter-spacing: -0.06em;
+  text-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+}
+
+.brand-mark {
+  box-shadow:
+    0 16px 36px rgba(255, 179, 62, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.46);
+}
+
+.top-tabs {
+  gap: 12px;
+}
+
+.tab-btn,
+.mobile-nav__btn,
+.ghost-btn,
+.primary-btn,
+.notification-btn,
+.menu-btn {
+  border-color: var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
+    rgba(255, 255, 255, 0.02);
+  color: var(--text-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.tab-btn:hover,
+.mobile-nav__btn:hover,
+.ghost-btn:hover,
+.notification-btn:hover,
+.menu-btn:hover,
+.anime-card__action:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 179, 62, 0.36);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn.is-active,
+.mobile-nav__btn.is-active,
+.ghost-btn.is-active,
+.primary-btn {
+  color: #1d1206;
+  border-color: rgba(255, 179, 62, 0.52);
+  background:
+    linear-gradient(180deg, #ffd178, #ffad35 64%, #e98918);
+  box-shadow:
+    0 14px 38px rgba(255, 163, 38, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+}
+
+.search-box {
+  min-height: 70px;
+  border-radius: 26px;
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(5, 8, 14, 0.86), rgba(8, 11, 17, 0.78)),
+    radial-gradient(circle at 0 0, rgba(111, 215, 255, 0.08), transparent 16rem);
+}
+
+.search-box:focus-within {
+  border-color: rgba(111, 215, 255, 0.36);
+  box-shadow:
+    0 0 0 4px rgba(111, 215, 255, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.22);
+}
+
+.hero-card {
+  min-height: 430px;
+  border-radius: 38px;
+  overflow: hidden;
+  background:
+    linear-gradient(120deg, rgba(13, 17, 25, 0.95), rgba(13, 17, 25, 0.76) 48%, rgba(23, 31, 45, 0.68)),
+    radial-gradient(circle at 86% 22%, rgba(255, 179, 62, 0.18), transparent 22rem),
+    radial-gradient(circle at 15% 92%, rgba(111, 215, 255, 0.12), transparent 24rem);
+}
+
+.hero-copy h1,
+.section-head h2,
+.profile-card h2,
+.drawer-title {
+  color: var(--text-strong);
+  letter-spacing: -0.055em;
+}
+
+.hero-copy p,
+.section-summary,
+.anime-card__meta,
+.profile-card span,
+.stat-card small {
+  color: var(--muted-strong);
+}
+
+.hero-actions,
+.section-actions {
+  gap: 12px;
+}
+
+.stats-row {
+  border-radius: 30px;
+  padding: 14px;
+  gap: 14px;
+}
+
+.stat-card {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(255, 179, 62, 0.1), transparent 12rem),
+    rgba(255, 255, 255, 0.035);
+}
+
+.stat-card strong,
+.stat-card span {
+  color: var(--text-strong);
+}
+
+.section-shell {
+  border-radius: 34px;
+  padding: clamp(20px, 2.5vw, 34px);
+}
+
+.section-head {
+  align-items: end;
+  gap: 18px;
+}
+
+.anime-grid {
+  gap: 20px;
+}
+
+.anime-grid--poster {
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+}
+
+.anime-card {
+  contain: layout paint style;
+}
+
+.anime-card__action {
+  border-radius: 26px;
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    rgba(10, 13, 19, 0.88);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+.anime-card__poster-wrap {
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(180deg, rgba(31, 38, 52, 0.88), rgba(7, 9, 13, 0.94));
+}
+
+.anime-card__poster {
+  object-fit: cover;
+  transition: transform 260ms ease, filter 260ms ease;
+}
+
+.anime-card__action:hover .anime-card__poster {
+  transform: scale(1.035);
+  filter: saturate(1.08) contrast(1.02);
+}
+
+.anime-card__body {
+  padding: 16px 16px 18px;
+}
+
+.anime-card__title {
+  color: var(--text-strong);
+  line-height: 1.14;
+}
+
+.anime-card__tag,
+.tag {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.anime-card--history {
+  position: relative;
+}
+
+.anime-card__history-footer {
+  padding: 0 14px 16px;
+  justify-content: stretch;
+}
+
+.anime-card__remove {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 107, 95, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 107, 95, 0.18), rgba(255, 107, 95, 0.08)),
+    rgba(255, 255, 255, 0.035);
+  color: #ffd7d1;
+  font-weight: 850;
+}
+
+.anime-card__remove:hover,
+.anime-card__remove:focus-visible {
+  border-color: rgba(255, 107, 95, 0.58);
+  background: linear-gradient(180deg, rgba(255, 107, 95, 0.34), rgba(255, 107, 95, 0.16));
+  color: #fff7f5;
+}
+
+.anime-card__remove:disabled {
+  cursor: progress;
+  opacity: 0.62;
+}
+
+.catalog-layout {
+  gap: 20px;
+}
+
+.catalog-filters-panel {
+  border-radius: 28px;
+}
+
+.catalog-filters-panel .section-actions {
+  gap: 12px;
+}
+
+.catalog-filters-panel .select-control,
+.select-control {
+  min-width: 190px;
+  border-radius: 20px;
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(17, 23, 35, 0.96), rgba(9, 13, 20, 0.96));
+}
+
+.catalog-filters-panel .select-control {
+  max-width: 260px;
+}
+
+.select-control__trigger {
+  min-height: 46px;
+}
+
+.select-control__value {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.18;
+}
+
+.select-control__menu {
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(17, 23, 35, 0.99), rgba(8, 11, 18, 0.99));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.44);
+}
+
+.select-control__option {
+  color: var(--text-strong);
+  border-radius: 13px;
+  background: transparent;
+}
+
+.select-control__option:hover,
+.select-control__option:focus-visible {
+  background: rgba(111, 215, 255, 0.1);
+}
+
+.select-control__option.is-active {
+  color: #1d1206;
+  background: linear-gradient(180deg, #ffd178, #ffad35);
+}
+
+.quick-menu {
+  border-radius: 24px;
+}
+
+.quick-menu__item,
+.quick-menu__account {
+  border-radius: 18px;
+}
+
+.drawer-close,
+.auth-modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+}
+
+.drawer-close__icon {
+  margin: 0;
+}
+
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+}
+
+.menu-btn__icon {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+:root[data-theme="light"] {
+  --bg: #f4ecdf;
+  --bg-soft: #fbf5eb;
+  --surface: rgba(255, 251, 244, 0.9);
+  --surface-2: rgba(255, 247, 236, 0.94);
+  --surface-3: rgba(245, 232, 214, 0.9);
+  --line: rgba(96, 67, 35, 0.14);
+  --line-strong: rgba(197, 116, 18, 0.26);
+  --text: #6f5a45;
+  --text-strong: #3f2917;
+  --muted: #8b745e;
+  --muted-strong: #735f4a;
+  --accent: #d98215;
+  --accent-2: #247f9f;
+}
+
+:root[data-theme="light"] body {
+  color: var(--text);
+  background:
+    radial-gradient(circle at 8% -8%, rgba(216, 137, 26, 0.22), transparent 28rem),
+    radial-gradient(circle at 96% 4%, rgba(36, 127, 159, 0.12), transparent 26rem),
+    linear-gradient(135deg, #fbf6ed 0%, #f0e4d4 100%) !important;
+}
+
+:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .hero-card,
+:root[data-theme="light"] .stats-row,
+:root[data-theme="light"] .section-shell,
+:root[data-theme="light"] .comments-card,
+:root[data-theme="light"] .profile-card,
+:root[data-theme="light"] .drawer-panel,
+:root[data-theme="light"] .player-pane,
+:root[data-theme="light"] .quick-menu,
+:root[data-theme="light"] .notification-popover,
+:root[data-theme="light"] .catalog-filters-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(247, 237, 224, 0.94)),
+    radial-gradient(circle at 12% 0%, rgba(216, 137, 26, 0.1), transparent 22rem) !important;
+  border-color: rgba(96, 67, 35, 0.12) !important;
+  box-shadow: 0 24px 55px rgba(119, 77, 35, 0.11) !important;
+}
+
+:root[data-theme="light"] .tab-btn,
+:root[data-theme="light"] .mobile-nav__btn,
+:root[data-theme="light"] .ghost-btn,
+:root[data-theme="light"] .notification-btn,
+:root[data-theme="light"] .menu-btn,
+:root[data-theme="light"] .anime-card__action,
+:root[data-theme="light"] .select-control {
+  color: var(--text-strong) !important;
+  border-color: rgba(96, 67, 35, 0.12) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+:root[data-theme="light"] .tab-btn.is-active,
+:root[data-theme="light"] .mobile-nav__btn.is-active,
+:root[data-theme="light"] .ghost-btn.is-active,
+:root[data-theme="light"] .primary-btn {
+  color: #fff8ef !important;
+  background: linear-gradient(180deg, #d98215, #a85e0d) !important;
+}
+
+:root[data-theme="light"] .anime-card__title,
+:root[data-theme="light"] .hero-copy h1,
+:root[data-theme="light"] .section-head h2,
+:root[data-theme="light"] .profile-card h2,
+:root[data-theme="light"] .stat-card strong,
+:root[data-theme="light"] .stat-card span {
+  color: var(--text-strong) !important;
+}
+
+:root[data-theme="light"] .anime-card__meta,
+:root[data-theme="light"] .hero-copy p,
+:root[data-theme="light"] .section-summary,
+:root[data-theme="light"] .profile-card span,
+:root[data-theme="light"] .stat-card small {
+  color: var(--muted-strong) !important;
+}
+
+@media (max-width: 980px) {
+  .topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .anime-grid--poster {
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .site-shell {
+    width: min(100%, calc(100% - 18px));
+    padding-top: 10px;
+  }
+
+  .topbar {
+    gap: 16px;
+    padding: 18px;
+    border-radius: 30px;
+  }
+
+  .brand-column {
+    padding: 2px 64px 2px 0;
+  }
+
+  .auth-slot {
+    top: 16px !important;
+    right: 16px !important;
+  }
+
+  .top-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tab-btn {
+    min-height: 54px;
+    padding: 0 12px;
+  }
+
+  .search-box {
+    min-height: 64px;
+    border-radius: 22px;
+  }
+
+  .section-shell,
+  .hero-card,
+  .stats-row {
+    border-radius: 28px;
+  }
+
+  .hero-card {
+    min-height: 0;
+  }
+
+  .anime-grid--poster {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .catalog-filters-panel .section-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-filters-panel .select-control {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .site-shell {
+    width: min(100%, calc(100% - 12px));
+  }
+
+  .topbar {
+    padding: 16px;
+  }
+
+  .brand-btn {
+    font-size: 1.9rem;
+  }
+
+  .brand-sub {
+    font-size: 0.98rem;
+  }
+
+  .menu-btn,
+  .notification-btn {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+  }
+
+  .top-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .anime-card__body {
+    padding: 13px;
+  }
+}
