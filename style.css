@@ -5905,3 +5905,225 @@ body.is-scrolling .menu-btn {
     flex-basis: 48px;
   }
 }
+
+/* Header layout inspired by compact anime portals: logo/nav/actions row + search row. */
+.topbar {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "brand tabs dock"
+    "search search search";
+  align-items: center;
+  column-gap: 24px;
+  row-gap: 18px;
+  max-width: 1350px;
+  margin-inline: auto;
+  padding: 18px 30px 24px;
+  border-radius: 22px;
+}
+
+.brand-column {
+  grid-area: brand;
+  min-height: 0;
+  padding: 0 !important;
+  align-self: center;
+}
+
+.brand-sub {
+  display: none !important;
+}
+
+.brand-btn {
+  gap: 14px;
+  min-height: 56px;
+  font-size: clamp(1.55rem, 1.9vw, 2.05rem);
+  white-space: nowrap;
+}
+
+.brand-btn::before {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+}
+
+.top-controls,
+.top-actions {
+  display: contents !important;
+}
+
+.top-tabs {
+  grid-area: tabs;
+  justify-self: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 680px;
+  padding: 0;
+}
+
+.top-tabs .tab-btn {
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.auth-slot {
+  grid-area: dock;
+  align-self: center;
+  justify-self: end;
+  min-width: 0;
+  gap: 10px;
+}
+
+.auth-open-btn {
+  min-height: 48px;
+  min-width: 118px;
+  padding-inline: 20px;
+  border-radius: 14px;
+  color: #1d1206 !important;
+  background: linear-gradient(180deg, #ffd178, #ffad35 64%, #e98918) !important;
+  border-color: rgba(255, 179, 62, 0.5) !important;
+}
+
+.notification-btn,
+.menu-btn {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  flex-basis: 48px;
+  border-radius: 14px;
+}
+
+.search-box {
+  grid-area: search;
+  position: relative;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 50px 10px 18px;
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    rgba(0, 0, 0, 0.34) !important;
+}
+
+.search-box::after {
+  content: "⌕";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 1.55rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.search-box__label {
+  display: none;
+}
+
+.search-box input {
+  min-height: 34px;
+  font-size: 1rem;
+}
+
+@media (max-width: 1180px) {
+  .topbar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 16px;
+    padding-inline: 22px;
+  }
+
+  .top-tabs {
+    justify-content: flex-start;
+  }
+
+  .top-tabs .tab-btn {
+    padding-inline: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand dock"
+      "search search"
+      "tabs tabs";
+    row-gap: 14px;
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .auth-slot {
+    position: static !important;
+    width: auto !important;
+    justify-self: end;
+  }
+
+  .top-tabs {
+    justify-self: stretch;
+    max-width: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+  }
+
+  .top-tabs .tab-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .auth-open-btn {
+    display: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .brand-column {
+    padding-right: 0 !important;
+  }
+
+  .brand-btn {
+    min-height: 46px;
+    gap: 10px;
+    font-size: 1.42rem;
+  }
+
+  .brand-btn::before {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+
+  .notification-btn,
+  .menu-btn {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+  }
+
+  .top-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .top-tabs .tab-btn {
+    min-height: 50px;
+  }
+
+  .search-box {
+    min-height: 58px;
+    padding-right: 46px;
+  }
+}
