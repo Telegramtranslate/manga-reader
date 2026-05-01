@@ -25,6 +25,7 @@ const STATIC_FILES = [
   "style.css",
   "manifest.webmanifest",
   "content-stats.json",
+  "google247099fdf8c184e2.html",
   "sw.js",
   "mc-icon-192.png",
   "mc-icon-192-maskable.png",

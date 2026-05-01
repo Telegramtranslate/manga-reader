@@ -2088,8 +2088,8 @@ function decorateCardProgress(node, release) {
   progressNode.className = "anime-card__progress";
   progressNode.setAttribute(
     "aria-label",
-    `${progressHeadline(progress)}. ${percent}% просмотра. ${formatClock(progress.time || 0)}${
-      progress.duration ? ` из ${formatClock(progress.duration)}` : ""
+    `${progressHeadline(progress)}. ${percent}% просмотра. Остановились: ${
+      progress.episodeLabel || "серия не выбрана"
     }.`
   );
 
@@ -2113,9 +2113,7 @@ function decorateCardProgress(node, release) {
 
   const meta = document.createElement("div");
   meta.className = "anime-card__progress-meta";
-  meta.textContent = `${progress.episodeLabel || "Продолжить просмотр"} • ${formatClock(progress.time || 0)}${
-    progress.duration ? ` из ${formatClock(progress.duration)}` : ""
-  }`;
+  meta.textContent = `Остановились: ${progress.episodeLabel || "серия не выбрана"}`;
 
   progressNode.append(topRow, bar, meta);
   body.appendChild(progressNode);
@@ -2226,12 +2224,24 @@ function handleHistoryDeleteClick(event) {
   if (!alias || button.dataset.pending === "1") return;
   button.dataset.pending = "1";
   button.disabled = true;
+  const card = button.closest(".anime-card--history");
+  const grid = card?.closest(".anime-grid");
+  if (grid) {
+    grid.style.minHeight = `${grid.offsetHeight}px`;
+  }
+  card?.classList.add("is-removing");
 
   removeProgressHistoryEntry(alias, title)
     .catch(console.error)
     .finally(() => {
+      window.setTimeout(() => {
+        if (grid) {
+          grid.style.minHeight = "";
+        }
+      }, 260);
       if (!button.isConnected) return;
       button.disabled = false;
+      card?.classList.remove("is-removing");
       delete button.dataset.pending;
     });
 }
@@ -2274,7 +2284,7 @@ function decorateEpisodeProgress(release) {
     if (!button.querySelector(".episode-progress-meta")) {
       const meta = document.createElement("small");
       meta.className = "episode-progress-meta";
-      meta.textContent = `Продолжить с ${formatClock(progress.time || 0)}`;
+      meta.textContent = "Остановились здесь";
       button.appendChild(meta);
     }
   });

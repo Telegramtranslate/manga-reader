@@ -5381,6 +5381,13 @@ body::before {
   opacity: 0.62;
 }
 
+.anime-card--history.is-removing {
+  opacity: 0.45;
+  transform: translateY(4px) scale(0.985);
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
 .catalog-layout {
   gap: 20px;
 }

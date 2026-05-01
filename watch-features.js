@@ -504,9 +504,7 @@ function renderResumeBox() {
   }
 
   watchEls.resumeBox.hidden = false;
-  watchEls.resumeText.textContent = `\u041e\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u043b\u0438\u0441\u044c \u043d\u0430 ${progress.episodeLabel || "\u0441\u0435\u0440\u0438\u0438"} \u2022 ${formatClock(
-    progress.time
-  )}${progress.duration ? ` \u0438\u0437 ${formatClock(progress.duration)}` : ""}`;
+  watchEls.resumeText.textContent = `\u041e\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u043b\u0438\u0441\u044c: ${progress.episodeLabel || "\u0441\u0435\u0440\u0438\u044f \u043d\u0435 \u0432\u044b\u0431\u0440\u0430\u043d\u0430"}.`;
 }
 
 function getSourceEpisodesForWatch(release, sourceId) {

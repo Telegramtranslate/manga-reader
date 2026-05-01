@@ -10,6 +10,7 @@ const CLOUD_LISTS_KEY = CLOUD_STORAGE_KEYS.lists || "animecloud_lists_v1";
 const CLOUD_RATINGS_KEY = CLOUD_STORAGE_KEYS.ratings || "animecloud_ratings_v1";
 const CLOUD_SETTINGS_KEY = CLOUD_STORAGE_KEYS.settings || "animecloud_settings_v1";
 const CLOUD_NOTIFICATIONS_LIMIT = 120;
+const CLOUD_NOTIFICATION_BASELINE_VERSION = 2;
 const CLOUD_FAVORITES_LIMIT = 120;
 const CLOUD_COMMENTS_LIMIT = 200;
 const CLOUD_DB_NAME = "animecloud-db";
@@ -303,6 +304,7 @@ function normalizeNotificationState(item = {}) {
     seenNewAnimeAliases: normalizedAliases,
     dismissedIds,
     lastEpisodeByAlias,
+    baselineVersion: Math.max(0, Math.round(Number(item.baselineVersion || 0))),
     initializedAt: normalizeTimestampValue(item.initializedAt),
     lastScanAt: normalizeTimestampValue(item.lastScanAt)
   };
@@ -1065,6 +1067,26 @@ function buildNewAnimeNotification(release, createdAt) {
   });
 }
 
+function getReleaseNotificationTimestamp(release, fallback = 0) {
+  const raw =
+    release?.sortFreshAt ||
+    release?.updatedAt ||
+    release?.updated_at ||
+    release?.createdAt ||
+    release?.created_at ||
+    release?.lastUpdate ||
+    release?.last_update;
+  let value = normalizeTimestampValue(raw);
+  if (!value && typeof raw === "string") {
+    const parsed = Date.parse(raw);
+    value = Number.isFinite(parsed) ? parsed : 0;
+  }
+  if (value > 0 && value < 100000000000) {
+    value *= 1000;
+  }
+  return value || fallback;
+}
+
 function buildNewEpisodeNotification(release, episodeNumber, createdAt) {
   const alias = normalizeNotificationAlias(release?.alias);
   const title = String(release?.title || "").trim() || "Новое обновление";
@@ -1144,15 +1166,33 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
   ]);
   const trackedEpisodeMap = buildNotificationTrackedEpisodeMap(trackedItems, liveByAlias);
   const dismissedIds = new Set(currentState.dismissedIds || []);
+  const latestAliases = uniqueNotificationStrings(latestReleases.map((release) => release.alias));
+
+  if (currentState.baselineVersion < CLOUD_NOTIFICATION_BASELINE_VERSION) {
+    const nextItems = existingItems.filter((item) => item.type !== "new_anime");
+    const nextState = normalizeNotificationState({
+      ...currentState,
+      seenNewAnimeAliases: uniqueNotificationStrings([
+        ...(currentState.seenNewAnimeAliases || []),
+        ...latestAliases
+      ]).slice(-240),
+      lastEpisodeByAlias: {
+        ...(currentState.lastEpisodeByAlias || {}),
+        ...trackedEpisodeMap
+      },
+      baselineVersion: CLOUD_NOTIFICATION_BASELINE_VERSION,
+      initializedAt: currentState.initializedAt || now,
+      lastScanAt: now
+    });
+    await saveNotificationState(session, nextState);
+    if (nextItems.length !== existingItems.length) {
+      await saveNotifications(session, nextItems);
+    }
+    return { items: nextItems, created: [] };
+  }
 
   if (!currentState.initializedAt) {
     const created = [];
-    latestReleases.slice(0, 12).forEach((release, index) => {
-      const notification = buildNewAnimeNotification(release, now + index);
-      if (!dismissedIds.has(notification.id)) {
-        created.push(notification);
-      }
-    });
 
     trackedItems.forEach((item, index) => {
       const alias = normalizeNotificationAlias(item?.alias);
@@ -1176,6 +1216,7 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
       seenNewAnimeAliases: uniqueNotificationStrings(latestReleases.map((release) => release.alias)).slice(-240),
       dismissedIds: currentState.dismissedIds || [],
       lastEpisodeByAlias: trackedEpisodeMap,
+      baselineVersion: CLOUD_NOTIFICATION_BASELINE_VERSION,
       initializedAt: now,
       lastScanAt: now
     };
@@ -1195,7 +1236,7 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
     const alias = normalizeNotificationAlias(release.alias);
     if (!alias || seenAliases.has(alias)) return;
     seenAliases.add(alias);
-    const notification = buildNewAnimeNotification(release, now + index);
+    const notification = buildNewAnimeNotification(release, getReleaseNotificationTimestamp(release, now + index));
     if (!dismissedIds.has(notification.id)) {
       created.push(notification);
     }
@@ -1237,6 +1278,7 @@ async function syncNotifications(session = cloudReadSession(), payload = {}) {
     seenNewAnimeAliases: uniqueNotificationStrings([...seenAliases]).slice(-240),
     dismissedIds: currentState.dismissedIds || [],
     lastEpisodeByAlias: nextEpisodeState,
+    baselineVersion: CLOUD_NOTIFICATION_BASELINE_VERSION,
     initializedAt: currentState.initializedAt || now,
     lastScanAt: now
   });
