@@ -432,20 +432,30 @@ function buildPreviewRelease(groupItems) {
     toNumber(primary?.material_data?.imdb_rating, 0),
     0
   );
-  const freshAtValue =
-    Date.parse(
-      primary?.updated_at ||
-        primary?.created_at ||
-        primary?.material_data?.released_at ||
-        primary?.material_data?.premiere_world ||
-        ""
-    ) || 0;
+  let freshAtValue = 0;
+  let currentEpisode = 0;
+  let episodesTotal = 0;
 
-  const currentEpisode = Math.max(
-    toNumber(primary?.material_data?.episodes_aired, 0),
-    toNumber(primary?.episodes_count, 0),
-    toNumber(primary?.last_episode, 0)
-  );
+  groupItems.forEach((item) => {
+    const itemFresh = Date.parse(
+      item?.updated_at ||
+      item?.created_at ||
+      item?.material_data?.released_at ||
+      item?.material_data?.premiere_world ||
+      ""
+    ) || 0;
+    if (itemFresh > freshAtValue) freshAtValue = itemFresh;
+
+    const itemEp = Math.max(
+      toNumber(item?.material_data?.episodes_aired, 0),
+      toNumber(item?.episodes_count, 0),
+      toNumber(item?.last_episode, 0)
+    );
+    if (itemEp > currentEpisode) currentEpisode = itemEp;
+    
+    const itemTotal = getEpisodesTotal(item);
+    if (itemTotal > episodesTotal) episodesTotal = itemTotal;
+  });
 
   return {
     provider: "kodik",
@@ -477,7 +487,7 @@ function buildPreviewRelease(groupItems) {
     thumb: poster,
     thumbDirect: poster,
     genres: getGenres(primary),
-    episodesTotal: getEpisodesTotal(primary),
+    episodesTotal,
     averageDuration: toNumber(primary?.material_data?.duration, 0),
     favorites: Math.max(
       toNumber(primary?.material_data?.shikimori_votes, 0),
