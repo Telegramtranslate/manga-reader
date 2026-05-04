@@ -439,25 +439,11 @@ function buildPreviewRelease(groupItems) {
         primary?.material_data?.released_at ||
         primary?.material_data?.premiere_world ||
         ""
-    ) || 0;
-
-  let publishDay = "";
-  let publishDayValue = 0;
-  let nextEpisodeNumber = null;
-  const nextEpisodeAt = primary?.material_data?.next_episode_at;
-  
-  if (ongoing && nextEpisodeAt) {
-    const nextDate = new Date(nextEpisodeAt);
-    if (!Number.isNaN(nextDate.getTime())) {
-      const days = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
-      const dayIndex = nextDate.getDay();
-      publishDay = days[dayIndex];
-      publishDayValue = dayIndex === 0 ? 7 : dayIndex;
-      
-      const nextEpisode = toNumber(primary?.material_data?.episodes_aired, 0) + 1;
-      nextEpisodeNumber = nextEpisode > 1 ? nextEpisode : null;
-    }
-  }
+  const currentEpisode = Math.max(
+    toNumber(primary?.material_data?.episodes_aired, 0),
+    toNumber(primary?.episodes_count, 0),
+    toNumber(primary?.last_episode, 0)
+  );
 
   return {
     provider: "kodik",
@@ -474,8 +460,8 @@ function buildPreviewRelease(groupItems) {
     ageValue: "",
     ongoing,
     statusLabel: ongoing ? "Онгоинг" : "Есть в Kodik",
-    publishDay,
-    publishDayValue,
+    publishDay: "",
+    publishDayValue: 0,
     sortFreshAt: freshAtValue,
     sortRating: ratingValue,
     description: getDescription(primary),
@@ -500,14 +486,14 @@ function buildPreviewRelease(groupItems) {
     voices,
     crew: [],
     episodes: [],
-    publishedEpisode: toNumber(primary?.last_episode, 0)
+    publishedEpisode: currentEpisode
       ? {
-          ordinal: toNumber(primary.last_episode, 0),
+          ordinal: currentEpisode,
           name: "Последняя доступная серия",
           duration: 0
         }
       : null,
-    nextEpisodeNumber,
+    nextEpisodeNumber: null,
     identifiers: {
       shikimoriId: String(primary?.shikimori_id || ""),
       kinopoiskId: String(primary?.kinopoisk_id || ""),
