@@ -547,6 +547,10 @@ button {
   line-height: 1.58;
 }
 
+#hero-description {
+  min-height: 3.16em;
+}
+
 .meta-row,
 .chip-row,
 .hero-actions,

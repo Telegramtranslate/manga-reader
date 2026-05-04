@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
 
   res.statusCode = 200;
   res.setHeader("Content-Type", "application/javascript; charset=utf-8");
-  res.setHeader("Cache-Control", effectiveValid ? "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800" : "no-store");
+  res.setHeader("Cache-Control", effectiveValid ? "public, max-age=31536000, s-maxage=31536000, immutable" : "no-store");
   res.end(
     `window.__ANIMECLOUD_ENV__=${JSON.stringify(payload)};window.ANIMECLOUD_RUNTIME_CONFIG_ERROR=${JSON.stringify(runtimeError)};`
   );
