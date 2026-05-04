@@ -192,7 +192,27 @@ async function sanitizePublicIndexHtml() {
     .replace(/\s*<script id="structured-data-legacy"[\s\S]*?<\/script>/, "")
     .replace(/\s*<script id="structured-data-seo-legacy"[\s\S]*?<\/script>/, "");
 
+  const siteUrl = String(process.env.SITE_URL || "https://color-manga-cloud.vercel.app").trim().replace(/\/+$/, "");
+  if (siteUrl) {
+    content = content.replace(
+      /(<link[^>]*\bhreflang=["'][^"']*["'][^>]*\bhref=["'])(\/)(["'][^>]*>)/gi,
+      `$1${siteUrl}/$3`
+    );
+  }
+
   await fs.writeFile(indexPath, content, "utf8");
+}
+
+async function minifyPublicCss() {
+  const cssPath = path.join(PUBLIC_DIR, "style.css");
+  const source = await fs.readFile(cssPath, "utf8");
+  const result = await esbuild.transform(source, {
+    loader: "css",
+    minify: true,
+    target: "es2020"
+  });
+  await fs.writeFile(cssPath, result.code, "utf8");
+  console.log(`Minified style.css (${source.length} → ${result.code.length} bytes)`);
 }
 
 async function buildFile(filename) {
@@ -239,6 +259,7 @@ async function main() {
 
   const referenceMap = await buildPublicAssetReferenceMap();
   await rewritePublicAssetReferences(referenceMap);
+  await minifyPublicCss();
   await sanitizePublicIndexHtml();
 
   built.forEach((file) => {

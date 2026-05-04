@@ -66,6 +66,7 @@ module.exports = async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("X-AnimeCloud-Proxy", "anilibria-image");
     res.setHeader("Cache-Control", "public, max-age=2592000, s-maxage=2592000, stale-while-revalidate=604800, immutable");
+    res.setHeader("Vary", "Accept");
 
     ["content-type", "content-length", "etag", "last-modified", "accept-ranges", "content-range"].forEach(
       (headerName) => {

@@ -567,6 +567,10 @@ button {
   margin-top: 18px;
 }
 
+.hero-actions {
+  min-height: 48px;
+}
+
 .hero-media {
   display: flex;
   align-items: center;
