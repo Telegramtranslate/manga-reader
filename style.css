@@ -533,6 +533,11 @@ button {
 .hero-copy h1 {
   font-size: clamp(2.2rem, 5vw, 4.2rem);
   line-height: 0.94;
+  min-height: calc(2 * 0.94 * clamp(2.2rem, 5vw, 4.2rem));
+}
+
+#hero-meta {
+  min-height: 30px;
 }
 
 .hero-copy p,
