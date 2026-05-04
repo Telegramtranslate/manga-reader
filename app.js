@@ -611,7 +611,6 @@ function repairStaticUiText() {
   setStaticText("#quick-menu-logout-btn .quick-menu__item-title", STATIC_UI_TEXT.topbar.logout);
   setStaticText("#notification-popover-summary", STATIC_UI_TEXT.topbar.notificationSummary);
   setStaticText("#notification-popover-mark-all-btn", STATIC_UI_TEXT.topbar.notificationMarkAll);
-  setStaticText("#catalog-summary", STATIC_UI_TEXT.catalog.summary);
   setStaticText('[data-view-panel="catalog"] .section-kicker', STATIC_UI_TEXT.catalog.kicker);
   setStaticText('[data-view-panel="catalog"] h2', STATIC_UI_TEXT.catalog.title);
   setStaticText('.select-control span', STATIC_UI_TEXT.catalog.sort);
@@ -623,19 +622,14 @@ function repairStaticUiText() {
   setStaticText("#catalog-page-label", STATIC_UI_TEXT.catalog.page);
   setStaticText('[data-view-panel="ongoing"] .section-kicker', STATIC_UI_TEXT.ongoing.kicker);
   setStaticText('[data-view-panel="ongoing"] h2', STATIC_UI_TEXT.ongoing.title);
-  setStaticText("#ongoing-summary", STATIC_UI_TEXT.ongoing.summary);
   setStaticText('[data-view-panel="top"] .section-kicker', STATIC_UI_TEXT.top.kicker);
   setStaticText('[data-view-panel="top"] h2', STATIC_UI_TEXT.top.title);
-  setStaticText("#top-summary", STATIC_UI_TEXT.top.summary);
   setStaticText('[data-view-panel="schedule"] .section-kicker', STATIC_UI_TEXT.schedule.kicker);
   setStaticText('[data-view-panel="schedule"] h2', STATIC_UI_TEXT.schedule.title);
-  setStaticText("#schedule-summary", STATIC_UI_TEXT.schedule.summary);
   setStaticText('[data-view-panel="search"] .section-kicker', STATIC_UI_TEXT.search.kicker);
   setStaticText('[data-view-panel="search"] h2', STATIC_UI_TEXT.search.title);
-  setStaticText("#search-summary", STATIC_UI_TEXT.search.summary);
   setStaticText('[data-view-panel="profile"] .section-kicker', STATIC_UI_TEXT.profile.kicker);
   setStaticText('[data-view-panel="profile"] h2', STATIC_UI_TEXT.profile.title);
-  setStaticText("#profile-summary", STATIC_UI_TEXT.profile.summary);
   setStaticText("#notifications-summary", STATIC_UI_TEXT.profile.notificationsSummary);
   setStaticText("#notifications-mark-all-btn", STATIC_UI_TEXT.profile.notificationsMarkAll);
   setStaticText("#profile-progress-summary", STATIC_UI_TEXT.profile.historySummary);

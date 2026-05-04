@@ -1020,7 +1020,7 @@ button {
 }
 
 .anime-card__progress {
-  margin-top: 14px;
+  display: none;
 }
 
 .anime-card__progress-top {
@@ -6029,15 +6029,31 @@ body.is-scrolling .menu-btn {
 }
 
 .search-box::after {
-  content: "⌕";
+  content: "";
   position: absolute;
   right: 18px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--accent);
-  font-size: 1.55rem;
-  line-height: 1;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--accent);
+  border-radius: 50%;
+  box-sizing: border-box;
   pointer-events: none;
+}
+
+.search-box::before {
+  content: "";
+  position: absolute;
+  right: 14px;
+  top: calc(50% + 9px);
+  width: 2.5px;
+  height: 8px;
+  background: var(--accent);
+  transform: rotate(-45deg);
+  transform-origin: top center;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .search-box__label {
