@@ -439,6 +439,8 @@ function buildPreviewRelease(groupItems) {
         primary?.material_data?.released_at ||
         primary?.material_data?.premiere_world ||
         ""
+    ) || 0;
+
   const currentEpisode = Math.max(
     toNumber(primary?.material_data?.episodes_aired, 0),
     toNumber(primary?.episodes_count, 0),
