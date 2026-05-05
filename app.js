@@ -2125,12 +2125,10 @@ function renderContinueBanner() {
   }
 
   const progress = release.__progress;
-  const percent = progressPercent(progress);
 
   const posterEl = document.getElementById("continue-banner-poster");
   const titleEl = document.getElementById("continue-banner-title");
   const metaEl = document.getElementById("continue-banner-meta");
-  const barEl = document.getElementById("continue-banner-bar");
   const playBtn = document.getElementById("continue-banner-play");
 
   if (posterEl) {
@@ -2140,12 +2138,11 @@ function renderContinueBanner() {
   if (titleEl) titleEl.textContent = release.title || "Без названия";
   if (metaEl) {
     const episodeText = progress.episodeLabel || "Серия не выбрана";
-    metaEl.textContent = `${episodeText} · ${percent}% просмотрено`;
+    metaEl.textContent = `Остановились: ${episodeText}`;
   }
-  if (barEl) barEl.value = percent;
 
   if (playBtn) {
-    playBtn.onclick = () => openRelease(release.alias);
+    playBtn.onclick = () => openRelease(release.alias, { progress }).catch(console.error);
   }
 
   banner.hidden = false;
@@ -5146,6 +5143,39 @@ function getSourceEpisodes(release, sourceId) {
   return getSourceById(release, sourceId)?.episodes || [];
 }
 
+function findEpisodeSelectionForProgress(release, progress) {
+  if (!release || !progress) return null;
+
+  const progressEpisodeId = String(progress.episodeId || "");
+  const progressEpisodeOrdinal = Number(progress.episodeOrdinal || 0);
+
+  for (const source of getReleaseSources(release)) {
+    const episodes = Array.isArray(source?.episodes) ? source.episodes : [];
+    if (!episodes.length) continue;
+
+    const matchedEpisode =
+      (progressEpisodeId &&
+        episodes.find((episode) => String(episode?.id || "") === progressEpisodeId)) ||
+      (progressEpisodeOrdinal
+        ? episodes.find((episode) => Number(episode?.ordinal || 0) === progressEpisodeOrdinal)
+        : null);
+
+    if (matchedEpisode) {
+      return { source, episode: matchedEpisode };
+    }
+  }
+
+  const fallbackSource = getSourceById(release, getDefaultSourceId(release));
+  if (!fallbackSource) return null;
+
+  const fallbackEpisode = findBestEpisodeForSource(fallbackSource, {
+    id: progressEpisodeId,
+    ordinal: progressEpisodeOrdinal
+  });
+
+  return fallbackEpisode ? { source: fallbackSource, episode: fallbackEpisode } : null;
+}
+
 function findBestEpisodeForSource(source, currentEpisode) {
   if (!source?.episodes?.length) return null;
   if (!currentEpisode) return source.episodes[0];
@@ -5559,10 +5589,23 @@ function switchSource(sourceId, options = {}) {
 async function openRelease(alias, options = {}) {
   if (!alias) return null;
 
+  const requestedProgress = options.progress || null;
   const updateHistory = options.updateHistory !== false && options.updateHash !== false;
   const sameReleaseOpen =
     state.currentAnime?.alias === alias && els.drawer?.classList.contains("is-open") && !options.forceReload;
   if (sameReleaseOpen) {
+    if (requestedProgress && state.currentAnime) {
+      const resumeSelection = findEpisodeSelectionForProgress(state.currentAnime, requestedProgress);
+      if (resumeSelection?.source?.id && resumeSelection.source.id !== state.currentSource) {
+        state.currentSource = resumeSelection.source.id;
+      }
+      if (resumeSelection?.episode) {
+        selectEpisode(resumeSelection.episode, {
+          preserveSource: true,
+          forceReload: true
+        }).catch(console.error);
+      }
+    }
     if (updateHistory) {
       navigateTo(getAnimePath(alias));
     }
@@ -5606,6 +5649,11 @@ async function openRelease(alias, options = {}) {
     state.currentSource = getDefaultSourceId(release);
     state.playerSelectionToken = "";
 
+    const resumeSelection = findEpisodeSelectionForProgress(release, requestedProgress);
+    if (resumeSelection?.source?.id) {
+      state.currentSource = resumeSelection.source.id;
+    }
+
     openDrawer();
     requestAnimationFrame(() => {
       if (state.currentAnime?.alias === release.alias) {
@@ -5620,7 +5668,7 @@ async function openRelease(alias, options = {}) {
     window.dispatchEvent(new CustomEvent("animecloud:release-opened", { detail: { release } }));
 
     const defaultSource = getSourceById(release, state.currentSource) || getSourceById(release, getDefaultSourceId(release));
-    const defaultEpisode = findBestEpisodeForSource(defaultSource, release.episodes?.[0] || null);
+    const defaultEpisode = resumeSelection?.episode || findBestEpisodeForSource(defaultSource, release.episodes?.[0] || null);
 
     if (defaultEpisode) {
       await afterNextPaint();
