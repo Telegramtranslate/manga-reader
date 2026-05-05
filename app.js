@@ -1111,6 +1111,36 @@ function prettifyReleaseTitle(value) {
   return `${baseTitle} · ${seasonNumber} сезон`;
 }
 
+function getReleaseEpisodeMetrics(episodes = [], sourceItems = []) {
+  const allEpisodes = [
+    ...(Array.isArray(episodes) ? episodes : []),
+    ...(Array.isArray(sourceItems) ? sourceItems.flatMap((source) => (Array.isArray(source?.episodes) ? source.episodes : [])) : [])
+  ].filter(Boolean);
+
+  const ordinalSet = new Set();
+  let fallbackCount = 0;
+  let maxOrdinal = 0;
+
+  allEpisodes.forEach((episode) => {
+    const ordinal = Number(episode?.ordinal || 0);
+    if (ordinal > 0) {
+      ordinalSet.add(ordinal);
+      maxOrdinal = Math.max(maxOrdinal, ordinal);
+      return;
+    }
+    fallbackCount += 1;
+  });
+
+  return {
+    count: ordinalSet.size || fallbackCount,
+    maxOrdinal,
+    hasEpisodes: ordinalSet.size > 0 || fallbackCount > 0,
+    latestEpisode: maxOrdinal > 0
+      ? allEpisodes.find((episode) => Number(episode?.ordinal || 0) === maxOrdinal) || null
+      : allEpisodes[allEpisodes.length - 1] || null
+  };
+}
+
 function normalizePreparedRelease(item) {
   const posterSources = uniqueStrings([
     ...(Array.isArray(item?.posterSources) ? item.posterSources : []),
@@ -1146,6 +1176,31 @@ function normalizePreparedRelease(item) {
       ...(Array.isArray(item?.alternateTitles) ? item.alternateTitles : [])
     ]
   );
+  const episodeMetrics = getReleaseEpisodeMetrics(episodes, sourceItems);
+  const rawEpisodesTotal = Number(item?.episodesTotal || 0);
+  const rawPublishedEpisode =
+    item?.publishedEpisode && Number(item.publishedEpisode.ordinal || 0) > 0
+      ? {
+          ordinal: Number(item.publishedEpisode.ordinal || 0),
+          name: item.publishedEpisode.name || "Без названия",
+          duration: Number(item.publishedEpisode.duration || 0)
+        }
+      : null;
+  const safeEpisodesTotal = episodeMetrics.hasEpisodes ? episodeMetrics.count : rawEpisodesTotal;
+  const safePublishedEpisode =
+    episodeMetrics.maxOrdinal > 0
+      ? {
+          ordinal: episodeMetrics.maxOrdinal,
+          name:
+            Number(rawPublishedEpisode?.ordinal || 0) === episodeMetrics.maxOrdinal
+              ? rawPublishedEpisode?.name || episodeMetrics.latestEpisode?.name || "Без названия"
+              : episodeMetrics.latestEpisode?.name || `${episodeMetrics.maxOrdinal} серия`,
+          duration:
+            Number(rawPublishedEpisode?.ordinal || 0) === episodeMetrics.maxOrdinal
+              ? Number(rawPublishedEpisode?.duration || episodeMetrics.latestEpisode?.duration || 0)
+              : Number(episodeMetrics.latestEpisode?.duration || 0)
+        }
+      : rawPublishedEpisode;
 
   return {
     provider: String(item?.provider || "kodik"),
@@ -1186,7 +1241,7 @@ function normalizePreparedRelease(item) {
     thumb: proxiedImageUrl(thumbDirect),
     thumbDirect,
     genres: normalizedGenres,
-    episodesTotal: Number(item?.episodesTotal || episodes.length || 0),
+    episodesTotal: safeEpisodesTotal,
     averageDuration: Number(item?.averageDuration || 0),
     favorites: Number(item?.favorites || 0),
     externalPlayer,
@@ -1203,13 +1258,7 @@ function normalizePreparedRelease(item) {
           .filter((member) => member.name)
       : [],
     episodes,
-    publishedEpisode: item?.publishedEpisode
-      ? {
-          ordinal: Number(item.publishedEpisode.ordinal || 0),
-          name: item.publishedEpisode.name || "Без названия",
-          duration: Number(item.publishedEpisode.duration || 0)
-        }
-      : null,
+    publishedEpisode: safePublishedEpisode,
     nextEpisodeNumber: item?.nextEpisodeNumber || null,
     identifiers: {
       shikimoriId: String(item?.identifiers?.shikimoriId || ""),
@@ -1533,7 +1582,10 @@ function mergeReleaseEntries(primary, extra) {
     }),
     episodesTotal: Math.max(Number(base.episodesTotal || 0), Number(addon.episodesTotal || 0)),
     averageDuration: Number(base.averageDuration || 0) || Number(addon.averageDuration || 0),
-    publishedEpisode: base.publishedEpisode || addon.publishedEpisode,
+    publishedEpisode:
+      Number(base.publishedEpisode?.ordinal || 0) >= Number(addon.publishedEpisode?.ordinal || 0)
+        ? base.publishedEpisode || addon.publishedEpisode
+        : addon.publishedEpisode,
     nextEpisodeNumber: base.nextEpisodeNumber || addon.nextEpisodeNumber,
     externalPlayer: firstExternalSource?.externalUrl || base.externalPlayer || addon.externalPlayer,
     identifiers: {
