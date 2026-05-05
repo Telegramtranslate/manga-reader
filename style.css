@@ -1635,6 +1635,27 @@ button {
   gap: 10px;
 }
 
+.schedule-more-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(10, 16, 28, 0.9);
+  color: var(--text-strong);
+  font-weight: 800;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.schedule-more-btn:hover {
+  border-color: rgba(122, 225, 255, 0.28);
+  background: rgba(14, 22, 36, 0.98);
+  transform: translateY(-1px);
+}
+
 .schedule-item {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
@@ -1697,18 +1718,18 @@ button {
 .drawer-panel {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 50%;
   bottom: 12px;
   width: min(1280px, calc(100% - 24px));
   border-radius: 30px;
   overflow: hidden;
-  transform: translateX(28px);
+  transform: translate(-50%, 28px);
   opacity: 0;
   transition: transform 0.18s ease, opacity 0.18s ease;
 }
 
 .details-drawer.is-open .drawer-panel {
-  transform: translateX(0);
+  transform: translate(-50%, 0);
   opacity: 1;
 }
 
@@ -2644,7 +2665,7 @@ body > .seo-footer:not(.seo-footer--clean) {
 
   .drawer-panel {
     top: 8px;
-    right: 8px;
+    left: 50%;
     bottom: 8px;
     width: calc(100% - 16px);
   }
@@ -3901,7 +3922,7 @@ body {
 
   .drawer-panel {
     top: 6px;
-    right: 6px;
+    left: 50%;
     bottom: 6px;
     width: calc(100% - 12px);
     border-radius: 22px;
@@ -4861,6 +4882,88 @@ body.is-dialog-open {
   margin-top: 18px;
 }
 
+.schedule-overflow-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 185;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.schedule-overflow-modal[hidden] {
+  display: none;
+}
+
+.schedule-overflow-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 7, 12, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.schedule-overflow-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(760px, calc(100vw - 24px));
+  max-height: min(82vh, 920px);
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(18, 25, 39, 0.98), rgba(10, 15, 27, 0.96)),
+    radial-gradient(circle at top right, rgba(122, 225, 255, 0.12), transparent 38%);
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.42);
+  overflow: auto;
+}
+
+.schedule-overflow-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(16, 23, 38, 0.88);
+  color: var(--text-strong);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.schedule-overflow-modal__kicker {
+  margin: 0 0 8px;
+  color: #d8b07b;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.schedule-overflow-modal__title {
+  margin: 0;
+  padding-right: 54px;
+  color: var(--text-strong);
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-weight: 900;
+}
+
+.schedule-overflow-modal__summary {
+  margin: 10px 0 18px;
+  color: var(--muted-strong);
+  line-height: 1.6;
+}
+
+.schedule-overflow-modal__list {
+  display: grid;
+  gap: 10px;
+}
+
+.schedule-item--modal {
+  align-items: stretch;
+}
+
 @media (max-width: 860px) {
   .toast-viewport {
     right: 10px;
@@ -4880,7 +4983,17 @@ body.is-dialog-open {
     padding: 12px;
   }
 
+  .schedule-overflow-modal {
+    padding: 12px;
+  }
+
   .confirm-modal__panel {
+    width: min(100%, calc(100vw - 12px));
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .schedule-overflow-modal__panel {
     width: min(100%, calc(100vw - 12px));
     padding: 18px;
     border-radius: 20px;
@@ -4903,7 +5016,17 @@ body.is-dialog-open {
   box-shadow: 0 16px 34px rgba(105, 69, 25, 0.14);
 }
 
+:root[data-theme="light"] .schedule-overflow-modal__panel {
+  border-color: rgba(111, 84, 56, 0.12);
+  background: linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(246, 238, 228, 0.98));
+  box-shadow: 0 16px 34px rgba(105, 69, 25, 0.14);
+}
+
 :root[data-theme="light"] .confirm-modal__body {
+  color: #6e5944;
+}
+
+:root[data-theme="light"] .schedule-overflow-modal__summary {
   color: #6e5944;
 }
 

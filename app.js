@@ -3417,6 +3417,118 @@ function showConfirmDialog({
   return confirmDialogState.promise;
 }
 
+const scheduleOverflowDialogState = {
+  root: null,
+  panel: null,
+  title: null,
+  summary: null,
+  list: null
+};
+
+function ensureScheduleOverflowDialog() {
+  if (scheduleOverflowDialogState.root) return scheduleOverflowDialogState;
+
+  const root = document.createElement("div");
+  root.className = "schedule-overflow-modal";
+  root.hidden = true;
+  root.innerHTML = `
+    <div class="schedule-overflow-modal__backdrop" data-schedule-overflow-dismiss></div>
+    <section
+      class="schedule-overflow-modal__panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="schedule-overflow-title"
+    >
+      <button
+        class="schedule-overflow-modal__close"
+        type="button"
+        data-schedule-overflow-dismiss
+        aria-label="Закрыть"
+      >×</button>
+      <p class="schedule-overflow-modal__kicker">Расписание</p>
+      <h3 class="schedule-overflow-modal__title" id="schedule-overflow-title"></h3>
+      <p class="schedule-overflow-modal__summary"></p>
+      <div class="schedule-overflow-modal__list"></div>
+    </section>
+  `;
+
+  const closeDialog = () => {
+    root.hidden = true;
+    document.body.classList.remove("is-dialog-open");
+  };
+
+  root.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.hasAttribute("data-schedule-overflow-dismiss")) {
+      closeDialog();
+      return;
+    }
+
+    const itemButton = target.closest("[data-schedule-overflow-alias]");
+    if (!(itemButton instanceof HTMLButtonElement)) return;
+
+    const { scheduleOverflowAlias: alias } = itemButton.dataset;
+    closeDialog();
+    alias && openRelease(alias).catch(console.error);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!scheduleOverflowDialogState.root || scheduleOverflowDialogState.root.hidden) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeDialog();
+    }
+  });
+
+  document.body.appendChild(root);
+  scheduleOverflowDialogState.root = root;
+  scheduleOverflowDialogState.panel = root.querySelector(".schedule-overflow-modal__panel");
+  scheduleOverflowDialogState.title = root.querySelector("#schedule-overflow-title");
+  scheduleOverflowDialogState.summary = root.querySelector(".schedule-overflow-modal__summary");
+  scheduleOverflowDialogState.list = root.querySelector(".schedule-overflow-modal__list");
+  return scheduleOverflowDialogState;
+}
+
+function showScheduleOverflowDialog(day, releases = []) {
+  const dialog = ensureScheduleOverflowDialog();
+  const safeReleases = Array.isArray(releases) ? releases.filter(Boolean) : [];
+  dialog.title.textContent = day || "Другие серии";
+  dialog.summary.textContent = safeReleases.length
+    ? `Остальные релизы за этот день: ${formatNumber(safeReleases.length)}.`
+    : "Дополнительных релизов за этот день пока нет.";
+  dialog.list.innerHTML = "";
+
+  if (safeReleases.length) {
+    const fragment = document.createDocumentFragment();
+    safeReleases.forEach((release) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "schedule-item schedule-item--modal";
+      button.dataset.scheduleOverflowAlias = release.alias || "";
+      button.innerHTML = `<img src="${escapeHtml(release.thumb)}" alt="${escapeHtml(
+        release.title
+      )}" loading="lazy" decoding="async"><div class="schedule-item__body"><strong>${escapeHtml(
+        release.title
+      )}</strong><span>${escapeHtml(`${release.type} • ${release.year}`)}</span><small>${escapeHtml(
+        release.publishedEpisode
+          ? `Вышла ${release.publishedEpisode.ordinal} серия`
+          : release.nextEpisodeNumber
+            ? `Следующая серия: ${release.nextEpisodeNumber}`
+            : `${release.episodesTotal || "?"} эп.`
+      )}</small></div>`;
+      fragment.appendChild(button);
+    });
+    dialog.list.appendChild(fragment);
+  } else {
+    dialog.list.appendChild(createEmptyState("Здесь появятся дополнительные релизы за выбранный день."));
+  }
+
+  dialog.root.hidden = false;
+  document.body.classList.add("is-dialog-open");
+  dialog.panel.querySelector(".schedule-overflow-modal__close")?.focus();
+}
+
 function renderNotifications() {
   if (!els.notificationsList || !els.notificationsSummary) return;
 
@@ -4600,14 +4712,10 @@ function renderSchedule() {
     const list = document.createElement("div");
     list.className = "schedule-list";
 
-    releases.forEach((release, index) => {
+    releases.slice(0, maxVisiblePerDay).forEach((release) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "schedule-item";
-      if (index >= maxVisiblePerDay) {
-        button.hidden = true;
-        button.classList.add("schedule-item--extra");
-      }
       button.innerHTML = `<img src="${escapeHtml(release.thumb)}" alt="${escapeHtml(
         release.title
       )}" loading="lazy" decoding="async"><div class="schedule-item__body"><strong>${escapeHtml(
@@ -4629,23 +4737,12 @@ function renderSchedule() {
       const moreBtn = document.createElement("button");
       moreBtn.type = "button";
       moreBtn.className = "schedule-more-btn";
-      moreBtn.dataset.expanded = "false";
-
-      const hiddenCount = releases.length - maxVisiblePerDay;
-      const setMoreLabel = (expanded) => {
-        moreBtn.textContent = expanded ? "Свернуть список" : `Показать ещё ${hiddenCount}`;
-      };
-
-      setMoreLabel(false);
+      const hiddenReleases = releases.slice(maxVisiblePerDay);
+      const hiddenCount = hiddenReleases.length;
+      moreBtn.textContent = `Открыть ещё ${hiddenCount}`;
 
       moreBtn.addEventListener("click", () => {
-        const expanded = moreBtn.dataset.expanded === "true";
-        const nextExpanded = !expanded;
-        moreBtn.dataset.expanded = String(nextExpanded);
-        list.querySelectorAll(".schedule-item--extra").forEach((item) => {
-          item.hidden = !nextExpanded;
-        });
-        setMoreLabel(nextExpanded);
+        showScheduleOverflowDialog(day, hiddenReleases);
       });
 
       dayNode.appendChild(moreBtn);
