@@ -4560,6 +4560,8 @@ function renderSchedule() {
     return;
   }
 
+  const maxVisiblePerDay = 10;
+
   const groups = new Map();
   state.scheduleItems
     .slice()
@@ -4598,10 +4600,14 @@ function renderSchedule() {
     const list = document.createElement("div");
     list.className = "schedule-list";
 
-    releases.forEach((release) => {
+    releases.forEach((release, index) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "schedule-item";
+      if (index >= maxVisiblePerDay) {
+        button.hidden = true;
+        button.classList.add("schedule-item--extra");
+      }
       button.innerHTML = `<img src="${escapeHtml(release.thumb)}" alt="${escapeHtml(
         release.title
       )}" loading="lazy" decoding="async"><div class="schedule-item__body"><strong>${escapeHtml(
@@ -4618,6 +4624,33 @@ function renderSchedule() {
     });
 
     dayNode.appendChild(list);
+
+    if (releases.length > maxVisiblePerDay) {
+      const moreBtn = document.createElement("button");
+      moreBtn.type = "button";
+      moreBtn.className = "schedule-more-btn";
+      moreBtn.dataset.expanded = "false";
+
+      const hiddenCount = releases.length - maxVisiblePerDay;
+      const setMoreLabel = (expanded) => {
+        moreBtn.textContent = expanded ? "Свернуть список" : `Показать ещё ${hiddenCount}`;
+      };
+
+      setMoreLabel(false);
+
+      moreBtn.addEventListener("click", () => {
+        const expanded = moreBtn.dataset.expanded === "true";
+        const nextExpanded = !expanded;
+        moreBtn.dataset.expanded = String(nextExpanded);
+        list.querySelectorAll(".schedule-item--extra").forEach((item) => {
+          item.hidden = !nextExpanded;
+        });
+        setMoreLabel(nextExpanded);
+      });
+
+      dayNode.appendChild(moreBtn);
+    }
+
     nodes.push(dayNode);
   });
 
