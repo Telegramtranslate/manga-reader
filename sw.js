@@ -7,6 +7,7 @@ const CORE_APP_SHELL = [
   "/",
   "/index.html",
   "/style.css",
+  "/style-overrides.css",
   "/api/runtime-config.js",
   "/app-constants.min.js",
   "/firebase-config.min.js",

@@ -23,6 +23,7 @@ const FILES = [
 const STATIC_FILES = [
   "index.html",
   "style.css",
+  "style-overrides.css",
   "manifest.webmanifest",
   "content-stats.json",
   "google247099fdf8c184e2.html",
@@ -34,6 +35,7 @@ const STATIC_FILES = [
 ];
 const HASHED_PUBLIC_FILES = [
   "style.css",
+  "style-overrides.css",
   "manifest.webmanifest",
   "sw.js",
   "app-constants.min.js",
@@ -203,8 +205,8 @@ async function sanitizePublicIndexHtml() {
   await fs.writeFile(indexPath, content, "utf8");
 }
 
-async function minifyPublicCss() {
-  const cssPath = path.join(PUBLIC_DIR, "style.css");
+async function minifyPublicCss(filename) {
+  const cssPath = path.join(PUBLIC_DIR, filename);
   const source = await fs.readFile(cssPath, "utf8");
   const result = await esbuild.transform(source, {
     loader: "css",
@@ -212,7 +214,7 @@ async function minifyPublicCss() {
     target: "es2020"
   });
   await fs.writeFile(cssPath, result.code, "utf8");
-  console.log(`Minified style.css (${source.length} → ${result.code.length} bytes)`);
+  console.log(`Minified ${filename} (${source.length} → ${result.code.length} bytes)`);
 }
 
 async function buildFile(filename) {
@@ -257,9 +259,10 @@ async function main() {
     )
   );
 
+  await minifyPublicCss("style.css");
+  await minifyPublicCss("style-overrides.css");
   const referenceMap = await buildPublicAssetReferenceMap();
   await rewritePublicAssetReferences(referenceMap);
-  await minifyPublicCss();
   await sanitizePublicIndexHtml();
 
   built.forEach((file) => {
