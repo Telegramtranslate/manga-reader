@@ -2114,6 +2114,45 @@ function decorateCardProgress(node, release) {
   return node;
 }
 
+function renderContinueBanner() {
+  const banner = document.getElementById("continue-banner");
+  if (!banner) return;
+
+  const releases = getContinueWatchingReleases(1);
+  const release = releases[0];
+
+  if (!release || !release.__progress) {
+    banner.hidden = true;
+    return;
+  }
+
+  const progress = release.__progress;
+  const percent = progressPercent(progress);
+
+  const posterEl = document.getElementById("continue-banner-poster");
+  const titleEl = document.getElementById("continue-banner-title");
+  const metaEl = document.getElementById("continue-banner-meta");
+  const barEl = document.getElementById("continue-banner-bar");
+  const playBtn = document.getElementById("continue-banner-play");
+
+  if (posterEl) {
+    posterEl.src = release.cardPoster || release.poster || "/mc-icon-512.png?v=5";
+    posterEl.alt = release.title || "";
+  }
+  if (titleEl) titleEl.textContent = release.title || "Без названия";
+  if (metaEl) {
+    const episodeText = progress.episodeLabel || "Серия не выбрана";
+    metaEl.textContent = `${episodeText} · ${percent}% просмотрено`;
+  }
+  if (barEl) barEl.value = percent;
+
+  if (playBtn) {
+    playBtn.onclick = () => openRelease(release.alias);
+  }
+
+  banner.hidden = false;
+}
+
 function renderContinueWatchingSections() {
   const releases = getContinueWatchingReleases();
   const summary = releases.length
@@ -2128,6 +2167,8 @@ function renderContinueWatchingSections() {
       historyCard: true
     }
   });
+
+  renderContinueBanner();
 }
 
 async function removeProgressHistoryEntry(alias, title = "") {
