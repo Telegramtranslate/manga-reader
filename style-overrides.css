@@ -232,3 +232,21 @@
   }
 }
 
+@media (min-width: 1180px) {
+  .continue-banner {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .stats-row--home {
+    grid-row: 3;
+  }
+
+  .home-shell--latest {
+    grid-row: 4;
+  }
+
+  .home-shell--recommended {
+    grid-row: 5;
+  }
+}
