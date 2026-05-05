@@ -4274,6 +4274,54 @@ body {
   color: #ffd0c8;
 }
 
+a.quick-menu__item {
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+a.quick-menu__item[href*="t.me"] {
+  border-color: rgba(40, 168, 234, 0.25);
+  position: relative;
+}
+
+a.quick-menu__item[href*="t.me"] .quick-menu__item-title::before {
+  content: "✈️ ";
+}
+
+a.quick-menu__item[href*="t.me"]:hover {
+  box-shadow: 0 0 0 1px rgba(40, 168, 234, 0.3), 0 0 18px rgba(40, 168, 234, 0.2);
+}
+
+a.quick-menu__item[href*="t.me"] .quick-menu__item-title {
+  color: #7dd3fc;
+}
+
+.quick-menu__item--support {
+  border-color: rgba(168, 130, 255, 0.2);
+}
+
+.quick-menu__item--support .quick-menu__item-title {
+  color: #c4b5fd;
+  font-weight: 700;
+  font-size: 0.82em;
+  word-break: break-all;
+}
+
+.quick-menu__item--support .quick-menu__item-title::before {
+  content: "✉️ ";
+}
+
+.quick-menu__item--support:hover {
+  box-shadow: 0 0 0 1px rgba(168, 130, 255, 0.25), 0 0 18px rgba(168, 130, 255, 0.15);
+}
+
+.quick-menu__item--support small {
+  font-size: 0.72em;
+  line-height: 1.55;
+  opacity: 0.85;
+}
+
 .notification-popover {
   position: fixed;
   top: 92px;
