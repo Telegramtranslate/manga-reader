@@ -1254,8 +1254,9 @@ button {
 
 .profile-user__meta span {
   color: var(--muted);
-  word-break: break-all;
+  overflow-wrap: anywhere;
   white-space: normal;
+  font-size: 0.92em;
 }
 
 .profile-nickname {
