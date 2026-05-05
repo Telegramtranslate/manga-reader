@@ -5489,8 +5489,9 @@ function renderEpisodes(release) {
     );
     return;
   }
-  
-  const displayLimit = Math.min(12, episodes.length);
+
+  const hasMoreEpisodes = episodes.length > 12;
+  const displayLimit = hasMoreEpisodes ? 11 : episodes.length;
   const initialEpisodes = episodes.slice(0, displayLimit);
 
   scheduleChunkRender(els.episodesList, initialEpisodes, createEpisodeNode, {
