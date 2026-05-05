@@ -6,8 +6,7 @@ const { getSharedJson, setSharedJson } = require("./_distributed-cache");
 const { resolveSiteUrl } = require("./_site-url");
 
 const INDEX_TEMPLATE_PATH = path.resolve(__dirname, "..", "index.html");
-const DEFAULT_DESCRIPTION =
-  "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.";
+const DEFAULT_DESCRIPTION = "Смотреть аниме онлайн бесплатно в хорошем качестве с русской озвучкой. Огромный каталог аниме из базы Kodik, быстрый поиск и удобный плеер на AnimeCloud.";
 const TEMPLATE_CACHE_TTL_MS = 10 * 60 * 1000;
 const META_CACHE_TTL_MS = 10 * 60 * 1000;
 const META_CACHE_LIMIT = 250;
@@ -249,7 +248,7 @@ async function fetchKodikMeta(alias, siteUrl) {
   if (!release) return null;
 
   const description = truncateSeoText(
-    `${release.description || DEFAULT_DESCRIPTION} ${
+    `Смотреть аниме ${release.title} ${release.year ? `(${release.year}) ` : ""}онлайн бесплатно все серии подряд в хорошем качестве. ${release.description || DEFAULT_DESCRIPTION} ${
       release.genres?.length ? `Жанры: ${release.genres.join(", ")}.` : ""
     } ${release.episodesTotal ? `Эпизодов: ${release.episodesTotal}.` : ""}`
   );
@@ -330,7 +329,7 @@ function buildAnimeStructuredData(meta, siteUrl) {
 }
 
 function injectAnimeMeta(template, meta, siteUrl) {
-  const safeTitle = `${meta.title} - смотреть онлайн с русской озвучкой | AnimeCloud`;
+  const safeTitle = `Смотреть аниме ${meta.title} онлайн все серии подряд бесплатно | AnimeCloud`;
   const safeDescription = meta.description || DEFAULT_DESCRIPTION;
   const safeImage = meta.image || `${siteUrl}/mc-icon-512.png`;
   const canonical = meta.canonical || `${siteUrl}/anime/${encodeURIComponent(meta.alias || "")}`;

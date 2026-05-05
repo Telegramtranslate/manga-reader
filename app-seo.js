@@ -170,13 +170,13 @@
 
     function updateReleaseSeo(release) {
       const description = truncateSeoText(
-        `${release.description || defaultSeoDescription} ${release.genres?.length ? `Жанры: ${release.genres.join(", ")}.` : ""} ${
+        `Смотреть аниме ${release.title} ${release.year ? `(${release.year}) ` : ""}онлайн бесплатно все серии подряд в хорошем качестве. ${release.description || defaultSeoDescription} ${release.genres?.length ? `Жанры: ${release.genres.join(", ")}.` : ""} ${
           release.episodesTotal ? `Эпизодов: ${release.episodesTotal}.` : ""
         }`
       );
       const path = getAnimePath(release.alias);
       applySeo({
-        title: `${release.title} - смотреть онлайн с русской озвучкой | AnimeCloud`,
+        title: `Смотреть аниме ${release.title} онлайн все серии подряд бесплатно | AnimeCloud`,
         description,
         path,
         image: release.poster || siteUrl(defaultImagePath),

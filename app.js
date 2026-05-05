@@ -7,7 +7,7 @@ const SITE_URL =
   APP_CONSTANTS.SITE_URL ||
   (typeof window !== "undefined" && window.location?.origin ? window.location.origin : "https://example.invalid");
 
-const DEFAULT_SEO_TITLE = "AnimeCloud - аниме из базы Kodik";
+const DEFAULT_SEO_TITLE = "Смотреть аниме онлайн бесплатно | AnimeCloud";
 const DEFAULT_SEO_DESCRIPTION =
   "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.";
 const VIEW_SEO = {
@@ -16,12 +16,12 @@ const VIEW_SEO = {
     description: DEFAULT_SEO_DESCRIPTION
   },
   catalog: {
-    title: "Каталог аниме с русской озвучкой - AnimeCloud",
+    title: "Каталог аниме смотреть онлайн бесплатно - AnimeCloud",
     description:
       "Каталог аниме с русской озвучкой: популярные релизы, жанры, форматы, онгоинги и быстрый поиск на AnimeCloud."
   },
   ongoing: {
-    title: "Онгоинги аниме с русской озвучкой - AnimeCloud",
+    title: "Онгоинги аниме смотреть онлайн бесплатно - AnimeCloud",
     description: "Свежие онгоинги аниме с русской озвучкой и быстрым плеером на AnimeCloud."
   },
   top: {

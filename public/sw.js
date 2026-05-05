@@ -1,4 +1,4 @@
-const CACHE_VERSION = "8348689349";
+const CACHE_VERSION = "1fcb6a52aa";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,8 +6,8 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const CORE_APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=69ac252f98",
-  "/api/runtime-config.js?v=8348689349",
+  "/style.css?v=1686090031",
+  "/api/runtime-config.js?v=1fcb6a52aa",
   "/app-constants.min.js?v=7f5bd79a51",
   "/firebase-config.min.js?v=d0b5fb95e7",
   "/cloud-sync.min.js?v=1196a62dd3",
