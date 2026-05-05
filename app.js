@@ -494,8 +494,8 @@ function ensureDynamicInterface() {
     profileProgressGrid.insertAdjacentElement("afterend", shelf);
   }
 
-  const profileMeta = document.querySelector(".profile-user__meta");
-  if (profileMeta && !document.getElementById("profile-nickname-form")) {
+  const profileUserDiv = document.querySelector(".profile-user");
+  if (profileUserDiv && !document.getElementById("profile-nickname-form")) {
     const nicknameForm = document.createElement("form");
     nicknameForm.className = "profile-nickname";
     nicknameForm.id = "profile-nickname-form";
@@ -508,7 +508,7 @@ function ensureDynamicInterface() {
       </div>
       <small id="profile-nickname-status" class="profile-nickname__status" aria-live="polite"></small>
     `;
-    profileMeta.insertAdjacentElement("afterend", nicknameForm);
+    profileUserDiv.insertAdjacentElement("afterend", nicknameForm);
   }
 
   els.catalogVoice = document.getElementById("catalog-voice");
@@ -3583,7 +3583,10 @@ async function markAllNotificationsRead() {
 }
 
 function getTrackedNotificationItems() {
-  return uniqueReleases(getListItems("watching").filter((item) => item?.alias));
+  return uniqueReleases([
+    ...getListItems("watching"),
+    ...state.favorites
+  ].filter((item) => item?.alias));
 }
 
 async function fetchTrackedNotificationReleases(items = [], options = {}) {
@@ -3666,7 +3669,7 @@ async function syncCloudNotifications(options = {}) {
         : [];
     const result = await window.animeCloudSync.syncNotifications(state.authUser, {
       latestReleases,
-      watching: getListItems("watching"),
+      watching: trackedItems,
       tracked: trackedItems,
       trackedReleases
     });
