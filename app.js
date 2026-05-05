@@ -2289,6 +2289,8 @@ function scheduleProgressUiRefresh() {
   state.progressUiFrame = requestAnimationFrame(() => {
     state.progressUiFrame = 0;
 
+    renderContinueBanner();
+
     if (state.currentView === "profile") {
       renderProfile();
     }
