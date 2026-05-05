@@ -1969,8 +1969,6 @@ function readProgressMap() {
     if (sharedMap && typeof sharedMap === "object") return sharedMap;
   } catch {}
 
-  if (state.authUser?.localId) return {};
-
   try {
     return JSON.parse(localStorage.getItem(WATCH_PROGRESS_KEY) || "{}");
   } catch {
