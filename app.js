@@ -4791,6 +4791,74 @@ function searchLocalReleases(query) {
   });
 }
 
+function getReleaseSearchScore(release, query) {
+  const normalizedQuery = normalizeComparableText(query);
+  if (!normalizedQuery || !release) return -1;
+
+  let score = 0;
+  const titleVariants = getReleaseTitleVariants(release);
+
+  titleVariants.forEach((title) => {
+    if (!title) return;
+    if (title === normalizedQuery) {
+      score = Math.max(score, 1200);
+      return;
+    }
+    if (title.startsWith(normalizedQuery)) {
+      score = Math.max(score, 1000);
+      return;
+    }
+    if (title.split(" ").some((part) => part.startsWith(normalizedQuery))) {
+      score = Math.max(score, 820);
+      return;
+    }
+    if (title.includes(normalizedQuery)) {
+      score = Math.max(score, 620);
+    }
+  });
+
+  if (!score) {
+    const genreMatch = normalizeGenreList(Array.isArray(release?.genres) ? release.genres : [])
+      .map(normalizeGenreKey)
+      .some((genre) => genre.startsWith(normalizedQuery) || genre.includes(normalizedQuery));
+    if (genreMatch) {
+      score = Math.max(score, 260);
+    }
+  }
+
+  if (!score) {
+    const voiceMatch = uniqueStrings(Array.isArray(release?.voices) ? release.voices : [])
+      .map(normalizeComparableText)
+      .some((voice) => voice.startsWith(normalizedQuery) || voice.includes(normalizedQuery));
+    if (voiceMatch) {
+      score = Math.max(score, 180);
+    }
+  }
+
+  return score;
+}
+
+function sortSearchResults(list, query) {
+  const normalizedQuery = normalizeComparableText(query);
+  const releases = Array.isArray(list) ? list.filter(Boolean) : [];
+  if (!normalizedQuery) return releases;
+
+  return releases
+    .slice()
+    .sort((left, right) => {
+      const scoreDiff = getReleaseSearchScore(right, normalizedQuery) - getReleaseSearchScore(left, normalizedQuery);
+      if (scoreDiff !== 0) return scoreDiff;
+
+      const freshDiff = (right.sortFreshAt || 0) - (left.sortFreshAt || 0);
+      if (freshDiff !== 0) return freshDiff;
+
+      const yearDiff = getReleaseYearValue(right) - getReleaseYearValue(left);
+      if (yearDiff !== 0) return yearDiff;
+
+      return String(left?.title || "").localeCompare(String(right?.title || ""), "ru");
+    });
+}
+
 async function runSearch(query, options = {}) {
   const cleanQuery = query.trim();
   state.searchQuery = cleanQuery;
@@ -4843,9 +4911,12 @@ async function runSearch(query, options = {}) {
     ]);
     if (controller.signal.aborted) return;
 
-    state.searchResults = mergeReleaseCollections(
-      mergeReleaseCollections(localResults, buildReleases(kodikPayload)),
-      buildReleases(kodikGenrePayload)
+    state.searchResults = sortSearchResults(
+      mergeReleaseCollections(
+        mergeReleaseCollections(localResults, buildReleases(kodikPayload)),
+        buildReleases(kodikGenrePayload)
+      ),
+      cleanQuery
     ).slice(0, 48);
     registerVoices(state.searchResults);
     els.searchSummary.textContent = state.searchResults.length
