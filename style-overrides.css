@@ -1,0 +1,234 @@
+/* Дополнительные стили (переупорядочивание/адаптив главной) */
+
+/* ── Continue Watching Banner ── */
+.continue-banner {
+  margin-bottom: 18px;
+}
+
+.continue-banner[hidden] {
+  display: none !important;
+}
+
+.continue-banner__inner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 24px;
+  border-radius: 22px;
+  border: 1px solid rgba(243, 156, 18, 0.18);
+  background:
+    linear-gradient(135deg, rgba(243, 156, 18, 0.06) 0%, rgba(18, 29, 47, 0.92) 60%),
+    rgba(14, 20, 34, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(243, 156, 18, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.continue-banner__inner:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(243, 156, 18, 0.14),
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    0 0 24px rgba(243, 156, 18, 0.08);
+}
+
+.continue-banner__poster {
+  width: 90px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.continue-banner__copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.continue-banner__kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.continue-banner__title {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.continue-banner__meta {
+  font-size: 0.88rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.continue-banner__progress-wrap {
+  margin-top: 4px;
+}
+
+.continue-banner__bar {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.continue-banner__bar::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+
+.continue-banner__bar::-webkit-progress-value {
+  background: linear-gradient(90deg, #f39c12, #e67e22);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.continue-banner__bar::-moz-progress-bar {
+  background: linear-gradient(90deg, #f39c12, #e67e22);
+  border-radius: 999px;
+}
+
+.continue-banner__actions {
+  margin-top: 6px;
+}
+
+.continue-banner__actions .primary-btn {
+  padding: 10px 28px;
+  font-size: 0.92rem;
+}
+
+:root[data-theme="light"] .continue-banner__inner {
+  border-color: rgba(180, 120, 40, 0.14);
+  background:
+    linear-gradient(135deg, rgba(243, 186, 80, 0.08) 0%, rgba(255, 255, 255, 0.92) 60%),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 560px) {
+  .continue-banner__inner {
+    grid-template-columns: 70px 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .continue-banner__poster {
+    width: 70px;
+    height: 100px;
+    border-radius: 12px;
+  }
+
+  .continue-banner__title {
+    font-size: 1rem;
+  }
+
+  .continue-banner__actions .primary-btn {
+    width: 100%;
+    padding: 10px 16px;
+  }
+}
+
+/* ── Genre Chips (Home) ── */
+.home-genre-section {
+  margin-bottom: 18px;
+}
+
+.home-genre-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.home-genre-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.home-genre-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.home-genre-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.genre-chip-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 100px;
+  background: rgba(17, 25, 43, 0.7);
+  border: 1px solid var(--line);
+  color: var(--text-strong);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.genre-chip-btn:hover {
+  background: rgba(122, 225, 255, 0.12);
+  border-color: var(--accent);
+  color: var(--text-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.15);
+}
+
+:root[data-theme="light"] .genre-chip-btn {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .genre-chip-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(243, 156, 18, 0.3);
+}
+
+@media (max-width: 720px) {
+  .home-genre-chips {
+    flex-wrap: nowrap;
+    padding: 0 16px 16px 16px;
+    margin-inline: -16px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .genre-chip-btn {
+    padding: 8px 16px;
+    font-size: 0.88rem;
+  }
+}
+
