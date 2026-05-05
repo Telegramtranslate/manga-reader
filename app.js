@@ -6038,6 +6038,24 @@ function bindEvents() {
   document.addEventListener("pointerdown", blockHistoryDeletePointer, true);
   document.addEventListener("click", handleHistoryDeleteClick, true);
 
+  const homeGenreChips = document.getElementById("home-genre-chips");
+  if (homeGenreChips) {
+    homeGenreChips.addEventListener("click", (event) => {
+      const btn = event.target.closest(".genre-chip-btn");
+      if (!btn || !btn.dataset.genre) return;
+      
+      const genre = btn.dataset.genre;
+      state.catalogGenre = genre;
+      state.catalogGenres = [];
+      if (els.catalogGenre) els.catalogGenre.value = genre;
+      refreshCustomCatalogSelects();
+      
+      setView("catalog");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      loadCatalog({ force: true, reset: true }).catch(console.error);
+    });
+  }
+
   els.brandBtn?.addEventListener("click", () => setView("home"));
   els.refreshBtn?.addEventListener("click", () => {
     closeQuickMenu();

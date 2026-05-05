@@ -1237,6 +1237,77 @@ button {
   text-overflow: ellipsis;
 }
 
+.stat-card small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Genre Chips (Home) ── */
+.home-genre-chips {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px 20px 16px;
+  margin-top: -8px;
+  margin-inline: -16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-genre-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.genre-chip-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 100px;
+  background: rgba(17, 25, 43, 0.7);
+  border: 1px solid var(--line);
+  color: var(--text-strong);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.genre-chip-btn:hover {
+  background: var(--accent-alpha);
+  border-color: var(--accent);
+  color: var(--accent-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.15);
+}
+
+:root[data-theme="light"] .genre-chip-btn {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+:root[data-theme="light"] .genre-chip-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(243, 156, 18, 0.3);
+}
+
+@media (max-width: 560px) {
+  .home-genre-chips {
+    padding: 0 16px 16px 16px;
+    margin-top: -4px;
+    gap: 8px;
+  }
+  .genre-chip-btn {
+    padding: 8px 16px;
+    font-size: 0.88rem;
+  }
+}
+
 .continue-banner__progress-wrap {
   margin-top: 4px;
 }
