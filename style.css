@@ -1200,6 +1200,7 @@ button {
 .settings-toggle span {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .settings-toggle small {
@@ -1243,6 +1244,7 @@ button {
 .profile-user__meta {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .profile-user__meta strong {
@@ -1252,6 +1254,8 @@ button {
 
 .profile-user__meta span {
   color: var(--muted);
+  word-break: break-all;
+  white-space: normal;
 }
 
 .profile-nickname {
@@ -1318,6 +1322,15 @@ button {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 14px;
+}
+
+.admin-actions .ghost-btn {
+  white-space: normal;
+  height: auto;
+  min-height: 42px;
+  line-height: 1.35;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .admin-note {
