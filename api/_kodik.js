@@ -633,6 +633,13 @@ function buildPreviewRelease(groupItems) {
   if (allSourceMetrics.maxOrdinal > currentEpisode) {
     currentEpisode = allSourceMetrics.maxOrdinal;
   }
+  episodesTotal = Math.max(
+    episodesTotal,
+    currentEpisode,
+    toNumber(bestSourceMetrics?.maxOrdinal, 0),
+    toNumber(bestSourceMetrics?.count, 0),
+    toNumber(allSourceMetrics?.maxOrdinal, 0)
+  );
 
   return {
     provider: "kodik",

@@ -1363,8 +1363,16 @@ function normalizePreparedRelease(item) {
           duration: Number(item.publishedEpisode.duration || 0)
         }
       : null;
-  const safeEpisodesTotal = preferredEpisodeMetrics.hasEpisodes ? preferredEpisodeMetrics.count : rawEpisodesTotal;
-  const safeEpisodesLabel = formatEpisodeMetricsLabel(preferredEpisodeMetrics, rawEpisodesTotal);
+  const publishedOrdinal = Number(rawPublishedEpisode?.ordinal || 0);
+  const safeEpisodesTotal = Math.max(
+    preferredEpisodeMetrics.hasEpisodes ? preferredEpisodeMetrics.count : rawEpisodesTotal,
+    Number(preferredEpisodeMetrics.maxOrdinal || 0),
+    publishedOrdinal
+  );
+  const safeEpisodesLabel =
+    publishedOrdinal > 1 && (!preferredEpisodeMetrics.hasEpisodes || Number(preferredEpisodeMetrics.count || 0) <= 1)
+      ? `${safeEpisodesTotal} эп.`
+      : formatEpisodeMetricsLabel(preferredEpisodeMetrics, safeEpisodesTotal);
   const safePublishedEpisode =
     episodeMetrics.maxOrdinal > 0
       ? {
