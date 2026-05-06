@@ -835,6 +835,41 @@ const CLIENT_ONLY_CATALOG_GENRE_KEYS = new Set([
   "\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043d\u043e\u0435",
   "\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043d\u044b\u0439"
 ]);
+const CANONICAL_GENRE_LABEL_ALIASES = new Map([
+  ["\u044d\u043a\u0448\u0435\u043d", "\u042d\u043a\u0448\u0435\u043d"],
+  ["\u0431\u043e\u0435\u0432\u0438\u043a", "\u042d\u043a\u0448\u0435\u043d"],
+  ["action", "\u042d\u043a\u0448\u0435\u043d"],
+  ["\u0432\u043e\u0435\u043d\u043d\u043e\u0435", "\u0412\u043e\u0435\u043d\u043d\u043e\u0435"],
+  ["\u0432\u043e\u0435\u043d\u043d\u044b\u0439", "\u0412\u043e\u0435\u043d\u043d\u043e\u0435"],
+  ["\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430", "\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430"],
+  ["\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043d\u043e\u0435", "\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430"],
+  ["\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043d\u044b\u0439", "\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430"],
+  ["short", "\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430"],
+  ["\u0434\u0437\u0435\u0441\u0435\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["\u0434\u0437\u0435\u0441\u044d\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["\u0434\u0437\u0451\u0441\u0435\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["\u0434\u0437\u0451\u0441\u044d\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["\u0434\u0436\u043e\u0441\u0435\u0439", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["josei", "\u0414\u0437\u0451\u0441\u044d\u0439"],
+  ["\u0441\u0435\u043d\u0435\u043d", "\u0421\u0451\u043d\u0435\u043d"],
+  ["\u0441\u0451\u043d\u0435\u043d", "\u0421\u0451\u043d\u0435\u043d"],
+  ["shonen", "\u0421\u0451\u043d\u0435\u043d"],
+  ["shounen", "\u0421\u0451\u043d\u0435\u043d"],
+  ["\u0441\u0435\u0439\u043d\u0435\u043d", "\u0421\u044d\u0439\u043d\u044d\u043d"],
+  ["\u0441\u044d\u0439\u043d\u044d\u043d", "\u0421\u044d\u0439\u043d\u044d\u043d"],
+  ["seinen", "\u0421\u044d\u0439\u043d\u044d\u043d"],
+  ["\u0441\u0435\u0434\u0437\u0435", "\u0421\u0451\u0434\u0437\u0451"],
+  ["\u0441\u0451\u0434\u0437\u0451", "\u0421\u0451\u0434\u0437\u0451"],
+  ["shoujo", "\u0421\u0451\u0434\u0437\u0451"],
+  ["shojo", "\u0421\u0451\u0434\u0437\u0451"],
+  ["\u0441\u0435\u043d\u0435\u043d \u0430\u0439", "\u0421\u0451\u043d\u0435\u043d-\u0430\u0439"],
+  ["\u0441\u0451\u043d\u0435\u043d \u0430\u0439", "\u0421\u0451\u043d\u0435\u043d-\u0430\u0439"],
+  ["\u0441\u0435\u0434\u0437\u0435 \u0430\u0439", "\u0421\u0451\u0434\u0437\u0451-\u0430\u0439"],
+  ["\u0441\u0451\u0434\u0437\u0451 \u0430\u0439", "\u0421\u0451\u0434\u0437\u0451-\u0430\u0439"],
+  ["\u0438\u0441\u0435\u043a\u0430\u0439", "\u0418\u0441\u0435\u043a\u0430\u0439"],
+  ["isekai", "\u0418\u0441\u0435\u043a\u0430\u0439"],
+  ["\u0438\u0437\u043e\u0431\u0440\u0430\u0437\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u0438\u0441\u043a\u0443\u0441\u0441\u0442\u0432\u043e", "\u0418\u0437\u043e\u0431\u0440\u0430\u0437\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u0438\u0441\u043a\u0443\u0441\u0441\u0442\u0432\u043e"]
+]);
 const GENRE_LABEL_ALIASES = new Map([
   ["\u0431\u043e\u0435\u0432\u0438\u043a", "\u042d\u043a\u0448\u0435\u043d"],
   ["\u0432\u043e\u0435\u043d\u043d\u044b\u0439", "\u0412\u043e\u0435\u043d\u043d\u043e\u0435"],
@@ -1435,8 +1470,20 @@ function normalizeComparableText(value) {
     .replace(/\s+/g, " ");
 }
 
+function normalizeGenreComparableText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[ёЁ]/g, "е")
+    .replace(/\[[^\]]*\]/g, " ")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/[^a-z0-9\u0400-\u04ff-]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 function normalizeGenreKey(value) {
-  return normalizeComparableText(value).replace(/-/g, " ");
+  return normalizeGenreComparableText(value).replace(/-/g, " ");
 }
 
 function normalizeGenreLabel(value) {
@@ -1445,6 +1492,7 @@ function normalizeGenreLabel(value) {
 
   const key = normalizeGenreKey(raw);
   if (!key) return "";
+  if (CANONICAL_GENRE_LABEL_ALIASES.has(key)) return CANONICAL_GENRE_LABEL_ALIASES.get(key);
   if (GENRE_LABEL_ALIASES.has(key)) return GENRE_LABEL_ALIASES.get(key);
 
   if (/^[a-z]/i.test(raw)) {
@@ -1532,7 +1580,9 @@ function getReleaseGenreKeys(release) {
 
 function releaseMatchesGenres(release, genres = [], mode = "every") {
   const releaseGenreKeys = getReleaseGenreKeys(release);
-  const targetKeys = normalizeGenreList(Array.isArray(genres) ? genres : [genres]).map(normalizeGenreKey);
+  const targetKeys = normalizeGenreList(Array.isArray(genres) ? genres : [genres])
+    .map(normalizeGenreKey)
+    .filter(Boolean);
   if (!targetKeys.length) return true;
   if (!releaseGenreKeys.size) return false;
   if (mode === "some") return targetKeys.some((key) => releaseGenreKeys.has(key));
@@ -4680,13 +4730,15 @@ async function loadCatalog(options = {}) {
     const hasGenreFilters = activeGenres.length > 0;
     const serverGenres = activeGenres.filter((genre) => !isClientOnlyCatalogGenre(genre));
     const needsDeepClientGenreFilter = hasGenreFilters && serverGenres.length !== activeGenres.length;
+    let usedDeepClientGenreFilter = needsDeepClientGenreFilter;
     const hasClientFilters = hasGenreFilters;
     const kodikTypeConfig = getKodikCatalogTypeConfig(state.catalogType);
     const shouldLoadKodik = kodikTypeConfig.enabled;
     const filterKey = JSON.stringify({
       sort: state.catalogSort,
       type: state.catalogType || "",
-      genres: activeGenres
+      genres: activeGenres,
+      voice: state.catalogVoice || ""
     });
 
     if (reset || state.catalogFilterKey !== filterKey) {
@@ -4701,7 +4753,7 @@ async function loadCatalog(options = {}) {
       mediaTypes: kodikTypeConfig.mediaTypes
     };
 
-    const kodikPayload = shouldLoadKodik
+    let kodikPayload = shouldLoadKodik
       ? needsDeepClientGenreFilter
         ? await fetchCatalogVoicePage(requestedPage, requestOptions, requestToken, activeGenres)
         : await fetchKodikDiscover("catalog", requestedPage, GRID_PAGE_SIZE, requestOptions)
@@ -4713,12 +4765,57 @@ async function loadCatalog(options = {}) {
         };
     if (state.catalogRequestToken !== requestToken) return;
 
-    const pagination = extractPagination(kodikPayload);
-    const releases = uniqueReleases(sortCatalogReleases(buildReleases(kodikPayload), state.catalogSort));
+    if (
+      shouldLoadKodik &&
+      hasGenreFilters &&
+      !usedDeepClientGenreFilter &&
+      (!Array.isArray(kodikPayload?.items) || !kodikPayload.items.length)
+    ) {
+      usedDeepClientGenreFilter = true;
+      kodikPayload = await fetchCatalogVoicePage(
+        requestedPage,
+        {
+          ...requestOptions,
+          genres: []
+        },
+        requestToken,
+        activeGenres
+      );
+      if (state.catalogRequestToken !== requestToken) return;
+    }
+
+    let pagination = extractPagination(kodikPayload);
+    let releases = uniqueReleases(sortCatalogReleases(buildReleases(kodikPayload), state.catalogSort));
+    let visibleReleases = releases.filter((release) => {
+      if (!releaseMatchesCatalogTypeSelection(release, state.catalogType)) return false;
+      if (activeGenres.length && !releaseMatchesGenres(release, activeGenres)) return false;
+      return true;
+    });
+
+    if (shouldLoadKodik && hasGenreFilters && !usedDeepClientGenreFilter && !visibleReleases.length) {
+      usedDeepClientGenreFilter = true;
+      kodikPayload = await fetchCatalogVoicePage(
+        requestedPage,
+        {
+          ...requestOptions,
+          genres: []
+        },
+        requestToken,
+        activeGenres
+      );
+      if (state.catalogRequestToken !== requestToken) return;
+      pagination = extractPagination(kodikPayload);
+      releases = uniqueReleases(sortCatalogReleases(buildReleases(kodikPayload), state.catalogSort));
+      visibleReleases = releases.filter((release) => {
+        if (!releaseMatchesCatalogTypeSelection(release, state.catalogType)) return false;
+        if (activeGenres.length && !releaseMatchesGenres(release, activeGenres)) return false;
+        return true;
+      });
+    }
 
     registerGenres(releases);
     registerVoices(releases);
-    state.catalogItems = releases;
+    state.catalogItems = visibleReleases;
     state.catalogPage = Math.max(pagination.current_page || 0, requestedPage);
     state.catalogTotal = hasGenreFilters
       ? Math.max(state.catalogItems.length, state.catalogTotal || 0)
@@ -4731,7 +4828,7 @@ async function loadCatalog(options = {}) {
     state.catalogHasMore = state.catalogPage < (state.catalogTotalPages || 1);
     state.catalogLoaded = true;
 
-    if (hasClientFilters) {
+    if (hasClientFilters || usedDeepClientGenreFilter) {
       const filters = [...(hasGenreFilters ? [`жанры: ${[...new Set(activeGenres)].join(", ")}`] : [])];
 
       if (els.catalogSummary) {
