@@ -1,4 +1,4 @@
-const CACHE_VERSION = "__BUILD_HASH__";
+const CACHE_VERSION = "local-20260506-episodes-fix";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
