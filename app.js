@@ -134,6 +134,8 @@ const state = {
   topHasMore: false,
   referencesLoaded: false,
   homeLoaded: false,
+  homeRequestToken: "",
+  homeSupplementPromise: null,
   catalogLoaded: false,
   ongoingLoaded: false,
   topLoaded: false,
@@ -4387,14 +4389,20 @@ function renderHero(release) {
   els.heroTitle.textContent = release.title;
   els.heroDescription.textContent = release.description;
   els.heroMeta.replaceChildren(...meta.map(createMetaPill));
-  const heroPosterSrc = release.heroPoster || release.poster || "/mc-icon-512.png?v=5";
+  const heroPosterPlaceholder = "/mc-icon-192.png?v=5";
+  const heroPosterSrc = release.heroPoster || release.poster || heroPosterPlaceholder;
+  const heroPosterHiRes = release.poster && release.poster !== heroPosterSrc ? release.poster : "";
   els.heroPoster.src = heroPosterSrc;
   els.heroPoster.alt = release.title;
-  els.heroPoster.srcset = `${heroPosterSrc} 1x, ${release.poster || heroPosterSrc} 2x`;
+  if (heroPosterHiRes) {
+    els.heroPoster.srcset = `${heroPosterSrc} 1x, ${heroPosterHiRes} 2x`;
+  } else {
+    els.heroPoster.removeAttribute("srcset");
+  }
   els.heroPoster.sizes = "(max-width: 860px) min(200px, 100vw), 320px";
   bindPosterFallback(els.heroPoster, release, {
     initialSrc: heroPosterSrc,
-    placeholder: "/mc-icon-512.png?v=5"
+    placeholder: heroPosterPlaceholder
   });
   renderHeroDots();
   syncHeroOpenLink();
@@ -4570,6 +4578,9 @@ function renderCatalogControls() {
 
 async function loadHome(force = false) {
   if (state.homeLoaded && !force) return;
+  const requestToken = `home-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  state.homeRequestToken = requestToken;
+  state.homeSupplementPromise = null;
 
   renderSkeletonGrid(els.continueGrid, 4);
   renderSkeletonGrid(els.latestGrid, 6);
@@ -4577,52 +4588,23 @@ async function loadHome(force = false) {
   renderSkeletonGrid(els.popularGrid, 6);
 
   try {
-    const [latestPayload, topPayload, topPageTwoPayload, ongoingPayload] = await Promise.all([
-      fetchKodikDiscover("latest", 1, 18, { ttl: 120000 }),
-      fetchKodikDiscover("top", 1, 18, { ttl: 120000 }),
-      fetchKodikDiscover("top", 2, 18, { ttl: 120000 }),
-      fetchKodikDiscover("ongoing", 1, 18, { ttl: 120000 })
-    ]);
+    if (force) {
+      state.recommended = [];
+      state.popular = [];
+    }
+
+    const latestPayload = await fetchKodikDiscover("latest", 1, 12, { ttl: 120000 });
+    if (state.homeRequestToken !== requestToken) return;
 
     state.latest = buildReleases(latestPayload).slice(0, 12);
-    state.recommended = buildReleases(topPayload).slice(0, 12);
-    state.popular = uniqueReleases([
-      ...buildReleases(topPageTwoPayload),
-      ...buildReleases(ongoingPayload),
-      ...state.recommended
-    ]).slice(0, 12);
-
     registerGenres(state.latest);
-    registerGenres(state.recommended);
-    registerGenres(state.popular);
     registerVoices(state.latest);
-    registerVoices(state.recommended);
-    registerVoices(state.popular);
 
     const featuredPool = getHeroCandidates();
     state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
     state.heroPool = uniqueReleases([state.featured, ...featuredPool]).slice(0, 4);
     state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
     state.latestTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.latestTotal || 0), state.latest.length);
-    state.catalogTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.catalogTotal || 0), state.popular.length);
-    state.catalogTotalPages = Math.max(
-      state.catalogTotalPages || 0,
-      Math.ceil((state.catalogTotal || state.popular.length) / GRID_PAGE_SIZE)
-    );
-    state.ongoingTotal = Math.max(
-      Number(state.ongoingMergedTotal || 0),
-      Number(state.ongoingTotal || 0),
-      ongoingPayload?.items?.length || 0
-    );
-    state.ongoingTotalPages = Math.max(
-      state.ongoingTotalPages || 0,
-      Math.ceil((state.ongoingTotal || 0) / GRID_PAGE_SIZE)
-    );
-    state.topTotal = Math.max(Number(state.topMergedTotal || 0), Number(state.topTotal || 0), state.recommended.length);
-    state.topTotalPages = Math.max(
-      state.topTotalPages || 0,
-      Math.ceil((state.topTotal || state.recommended.length) / GRID_PAGE_SIZE)
-    );
     state.homeLoaded = true;
     state.personalizedKey = "";
 
@@ -4634,13 +4616,74 @@ async function loadHome(force = false) {
     }
     requestAnimationFrame(() => {
       updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
-      updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
-      updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
       startHeroCarousel();
     });
-    if (state.authUser?.localId) {
-      scheduleNotificationSync(1200);
-    }
+
+    state.homeSupplementPromise = (async () => {
+      await afterNextPaint();
+      await new Promise((resolve) => safeIdle(resolve));
+
+      const [topPayload, topPageTwoPayload, ongoingPayload] = await Promise.all([
+        fetchKodikDiscover("top", 1, 12, { ttl: 120000 }),
+        fetchKodikDiscover("top", 2, 12, { ttl: 120000 }),
+        fetchKodikDiscover("ongoing", 1, 12, { ttl: 120000 })
+      ]);
+      if (state.homeRequestToken !== requestToken) return;
+
+      state.recommended = buildReleases(topPayload).slice(0, 12);
+      state.popular = uniqueReleases([
+        ...buildReleases(topPageTwoPayload),
+        ...buildReleases(ongoingPayload),
+        ...state.recommended
+      ]).slice(0, 12);
+
+      registerGenres(state.recommended);
+      registerGenres(state.popular);
+      registerVoices(state.recommended);
+      registerVoices(state.popular);
+
+      const extendedHeroPool = getHeroCandidates();
+      state.featured = applyAdminHero(extendedHeroPool) || state.featured || extendedHeroPool[0] || null;
+      state.heroPool = uniqueReleases([state.featured, ...extendedHeroPool]).slice(0, 4);
+      state.heroCarouselIndex = Math.max(0, state.heroPool.findIndex((item) => item.alias === state.featured?.alias));
+      state.catalogTotal = Math.max(Number(state.catalogMergedTotal || 0), Number(state.catalogTotal || 0), state.popular.length);
+      state.catalogTotalPages = Math.max(
+        state.catalogTotalPages || 0,
+        Math.ceil((state.catalogTotal || state.popular.length) / GRID_PAGE_SIZE)
+      );
+      state.ongoingTotal = Math.max(
+        Number(state.ongoingMergedTotal || 0),
+        Number(state.ongoingTotal || 0),
+        ongoingPayload?.items?.length || 0
+      );
+      state.ongoingTotalPages = Math.max(
+        state.ongoingTotalPages || 0,
+        Math.ceil((state.ongoingTotal || 0) / GRID_PAGE_SIZE)
+      );
+      state.topTotal = Math.max(Number(state.topMergedTotal || 0), Number(state.topTotal || 0), state.recommended.length);
+      state.topTotalPages = Math.max(
+        state.topTotalPages || 0,
+        Math.ceil((state.topTotal || state.recommended.length) / GRID_PAGE_SIZE)
+      );
+
+      updateStats();
+      requestAnimationFrame(() => {
+        updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
+        updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
+        renderHero(state.featured);
+        startHeroCarousel();
+      });
+      if (state.authUser?.localId) {
+        scheduleNotificationSync(1200);
+      }
+    })().catch((error) => {
+      if (state.homeRequestToken !== requestToken) return;
+      console.error("loadHome secondary failed", error);
+      requestAnimationFrame(() => {
+        updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
+        updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
+      });
+    });
   } catch (error) {
     console.error("loadHome failed", error);
     state.homeLoaded = false;
@@ -6993,12 +7036,12 @@ async function init() {
           .then(() => updateStats())
           .catch(() => {});
         loadContentStats().catch(() => {});
-      }
-      if (!state.scheduleLoaded && initialView !== "schedule") {
-        loadSchedule().catch(() => {});
-      }
-      if (!state.topLoaded && initialView !== "top") {
-        loadTop({ reset: true }).catch(() => {});
+        if (!state.scheduleLoaded && initialView !== "schedule") {
+          loadSchedule().catch(() => {});
+        }
+        if (!state.topLoaded && initialView !== "top") {
+          loadTop({ reset: true }).catch(() => {});
+        }
       }
     });
   } catch (error) {

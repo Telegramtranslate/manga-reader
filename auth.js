@@ -502,6 +502,7 @@
     document.documentElement.classList.add("is-viewport-locked");
     setStatus("");
     renderGoogleButton();
+    bootstrapAuthObserver().catch(console.error);
   }
 
   function closeAuthModal() {
@@ -774,33 +775,33 @@
       return;
     }
 
-    writeSession(readSession(), { broadcast: true });
+    const cachedSession = readSession();
+    writeSession(cachedSession, { broadcast: true });
     if (authEls.googleNote) authEls.googleNote.textContent = "Google-вход через AnimeCloud.";
     renderGoogleButton();
 
-    try {
-      await bootstrapAuthObserver().catch(console.error);
-      const handledRedirect = await finalizeGoogleRedirect();
-      if (handledRedirect) {
-        closeAuthModal();
-        window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
-      }
-    } catch (error) {
-      setGoogleRedirectPending(false);
-      clearGoogleRedirectGrace();
-      if (error?.code) {
-        setStatus(mapAuthError(error), "is-error");
-      }
-    }
+    const shouldBootstrapNow =
+      Boolean(cachedSession?.localId) || isGoogleRedirectPending() || isGoogleRedirectGraceActive();
 
-    scheduleIdle(() => {
-      bootstrapAuthObserver().catch((error) => {
-        console.error(error);
-        if (!authState.session) {
-          setStatus("Не удалось инициализировать авторизацию.", "is-error");
+    if (shouldBootstrapNow) {
+      try {
+        await bootstrapAuthObserver().catch(console.error);
+        const handledRedirect = await finalizeGoogleRedirect();
+        if (handledRedirect) {
+          closeAuthModal();
+          window.dispatchEvent(new CustomEvent("animecloud:profile-request"));
         }
-      });
-    });
+      } catch (error) {
+        setGoogleRedirectPending(false);
+        clearGoogleRedirectGrace();
+        if (error?.code) {
+          setStatus(mapAuthError(error), "is-error");
+        }
+      }
+    } else {
+      authState.ready = true;
+      dispatchAuthState(authState.session);
+    }
   }
 
   initAuth().catch((error) => {
