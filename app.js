@@ -178,7 +178,11 @@ const state = {
   notificationPopoverOpen: false,
   quickMenuOpen: false,
   floatingUiFrame: 0,
-  catalogFiltersOpen: false
+  catalogFiltersOpen: false,
+  startupLoaderProgress: 8,
+  startupLoaderTimer: 0,
+  startupLoaderShownAt: 0,
+  startupLoaderActive: Boolean(document.body?.classList.contains("is-app-loading"))
 };
 
 const els = {
@@ -316,7 +320,8 @@ const els = {
   twitterImage: document.getElementById("twitter-image"),
   structuredData: document.getElementById("structured-data"),
   homePanel: document.querySelector('[data-view-panel="home"]'),
-  toastViewport: document.getElementById("toast-viewport")
+  toastViewport: document.getElementById("toast-viewport"),
+  startupLoader: document.getElementById("startup-loader")
 };
 
 const STATIC_UI_TEXT = Object.freeze({
@@ -2006,6 +2011,58 @@ function releaseViewportLocks() {
   if (authModal && !authModal.hidden) return;
   document.body.classList.remove("is-viewport-locked");
   document.documentElement.classList.remove("is-viewport-locked");
+}
+
+function setStartupLoaderProgress(value) {
+  if (!els.startupLoader) return;
+  const nextValue = Math.max(0, Math.min(100, Number(value || 0)));
+  state.startupLoaderProgress = Math.max(Number(state.startupLoaderProgress || 0), nextValue);
+  els.startupLoader.style.setProperty("--startup-progress", `${state.startupLoaderProgress}%`);
+}
+
+function primeStartupLoader() {
+  if (!els.startupLoader || !state.startupLoaderActive) return;
+  state.startupLoaderShownAt = Date.now();
+  setStartupLoaderProgress(8);
+  if (state.startupLoaderTimer) return;
+
+  state.startupLoaderTimer = window.setInterval(() => {
+    if (!state.startupLoaderActive) {
+      clearInterval(state.startupLoaderTimer);
+      state.startupLoaderTimer = 0;
+      return;
+    }
+
+    const current = Number(state.startupLoaderProgress || 0);
+    if (current >= 92) {
+      clearInterval(state.startupLoaderTimer);
+      state.startupLoaderTimer = 0;
+      return;
+    }
+
+    setStartupLoaderProgress(Math.min(92, current + (current < 50 ? 7 : 4)));
+  }, 220);
+}
+
+function finishStartupLoader() {
+  if (!els.startupLoader || !state.startupLoaderActive) return;
+  if (state.startupLoaderTimer) {
+    clearInterval(state.startupLoaderTimer);
+    state.startupLoaderTimer = 0;
+  }
+
+  setStartupLoaderProgress(100);
+  const elapsed = Date.now() - Number(state.startupLoaderShownAt || Date.now());
+  const waitMs = Math.max(0, 950 - elapsed);
+
+  window.setTimeout(() => {
+    els.startupLoader.classList.add("is-complete");
+    document.body.classList.remove("is-app-loading");
+    state.startupLoaderActive = false;
+    window.setTimeout(() => {
+      els.startupLoader?.remove();
+    }, 850);
+  }, waitMs);
 }
 
 function relocateInjectedControls() {
@@ -6629,12 +6686,15 @@ function bindEvents() {
 }
 
 async function init() {
+  primeStartupLoader();
+  setStartupLoaderProgress(12);
   relocateInjectedControls();
   bindEvents();
   setupScrollPerformanceMode();
   repairStaticUiText();
   registerServiceWorker();
   releaseViewportLocks();
+  setStartupLoaderProgress(24);
 
   try {
     state.authUser = typeof window.getAuthUser === "function" ? window.getAuthUser() : null;
@@ -6651,6 +6711,7 @@ async function init() {
   renderNotifications();
   renderNotificationPopover();
   syncNotificationButton();
+  setStartupLoaderProgress(38);
 
   try {
     const initialRoute = routeFromLocation();
@@ -6659,11 +6720,14 @@ async function init() {
 
     if (shouldLoadHomeNow) {
       await loadContentStats();
+      setStartupLoaderProgress(54);
       await loadHome();
+      setStartupLoaderProgress(76);
       updateStats();
     }
 
     handleRoute();
+    setStartupLoaderProgress(90);
 
     safeIdle(() => {
       if (!shouldLoadHomeNow) {
@@ -6684,6 +6748,9 @@ async function init() {
     updateGrid(els.latestGrid, [], "Не удалось загрузить домашнюю страницу.");
     updateGrid(els.recommendedGrid, [], "Не удалось загрузить домашнюю страницу.");
     updateGrid(els.popularGrid, [], "Не удалось загрузить домашнюю страницу.");
+  } finally {
+    setStartupLoaderProgress(96);
+    finishStartupLoader();
   }
 }
 
