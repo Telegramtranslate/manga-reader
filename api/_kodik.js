@@ -299,6 +299,109 @@ function getEpisodeRange(episodes = []) {
   };
 }
 
+function parseEpisodeBounds(label, fallbackOrdinal = 0) {
+  const fallback = Math.max(0, toNumber(fallbackOrdinal, 0));
+  const numbers = Array.from(String(label || "").matchAll(/\d+/g))
+    .map((match) => toNumber(match[0], 0))
+    .filter((value) => value > 0);
+
+  if (!numbers.length) {
+    return { start: fallback, end: fallback };
+  }
+
+  if (numbers.length === 1) {
+    const only = numbers[0];
+    const end = fallback > 0 && Math.abs(fallback - only) <= 1 ? Math.max(fallback, only) : fallback || only;
+    return { start: Math.min(only, end), end: Math.max(only, end) };
+  }
+
+  let start = numbers[0];
+  let end = numbers[1];
+
+  if (fallback > 0 && Math.abs(end - fallback) > 2) {
+    end = fallback;
+  }
+
+  if (fallback > 0 && start > end) {
+    end = fallback >= start ? fallback : Math.max(fallback, end);
+  }
+
+  if (end < start) {
+    [start, end] = [end, start];
+  }
+
+  if (!end) end = fallback || start;
+  if (!start) start = Math.min(fallback || end, end);
+  return { start, end };
+}
+
+function getEpisodeBounds(episode) {
+  const ordinal = toNumber(episode?.ordinal, 0);
+  const start = toNumber(episode?.ordinalStart, 0);
+  const end = toNumber(episode?.ordinalEnd, 0);
+
+  if (start > 0 || end > 0) {
+    const resolvedStart = start > 0 ? start : end;
+    const resolvedEnd = end > 0 ? end : start;
+    return {
+      start: Math.min(resolvedStart, resolvedEnd),
+      end: Math.max(resolvedStart, resolvedEnd)
+    };
+  }
+
+  return parseEpisodeBounds(String(episode?.name || episode?.title || ""), ordinal);
+}
+
+function buildEpisodeMetrics(episodes = []) {
+  const coverage = new Set();
+  let fallbackCount = 0;
+  let maxOrdinal = 0;
+  let minOrdinal = 0;
+  let latestEpisode = null;
+
+  (Array.isArray(episodes) ? episodes : []).forEach((episode) => {
+    const { start, end } = getEpisodeBounds(episode);
+    if (start > 0 || end > 0) {
+      const safeStart = Math.max(1, start || end);
+      const safeEnd = Math.max(safeStart, end || start || 0);
+      for (let ordinal = safeStart; ordinal <= safeEnd; ordinal += 1) {
+        coverage.add(ordinal);
+      }
+      if (!minOrdinal || safeStart < minOrdinal) {
+        minOrdinal = safeStart;
+      }
+      if (safeEnd >= maxOrdinal) {
+        maxOrdinal = safeEnd;
+        latestEpisode = episode;
+      }
+      return;
+    }
+
+    fallbackCount += 1;
+    latestEpisode = episode;
+  });
+
+  return {
+    count: coverage.size || fallbackCount,
+    maxOrdinal,
+    minOrdinal,
+    hasEpisodes: coverage.size > 0 || fallbackCount > 0,
+    latestEpisode
+  };
+}
+
+function compareEpisodeMetricPreference(leftMetrics, rightMetrics) {
+  const left = leftMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, hasEpisodes: false };
+  const right = rightMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, hasEpisodes: false };
+
+  if (left.count !== right.count) return left.count - right.count;
+  if (left.maxOrdinal !== right.maxOrdinal) return left.maxOrdinal - right.maxOrdinal;
+
+  const leftStartsAtOne = left.hasEpisodes && left.minOrdinal <= 1 ? 1 : 0;
+  const rightStartsAtOne = right.hasEpisodes && right.minOrdinal <= 1 ? 1 : 0;
+  return leftStartsAtOne - rightStartsAtOne;
+}
+
 function getTitleVariants(item) {
   return uniqueStrings([
     item?.title,
@@ -423,7 +526,13 @@ function buildPreviewRelease(groupItems) {
   const identity = buildIdentity(primary);
   const poster = getPosterUrl(primary);
   const posterSources = getPosterCandidates(primary);
-  const voices = uniqueStrings(groupItems.map((item) => item?.translation?.title).filter(Boolean));
+  const sourceItems = buildSourceItemsFromGroup(groupItems);
+  const bestSource = getBestSource(sourceItems) || sourceItems[0] || null;
+  const bestSourceMetrics = bestSource ? buildEpisodeMetrics(bestSource.episodes || []) : null;
+  const allSourceMetrics = buildEpisodeMetrics(sourceItems.flatMap((source) => source?.episodes || []));
+  const voices = uniqueStrings(
+    (sourceItems.length ? sourceItems.flatMap((source) => source.voices || []) : groupItems.map((item) => item?.translation?.title)).filter(Boolean)
+  );
   const ongoing = isOngoing(primary);
   const year = primary?.year || primary?.material_data?.year || "-";
   const ratingValue = Math.max(
@@ -456,6 +565,13 @@ function buildPreviewRelease(groupItems) {
     const itemTotal = getEpisodesTotal(item);
     if (itemTotal > episodesTotal) episodesTotal = itemTotal;
   });
+
+  if (bestSourceMetrics?.hasEpisodes) {
+    episodesTotal = bestSourceMetrics.count;
+  }
+  if (allSourceMetrics.maxOrdinal > currentEpisode) {
+    currentEpisode = allSourceMetrics.maxOrdinal;
+  }
 
   return {
     provider: "kodik",
@@ -494,7 +610,7 @@ function buildPreviewRelease(groupItems) {
       toNumber(primary?.material_data?.kinopoisk_votes, 0),
       toNumber(primary?.material_data?.imdb_votes, 0)
     ),
-    externalPlayer: "",
+    externalPlayer: bestSource?.externalUrl || "",
     voices,
     crew: [],
     episodes: [],
@@ -533,6 +649,7 @@ function extractEpisodes(item, sourceId) {
         Object.entries(episodes).forEach(([episodeKey, episode]) => {
           const ordinal = toNumber(episodeKey, 0);
           const externalUrl = absoluteKodikUrl(episode?.link || seasonLink || item?.link);
+          const { start, end } = parseEpisodeBounds(String(episode?.title || ""), ordinal);
           const dedupeKey = `${seasonOrdinal}:${ordinal}:${externalUrl}`;
           if (!externalUrl || seen.has(dedupeKey)) return;
 
@@ -540,6 +657,8 @@ function extractEpisodes(item, sourceId) {
           results.push({
             id: `${sourceId}:${seasonOrdinal || 1}:${ordinal || 0}`,
             ordinal: ordinal || 0,
+            ordinalStart: start,
+            ordinalEnd: end,
             seasonOrdinal,
             name: String(episode?.title || (ordinal ? `${ordinal} серия` : "Фильм")),
             duration: 0,
@@ -551,6 +670,7 @@ function extractEpisodes(item, sourceId) {
         });
       } else if (seasonLink) {
         const ordinal = toNumber(item?.last_episode || item?.episodes_count, 0);
+        const { start, end } = parseEpisodeBounds(String(item?.title || ""), ordinal);
         const dedupeKey = `${seasonOrdinal}:${ordinal}:${seasonLink}`;
         if (seen.has(dedupeKey)) return;
 
@@ -558,6 +678,8 @@ function extractEpisodes(item, sourceId) {
         results.push({
           id: `${sourceId}:${seasonOrdinal || 1}:${ordinal || 0}`,
           ordinal,
+          ordinalStart: start,
+          ordinalEnd: end,
           seasonOrdinal,
           name: ordinal ? `${ordinal} серия` : "Фильм",
           duration: 0,
@@ -574,9 +696,12 @@ function extractEpisodes(item, sourceId) {
     const externalUrl = absoluteKodikUrl(item?.link);
     if (externalUrl) {
       const ordinal = toNumber(item?.last_episode || item?.episodes_count, 0);
+      const { start, end } = parseEpisodeBounds(String(item?.title || ""), ordinal);
       results.push({
         id: `${sourceId}:${ordinal || 0}`,
         ordinal,
+        ordinalStart: start,
+        ordinalEnd: end,
         seasonOrdinal: 0,
         name: ordinal ? `${ordinal} серия` : "Фильм",
         duration: 0,
@@ -600,7 +725,7 @@ function buildSourceFromTranslation(groupItems) {
   const seenEpisodes = new Set();
 
   extractedEpisodes.forEach((episode) => {
-    const key = `${episode.ordinal || 0}:${episode.externalUrl}`;
+    const key = `${episode.ordinalStart || episode.ordinal || 0}:${episode.ordinalEnd || episode.ordinal || 0}:${episode.externalUrl}`;
     if (seenEpisodes.has(key)) return;
     seenEpisodes.add(key);
     dedupedEpisodes.push(episode);
@@ -608,15 +733,16 @@ function buildSourceFromTranslation(groupItems) {
 
   const translationTitle = String(primary?.translation?.title || "Озвучка");
   const translationType = String(primary?.translation?.type || "voice");
-  const episodesCount = Math.max(dedupedEpisodes.length, getEpisodesTotal(primary));
-  const { first, last } = getEpisodeRange(dedupedEpisodes);
+  const coverageMetrics = buildEpisodeMetrics(dedupedEpisodes);
   const typeLabel = translationType === "subtitles" ? "субтитры" : "озвучка";
   const rangeLabel =
-    first > 0 && last >= first
-      ? first === 1 && (!episodesCount || last >= episodesCount)
-        ? `${episodesCount || dedupedEpisodes.length} эп.`
-        : `${first}-${last} эп.`
-      : `${episodesCount || "?"} эп.`;
+    coverageMetrics.hasEpisodes
+      ? coverageMetrics.minOrdinal === 1 && coverageMetrics.count === coverageMetrics.maxOrdinal
+        ? `${coverageMetrics.count} эп.`
+        : coverageMetrics.count === coverageMetrics.maxOrdinal - coverageMetrics.minOrdinal + 1
+          ? `${coverageMetrics.minOrdinal}-${coverageMetrics.maxOrdinal} эп.`
+          : `${coverageMetrics.count} эп. доступно`
+      : `${getEpisodesTotal(primary) || "?"} эп.`;
 
   return {
     id: sourceId,
@@ -633,18 +759,12 @@ function buildSourceFromTranslation(groupItems) {
 
 function sortSourceItems(sourceItems = []) {
   return sourceItems.slice().sort((left, right) => {
-    const leftRange = getEpisodeRange(left?.episodes || []);
-    const rightRange = getEpisodeRange(right?.episodes || []);
-    const leftStartsAtOne = leftRange.first <= 1 ? 1 : 0;
-    const rightStartsAtOne = rightRange.first <= 1 ? 1 : 0;
-    if (leftStartsAtOne !== rightStartsAtOne) {
-      return rightStartsAtOne - leftStartsAtOne;
-    }
-
-    const leftEpisodes = Array.isArray(left?.episodes) ? left.episodes.length : 0;
-    const rightEpisodes = Array.isArray(right?.episodes) ? right.episodes.length : 0;
-    if (leftEpisodes !== rightEpisodes) {
-      return rightEpisodes - leftEpisodes;
+    const metricDiff = compareEpisodeMetricPreference(
+      buildEpisodeMetrics(right?.episodes || []),
+      buildEpisodeMetrics(left?.episodes || [])
+    );
+    if (metricDiff !== 0) {
+      return metricDiff;
     }
 
     const leftSubtitle = /субтитр/i.test(`${left?.title || ""} ${left?.note || ""}`);
@@ -657,8 +777,7 @@ function sortSourceItems(sourceItems = []) {
   });
 }
 
-function buildFullRelease(groupItems) {
-  const preview = buildPreviewRelease(groupItems);
+function buildSourceItemsFromGroup(groupItems = []) {
   const translationGroups = new Map();
 
   groupItems.forEach((item) => {
@@ -669,7 +788,24 @@ function buildFullRelease(groupItems) {
     translationGroups.get(key).push(item);
   });
 
-  const sourceItems = sortSourceItems(Array.from(translationGroups.values()).map(buildSourceFromTranslation));
+  return sortSourceItems(Array.from(translationGroups.values()).map(buildSourceFromTranslation));
+}
+
+function getBestSource(sourceItems = []) {
+  return (Array.isArray(sourceItems) ? sourceItems : []).reduce((best, current) => {
+    if (!best) return current;
+    return compareEpisodeMetricPreference(
+      buildEpisodeMetrics(current?.episodes || []),
+      buildEpisodeMetrics(best?.episodes || [])
+    ) > 0
+      ? current
+      : best;
+  }, null);
+}
+
+function buildFullRelease(groupItems) {
+  const preview = buildPreviewRelease(groupItems);
+  const sourceItems = buildSourceItemsFromGroup(groupItems);
   const firstSource = sourceItems[0] || null;
 
   return {

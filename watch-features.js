@@ -567,6 +567,15 @@ function clearAllComments() {
   renderComments();
 }
 
+function getWatchEpisodeLabel(episode) {
+  const start = Number(episode?.ordinalStart || 0);
+  const end = Number(episode?.ordinalEnd || 0);
+  if (start > 0 && end > start) {
+    return `${start}-${end} серия`;
+  }
+  return `${episode?.ordinal || "?"} серия`;
+}
+
 async function saveProgress(force = false) {
   if (!watchState.release?.alias || !watchState.episode?.id) return false;
   if (watchEls.player.hidden) return false;
@@ -595,7 +604,7 @@ async function saveProgress(force = false) {
     cardPoster: watchState.release.cardPoster || watchState.release.poster,
     episodeId: watchState.episode.id,
     episodeOrdinal: watchState.episode.ordinal || 0,
-    episodeLabel: `${watchState.episode.ordinal || "?"} серия`,
+    episodeLabel: getWatchEpisodeLabel(watchState.episode),
     time: currentTime,
     duration,
     updatedAt: now
@@ -620,7 +629,7 @@ async function saveEpisodeSelectionProgress() {
     cardPoster: watchState.release.cardPoster || watchState.release.poster,
     episodeId: watchState.episode.id,
     episodeOrdinal: watchState.episode.ordinal || 0,
-    episodeLabel: `${watchState.episode.ordinal || "?"} серия`,
+    episodeLabel: getWatchEpisodeLabel(watchState.episode),
     time: Number(currentMap[watchState.release.alias]?.time || 0),
     duration: Number(currentMap[watchState.release.alias]?.duration || 0),
     updatedAt: Date.now()

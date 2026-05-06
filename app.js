@@ -1061,19 +1061,80 @@ const thumbDirectSource = (poster) =>
 function normalizePreparedEpisode(episode, fallbackSourceId = "") {
   const ordinal = Number(episode?.ordinal || 0);
   const seasonOrdinal = Number(episode?.seasonOrdinal || 0);
+  const rawName = String(episode?.name || episode?.title || "").trim();
+  const rawStart = Number(episode?.ordinalStart || 0);
+  const rawEnd = Number(episode?.ordinalEnd || 0);
+  const parsedBounds = parseEpisodeBounds(rawName, rawEnd || ordinal || rawStart);
+  const ordinalStart = rawStart > 0 ? rawStart : parsedBounds.start;
+  const ordinalEnd = rawEnd > 0 ? rawEnd : parsedBounds.end;
 
   return {
     ...episode,
     id: episode?.id || `${fallbackSourceId || "episode"}:${seasonOrdinal || 0}:${ordinal || 0}`,
     ordinal,
+    ordinalStart,
+    ordinalEnd,
     seasonOrdinal,
-    name: episode?.name || (ordinal ? `${ordinal} серия` : "Фильм"),
+    name: rawName || (ordinal ? `${ordinal} серия` : "Фильм"),
     duration: Number(episode?.duration || 0),
     externalUrl: episode?.externalUrl ? normalizeExternalPlayer(episode.externalUrl) : "",
     previewUrl: episode?.previewUrl ? absoluteUrl(episode.previewUrl) : "",
     provider: episode?.provider || "external",
     sourceId: episode?.sourceId || fallbackSourceId
   };
+}
+
+function parseEpisodeBounds(label, fallbackOrdinal = 0) {
+  const fallback = Math.max(0, Number(fallbackOrdinal || 0));
+  const numbers = Array.from(String(label || "").matchAll(/\d+/g))
+    .map((match) => Number(match[0] || 0))
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  if (!numbers.length) {
+    return { start: fallback, end: fallback };
+  }
+
+  if (numbers.length === 1) {
+    const only = numbers[0];
+    const end = fallback > 0 && Math.abs(fallback - only) <= 1 ? Math.max(fallback, only) : fallback || only;
+    return { start: Math.min(only, end), end: Math.max(only, end) };
+  }
+
+  let start = numbers[0];
+  let end = numbers[1];
+
+  if (fallback > 0 && Math.abs(end - fallback) > 2) {
+    end = fallback;
+  }
+
+  if (fallback > 0 && start > end) {
+    end = fallback >= start ? fallback : Math.max(fallback, end);
+  }
+
+  if (end < start) {
+    [start, end] = [end, start];
+  }
+
+  if (!end) end = fallback || start;
+  if (!start) start = Math.min(fallback || end, end);
+  return { start, end };
+}
+
+function getEpisodeBounds(episode) {
+  const ordinal = Number(episode?.ordinal || 0);
+  const start = Number(episode?.ordinalStart || 0);
+  const end = Number(episode?.ordinalEnd || 0);
+
+  if (start > 0 || end > 0) {
+    const resolvedStart = start > 0 ? start : end;
+    const resolvedEnd = end > 0 ? end : start;
+    return {
+      start: Math.min(resolvedStart, resolvedEnd),
+      end: Math.max(resolvedStart, resolvedEnd)
+    };
+  }
+
+  return parseEpisodeBounds(String(episode?.name || episode?.title || ""), ordinal);
 }
 
 function normalizePreparedSource(source) {
@@ -1125,25 +1186,73 @@ function getReleaseEpisodeMetrics(episodes = [], sourceItems = []) {
   const ordinalSet = new Set();
   let fallbackCount = 0;
   let maxOrdinal = 0;
+  let minOrdinal = 0;
+  let latestEpisode = null;
 
   allEpisodes.forEach((episode) => {
-    const ordinal = Number(episode?.ordinal || 0);
-    if (ordinal > 0) {
-      ordinalSet.add(ordinal);
-      maxOrdinal = Math.max(maxOrdinal, ordinal);
+    const { start, end } = getEpisodeBounds(episode);
+    if (start > 0 || end > 0) {
+      const safeStart = Math.max(1, start || end);
+      const safeEnd = Math.max(safeStart, end || start || 0);
+      for (let ordinal = safeStart; ordinal <= safeEnd; ordinal += 1) {
+        ordinalSet.add(ordinal);
+      }
+      if (!minOrdinal || safeStart < minOrdinal) {
+        minOrdinal = safeStart;
+      }
+      if (safeEnd >= maxOrdinal) {
+        maxOrdinal = safeEnd;
+        latestEpisode = episode;
+      }
       return;
     }
     fallbackCount += 1;
+    latestEpisode = episode;
   });
 
   return {
     count: ordinalSet.size || fallbackCount,
     maxOrdinal,
+    minOrdinal,
     hasEpisodes: ordinalSet.size > 0 || fallbackCount > 0,
-    latestEpisode: maxOrdinal > 0
-      ? allEpisodes.find((episode) => Number(episode?.ordinal || 0) === maxOrdinal) || null
-      : allEpisodes[allEpisodes.length - 1] || null
+    latestEpisode
   };
+}
+
+function compareEpisodeMetricPreference(leftMetrics, rightMetrics) {
+  const left = leftMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, hasEpisodes: false };
+  const right = rightMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, hasEpisodes: false };
+
+  if (left.count !== right.count) return left.count - right.count;
+  if (left.maxOrdinal !== right.maxOrdinal) return left.maxOrdinal - right.maxOrdinal;
+
+  const leftStartsAtOne = left.hasEpisodes && left.minOrdinal <= 1 ? 1 : 0;
+  const rightStartsAtOne = right.hasEpisodes && right.minOrdinal <= 1 ? 1 : 0;
+  return leftStartsAtOne - rightStartsAtOne;
+}
+
+function getBestSourceMetricEntry(sourceItems = []) {
+  return (Array.isArray(sourceItems) ? sourceItems : [])
+    .map((source) => ({
+      source,
+      metrics: getReleaseEpisodeMetrics(Array.isArray(source?.episodes) ? source.episodes : [])
+    }))
+    .filter((entry) => entry.metrics.hasEpisodes)
+    .reduce((best, current) => {
+      if (!best) return current;
+      return compareEpisodeMetricPreference(current.metrics, best.metrics) > 0 ? current : best;
+    }, null);
+}
+
+function getEpisodeUiLabel(episode) {
+  const { start, end } = getEpisodeBounds(episode);
+  if (start > 0 && end > start) {
+    return `${start}-${end} серия`;
+  }
+  if (Number(episode?.ordinal || 0) > 0) {
+    return `${episode.ordinal} серия`;
+  }
+  return episode?.name || "Фильм";
 }
 
 function normalizePreparedRelease(item) {
@@ -1182,6 +1291,8 @@ function normalizePreparedRelease(item) {
     ]
   );
   const episodeMetrics = getReleaseEpisodeMetrics(episodes, sourceItems);
+  const bestSourceEntry = getBestSourceMetricEntry(sourceItems);
+  const preferredEpisodeMetrics = bestSourceEntry?.metrics?.hasEpisodes ? bestSourceEntry.metrics : episodeMetrics;
   const rawEpisodesTotal = Number(item?.episodesTotal || 0);
   const rawPublishedEpisode =
     item?.publishedEpisode && Number(item.publishedEpisode.ordinal || 0) > 0
@@ -1191,7 +1302,7 @@ function normalizePreparedRelease(item) {
           duration: Number(item.publishedEpisode.duration || 0)
         }
       : null;
-  const safeEpisodesTotal = episodeMetrics.hasEpisodes ? episodeMetrics.count : rawEpisodesTotal;
+  const safeEpisodesTotal = preferredEpisodeMetrics.hasEpisodes ? preferredEpisodeMetrics.count : rawEpisodesTotal;
   const safePublishedEpisode =
     episodeMetrics.maxOrdinal > 0
       ? {
@@ -5444,20 +5555,7 @@ function getDefaultSourceId(release) {
   if (!sources.length) return "kodik";
   const sourcesWithEpisodes = sources.filter((source) => Array.isArray(source?.episodes) && source.episodes.length);
   if (sourcesWithEpisodes.length) {
-    const bestSource = sourcesWithEpisodes.reduce((best, current) => {
-      const bestMetrics = getReleaseEpisodeMetrics(best.episodes || []);
-      const currentMetrics = getReleaseEpisodeMetrics(current.episodes || []);
-
-      if (currentMetrics.maxOrdinal !== bestMetrics.maxOrdinal) {
-        return currentMetrics.maxOrdinal > bestMetrics.maxOrdinal ? current : best;
-      }
-      if (currentMetrics.count !== bestMetrics.count) {
-        return currentMetrics.count > bestMetrics.count ? current : best;
-      }
-      return best;
-    }, sourcesWithEpisodes[0]);
-
-    return bestSource.id;
+    return getBestSourceMetricEntry(sourcesWithEpisodes)?.source?.id || sourcesWithEpisodes[0].id;
   }
 
   return sources.find((source) => source.externalUrl)?.id || sources[0].id;
@@ -5531,8 +5629,10 @@ function createSourceNode(source) {
 }
 
 function createEpisodeNode(episode) {
-  const compactLabel = episode.ordinal ? String(episode.ordinal) : episode.name || "Фильм";
-  const fullLabel = episode.ordinal ? `${episode.ordinal} серия` : episode.name || "Фильм";
+  const { start, end } = getEpisodeBounds(episode);
+  const compactLabel =
+    start > 0 && end > start ? `${start}-${end}` : episode.ordinal ? String(episode.ordinal) : episode.name || "Фильм";
+  const fullLabel = getEpisodeUiLabel(episode);
   const durationLabel = formatEpisodeDuration(episode.duration) || "Длительность не указана";
   const button = document.createElement("button");
   button.type = "button";
@@ -5827,9 +5927,8 @@ async function selectEpisode(episode, options = {}) {
 
   syncRenderedEpisodeState();
   syncRenderedSourceState();
-  els.playerTitle.textContent = `${episode.ordinal ? `${episode.ordinal} серия` : "Фильм"}${
-    episode.name && episode.name !== `${episode.ordinal} серия` ? ` • ${episode.name}` : ""
-  }`;
+  const episodeLabel = getEpisodeUiLabel(episode);
+  els.playerTitle.textContent = `${episodeLabel}${episode.name && episode.name !== episodeLabel ? ` • ${episode.name}` : ""}`;
   window.dispatchEvent(
     new CustomEvent("animecloud:episode-selected", {
       detail: { release: state.currentAnime, episode, sourceId: state.currentSource }
