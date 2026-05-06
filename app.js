@@ -1210,25 +1210,51 @@ function getReleaseEpisodeMetrics(episodes = [], sourceItems = []) {
     latestEpisode = episode;
   });
 
+  let prefixCount = 0;
+  if (ordinalSet.size) {
+    for (let ordinal = 1; ordinal <= maxOrdinal; ordinal += 1) {
+      if (!ordinalSet.has(ordinal)) break;
+      prefixCount += 1;
+    }
+  }
+
+  const count = ordinalSet.size || fallbackCount;
+  const hasGaps = ordinalSet.size > 0 && minOrdinal <= 1 && prefixCount < maxOrdinal;
+
   return {
-    count: ordinalSet.size || fallbackCount,
+    count,
     maxOrdinal,
     minOrdinal,
+    prefixCount,
+    hasGaps,
     hasEpisodes: ordinalSet.size > 0 || fallbackCount > 0,
     latestEpisode
   };
 }
 
 function compareEpisodeMetricPreference(leftMetrics, rightMetrics) {
-  const left = leftMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, hasEpisodes: false };
-  const right = rightMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, hasEpisodes: false };
+  const left = leftMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, prefixCount: 0, hasEpisodes: false };
+  const right = rightMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, prefixCount: 0, hasEpisodes: false };
 
+  if (left.prefixCount !== right.prefixCount) return left.prefixCount - right.prefixCount;
   if (left.count !== right.count) return left.count - right.count;
   if (left.maxOrdinal !== right.maxOrdinal) return left.maxOrdinal - right.maxOrdinal;
 
   const leftStartsAtOne = left.hasEpisodes && left.minOrdinal <= 1 ? 1 : 0;
   const rightStartsAtOne = right.hasEpisodes && right.minOrdinal <= 1 ? 1 : 0;
   return leftStartsAtOne - rightStartsAtOne;
+}
+
+function formatEpisodeMetricsLabel(metrics, fallbackTotal = 0) {
+  const safeMetrics = metrics || null;
+  const fallback = Math.max(0, Number(fallbackTotal || 0));
+  if (!safeMetrics?.hasEpisodes) {
+    return `${fallback || "?"} эп.`;
+  }
+  if (safeMetrics.hasGaps || safeMetrics.minOrdinal > 1) {
+    return `${safeMetrics.count} доступно`;
+  }
+  return `${safeMetrics.count} эп.`;
 }
 
 function getBestSourceMetricEntry(sourceItems = []) {
@@ -1303,6 +1329,7 @@ function normalizePreparedRelease(item) {
         }
       : null;
   const safeEpisodesTotal = preferredEpisodeMetrics.hasEpisodes ? preferredEpisodeMetrics.count : rawEpisodesTotal;
+  const safeEpisodesLabel = formatEpisodeMetricsLabel(preferredEpisodeMetrics, rawEpisodesTotal);
   const safePublishedEpisode =
     episodeMetrics.maxOrdinal > 0
       ? {
@@ -1358,6 +1385,9 @@ function normalizePreparedRelease(item) {
     thumbDirect,
     genres: normalizedGenres,
     episodesTotal: safeEpisodesTotal,
+    episodesLabel: safeEpisodesLabel,
+    episodesMaxOrdinal: Number(preferredEpisodeMetrics.maxOrdinal || rawEpisodesTotal || 0),
+    episodesHasGaps: Boolean(preferredEpisodeMetrics.hasGaps || (preferredEpisodeMetrics.minOrdinal > 1 && preferredEpisodeMetrics.hasEpisodes)),
     averageDuration: Number(item?.averageDuration || 0),
     favorites: Number(item?.favorites || 0),
     externalPlayer,
@@ -3735,7 +3765,7 @@ function showScheduleOverflowDialog(day, releases = []) {
           ? `Вышла ${release.publishedEpisode.ordinal} серия`
           : release.nextEpisodeNumber
             ? `Следующая серия: ${release.nextEpisodeNumber}`
-            : `${release.episodesTotal || "?"} эп.`
+            : release.episodesLabel || `${release.episodesTotal || "?"} эп.`
       )}</small></div>`;
       fragment.appendChild(button);
     });
@@ -4291,7 +4321,7 @@ function renderHero(release) {
   const meta = [
     `${release.type} • ${release.year}`,
     release.season,
-    `${release.episodesTotal || "?"} эп.`,
+    release.episodesLabel || `${release.episodesTotal || "?"} эп.`,
     release.publishDay ? `Выходит: ${release.publishDay}` : "",
     release.age
   ].filter(Boolean);
@@ -4945,7 +4975,7 @@ function renderSchedule() {
           ? `Вышла ${release.publishedEpisode.ordinal} серия`
           : release.nextEpisodeNumber
             ? `Следующая серия: ${release.nextEpisodeNumber}`
-            : `${release.episodesTotal || "?"} эп.`
+            : release.episodesLabel || `${release.episodesTotal || "?"} эп.`
       )}</small></div>`;
       button.addEventListener("click", () => openRelease(release.alias).catch(console.error));
       list.appendChild(button);
@@ -5176,7 +5206,7 @@ function createAnimeCard(release, index, options = {}) {
   node.querySelector(".anime-card__age").textContent = release.age;
   node.querySelector(".anime-card__status").textContent = release.statusLabel;
   node.querySelector(".anime-card__title").textContent = release.title;
-  node.querySelector(".anime-card__meta").textContent = [release.type, release.year, `${release.episodesTotal || "?"} эп.`]
+  node.querySelector(".anime-card__meta").textContent = [release.type, release.year, release.episodesLabel || `${release.episodesTotal || "?"} эп.`]
     .filter(Boolean)
     .join(" • ");
 
@@ -5772,9 +5802,7 @@ function renderDetailMeta(release) {
   const activeSource =
     getSourceById(release, state.currentSource) || getSourceById(release, getDefaultSourceId(release));
   const activeSourceMetrics = getReleaseEpisodeMetrics(activeSource?.episodes || []);
-  const activeEpisodesLabel = activeSourceMetrics.hasEpisodes
-    ? `${activeSourceMetrics.count} эп.`
-    : `${release.episodesTotal || "?"} эп.`;
+  const activeEpisodesLabel = formatEpisodeMetricsLabel(activeSourceMetrics, release.episodesTotal || 0);
 
   const meta = [
     release.type,

@@ -381,19 +381,33 @@ function buildEpisodeMetrics(episodes = []) {
     latestEpisode = episode;
   });
 
+  let prefixCount = 0;
+  if (coverage.size) {
+    for (let ordinal = 1; ordinal <= maxOrdinal; ordinal += 1) {
+      if (!coverage.has(ordinal)) break;
+      prefixCount += 1;
+    }
+  }
+
+  const count = coverage.size || fallbackCount;
+  const hasGaps = coverage.size > 0 && minOrdinal <= 1 && prefixCount < maxOrdinal;
+
   return {
-    count: coverage.size || fallbackCount,
+    count,
     maxOrdinal,
     minOrdinal,
+    prefixCount,
+    hasGaps,
     hasEpisodes: coverage.size > 0 || fallbackCount > 0,
     latestEpisode
   };
 }
 
 function compareEpisodeMetricPreference(leftMetrics, rightMetrics) {
-  const left = leftMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, hasEpisodes: false };
-  const right = rightMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, hasEpisodes: false };
+  const left = leftMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, prefixCount: 0, hasEpisodes: false };
+  const right = rightMetrics || { count: 0, maxOrdinal: 0, minOrdinal: 0, prefixCount: 0, hasEpisodes: false };
 
+  if (left.prefixCount !== right.prefixCount) return left.prefixCount - right.prefixCount;
   if (left.count !== right.count) return left.count - right.count;
   if (left.maxOrdinal !== right.maxOrdinal) return left.maxOrdinal - right.maxOrdinal;
 
@@ -737,7 +751,9 @@ function buildSourceFromTranslation(groupItems) {
   const typeLabel = translationType === "subtitles" ? "субтитры" : "озвучка";
   const rangeLabel =
     coverageMetrics.hasEpisodes
-      ? coverageMetrics.minOrdinal === 1 && coverageMetrics.count === coverageMetrics.maxOrdinal
+      ? coverageMetrics.hasGaps || coverageMetrics.minOrdinal > 1
+        ? `${coverageMetrics.count} доступно`
+        : coverageMetrics.minOrdinal === 1 && coverageMetrics.count === coverageMetrics.maxOrdinal
         ? `${coverageMetrics.count} эп.`
         : coverageMetrics.count === coverageMetrics.maxOrdinal - coverageMetrics.minOrdinal + 1
           ? `${coverageMetrics.minOrdinal}-${coverageMetrics.maxOrdinal} эп.`
