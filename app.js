@@ -5442,11 +5442,25 @@ function getSourceById(release, sourceId) {
 function getDefaultSourceId(release) {
   const sources = getReleaseSources(release);
   if (!sources.length) return "kodik";
-  return (
-    sources.find((source) => source.externalUrl)?.id ||
-    sources.find((source) => source.episodes?.length)?.id ||
-    sources[0].id
-  );
+  const sourcesWithEpisodes = sources.filter((source) => Array.isArray(source?.episodes) && source.episodes.length);
+  if (sourcesWithEpisodes.length) {
+    const bestSource = sourcesWithEpisodes.reduce((best, current) => {
+      const bestMetrics = getReleaseEpisodeMetrics(best.episodes || []);
+      const currentMetrics = getReleaseEpisodeMetrics(current.episodes || []);
+
+      if (currentMetrics.maxOrdinal !== bestMetrics.maxOrdinal) {
+        return currentMetrics.maxOrdinal > bestMetrics.maxOrdinal ? current : best;
+      }
+      if (currentMetrics.count !== bestMetrics.count) {
+        return currentMetrics.count > bestMetrics.count ? current : best;
+      }
+      return best;
+    }, sourcesWithEpisodes[0]);
+
+    return bestSource.id;
+  }
+
+  return sources.find((source) => source.externalUrl)?.id || sources[0].id;
 }
 
 function getSourceEpisodes(release, sourceId) {
@@ -5648,6 +5662,37 @@ function renderDetailLoadingState() {
   }
 }
 
+function renderDetailMeta(release) {
+  const kodikRatingValue = Number(release?.sortRating || 0);
+  const kodikRating =
+    Number.isFinite(kodikRatingValue) && kodikRatingValue > 0 && kodikRatingValue <= 10.1
+      ? String(kodikRatingValue).replace(/\.0$/, "")
+      : "";
+
+  const activeSource =
+    getSourceById(release, state.currentSource) || getSourceById(release, getDefaultSourceId(release));
+  const activeSourceMetrics = getReleaseEpisodeMetrics(activeSource?.episodes || []);
+  const activeEpisodesLabel = activeSourceMetrics.hasEpisodes
+    ? `${activeSourceMetrics.count} эп.`
+    : `${release.episodesTotal || "?"} эп.`;
+
+  const meta = [
+    release.type,
+    release.year,
+    kodikRating ? `\u0420\u0435\u0439\u0442\u0438\u043d\u0433: ${kodikRating}` : "",
+    release.season,
+    activeEpisodesLabel,
+    formatDurationMinutes(release.averageDuration),
+    release.publishDay ? `Выходит: ${release.publishDay}` : "",
+    release.favorites ? `${formatNumber(release.favorites)} в избранном` : "",
+    release.age
+  ].filter(Boolean);
+
+  if (els.detailMeta) {
+    els.detailMeta.replaceChildren(...meta.map(createMetaPill));
+  }
+}
+
 function renderDetailShell(release) {
   if (els.detailPoster) {
     els.detailPoster.src = release.poster;
@@ -5662,27 +5707,7 @@ function renderDetailShell(release) {
   }
   if (els.detailTitle) els.detailTitle.textContent = release.title;
   if (els.detailDescription) els.detailDescription.textContent = release.description;
-  const kodikRatingValue = Number(release?.sortRating || 0);
-  const kodikRating =
-    Number.isFinite(kodikRatingValue) && kodikRatingValue > 0 && kodikRatingValue <= 10.1
-      ? String(kodikRatingValue).replace(/\.0$/, "")
-      : "";
-
-  const meta = [
-    release.type,
-    release.year,
-    kodikRating ? `\u0420\u0435\u0439\u0442\u0438\u043d\u0433: ${kodikRating}` : "",
-    release.season,
-    `${release.episodesTotal || "?"} эп.`,
-    formatDurationMinutes(release.averageDuration),
-    release.publishDay ? `Выходит: ${release.publishDay}` : "",
-    release.favorites ? `${formatNumber(release.favorites)} в избранном` : "",
-    release.age
-  ].filter(Boolean);
-
-  if (els.detailMeta) {
-    els.detailMeta.replaceChildren(...meta.map(createMetaPill));
-  }
+  renderDetailMeta(release);
   if (els.detailChips) {
     els.detailChips.replaceChildren(...(release.genres || []).slice(0, 10).map(createChip));
   }
@@ -5864,6 +5889,7 @@ function switchSource(sourceId, options = {}) {
 
   state.currentSource = sourceId;
   syncRenderedSourceState();
+  renderDetailMeta(state.currentAnime);
   renderEpisodes(state.currentAnime);
 
   window.dispatchEvent(
