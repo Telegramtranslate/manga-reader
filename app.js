@@ -56,6 +56,9 @@ const RENDER_BATCH_SIZE = 8;
 const VOICE_FILTER_PREFETCH_PAGES = 3;
 const CATALOG_VOICE_FILTER_CACHE_LIMIT = 12;
 const CONTENT_STATS_TTL = 12 * 60 * 60 * 1000;
+const ONLINE_COUNTER_ENDPOINT = "/api/online";
+const ONLINE_SESSION_STORAGE_KEY = "animecloud_online_session_v1";
+const ONLINE_HEARTBEAT_INTERVAL_MS = 30000;
 const FAVORITES_STORAGE_PREFIX = STORAGE_KEYS.favoritesPrefix || "animecloud_favorites";
 const WATCH_PROGRESS_KEY = STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
 const ADMIN_HERO_STORAGE_KEY = STORAGE_KEYS.adminHero || "animecloud_admin_featured_alias";
@@ -178,6 +181,9 @@ const state = {
   notificationKnownIds: new Set(),
   notificationDismissedIds: new Set(),
   notificationPopoverOpen: false,
+  onlineCounterTimer: 0,
+  onlineCounterInFlight: false,
+  onlineSessionId: "",
   quickMenuOpen: false,
   floatingUiFrame: 0,
   catalogFiltersOpen: false,
@@ -220,6 +226,9 @@ const els = {
   notificationPopoverSummary: document.getElementById("notification-popover-summary"),
   notificationPopoverList: document.getElementById("notification-popover-list"),
   notificationPopoverMarkAllBtn: document.getElementById("notification-popover-mark-all-btn"),
+  onlineBadge: document.getElementById("online-badge"),
+  onlineCount: document.getElementById("online-count"),
+  onlineLabel: document.getElementById("online-label"),
   statsRow: document.querySelector(".stats-row"),
   latestCount: document.getElementById("latest-count"),
   catalogCount: document.getElementById("catalog-count"),
@@ -832,6 +841,92 @@ function refreshCustomCatalogSelects() {
 const formatNumber = (value) => new Intl.NumberFormat("ru-RU").format(Number(value || 0));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const uniqueStrings = (values = []) => [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
+
+function getOnlineSessionId() {
+  if (state.onlineSessionId) return state.onlineSessionId;
+
+  try {
+    const stored = localStorage.getItem(ONLINE_SESSION_STORAGE_KEY);
+    if (stored && /^[a-zA-Z0-9:_-]{12,96}$/.test(stored)) {
+      state.onlineSessionId = stored;
+      return stored;
+    }
+  } catch {}
+
+  const randomPart =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const sessionId = `web-${randomPart}`.replace(/[^a-zA-Z0-9:_-]/g, "-").slice(0, 96);
+
+  try {
+    localStorage.setItem(ONLINE_SESSION_STORAGE_KEY, sessionId);
+  } catch {}
+
+  state.onlineSessionId = sessionId;
+  return sessionId;
+}
+
+function onlinePeopleWord(value) {
+  const number = Math.abs(Number(value || 0));
+  const lastTwo = number % 100;
+  const last = number % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return "человек";
+  if (last === 1) return "человек";
+  return "человек";
+}
+
+function renderOnlineCounter(count, source = "") {
+  if (!els.onlineBadge || !els.onlineCount || !els.onlineLabel) return;
+
+  const safeCount = Math.max(0, Number(count || 0));
+  els.onlineBadge.hidden = false;
+  els.onlineBadge.dataset.source = source || "unknown";
+  els.onlineBadge.classList.toggle("is-live", safeCount > 0);
+  els.onlineCount.textContent = formatNumber(safeCount);
+  els.onlineLabel.textContent = `${onlinePeopleWord(safeCount)} сейчас на сайте`;
+}
+
+async function syncOnlineCounter() {
+  if (!els.onlineBadge || state.onlineCounterInFlight || document.hidden) return;
+  state.onlineCounterInFlight = true;
+
+  try {
+    const response = await fetch(ONLINE_COUNTER_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: getOnlineSessionId(),
+        path: window.location.pathname || "/"
+      }),
+      cache: "no-store",
+      keepalive: true
+    });
+
+    if (!response.ok) throw new Error(`Online counter failed: ${response.status}`);
+    const payload = await response.json();
+    if (payload?.ok) {
+      renderOnlineCounter(payload.count, payload.source);
+    }
+  } catch (error) {
+    console.warn(error);
+    if (els.onlineBadge && els.onlineBadge.hidden) {
+      els.onlineBadge.hidden = true;
+    }
+  } finally {
+    state.onlineCounterInFlight = false;
+  }
+}
+
+function startOnlineCounter() {
+  if (!els.onlineBadge || state.onlineCounterTimer) return;
+
+  syncOnlineCounter().catch(console.error);
+  state.onlineCounterTimer = window.setInterval(() => {
+    syncOnlineCounter().catch(console.error);
+  }, ONLINE_HEARTBEAT_INTERVAL_MS);
+}
+
 const EXCLUDED_GENRE_KEYS = new Set(["\u0430\u043d\u0438\u043c\u0435"]);
 const CLIENT_ONLY_CATALOG_GENRE_KEYS = new Set([
   "\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u043c\u0435\u0442\u0440\u0430\u0436\u043a\u0430",
@@ -6994,12 +7089,16 @@ function bindEvents() {
   });
 
   document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      syncOnlineCounter().catch(console.error);
+    }
     if (!document.hidden && state.authUser?.localId) {
       scheduleNotificationSync(800);
     }
   });
 
   window.addEventListener("online", () => {
+    syncOnlineCounter().catch(console.error);
     if (state.authUser?.localId) {
       scheduleNotificationSync(400);
     }
@@ -7058,6 +7157,7 @@ async function init() {
   renderNotifications();
   renderNotificationPopover();
   syncNotificationButton();
+  startOnlineCounter();
   setStartupLoaderProgress(38);
 
   try {

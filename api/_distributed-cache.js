@@ -29,8 +29,15 @@ function writeMemory(key, value, ttlMs) {
   });
 }
 
+function getRedisEnv() {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "";
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
+  return { url: url.trim(), token: token.trim() };
+}
+
 function canUseKv() {
-  return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+  const { url, token } = getRedisEnv();
+  return Boolean(url && token);
 }
 
 function getKvClient() {
@@ -40,9 +47,10 @@ function getKvClient() {
   try {
     // Optional dependency: if not installed, silently fallback to memory cache.
     const { Redis } = require("@upstash/redis");
+    const { url, token } = getRedisEnv();
     kvClient = new Redis({
-      url: process.env.KV_REST_API_URL,
-      token: process.env.KV_REST_API_TOKEN
+      url,
+      token
     });
   } catch {
     kvClient = null;

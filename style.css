@@ -4706,6 +4706,76 @@ body {
   justify-self: end;
 }
 
+.online-badge {
+  grid-area: live;
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 179, 62, 0.22);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(255, 213, 128, 0.2), transparent 36%),
+    linear-gradient(180deg, rgba(22, 27, 38, 0.9), rgba(10, 13, 20, 0.88));
+  color: var(--muted-strong);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+.online-badge[hidden] {
+  display: none !important;
+}
+
+.online-badge__pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgba(67, 217, 157, 0.42);
+  animation: onlinePulse 2.2s ease-out infinite;
+}
+
+.online-badge__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.online-badge strong {
+  color: var(--text-strong);
+  font-size: 0.98rem;
+  font-weight: 900;
+}
+
+.online-badge span:last-child {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+:root[data-theme="light"] .online-badge {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(255, 190, 98, 0.24), transparent 36%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(247, 237, 224, 0.9));
+  border-color: rgba(216, 137, 26, 0.22);
+  box-shadow: 0 12px 26px rgba(80, 49, 16, 0.12);
+}
+
+@keyframes onlinePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(67, 217, 157, 0.42);
+  }
+
+  70% {
+    box-shadow: 0 0 0 9px rgba(67, 217, 157, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(67, 217, 157, 0);
+  }
+}
+
 .notification-btn__icon {
   font-size: 1.05rem;
   line-height: 1;
@@ -6690,7 +6760,8 @@ body.is-scrolling .menu-btn {
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "brand tabs dock"
-    "search search search";
+    "search search search"
+    "live live live";
   align-items: center;
   column-gap: 24px;
   row-gap: 18px;
@@ -6846,6 +6917,7 @@ body.is-scrolling .menu-btn {
     grid-template-areas:
       "brand dock"
       "search search"
+      "live live"
       "tabs tabs";
     row-gap: 14px;
     padding: 16px;
@@ -6920,6 +6992,12 @@ body.is-scrolling .menu-btn {
   .search-box {
     min-height: 58px;
     padding-right: 46px;
+  }
+
+  .online-badge {
+    width: 100%;
+    justify-content: center;
+    border-radius: 18px;
   }
 }
 

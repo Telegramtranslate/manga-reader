@@ -181,6 +181,15 @@
                                     ]
                     },
                     {
+                        "source":  "/api/online",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store, max-age=0"
+                                        }
+                                    ]
+                    },
+                    {
                         "source":  "/api/csp-report",
                         "headers":  [
                                         {
