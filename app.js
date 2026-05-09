@@ -212,6 +212,7 @@ const els = {
   heroPoster: document.getElementById("hero-poster"),
   heroOpenBtn: document.getElementById("hero-open-btn"),
   heroRandomBtn: document.getElementById("hero-random-btn"),
+  randomFab: document.getElementById("random-fab"),
   heroDots: document.getElementById("hero-dots"),
   notificationBtn: document.getElementById("notification-btn"),
   notificationBadge: document.getElementById("notification-badge"),
@@ -6314,11 +6315,55 @@ async function openRelease(alias, options = {}) {
   return state.releaseOpenPromise;
 }
 
-function pickRandomRelease() {
-  const pool = uniqueReleases([state.featured, ...state.latest, ...state.recommended, ...state.popular].filter(Boolean));
-  if (!pool.length) return;
+function getRandomReleasePool() {
+  return uniqueReleases([
+    state.featured,
+    ...state.latest,
+    ...state.recommended,
+    ...state.popular,
+    ...state.catalogItems,
+    ...state.catalogFilterPool,
+    ...state.ongoingItems,
+    ...state.topItems,
+    ...state.searchResults,
+    ...state.favorites
+  ].filter(Boolean));
+}
+
+async function pickRandomRelease() {
+  let pool = getRandomReleasePool();
+
+  if (!pool.length && !state.homeLoaded) {
+    await loadHome().catch((error) => {
+      console.error("random preload failed", error);
+    });
+    pool = getRandomReleasePool();
+  }
+
+  if (!pool.length) {
+    createToast("Случайное аниме", "Каталог ещё загружается. Попробуйте через секунду.");
+    return null;
+  }
+
   const release = pool[Math.floor(Math.random() * pool.length)];
-  openRelease(release.alias).catch(console.error);
+  await openRelease(release.alias);
+  return release;
+}
+
+function animateRandomButton(button) {
+  if (!button?.classList) return;
+  button.classList.remove("is-rolling");
+  void button.offsetWidth;
+  button.classList.add("is-rolling");
+  window.setTimeout(() => button.classList.remove("is-rolling"), 680);
+}
+
+function handleRandomReleaseClick(event) {
+  animateRandomButton(event?.currentTarget);
+  pickRandomRelease().catch((error) => {
+    console.error(error);
+    createToast("Случайное аниме", "Не удалось открыть случайный тайтл. Попробуйте ещё раз.");
+  });
 }
 
 async function refreshAll() {
@@ -6720,7 +6765,8 @@ function bindEvents() {
     refreshAll().catch(console.error);
   });
   els.heroOpenBtn?.addEventListener("click", () => state.featured && openRelease(state.featured.alias).catch(console.error));
-  els.heroRandomBtn?.addEventListener("click", pickRandomRelease);
+  els.heroRandomBtn?.addEventListener("click", handleRandomReleaseClick);
+  els.randomFab?.addEventListener("click", handleRandomReleaseClick);
   els.installBtn?.addEventListener("click", () => {
     closeQuickMenu();
     handleInstallClick().catch(console.error);
