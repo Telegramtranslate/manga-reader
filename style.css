@@ -3773,9 +3773,14 @@ body {
     grid-row: 3;
   }
 
-  .home-shell--recommended {
+  .home-shell--weekly {
     grid-column: 1 / -1;
     grid-row: 4;
+  }
+
+  .home-shell--recommended {
+    grid-column: 1 / -1;
+    grid-row: 5;
   }
 }
 
@@ -7104,17 +7109,17 @@ body.is-scrolling .menu-btn {
 
 .home-shell--weekly {
   overflow: hidden;
-  order: 12;
+  order: 4;
   padding: 16px 18px;
   contain-intrinsic-size: 250px;
 }
 
 .home-shell--latest {
-  order: 14;
+  order: 3;
 }
 
 .home-shell--recommended {
-  order: 16;
+  order: 5;
 }
 
 .home-shell--weekly .section-head {
