@@ -7108,10 +7108,15 @@ body.is-scrolling .menu-btn {
 }
 
 .home-shell--weekly {
+  position: relative;
+  z-index: 0;
   overflow: hidden;
   order: 4;
-  padding: 16px 18px;
-  contain-intrinsic-size: 250px;
+  padding: 14px 18px 16px;
+  margin-bottom: 6px;
+  content-visibility: visible;
+  contain: none;
+  contain-intrinsic-size: auto;
 }
 
 .home-shell--latest {
@@ -7139,7 +7144,7 @@ body.is-scrolling .menu-btn {
   gap: clamp(10px, 1.5vw, 14px);
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 2px 2px 12px;
+  padding: 2px 2px 10px;
   scroll-padding-inline: 4px;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
@@ -7156,19 +7161,20 @@ body.is-scrolling .menu-btn {
 
 .weekly-top-card {
   position: relative;
-  flex: 0 0 clamp(176px, 18vw, 226px);
+  flex: 0 0 clamp(156px, 16vw, 194px);
   scroll-snap-align: start;
   contain: content;
 }
 
 .weekly-top-card__link {
   position: relative;
-  min-height: 146px;
+  height: 132px;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(52px, 0.8fr) minmax(76px, 92px);
-  align-items: end;
+  grid-template-columns: minmax(46px, 0.8fr) minmax(68px, 82px);
+  align-items: start;
   gap: 6px;
-  padding: 12px;
+  padding: 10px 10px 42px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
@@ -7196,7 +7202,7 @@ body.is-scrolling .menu-btn {
   z-index: 1;
   align-self: center;
   color: transparent;
-  font-size: clamp(3rem, 5.2vw, 4.6rem);
+  font-size: clamp(2.6rem, 4.5vw, 3.8rem);
   font-weight: 1000;
   letter-spacing: -0.12em;
   line-height: 0.82;
@@ -7208,7 +7214,7 @@ body.is-scrolling .menu-btn {
   position: relative;
   z-index: 2;
   justify-self: end;
-  width: min(88px, 30vw);
+  width: min(78px, 26vw);
   aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: 14px;
@@ -7224,11 +7230,13 @@ body.is-scrolling .menu-btn {
 }
 
 .weekly-top-card__content {
-  grid-column: 1 / -1;
-  position: relative;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
   z-index: 3;
   display: grid;
-  gap: 5px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -7246,6 +7254,7 @@ body.is-scrolling .menu-btn {
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 700;
+  display: none;
 }
 
 .weekly-top-card__tags {
@@ -7260,15 +7269,16 @@ body.is-scrolling .menu-btn {
 }
 
 .weekly-top-card--skeleton {
-  min-height: 146px;
+  min-height: 132px;
+  height: 132px;
   border-radius: 20px;
   background: linear-gradient(145deg, rgba(18, 23, 34, 0.9), rgba(8, 10, 15, 0.94));
 }
 
 .weekly-top-card--skeleton .weekly-top-card__poster {
-  width: 84px;
-  height: 126px;
-  margin: 12px 12px 0 auto;
+  width: 74px;
+  height: 111px;
+  margin: 10px 10px 0 auto;
   border-radius: 14px;
 }
 
@@ -7295,22 +7305,23 @@ body.is-scrolling .menu-btn {
   }
 
   .weekly-top-card {
-    flex-basis: min(48vw, 190px);
+    flex-basis: min(42vw, 168px);
   }
 
   .weekly-top-card__link {
-    min-height: 140px;
+    height: 126px;
+    min-height: 0;
     border-radius: 19px;
-    padding: 11px;
+    padding: 10px 10px 40px;
   }
 
   .weekly-top-card__poster-wrap {
-    width: min(80px, 24vw);
+    width: min(70px, 22vw);
     border-radius: 14px;
   }
 
   .weekly-top-card__rank {
-    font-size: clamp(2.7rem, 14vw, 3.9rem);
+    font-size: clamp(2.35rem, 12vw, 3.2rem);
     -webkit-text-stroke-width: 1.5px;
   }
 
