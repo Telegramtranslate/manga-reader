@@ -4,6 +4,12 @@ const ONLINE_KEY = "animecloud:online:v1";
 const ONLINE_TTL_MS = 2 * 60 * 1000;
 const ONLINE_KEY_TTL_SECONDS = 5 * 60;
 const MAX_BODY_BYTES = 4096;
+const ONLINE_COUNTER_MODE = String(process.env.ONLINE_COUNTER_MODE || "hybrid").trim().toLowerCase();
+const ONLINE_FALLBACK_MIN = readBoundedInteger(process.env.ONLINE_FALLBACK_MIN, 80, 1, 9999);
+const ONLINE_FALLBACK_MAX = Math.max(
+  ONLINE_FALLBACK_MIN,
+  readBoundedInteger(process.env.ONLINE_FALLBACK_MAX, 260, ONLINE_FALLBACK_MIN, 9999)
+);
 
 let redisClient = null;
 let redisInitAttempted = false;
@@ -16,10 +22,29 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function readBoundedInteger(value, fallback, min, max) {
+  const number = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
+}
+
 function getRedisEnv() {
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || "";
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || "";
+  const url =
+    process.env.UPSTASH_REDIS_REST_URL ||
+    process.env.KV_REST_API_URL ||
+    process.env.REDIS_REST_API_URL ||
+    "";
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.KV_REST_API_TOKEN ||
+    process.env.REDIS_REST_API_TOKEN ||
+    "";
   return { url: url.trim(), token: token.trim() };
+}
+
+function hasRedisConfig() {
+  const { url, token } = getRedisEnv();
+  return Boolean(url && token);
 }
 
 function getRedisClient() {
@@ -113,6 +138,37 @@ function countWithMemory(sessionId, timestamp) {
   return memorySessions.size;
 }
 
+function stableHashNumber(input) {
+  return Number.parseInt(crypto.createHash("sha256").update(String(input)).digest("hex").slice(0, 8), 16) || 0;
+}
+
+function getFallbackEstimate(timestamp) {
+  const fiveMinuteBucket = Math.floor(timestamp / (5 * 60 * 1000));
+  const dayBucket = Math.floor(timestamp / (24 * 60 * 60 * 1000));
+  const spread = Math.max(1, ONLINE_FALLBACK_MAX - ONLINE_FALLBACK_MIN + 1);
+  const raw = ONLINE_FALLBACK_MIN + (stableHashNumber(`${ONLINE_KEY}:${dayBucket}:${fiveMinuteBucket}`) % spread);
+  const wave = Math.round(Math.sin(fiveMinuteBucket / 4) * Math.min(18, Math.max(4, spread * 0.08)));
+  return Math.min(ONLINE_FALLBACK_MAX, Math.max(ONLINE_FALLBACK_MIN, raw + wave));
+}
+
+function countWithFallback(sessionId, timestamp) {
+  const memoryCount = countWithMemory(sessionId, timestamp);
+
+  if (ONLINE_COUNTER_MODE === "memory" || ONLINE_COUNTER_MODE === "strict") {
+    return {
+      count: memoryCount,
+      source: "memory",
+      realTime: false
+    };
+  }
+
+  return {
+    count: Math.max(memoryCount, getFallbackEstimate(timestamp)),
+    source: "estimate",
+    realTime: false
+  };
+}
+
 module.exports = async (req, res) => {
   if (req.method === "OPTIONS") {
     res.statusCode = 204;
@@ -137,7 +193,8 @@ module.exports = async (req, res) => {
         ok: true,
         count: redisCount,
         ttlMs: ONLINE_TTL_MS,
-        source: "redis"
+        source: "redis",
+        realTime: true
       });
       return;
     }
@@ -145,10 +202,13 @@ module.exports = async (req, res) => {
     console.warn("online redis counter failed", error?.message || error);
   }
 
+  const fallback = countWithFallback(sessionId, timestamp);
   sendJson(res, 200, {
     ok: true,
-    count: countWithMemory(sessionId, timestamp),
+    count: fallback.count,
     ttlMs: ONLINE_TTL_MS,
-    source: "memory"
+    source: fallback.source,
+    realTime: fallback.realTime,
+    sharedCounterConfigured: hasRedisConfig()
   });
 };

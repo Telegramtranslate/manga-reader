@@ -58,7 +58,7 @@ const CATALOG_VOICE_FILTER_CACHE_LIMIT = 12;
 const CONTENT_STATS_TTL = 12 * 60 * 60 * 1000;
 const ONLINE_COUNTER_ENDPOINT = "/api/online";
 const ONLINE_SESSION_STORAGE_KEY = "animecloud_online_session_v1";
-const ONLINE_HEARTBEAT_INTERVAL_MS = 30000;
+const ONLINE_HEARTBEAT_INTERVAL_MS = 45000;
 const FAVORITES_STORAGE_PREFIX = STORAGE_KEYS.favoritesPrefix || "animecloud_favorites";
 const WATCH_PROGRESS_KEY = STORAGE_KEYS.progress || "animecloud_watch_progress_v1";
 const ADMIN_HERO_STORAGE_KEY = STORAGE_KEYS.adminHero || "animecloud_admin_featured_alias";
@@ -90,6 +90,7 @@ const state = {
   currentView: "home",
   previousView: "home",
   latest: [],
+  weeklyTop: [],
   recommended: [],
   popular: [],
   catalogItems: [],
@@ -235,6 +236,7 @@ const els = {
   ongoingCount: document.getElementById("ongoing-count"),
   topCount: document.getElementById("top-count"),
   latestGrid: document.getElementById("latest-grid"),
+  weeklyTopGrid: document.getElementById("weekly-top-grid"),
   recommendedGrid: document.getElementById("recommended-grid"),
   popularGrid: document.getElementById("popular-grid"),
   continueGrid: document.getElementById("continue-grid"),
@@ -375,6 +377,9 @@ const STATIC_UI_TEXT = Object.freeze({
   latestKicker: "Лента",
   latestTitle: "Последние релизы",
   latestSummary: "Свежие серии и обновления, которые сейчас выходят быстрее всего.",
+  weeklyKicker: "Топ недели",
+  weeklyTitle: "Топ за неделю",
+  weeklySummary: "Самые заметные тайтлы недели в быстрой горизонтальной ленте.",
   recommendedKicker: "Подборка",
   recommendedTitle: "Что посмотреть сегодня",
   recommendedSummary: "Рекомендации для вечернего просмотра без перегруженного интерфейса.",
@@ -599,6 +604,9 @@ function repairStaticUiText() {
   setStaticText("#latest-shell .section-kicker", STATIC_UI_TEXT.latestKicker);
   setStaticText("#latest-shell h2", STATIC_UI_TEXT.latestTitle);
   setStaticText("#latest-shell .section-summary", STATIC_UI_TEXT.latestSummary);
+  setStaticText("#weekly-top-shell .section-kicker", STATIC_UI_TEXT.weeklyKicker);
+  setStaticText("#weekly-top-shell h2", STATIC_UI_TEXT.weeklyTitle);
+  setStaticText("#weekly-top-shell .section-summary", STATIC_UI_TEXT.weeklySummary);
   setStaticText("#continue-shell .section-kicker", STATIC_UI_TEXT.continueKicker);
   setStaticText("#continue-shell h2", STATIC_UI_TEXT.continueTitle);
   setStaticText("#continue-shell .section-summary", STATIC_UI_TEXT.continueSummary);
@@ -871,9 +879,9 @@ function onlinePeopleWord(value) {
   const number = Math.abs(Number(value || 0));
   const lastTwo = number % 100;
   const last = number % 10;
-  if (lastTwo >= 11 && lastTwo <= 14) return "человек";
-  if (last === 1) return "человек";
-  return "человек";
+  if (lastTwo >= 11 && lastTwo <= 14) return "\u0447\u0435\u043b\u043e\u0432\u0435\u043a";
+  if (last === 1) return "\u0447\u0435\u043b\u043e\u0432\u0435\u043a";
+  return "\u0447\u0435\u043b\u043e\u0432\u0435\u043a";
 }
 
 function renderOnlineCounter(count, source = "") {
@@ -884,7 +892,7 @@ function renderOnlineCounter(count, source = "") {
   els.onlineBadge.dataset.source = source || "unknown";
   els.onlineBadge.classList.toggle("is-live", safeCount > 0);
   els.onlineCount.textContent = formatNumber(safeCount);
-  els.onlineLabel.textContent = `${onlinePeopleWord(safeCount)} сейчас на сайте`;
+  els.onlineLabel.textContent = `${onlinePeopleWord(safeCount)} \u0441\u0435\u0439\u0447\u0430\u0441 \u043d\u0430 \u0441\u0430\u0439\u0442\u0435`;
 }
 
 async function syncOnlineCounter() {
@@ -2783,6 +2791,7 @@ function renderHeroPoster() {
 function getHeroCandidates() {
   return uniqueReleases([
     ...(state.latest || []),
+    ...(state.weeklyTop || []),
     ...(state.recommended || []),
     ...(state.popular || []),
     ...(state.catalogItems || []),
@@ -4414,6 +4423,7 @@ function findCachedReleaseByAlias(alias) {
     state.currentAnime,
     state.featured,
     ...state.latest,
+    ...state.weeklyTop,
     ...state.recommended,
     ...state.popular,
     ...state.catalogItems,
@@ -4680,11 +4690,13 @@ async function loadHome(force = false) {
 
   renderSkeletonGrid(els.continueGrid, 4);
   renderSkeletonGrid(els.latestGrid, 6);
+  renderWeeklyTopSkeleton();
   renderSkeletonGrid(els.recommendedGrid, 6);
   renderSkeletonGrid(els.popularGrid, 6);
 
   try {
     if (force) {
+      state.weeklyTop = [];
       state.recommended = [];
       state.popular = [];
     }
@@ -4726,6 +4738,7 @@ async function loadHome(force = false) {
       ]);
       if (state.homeRequestToken !== requestToken) return;
 
+      state.weeklyTop = buildReleases(topPayload).slice(0, 10);
       state.recommended = buildReleases(topPayload).slice(0, 12);
       state.popular = uniqueReleases([
         ...buildReleases(topPageTwoPayload),
@@ -4733,8 +4746,10 @@ async function loadHome(force = false) {
         ...state.recommended
       ]).slice(0, 12);
 
+      registerGenres(state.weeklyTop);
       registerGenres(state.recommended);
       registerGenres(state.popular);
+      registerVoices(state.weeklyTop);
       registerVoices(state.recommended);
       registerVoices(state.popular);
 
@@ -4764,6 +4779,7 @@ async function loadHome(force = false) {
 
       updateStats();
       requestAnimationFrame(() => {
+        renderWeeklyTopRail(state.weeklyTop);
         updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
         updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
         renderHero(state.featured);
@@ -4776,6 +4792,7 @@ async function loadHome(force = false) {
       if (state.homeRequestToken !== requestToken) return;
       console.error("loadHome secondary failed", error);
       requestAnimationFrame(() => {
+        renderWeeklyTopRail(state.weeklyTop);
         updateGrid(els.recommendedGrid, state.recommended, "Подборка пока не заполнена.");
         updateGrid(els.popularGrid, state.popular, "Популярные релизы пока не найдены.");
       });
@@ -4786,6 +4803,7 @@ async function loadHome(force = false) {
     const message = getKodikUnavailableMessage(error, "Не удалось загрузить главную витрину.");
     renderHeroFallback(message);
     replaceWithErrorState(els.latestGrid, message, () => loadHome(true).catch(console.error));
+    replaceWithErrorState(els.weeklyTopGrid, message, () => loadHome(true).catch(console.error));
     replaceWithErrorState(els.recommendedGrid, message, () => loadHome(true).catch(console.error));
     replaceWithErrorState(els.popularGrid, message, () => loadHome(true).catch(console.error));
     renderContinueWatchingSections();
@@ -5262,6 +5280,7 @@ function searchLocalReleases(query) {
     state.currentAnime,
     state.featured,
     ...state.latest,
+    ...state.weeklyTop,
     ...state.recommended,
     ...state.popular,
     ...state.catalogItems,
@@ -5503,6 +5522,102 @@ function updateGrid(target, releases, emptyMessage, options = {}) {
     onComplete: options.onComplete
     }
   );
+}
+
+function createWeeklyTopSkeletonCard(index = 0) {
+  const node = document.createElement("article");
+  node.className = "weekly-top-card weekly-top-card--skeleton";
+  node.setAttribute("aria-hidden", "true");
+  node.innerHTML = `
+    <div class="weekly-top-card__rank">${index + 1}</div>
+    <div class="weekly-top-card__poster skeleton-block"></div>
+    <div class="weekly-top-card__content">
+      <div class="skeleton-line skeleton-line--title"></div>
+      <div class="skeleton-line skeleton-line--meta"></div>
+    </div>
+  `;
+  return node;
+}
+
+function renderWeeklyTopSkeleton(count = 6) {
+  if (!els.weeklyTopGrid) return;
+  els.weeklyTopGrid.innerHTML = "";
+  const fragment = document.createDocumentFragment();
+  for (let index = 0; index < count; index += 1) {
+    fragment.appendChild(createWeeklyTopSkeletonCard(index));
+  }
+  els.weeklyTopGrid.appendChild(fragment);
+}
+
+function createWeeklyTopCard(release, index) {
+  if (!release?.alias) return null;
+
+  const node = document.createElement("article");
+  node.className = "weekly-top-card";
+
+  const action = document.createElement("a");
+  action.className = "weekly-top-card__link";
+  action.href = getAnimePath(release.alias);
+  action.dataset.releaseAlias = release.alias;
+  action.setAttribute("aria-label", `${release.title}: открыть из топа недели`);
+
+  const rank = document.createElement("span");
+  rank.className = "weekly-top-card__rank";
+  rank.textContent = String(index + 1);
+
+  const posterWrap = document.createElement("span");
+  posterWrap.className = "weekly-top-card__poster-wrap";
+
+  const poster = document.createElement("img");
+  const cardSrc = release.cardPoster || release.thumb || release.poster || "/mc-icon-192.png?v=5";
+  const card2x = release.poster || release.cardPoster || cardSrc;
+  poster.className = "weekly-top-card__poster";
+  poster.src = cardSrc;
+  poster.alt = release.title || "";
+  poster.loading = "lazy";
+  poster.decoding = "async";
+  poster.fetchPriority = "low";
+  poster.srcset = `${cardSrc} 1x, ${card2x} 2x`;
+  poster.sizes = "(max-width: 860px) 38vw, 150px";
+  bindPosterFallback(poster, release, { initialSrc: cardSrc, placeholder: "/mc-icon-192.png?v=5" });
+  posterWrap.appendChild(poster);
+
+  const content = document.createElement("span");
+  content.className = "weekly-top-card__content";
+
+  const title = document.createElement("strong");
+  title.className = "weekly-top-card__title";
+  title.textContent = release.title || "Аниме";
+
+  const meta = document.createElement("span");
+  meta.className = "weekly-top-card__meta";
+  meta.textContent = [release.type, release.year, release.episodesLabel || `${release.episodesTotal || "?"} эп.`]
+    .filter(Boolean)
+    .join(" • ");
+
+  const tags = document.createElement("span");
+  tags.className = "weekly-top-card__tags";
+  (release.genres || []).slice(0, 2).forEach((genre) => tags.appendChild(createTag(genre)));
+
+  content.append(title, meta, tags);
+  action.append(rank, posterWrap, content);
+  node.appendChild(action);
+  return node;
+}
+
+function renderWeeklyTopRail(releases = []) {
+  if (!els.weeklyTopGrid) return;
+  els.weeklyTopGrid.innerHTML = "";
+
+  const items = uniqueReleases(releases).slice(0, 10);
+  if (!items.length) {
+    els.weeklyTopGrid.replaceChildren(createEmptyState("Топ недели пока не загружен."));
+    return;
+  }
+
+  scheduleChunkRender(els.weeklyTopGrid, items, createWeeklyTopCard, {
+    batchSize: 3
+  });
 }
 
 function bindPosterFallback(image, release, options = {}) {
@@ -6414,6 +6529,7 @@ function getRandomReleasePool() {
   return uniqueReleases([
     state.featured,
     ...state.latest,
+    ...state.weeklyTop,
     ...state.recommended,
     ...state.popular,
     ...state.catalogItems,
@@ -6777,7 +6893,7 @@ function bindLoadMoreButton(button, action) {
 
 function bindNavigationDelegates() {
   const warmCardAction = (target) => {
-    const action = target?.closest?.(".anime-card__action[data-release-alias]");
+    const action = target?.closest?.(".anime-card__action[data-release-alias], .weekly-top-card__link[data-release-alias]");
     if (!action || action.dataset.warmed === "1") return;
     action.dataset.warmed = "1";
     const alias = action.dataset.releaseAlias || "";
@@ -7193,6 +7309,7 @@ async function init() {
   } catch (error) {
     console.error(error);
     updateGrid(els.latestGrid, [], "Не удалось загрузить домашнюю страницу.");
+    renderWeeklyTopRail([]);
     updateGrid(els.recommendedGrid, [], "Не удалось загрузить домашнюю страницу.");
     updateGrid(els.popularGrid, [], "Не удалось загрузить домашнюю страницу.");
   } finally {

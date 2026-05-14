@@ -11,6 +11,7 @@
   <link id="canonical-link" rel="canonical" href="https://color-manga-cloud.vercel.app/">
   <link rel="alternate" hreflang="ru" href="https://color-manga-cloud.vercel.app/">
   <link rel="alternate" hreflang="x-default" href="https://color-manga-cloud.vercel.app/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
   <meta id="og-type" property="og:type" content="website">
   <meta property="og:site_name" content="AnimeCloud">
   <meta id="og-title" property="og:title" content="Смотреть аниме онлайн бесплатно | AnimeCloud">
@@ -43,6 +44,8 @@
   <link rel="dns-prefetch" href="https://kodik-api.com">
   <link rel="dns-prefetch" href="https://kodikplayer.com">
   <link rel="dns-prefetch" href="https://apis.google.com">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://i.kodikres.com" crossorigin>
   <link rel="preload" href="/api/kodik?action=discover&mode=latest&page=1&limit=18" as="fetch" crossorigin="anonymous">
   <link rel="preload" href="/style.css" as="style">
   <link rel="preload" href="/app.min.js" as="script">
@@ -348,6 +351,17 @@
             </div>
           </div>
           <div class="anime-grid anime-grid--poster" id="latest-grid"></div>
+        </div>
+
+        <div class="section-shell home-shell home-shell--weekly" id="weekly-top-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Топ недели</div>
+              <h2>Топ за неделю</h2>
+              <p class="section-summary">Самые заметные тайтлы недели в быстрой горизонтальной ленте.</p>
+            </div>
+          </div>
+          <div class="weekly-top-rail" id="weekly-top-grid" aria-label="Топ за неделю"></div>
         </div>
 
         <div class="section-shell home-shell home-shell--recommended" id="recommended-shell">
