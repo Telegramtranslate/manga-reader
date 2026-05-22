@@ -56,6 +56,8 @@ const RENDER_BATCH_SIZE = 8;
 const VOICE_FILTER_PREFETCH_PAGES = 3;
 const CATALOG_VOICE_FILTER_CACHE_LIMIT = 12;
 const CONTENT_STATS_TTL = 12 * 60 * 60 * 1000;
+const WEEKLY_TOP_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const WEEKLY_TOP_FETCH_LIMIT = 48;
 const ONLINE_COUNTER_ENDPOINT = "/api/online";
 const ONLINE_SESSION_STORAGE_KEY = "animecloud_online_session_v1";
 const ONLINE_HEARTBEAT_INTERVAL_MS = 45000;
@@ -1971,6 +1973,44 @@ function compareCatalogReleases(left, right, sorting = state.catalogSort) {
 
 function sortCatalogReleases(list, sorting = state.catalogSort) {
   return [...(Array.isArray(list) ? list : [])].sort((left, right) => compareCatalogReleases(left, right, sorting));
+}
+
+function getWeeklyTopTimestamp(release) {
+  const value = Number(release?.sortFreshAt || 0);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function scoreWeeklyTopRelease(release, now = Date.now()) {
+  const freshAt = getWeeklyTopTimestamp(release);
+  const ageRatio = Math.min(1, Math.max(0, (now - freshAt) / WEEKLY_TOP_WINDOW_MS));
+  const recencyScore = (1 - ageRatio) * 100;
+  const ratingScore = Math.min(24, Number(release?.sortRating || 0) * 2.6);
+  const voteScore = Math.min(16, Math.log10(Number(release?.favorites || 0) + 1) * 4);
+  const episodeScore = Math.min(10, Number(release?.episodesMaxOrdinal || release?.episodesTotal || 0) / 2);
+  const ongoingScore = release?.ongoing ? 8 : 0;
+
+  return recencyScore + ratingScore + voteScore + episodeScore + ongoingScore;
+}
+
+function buildWeeklyTopReleases(releases = [], limit = 10, now = Date.now()) {
+  const windowStart = now - WEEKLY_TOP_WINDOW_MS;
+  const candidates = uniqueReleases(releases)
+    .filter((release) => {
+      const freshAt = getWeeklyTopTimestamp(release);
+      return freshAt >= windowStart && freshAt <= now + 60 * 60 * 1000;
+    })
+    .map((release) => ({
+      release,
+      score: scoreWeeklyTopRelease(release, now)
+    }))
+    .sort((left, right) => {
+      const scoreDiff = right.score - left.score;
+      if (scoreDiff !== 0) return scoreDiff;
+      return getWeeklyTopTimestamp(right.release) - getWeeklyTopTimestamp(left.release);
+    })
+    .map((entry) => entry.release);
+
+  return candidates.slice(0, limit);
 }
 
 function fetchKodikDiscover(mode, page, limit, options = {}) {
@@ -4705,8 +4745,11 @@ async function loadHome(force = false) {
     if (state.homeRequestToken !== requestToken) return;
 
     state.latest = buildReleases(latestPayload).slice(0, 12);
+    state.weeklyTop = buildWeeklyTopReleases(state.latest, 10);
     registerGenres(state.latest);
+    registerGenres(state.weeklyTop);
     registerVoices(state.latest);
+    registerVoices(state.weeklyTop);
 
     const featuredPool = getHeroCandidates();
     state.featured = applyAdminHero(featuredPool) || featuredPool[0] || null;
@@ -4723,6 +4766,7 @@ async function loadHome(force = false) {
       safeIdle(() => loadPersonalRecommendations({ force: true }).catch(console.error));
     }
     requestAnimationFrame(() => {
+      renderWeeklyTopRail(state.weeklyTop);
       updateGrid(els.latestGrid, state.latest, "Свежие релизы пока не найдены.");
       startHeroCarousel();
     });
@@ -4731,17 +4775,16 @@ async function loadHome(force = false) {
       await afterNextPaint();
       await new Promise((resolve) => safeIdle(resolve));
 
-      const [topPayload, topPageTwoPayload, ongoingPayload] = await Promise.all([
+      const [weeklyPayload, topPayload, ongoingPayload] = await Promise.all([
+        fetchKodikDiscover("weekly", 1, WEEKLY_TOP_FETCH_LIMIT, { ttl: 120000 }),
         fetchKodikDiscover("top", 1, 12, { ttl: 120000 }),
-        fetchKodikDiscover("top", 2, 12, { ttl: 120000 }),
         fetchKodikDiscover("ongoing", 1, 12, { ttl: 120000 })
       ]);
       if (state.homeRequestToken !== requestToken) return;
 
-      state.weeklyTop = buildReleases(topPayload).slice(0, 10);
+      state.weeklyTop = buildWeeklyTopReleases([...buildReleases(weeklyPayload), ...state.latest], 10);
       state.recommended = buildReleases(topPayload).slice(0, 12);
       state.popular = uniqueReleases([
-        ...buildReleases(topPageTwoPayload),
         ...buildReleases(ongoingPayload),
         ...state.recommended
       ]).slice(0, 12);
@@ -5611,7 +5654,7 @@ function renderWeeklyTopRail(releases = []) {
 
   const items = uniqueReleases(releases).slice(0, 10);
   if (!items.length) {
-    els.weeklyTopGrid.replaceChildren(createEmptyState("Топ недели пока не загружен."));
+    els.weeklyTopGrid.replaceChildren(createEmptyState("За последнюю неделю релизы пока не найдены."));
     return;
   }
 

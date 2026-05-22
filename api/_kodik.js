@@ -1039,6 +1039,7 @@ function buildDiscoverPayload(mode, limit, page, sort, order, genres = [], anime
       payload.sort = sort || "updated_at";
       payload.order = String(order || "desc").toLowerCase() === "asc" ? "asc" : "desc";
       break;
+    case "weekly":
     case "latest":
     default:
       payload.sort = "updated_at";
