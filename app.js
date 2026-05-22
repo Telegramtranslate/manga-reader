@@ -5578,7 +5578,7 @@ function createWeeklyTopCard(release, index) {
   poster.decoding = "async";
   poster.fetchPriority = "low";
   poster.srcset = `${cardSrc} 1x, ${card2x} 2x`;
-  poster.sizes = "(max-width: 860px) 38vw, 150px";
+  poster.sizes = "(max-width: 860px) 40px, 42px";
   bindPosterFallback(poster, release, { initialSrc: cardSrc, placeholder: "/mc-icon-192.png?v=5" });
   posterWrap.appendChild(poster);
 

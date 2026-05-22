@@ -242,12 +242,16 @@
     grid-row: 3;
   }
 
-  .home-shell--latest {
+  .home-shell--weekly {
     grid-row: 4;
   }
 
-  .home-shell--recommended {
+  .home-shell--latest {
     grid-row: 5;
+  }
+
+  .home-shell--recommended {
+    grid-row: 6;
   }
 }
 
