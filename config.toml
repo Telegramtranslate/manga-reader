@@ -1,0 +1,8 @@
+"models": {
+  "gpt-5.5": {
+    "limit": {
+      "context": 244800,
+      "output": 128000
+    }
+  }
+}

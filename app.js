@@ -53,6 +53,16 @@ const GRID_PAGE_SIZE = 24;
 const EPISODE_PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE = 260;
 const RENDER_BATCH_SIZE = 8;
+const SKELETON_GRID_COUNTS = Object.freeze({
+  compact: 4,
+  home: 8,
+  catalog: 12,
+  search: 8,
+  profile: 8
+});
+const POSTER_PLACEHOLDER_SRC =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='18' viewBox='0 0 12 18'%3E%3Crect width='12' height='18' fill='%2310182a'/%3E%3C/svg%3E";
+const HERO_ACCENT_FALLBACK = "rgba(122, 225, 255, 0.18)";
 const VOICE_FILTER_PREFETCH_PAGES = 3;
 const CATALOG_VOICE_FILTER_CACHE_LIMIT = 12;
 const CONTENT_STATS_TTL = 12 * 60 * 60 * 1000;
@@ -184,6 +194,7 @@ const state = {
   notificationKnownIds: new Set(),
   notificationDismissedIds: new Set(),
   notificationPopoverOpen: false,
+  searchRunId: 0,
   onlineCounterTimer: 0,
   onlineCounterInFlight: false,
   onlineSessionId: "",
@@ -2783,6 +2794,7 @@ function syncHeroOpenLink() {
 }
 
 function renderHeroFallback(message = "Загружаем лучшие релизы...") {
+  els.heroCard?.style.setProperty("--hero-accent", HERO_ACCENT_FALLBACK);
   if (els.heroTitle) els.heroTitle.textContent = "AnimeCloud";
   if (els.heroDescription) {
     els.heroDescription.textContent =
@@ -2813,6 +2825,35 @@ function renderHeroFallback(message = "Загружаем лучшие рели�
   const fallbackText = document.getElementById("hero-fallback-text");
   if (fallbackText) fallbackText.textContent = message;
   if (fallback) fallback.hidden = false;
+}
+
+function extractPosterColor(image, heroCard) {
+  if (!image || !heroCard || !image.naturalWidth || !image.naturalHeight) return;
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) return;
+
+  canvas.width = 1;
+  canvas.height = 1;
+
+  try {
+    context.drawImage(image, 0, 0, 1, 1);
+    const [red, green, blue] = context.getImageData(0, 0, 1, 1).data;
+    heroCard.style.setProperty("--hero-accent", `rgba(${red}, ${green}, ${blue}, 0.24)`);
+  } catch {
+    heroCard.style.setProperty("--hero-accent", HERO_ACCENT_FALLBACK);
+  }
+}
+
+function scheduleHeroAccentExtraction() {
+  if (!els.heroPoster || !els.heroCard) return;
+  els.heroCard.style.setProperty("--hero-accent", HERO_ACCENT_FALLBACK);
+  const apply = () => extractPosterColor(els.heroPoster, els.heroCard);
+  if (els.heroPoster.complete && els.heroPoster.naturalWidth) {
+    requestAnimationFrame(apply);
+    return;
+  }
+  els.heroPoster.addEventListener("load", apply, { once: true });
 }
 
 function renderHeroPoster() {
@@ -3473,7 +3514,7 @@ async function loadPersonalRecommendations(options = {}) {
   state.personalizedRequestToken = requestToken;
   state.personalizedKey = cacheKey;
   state.personalizedGenres = profile.topGenres;
-  renderSkeletonGrid(els.profileRecommendationsGrid, 6);
+  renderSkeletonGrid(els.profileRecommendationsGrid, SKELETON_GRID_COUNTS.profile);
   if (els.profileRecommendationsSummary) {
     els.profileRecommendationsSummary.textContent = profile.topGenres.length
       ? `Обновляем подборку по жанрам: ${profile.topGenres.join(", ")}…`
@@ -4728,11 +4769,11 @@ async function loadHome(force = false) {
   state.homeRequestToken = requestToken;
   state.homeSupplementPromise = null;
 
-  renderSkeletonGrid(els.continueGrid, 4);
-  renderSkeletonGrid(els.latestGrid, 6);
+  renderSkeletonGrid(els.continueGrid, SKELETON_GRID_COUNTS.compact);
+  renderSkeletonGrid(els.latestGrid, SKELETON_GRID_COUNTS.home);
   renderWeeklyTopSkeleton();
-  renderSkeletonGrid(els.recommendedGrid, 6);
-  renderSkeletonGrid(els.popularGrid, 6);
+  renderSkeletonGrid(els.recommendedGrid, SKELETON_GRID_COUNTS.home);
+  renderSkeletonGrid(els.popularGrid, SKELETON_GRID_COUNTS.home);
 
   try {
     if (force) {
@@ -4927,7 +4968,7 @@ async function loadCatalog(options = {}) {
     state.catalogTotalPages = 0;
     state.catalogHasMore = false;
     if (els.catalogSummary) els.catalogSummary.textContent = "Загружаем каталог…";
-    renderSkeletonGrid(els.catalogGrid, 8);
+    renderSkeletonGrid(els.catalogGrid, SKELETON_GRID_COUNTS.catalog);
     syncCatalogPager();
   }
 
@@ -5088,7 +5129,7 @@ async function loadOngoing(options = {}) {
     state.ongoingTotalPages = 0;
     state.ongoingHasMore = false;
     els.ongoingSummary.textContent = "Загружаем онгоинги…";
-    renderSkeletonGrid(els.ongoingGrid, 8);
+    renderSkeletonGrid(els.ongoingGrid, SKELETON_GRID_COUNTS.catalog);
   }
 
   try {
@@ -5154,7 +5195,7 @@ async function loadTop(options = {}) {
     state.topTotalPages = 0;
     state.topHasMore = false;
     els.topSummary.textContent = "Загружаем топ каталога…";
-    renderSkeletonGrid(els.topGrid, 8);
+    renderSkeletonGrid(els.topGrid, SKELETON_GRID_COUNTS.catalog);
   }
 
   try {
@@ -5449,7 +5490,7 @@ async function runSearch(query, options = {}) {
       options.replaceHistory ?? normalizePath(location.pathname) === "/search"
   });
   els.searchSummary.textContent = "Ищем релизы…";
-  renderSkeletonGrid(els.searchGrid, 8);
+  renderSkeletonGrid(els.searchGrid, SKELETON_GRID_COUNTS.search);
 
   try {
     const localResults = searchLocalReleases(cleanQuery);
@@ -5497,6 +5538,86 @@ const prefetchRelease = (alias) => {
   return fetchKodikRelease(preview || { alias, kodikIdentity: guessKodikIdentityFromAlias(alias) }, { ttl: DETAIL_TTL }).catch(() => {});
 };
 
+let lazyPosterObserver = null;
+
+function setImageSourceAttributes(image, { src, srcset = "", sizes = "" }) {
+  if (!image || !src) return;
+  if (srcset) {
+    image.srcset = srcset;
+  } else {
+    image.removeAttribute("srcset");
+  }
+  if (sizes) {
+    image.sizes = sizes;
+  } else {
+    image.removeAttribute("sizes");
+  }
+  image.src = src;
+}
+
+function loadDeferredPoster(image) {
+  if (!image?.dataset?.src) return;
+  const src = image.dataset.src;
+  const srcset = image.dataset.srcset || "";
+  const sizes = image.dataset.sizes || "";
+  delete image.dataset.src;
+  delete image.dataset.srcset;
+  delete image.dataset.sizes;
+  lazyPosterObserver?.unobserve(image);
+  setImageSourceAttributes(image, { src, srcset, sizes });
+}
+
+function getLazyPosterObserver() {
+  if (!("IntersectionObserver" in window)) return null;
+  if (lazyPosterObserver) return lazyPosterObserver;
+  lazyPosterObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) loadDeferredPoster(entry.target);
+      });
+    },
+    {
+      rootMargin: "220px 0px",
+      threshold: 0
+    }
+  );
+  return lazyPosterObserver;
+}
+
+function preparePosterImage(image, release, options = {}) {
+  if (!image) return;
+  const src = options.src || "/mc-icon-192.png?v=5";
+  const srcset = options.srcset || "";
+  const sizes = options.sizes || "";
+  const prioritize = Boolean(options.prioritize);
+  const observer = prioritize ? null : getLazyPosterObserver();
+
+  image.alt = options.alt || release?.title || "";
+  image.loading = prioritize ? "eager" : "lazy";
+  image.decoding = "async";
+  image.fetchPriority = prioritize ? "high" : "low";
+
+  if (observer) {
+    image.src = POSTER_PLACEHOLDER_SRC;
+    image.removeAttribute("srcset");
+    image.removeAttribute("sizes");
+    image.dataset.src = src;
+    if (srcset) image.dataset.srcset = srcset;
+    if (sizes) image.dataset.sizes = sizes;
+    observer.observe(image);
+  } else {
+    delete image.dataset.src;
+    delete image.dataset.srcset;
+    delete image.dataset.sizes;
+    setImageSourceAttributes(image, { src, srcset, sizes });
+  }
+
+  bindPosterFallback(image, release, {
+    initialSrc: src,
+    placeholder: options.placeholder || "/mc-icon-192.png?v=5"
+  });
+}
+
 function createAnimeCard(release, index, options = {}) {
   const node = els.cardTemplate.content.firstElementChild.cloneNode(true);
   const action = node.querySelector(".anime-card__action");
@@ -5509,21 +5630,28 @@ function createAnimeCard(release, index, options = {}) {
     index < 2 &&
     !shouldPreferFastStart();
 
+  const status = node.querySelector(".anime-card__status");
+  const isOngoing = Boolean(release.ongoing) || /онго|ongoing/i.test(String(release.statusLabel || ""));
   node.querySelector(".anime-card__age").textContent = release.age;
-  node.querySelector(".anime-card__status").textContent = release.statusLabel;
+  status.textContent = release.statusLabel;
+  if (isOngoing) {
+    status.dataset.status = "ongoing";
+  } else {
+    status.removeAttribute("data-status");
+  }
   node.querySelector(".anime-card__title").textContent = release.title;
   node.querySelector(".anime-card__meta").textContent = [release.type, release.year, release.episodesLabel || `${release.episodesTotal || "?"} эп.`]
     .filter(Boolean)
     .join(" • ");
 
-  poster.src = cardSrc;
-  poster.alt = release.title;
-  poster.loading = shouldPrioritize ? "eager" : "lazy";
-  poster.decoding = "async";
-  poster.fetchPriority = shouldPrioritize ? "high" : "low";
-  poster.srcset = `${cardSrc} 1x, ${card2x} 2x`;
-  poster.sizes = "(max-width: 420px) 44vw, (max-width: 860px) 40vw, (max-width: 1180px) 180px, 165px";
-  bindPosterFallback(poster, release, { initialSrc: cardSrc, placeholder: cardFallback });
+  preparePosterImage(poster, release, {
+    src: cardSrc,
+    srcset: `${cardSrc} 1x, ${card2x} 2x`,
+    sizes: "(max-width: 420px) 44vw, (max-width: 860px) 40vw, (max-width: 1180px) 180px, 165px",
+    alt: release.title,
+    prioritize: shouldPrioritize,
+    placeholder: cardFallback
+  });
 
   const tags = node.querySelector(".anime-card__tags");
   const values = release.genres.slice(0, 2);
@@ -5615,14 +5743,13 @@ function createWeeklyTopCard(release, index) {
   const cardSrc = release.cardPoster || release.thumb || release.poster || "/mc-icon-192.png?v=5";
   const card2x = release.poster || release.cardPoster || cardSrc;
   poster.className = "weekly-top-card__poster";
-  poster.src = cardSrc;
-  poster.alt = release.title || "";
-  poster.loading = "lazy";
-  poster.decoding = "async";
-  poster.fetchPriority = "low";
-  poster.srcset = `${cardSrc} 1x, ${card2x} 2x`;
-  poster.sizes = "(max-width: 860px) 40px, 42px";
-  bindPosterFallback(poster, release, { initialSrc: cardSrc, placeholder: "/mc-icon-192.png?v=5" });
+  preparePosterImage(poster, release, {
+    src: cardSrc,
+    srcset: `${cardSrc} 1x, ${card2x} 2x`,
+    sizes: "(max-width: 860px) 40px, 42px",
+    alt: release.title || "",
+    placeholder: "/mc-icon-192.png?v=5"
+  });
   posterWrap.appendChild(poster);
 
   const content = document.createElement("span");

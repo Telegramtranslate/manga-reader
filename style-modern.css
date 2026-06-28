@@ -1,0 +1,759 @@
+/* ═══════════════════════════════════════════
+   AnimeCloud — Modern Redesign (2026)
+   Overrides style.css with a contemporary
+   dark aesthetic, bento grid, neon accents,
+   and micro-interactions.
+   ═══════════════════════════════════════════ */
+
+/* ── Design tokens ── */
+:root {
+  --depth-bg: #05080f;
+  --depth-surface: #0a0f1a;
+  --depth-card: #0d1322;
+  --depth-elevated: #111827;
+  --depth-overlay: rgba(5, 8, 15, 0.72);
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(100, 180, 255, 0.18);
+
+  --text-primary: #f0f4ff;
+  --text-secondary: #b0bfd8;
+  --text-tertiary: #7a89a8;
+
+  --accent-electric: #5b9fff;
+  --accent-neon: #4df0d8;
+  --accent-amber: #ffb347;
+  --accent-rose: #ff5ea0;
+  --accent-violet: #a78bfa;
+
+  --gradient-hero: linear-gradient(135deg, #0a0f1a 0%, #0d1b2a 40%, #0a1628 100%);
+  --gradient-card: linear-gradient(160deg, rgba(20, 30, 50, 0.9), rgba(10, 15, 25, 0.95));
+  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(100, 180, 255, 0.12), transparent 50%);
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --font-display: "SF Pro Display", "Inter", system-ui, sans-serif;
+  --font-body: "SF Pro Text", "Inter", system-ui, sans-serif;
+}
+
+/* ── Base ── */
+body {
+  background: var(--depth-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(91, 159, 255, 0.08), transparent 50%),
+    radial-gradient(ellipse at 80% 0%, rgba(255, 94, 160, 0.06), transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(77, 240, 216, 0.04), transparent 50%);
+}
+
+/* ── Topbar ── */
+.topbar {
+  background:
+    linear-gradient(180deg, rgba(15, 20, 35, 0.82), rgba(10, 14, 25, 0.78)) !important;
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 28px !important;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset !important;
+}
+
+.brand-btn {
+  background: linear-gradient(135deg, #ffffff 0%, #8cc4ff 30%, #a78bfa 60%, #ff5ea0 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-family: var(--font-display);
+  font-weight: 950;
+  letter-spacing: -0.05em;
+  text-shadow: none !important;
+}
+
+/* ── Navigation tabs ── */
+.tab-btn,
+.mobile-nav__btn {
+  border-radius: 12px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: all 0.2s var(--ease-out);
+}
+
+.tab-btn:hover,
+.mobile-nav__btn:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.tab-btn.is-active,
+.mobile-nav__btn.is-active {
+  background: rgba(91, 159, 255, 0.12) !important;
+  color: #8cc4ff !important;
+  border-color: rgba(91, 159, 255, 0.3) !important;
+  box-shadow: 0 0 20px rgba(91, 159, 255, 0.08) !important;
+}
+
+/* ── Buttons ── */
+.primary-btn {
+  background: linear-gradient(135deg, #5b9fff 0%, #4df0d8 100%) !important;
+  color: #05080f !important;
+  border: none !important;
+  border-radius: 14px !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  box-shadow:
+    0 4px 20px rgba(91, 159, 255, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+  transition: all 0.25s var(--ease-out);
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 30px rgba(91, 159, 255, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset !important;
+}
+
+.primary-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.ghost-btn {
+  border-radius: 12px !important;
+  border-color: var(--border-card) !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600;
+  transition: all 0.2s var(--ease-out);
+}
+
+.ghost-btn:hover {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* ── Search ── */
+.search-box {
+  border-radius: 16px !important;
+  border: 1px solid var(--border-card) !important;
+  background: rgba(10, 14, 24, 0.6) !important;
+  transition: all 0.3s var(--ease-out);
+}
+
+.search-box:focus-within {
+  border-color: rgba(91, 159, 255, 0.4) !important;
+  box-shadow:
+    0 0 0 3px rgba(91, 159, 255, 0.08),
+    0 8px 30px rgba(0, 0, 0, 0.3) !important;
+  background: rgba(12, 17, 30, 0.85) !important;
+}
+
+.search-box input {
+  color: var(--text-primary) !important;
+  font-size: 0.95rem;
+}
+
+.search-box input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.search-box::after {
+  border-color: var(--text-tertiary) !important;
+}
+
+.search-box:focus-within::after {
+  border-color: var(--accent-electric) !important;
+}
+
+/* ── Hero card ── */
+.hero-card {
+  background:
+    linear-gradient(135deg, rgba(12, 18, 32, 0.95), rgba(8, 13, 24, 0.9)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: var(--radius-xl) !important;
+  overflow: hidden;
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset !important;
+}
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(91, 159, 255, 0.1), transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(167, 139, 250, 0.08), transparent 60%);
+  pointer-events: none;
+}
+
+.hero-copy h1 {
+  font-family: var(--font-display);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+}
+
+.hero-poster-frame {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ── Section shells ── */
+.section-shell {
+  background:
+    linear-gradient(180deg, rgba(13, 19, 32, 0.7), rgba(8, 12, 22, 0.75)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.section-head h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+}
+
+.section-kicker,
+.detail-label {
+  color: var(--accent-electric) !important;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.section-summary {
+  color: var(--text-tertiary) !important;
+}
+
+/* ── Anime cards ── */
+.anime-card__action {
+  background:
+    linear-gradient(180deg, rgba(18, 26, 42, 0.9), rgba(10, 15, 25, 0.95)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out),
+    box-shadow 0.3s var(--ease-out);
+}
+
+.anime-card__action:hover {
+  transform: translateY(-4px);
+  border-color: rgba(91, 159, 255, 0.3);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(91, 159, 255, 0.06);
+}
+
+.anime-card__poster {
+  transition: transform 0.4s var(--ease-out);
+}
+
+.anime-card__action:hover .anime-card__poster {
+  transform: scale(1.05);
+}
+
+.anime-card__poster-wrap::after {
+  background: linear-gradient(180deg, transparent 60%, rgba(8, 11, 18, 0.95) 100%) !important;
+}
+
+.anime-card__title {
+  color: var(--text-primary) !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.anime-card__meta {
+  color: var(--text-tertiary) !important;
+}
+
+.anime-card__status {
+  background: rgba(91, 159, 255, 0.2) !important;
+  color: #8cc4ff !important;
+  border-color: rgba(91, 159, 255, 0.3) !important;
+}
+
+/* ── Stats row ── */
+.stats-row {
+  background:
+    linear-gradient(180deg, rgba(15, 22, 38, 0.7), rgba(8, 12, 22, 0.75)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 22px !important;
+}
+
+.stat-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 16px !important;
+}
+
+.stat-card span {
+  color: var(--text-primary) !important;
+  font-weight: 900;
+  font-family: var(--font-display);
+}
+
+.stat-card small {
+  color: var(--text-tertiary) !important;
+}
+
+/* ── Player ── */
+.player-surface {
+  border-radius: 18px !important;
+  border: 1px solid var(--border-card) !important;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+.player-pane {
+  background:
+    linear-gradient(180deg, rgba(14, 20, 34, 0.85), rgba(9, 13, 23, 0.88)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 20px !important;
+}
+
+/* ── Episode buttons ── */
+.episode-btn {
+  border-radius: 14px !important;
+  border: 1px solid var(--border-card) !important;
+  background: rgba(15, 22, 38, 0.7) !important;
+  color: var(--text-secondary) !important;
+  transition: all 0.2s var(--ease-out);
+}
+
+.episode-btn:hover {
+  border-color: rgba(91, 159, 255, 0.3) !important;
+  background: rgba(20, 30, 50, 0.8) !important;
+}
+
+.episode-btn.is-active {
+  border-color: rgba(91, 159, 255, 0.5) !important;
+  background:
+    linear-gradient(135deg, rgba(91, 159, 255, 0.15), rgba(167, 139, 250, 0.1)) !important;
+  color: var(--text-primary) !important;
+}
+
+.episode-btn strong {
+  color: var(--text-primary) !important;
+}
+
+/* ── Drawer ── */
+.drawer-panel {
+  background:
+    linear-gradient(180deg, rgba(16, 22, 38, 0.96), rgba(9, 13, 23, 0.97)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+}
+
+.drawer-backdrop {
+  background: rgba(3, 5, 9, 0.8) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── Detail hero ── */
+.detail-copy h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.detail-poster {
+  border-radius: 18px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ── Quick menu & popovers ── */
+.quick-menu,
+.notification-popover {
+  background:
+    linear-gradient(180deg, rgba(16, 22, 38, 0.96), rgba(9, 13, 23, 0.97)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+
+.quick-menu__item,
+.quick-menu__account {
+  border-radius: 14px !important;
+  border-color: var(--border-subtle) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  transition: all 0.2s var(--ease-out);
+}
+
+.quick-menu__item:hover,
+.quick-menu__account:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.quick-menu__item-title {
+  color: var(--text-primary) !important;
+}
+
+/* ── Mobile nav ── */
+.mobile-nav {
+  background:
+    linear-gradient(180deg, rgba(12, 17, 28, 0.9), rgba(8, 11, 19, 0.94)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* ── Auth modal ── */
+.auth-modal__panel {
+  background:
+    linear-gradient(180deg, rgba(16, 22, 38, 0.97), rgba(9, 13, 23, 0.98)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 24px !important;
+}
+
+.auth-modal__backdrop {
+  background: rgba(3, 5, 9, 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── User chip ── */
+.user-chip {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 16px !important;
+}
+
+/* ── Genre chips ── */
+.genre-chip-btn {
+  border-radius: 12px !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600;
+  transition: all 0.2s var(--ease-out);
+}
+
+.genre-chip-btn:hover {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-primary) !important;
+  transform: translateY(-1px);
+}
+
+.genre-chip-btn.is-active {
+  background:
+    linear-gradient(135deg, rgba(91, 159, 255, 0.18), rgba(167, 139, 250, 0.12)) !important;
+  border-color: rgba(91, 159, 255, 0.4) !important;
+  color: #8cc4ff !important;
+}
+
+/* ── Toast ── */
+.toast-card {
+  background: rgba(16, 22, 38, 0.95) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ── Continue banner ── */
+.continue-banner__inner {
+  background:
+    linear-gradient(135deg, rgba(91, 159, 255, 0.08), rgba(15, 22, 38, 0.9)) !important;
+  border: 1px solid rgba(91, 159, 255, 0.2) !important;
+  border-radius: 18px !important;
+}
+
+.continue-banner__kicker {
+  color: var(--accent-electric) !important;
+}
+
+/* ── Weekly top rail ── */
+.weekly-top-card__link {
+  background:
+    linear-gradient(145deg, rgba(18, 25, 40, 0.94), rgba(8, 11, 18, 0.97)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 14px !important;
+  transition: all 0.25s var(--ease-out);
+}
+
+.weekly-top-card__link:hover {
+  border-color: rgba(91, 159, 255, 0.35) !important;
+  box-shadow: 0 12px 30px rgba(91, 159, 255, 0.1) !important;
+}
+
+.weekly-top-card__rank {
+  background: rgba(91, 159, 255, 0.18) !important;
+  color: #8cc4ff !important;
+}
+
+/* ── Select controls ── */
+.select-control {
+  border-radius: 14px !important;
+  border-color: var(--border-card) !important;
+  background: rgba(10, 15, 25, 0.6) !important;
+}
+
+.select-control__menu {
+  border-radius: 14px !important;
+  border-color: var(--border-card) !important;
+  background:
+    linear-gradient(180deg, rgba(16, 22, 38, 0.99), rgba(9, 13, 23, 0.99)) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+}
+
+.select-control__option:hover {
+  background: rgba(91, 159, 255, 0.08) !important;
+}
+
+.select-control__option.is-active {
+  background:
+    linear-gradient(135deg, rgba(91, 159, 255, 0.2), rgba(167, 139, 250, 0.15)) !important;
+  color: #8cc4ff !important;
+}
+
+/* ── FAB button ── */
+.random-fab {
+  background:
+    linear-gradient(135deg, #5b9fff 0%, #a78bfa 50%, #ff5ea0 100%) !important;
+  border: none !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 8px 28px rgba(91, 159, 255, 0.4),
+    0 0 0 4px rgba(91, 159, 255, 0.1) !important;
+}
+
+.random-fab::after {
+  background:
+    linear-gradient(135deg, rgba(91, 159, 255, 0.4), rgba(255, 94, 160, 0.3)) !important;
+}
+
+/* ── Comments ── */
+.comments-card,
+.comment-item {
+  border-radius: 16px !important;
+  border-color: var(--border-card) !important;
+  background: rgba(13, 19, 30, 0.6) !important;
+}
+
+.comment-author {
+  color: var(--text-primary) !important;
+}
+
+/* ── Profile ── */
+.profile-card {
+  background:
+    linear-gradient(180deg, rgba(15, 22, 36, 0.7), rgba(9, 13, 23, 0.75)) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: 20px !important;
+}
+
+/* ── Skeleton loading ── */
+.skeleton-block,
+.skeleton-line {
+  background:
+    linear-gradient(180deg, rgba(30, 40, 60, 0.5), rgba(15, 22, 38, 0.8)) !important;
+}
+
+.skeleton-block::after,
+.skeleton-line::after {
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent) !important;
+}
+
+/* ── Empty / error states ── */
+.empty-state {
+  border-color: var(--border-card) !important;
+  background: rgba(10, 14, 24, 0.4) !important;
+  border-radius: 16px !important;
+  color: var(--text-tertiary) !important;
+}
+
+.error-state {
+  border-color: rgba(255, 94, 160, 0.2) !important;
+  background:
+    radial-gradient(circle at top, rgba(255, 94, 160, 0.06), transparent 50%) !important;
+  border-radius: 16px !important;
+}
+
+/* ── Page glow ── */
+.page-glow {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(91, 159, 255, 0.1), transparent 40%),
+    radial-gradient(ellipse at 70% 30%, rgba(167, 139, 250, 0.08), transparent 40%) !important;
+}
+
+/* ── Tags / chips ── */
+.tag,
+.chip,
+.meta-pill {
+  border-radius: 10px !important;
+  border-color: var(--border-subtle) !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ── Light theme overrides ── */
+:root[data-theme="light"] {
+  --depth-bg: #f5f0e8;
+  --depth-surface: #faf6ef;
+  --depth-card: #fffaf4;
+  --depth-elevated: #ffffff;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-card: rgba(0, 0, 0, 0.08);
+  --text-primary: #1a140e;
+  --text-secondary: #5c5040;
+  --text-tertiary: #8a7b68;
+  --accent-electric: #3b7ddd;
+  --accent-neon: #2a9d8f;
+  --accent-amber: #e08a1a;
+  --accent-rose: #d94a7a;
+  --accent-violet: #7c5ce7;
+}
+
+:root[data-theme="light"] body {
+  background: var(--depth-bg) !important;
+}
+
+:root[data-theme="light"] .topbar {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.9), rgba(250, 245, 236, 0.88)) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.02) inset !important;
+}
+
+:root[data-theme="light"] .brand-btn {
+  background:
+    linear-gradient(135deg, #1a140e 0%, #3b7ddd 40%, #7c5ce7 70%, #d94a7a 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+:root[data-theme="light"] .tab-btn,
+:root[data-theme="light"] .mobile-nav__btn {
+  color: var(--text-secondary) !important;
+}
+
+:root[data-theme="light"] .tab-btn:hover {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+:root[data-theme="light"] .tab-btn.is-active {
+  background: rgba(59, 125, 221, 0.1) !important;
+  color: #3b7ddd !important;
+}
+
+:root[data-theme="light"] .section-shell,
+:root[data-theme="light"] .hero-card,
+:root[data-theme="light"] .stats-row,
+:root[data-theme="light"] .drawer-panel,
+:root[data-theme="light"] .player-pane,
+:root[data-theme="light"] .profile-card {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.85), rgba(250, 245, 236, 0.88)) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+:root[data-theme="light"] .anime-card__action {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(250, 245, 236, 0.94)) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+}
+
+:root[data-theme="light"] .primary-btn {
+  color: #ffffff !important;
+}
+
+:root[data-theme="light"] .search-box {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── Smooth transitions for theme switch ── */
+body,
+.topbar,
+.section-shell,
+.hero-card,
+.stats-row,
+.drawer-panel,
+.player-pane,
+.anime-card__action,
+.tab-btn,
+.ghost-btn,
+.primary-btn,
+.search-box,
+.stat-card,
+.quick-menu,
+.mobile-nav,
+.genre-chip-btn {
+  transition:
+    background 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out),
+    box-shadow 0.3s var(--ease-out),
+    color 0.3s var(--ease-out);
+}
