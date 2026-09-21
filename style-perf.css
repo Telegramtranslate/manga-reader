@@ -1,0 +1,120 @@
+/* ═══════════════════════════════════════════════════════════════
+   AnimeCloud — style-perf.css
+   Подключать ПОСЛЕДНИМ, после style.css и style-overrides.css.
+   Цель: 60fps на слабых Android / старых iPhone.
+   На мощных устройствах внешний вид не меняется.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. BACKDROP-FILTER: главный убийца FPS ──
+   blur(18px) висит на .topbar и .mobile-nav, а они sticky/fixed.
+   GPU пересобирает размытый слой КАЖДЫЙ кадр скролла.
+   Решение: стекло только там, где железо выдержит. */
+.topbar, .section-shell, .drawer-panel, .player-pane,
+.quick-menu, .notification-popover, .mobile-nav {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.topbar, .mobile-nav {
+  background: color-mix(in srgb, var(--bg) 94%, transparent) !important;
+}
+.section-shell, .drawer-panel, .player-pane,
+.quick-menu, .notification-popover {
+  background: color-mix(in srgb, var(--bg-soft) 97%, transparent) !important;
+}
+@media (min-width: 1024px) and (hover: hover) and (prefers-reduced-transparency: no-preference) {
+  html:not(.is-lowend) .topbar,
+  html:not(.is-lowend) .section-shell,
+  html:not(.is-lowend) .drawer-panel,
+  html:not(.is-lowend) .player-pane,
+  html:not(.is-lowend) .quick-menu,
+  html:not(.is-lowend) .notification-popover,
+  html:not(.is-lowend) .mobile-nav {
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    background: var(--surface) !important;
+  }
+}
+
+/* ── 2. ФОНОВЫЕ ГРАДИЕНТЫ ──
+   3 слоя radial-gradient на body + .page-glow перерисовываются
+   на всю площадь экрана. Уводим в композитный слой, на слабых — режем. */
+body { background-attachment: fixed !important; }
+.page-glow { contain: strict !important; transform: translateZ(0); }
+html.is-lowend body { background: var(--bg) !important; }
+html.is-lowend .page-glow,
+html.is-lowend .hero-card::before { display: none !important; }
+
+/* ── 3. TRANSITIONS ──
+   style-overrides.css анимирует background/box-shadow/color на 25 селекторах.
+   Это НЕкомпозитные свойства: каждый кадр уходит в repaint.
+   Оставляем только transform и opacity. */
+body, .topbar, .section-shell, .hero-card, .stats-row,
+.drawer-panel, .player-pane, .tab-btn, .ghost-btn, .search-box,
+.stat-card, .quick-menu, .mobile-nav, .profile-card,
+.select-control, .toast-card, .notification-item {
+  transition: none !important;
+}
+.primary-btn, .anime-card__action, .genre-chip-btn, .episode-btn {
+  transition: transform .18s ease, opacity .18s ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── 4. HOVER НА ТАЧСКРИНАХ ──
+   На телефоне :hover срабатывает при тапе. scale(1.04) на <img>
+   заставляет перерисовать текстуру постера. Убираем. */
+@media (hover: none) {
+  .anime-card__action:hover, .primary-btn:hover, .tab-btn:hover,
+  .ghost-btn:hover, .quick-menu__item:hover,
+  .weekly-top-card__link:hover, .schedule-item:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .anime-card__action:hover .anime-card__poster { transform: none !important; }
+}
+
+/* ── 5. CONTENT-VISIBILITY: не рисуем то, чего не видно ──
+   Самый большой выигрыш на длинном каталоге: браузер пропускает
+   layout+paint офскрин-секций. contain-intrinsic-size обязателен,
+   иначе скроллбар прыгает. */
+.section-shell { content-visibility: auto; contain-intrinsic-size: auto 720px; }
+.hero-card, .section-shell:first-of-type, .topbar, .mobile-nav, .player-pane {
+  content-visibility: visible !important;
+}
+.anime-card, .anime-card__action {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+  contain: layout paint style;
+}
+.schedule-item, .notification-item, .weekly-top-card { contain: layout paint style; }
+
+/* ── 6. ПОСТЕРЫ: фиксируем аспект, чтобы не было reflow при подгрузке ── */
+.anime-card__poster, .hero-poster-frame img, .weekly-top-card img {
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+/* ── 7. СКРОЛЛ ── */
+.episodes-list, .genre-chips, .season-nav, .drawer-panel, .quick-menu {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+html.is-lowend { scroll-behavior: auto !important; }
+
+/* ── 8. СКРУГЛЕНИЯ И ТЕНИ ──
+   radius 28px + overflow:hidden + скролл = дорогая маска. */
+html.is-lowend {
+  --radius-xl: 14px !important;
+  --radius-lg: 12px !important;
+  --radius-md: 10px !important;
+}
+html.is-lowend .random-fab,
+html.is-lowend .primary-btn,
+html.is-lowend .anime-card__action { box-shadow: none !important; }
