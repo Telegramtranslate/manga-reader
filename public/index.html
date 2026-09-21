@@ -11,6 +11,7 @@
   <link id="canonical-link" rel="canonical" href="https://color-manga-cloud.vercel.app/">
   <link rel="alternate" hreflang="ru" href="https://color-manga-cloud.vercel.app/">
   <link rel="alternate" hreflang="x-default" href="https://color-manga-cloud.vercel.app/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
   <meta id="og-type" property="og:type" content="website">
   <meta property="og:site_name" content="AnimeCloud">
   <meta id="og-title" property="og:title" content="Смотреть аниме онлайн бесплатно | AnimeCloud">
@@ -43,11 +44,13 @@
   <link rel="dns-prefetch" href="https://kodik-api.com">
   <link rel="dns-prefetch" href="https://kodikplayer.com">
   <link rel="dns-prefetch" href="https://apis.google.com">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://i.kodikres.com" crossorigin>
   <link rel="preload" href="/api/kodik?action=discover&mode=latest&page=1&limit=18" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="/style.css?v=15dd4bad92" as="style">
-  <link rel="preload" href="/app.min.js?v=52739ed504" as="script">
-  <link rel="stylesheet" href="/style.css?v=15dd4bad92">
-  <link rel="stylesheet" href="/style-overrides.css?v=4cc9567aa2">
+  <link rel="preload" href="/style.css?v=599fe09a99" as="style">
+  <link rel="preload" href="/app.min.js?v=4789858125" as="script">
+  <link rel="stylesheet" href="/style.css?v=599fe09a99">
+  <link rel="stylesheet" href="/style-overrides.css?v=e9283cd68b">
   <script id="structured-data" type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -223,6 +226,13 @@
             </div>
           </div>
         </div>
+
+        <div class="online-badge" id="online-badge" hidden aria-live="polite">
+          <span class="online-badge__pulse" aria-hidden="true"></span>
+          <span class="online-badge__icon" aria-hidden="true">👁</span>
+          <strong id="online-count">0</strong>
+          <span id="online-label">сейчас смотрят</span>
+        </div>
       </div>
     </header>
 
@@ -283,7 +293,7 @@
               <img
                 id="hero-poster"
                 class="hero-poster"
-                src="/mc-icon-512.png?v=a579d5aaa0"
+                src="/mc-icon-192.png?v=2500232d3d"
                 alt="Постер выбранного аниме"
                 width="800"
                 height="1200"
@@ -341,6 +351,17 @@
             </div>
           </div>
           <div class="anime-grid anime-grid--poster" id="latest-grid"></div>
+        </div>
+
+        <div class="section-shell home-shell home-shell--weekly" id="weekly-top-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Неделя</div>
+              <h2>Топ за неделю</h2>
+              <p class="section-summary">Короткая лента популярных тайтлов.</p>
+            </div>
+          </div>
+          <div class="weekly-top-rail" id="weekly-top-grid" aria-label="Топ за неделю"></div>
         </div>
 
         <div class="section-shell home-shell home-shell--recommended" id="recommended-shell">
@@ -613,6 +634,10 @@
     <button class="mobile-nav__btn" type="button" data-view="schedule">Расписание</button>
   </nav>
 
+  <button class="random-fab" type="button" id="random-fab" aria-label="Случайное аниме" title="Случайное аниме">
+    <span class="random-fab__icon" aria-hidden="true">🎲</span>
+  </button>
+
   <aside class="details-drawer" id="details-drawer" aria-hidden="true" inert>
     <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
@@ -845,7 +870,7 @@
     </article>
   </template>
 
-<script src="/api/runtime-config.js?v=3b5f9dd763" defer></script>
+<script src="/api/runtime-config.js?v=9a66b6ea67" defer></script>
 <script src="/app-constants.min.js?v=7f5bd79a51" defer></script>
 <script src="/firebase-config.min.js?v=d0b5fb95e7" defer></script>
 <script src="/cloud-sync.min.js?v=1196a62dd3" defer></script>
@@ -853,8 +878,8 @@
 <script src="/app-seo.min.js?v=9005a1b0dd" defer></script>
 <script src="/app-stats.min.js?v=0dba658ff4" defer></script>
 <script src="/app-player-utils.min.js?v=25dfbdad16" defer></script>
-<script src="/app.min.js?v=52739ed504" defer></script>
-<script src="/auth.min.js?v=2c058802b0" defer></script>
-<script src="/watch-features.min.js?v=45e97002bf" defer></script>
+<script src="/app.min.js?v=4789858125" defer></script>
+<script src="/auth.min.js?v=4eb17f4c7e" defer></script>
+<script src="/watch-features.min.js?v=ebbdbae794" defer></script>
 </body>
 </html>

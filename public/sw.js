@@ -1,4 +1,4 @@
-const CACHE_VERSION = "local-20260506-episodes-fix";
+const CACHE_VERSION = "9a66b6ea67";
 const SHELL_CACHE = `animecloud-shell-${CACHE_VERSION}`;
 const API_CACHE = `animecloud-api-${CACHE_VERSION}`;
 const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
@@ -6,9 +6,9 @@ const IMAGE_CACHE = `animecloud-images-${CACHE_VERSION}`;
 const CORE_APP_SHELL = [
   "/",
   "/index.html",
-  "/style.css?v=15dd4bad92",
-  "/style-overrides.css?v=4cc9567aa2",
-  "/api/runtime-config.js?v=3b5f9dd763",
+  "/style.css?v=599fe09a99",
+  "/style-overrides.css?v=e9283cd68b",
+  "/api/runtime-config.js?v=9a66b6ea67",
   "/app-constants.min.js?v=7f5bd79a51",
   "/firebase-config.min.js?v=d0b5fb95e7",
   "/cloud-sync.min.js?v=1196a62dd3",
@@ -16,9 +16,9 @@ const CORE_APP_SHELL = [
   "/app-seo.min.js?v=9005a1b0dd",
   "/app-stats.min.js?v=0dba658ff4",
   "/app-player-utils.min.js?v=25dfbdad16",
-  "/app.min.js?v=52739ed504",
-  "/auth.min.js?v=2c058802b0",
-  "/watch-features.min.js?v=45e97002bf",
+  "/app.min.js?v=4789858125",
+  "/auth.min.js?v=4eb17f4c7e",
+  "/watch-features.min.js?v=ebbdbae794",
   "/manifest.webmanifest?v=3a11887700",
   "/robots.txt",
   "/mc-icon-192.png?v=2500232d3d",
