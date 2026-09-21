@@ -171,6 +171,54 @@ body.is-app-loading .site-shell {
   pointer-events: none;
 }
 
+.shell-fallback {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  width: min(100% - 32px, 560px);
+  margin: 16vh auto 0;
+  padding: 32px 28px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.shell-fallback__kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.shell-fallback__title {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.shell-fallback__text {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.shell-fallback__reload {
+  margin-top: 6px;
+}
+
+@media (max-width: 560px) {
+  .shell-fallback {
+    margin-top: 12vh;
+    padding: 24px 18px;
+  }
+}
+
 .startup-loader {
   --startup-progress: 8%;
   position: fixed;
@@ -1246,6 +1294,7 @@ body.is-app-loading .site-shell {
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .anime-card__meta {
@@ -1255,6 +1304,7 @@ body.is-app-loading .site-shell {
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .anime-card__tags {
@@ -3353,6 +3403,7 @@ body {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 5;
+  line-clamp: 5;
 }
 
 .meta-row,
@@ -3677,6 +3728,7 @@ body {
   font-size: 0.9rem;
   line-height: 1.26;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .anime-grid--rail .anime-card__meta {
@@ -4163,6 +4215,7 @@ body {
   .hero-copy p {
     min-height: 6em;
     -webkit-line-clamp: 4;
+    line-clamp: 4;
   }
 }
 
@@ -5605,6 +5658,7 @@ body.is-dialog-open {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .catalog-filters-panel .select-control__menu {
@@ -7260,6 +7314,7 @@ body.is-scrolling .menu-btn {
   display: -webkit-box;
   overflow: hidden;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 

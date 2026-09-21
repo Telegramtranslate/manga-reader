@@ -1,378 +1,292 @@
-/* ═══════════════════════════════════════════════
-   AnimeCloud — Refined Modern
-   Overrides style.css at the variable level
-   Warm muted gold · Charcoal · Glass
-   ═══════════════════════════════════════════════ */
+/* Дополнительные стили (переупорядочивание/адаптив главной) */
 
-/* ── Overwrite ALL :root variables ── */
-:root {
-  --bg:            #080c14 !important;
-  --bg-soft:       #0d1320 !important;
-  --surface:       rgba(14,20,33,0.84) !important;
-  --surface-2:     rgba(17,24,38,0.88) !important;
-  --surface-3:     rgba(20,29,45,0.90) !important;
-  --line:          rgba(255,255,255,0.06) !important;
-  --line-strong:   rgba(200,168,124,0.22) !important;
-  --text:          #e8e4dd !important;
-  --text-strong:   #f5f1ea !important;
-  --muted:         #a09b91 !important;
-  --muted-strong:  #c4bdb2 !important;
-  --accent:        #c8a87c !important;
-  --accent-2:      #d4b896 !important;
-  --accent-3:      #b8905c !important;
-  --accent-4:      #e0c8a8 !important;
-  --success:       #7da882 !important;
-  --danger:        #d4856b !important;
-  --shadow-lg:     0 4px 24px rgba(0,0,0,0.35) !important;
-  --shadow-md:     0 2px 12px rgba(0,0,0,0.25) !important;
-  --shadow-sm:     0 1px 4px  rgba(0,0,0,0.18) !important;
-  --radius-xl:     28px !important;
-  --radius-lg:     22px !important;
-  --radius-md:     16px !important;
-  --radius-sm:     10px !important;
-  color-scheme:    dark;
+/* ── Continue Watching Banner ── */
+.continue-banner {
+  margin-bottom: 18px;
 }
 
-/* ── Overwrite light theme variables ── */
-:root[data-theme="light"] {
-  --bg:            #f5f0e7 !important;
-  --bg-soft:       #faf7f1 !important;
-  --surface:       rgba(255,252,247,0.88) !important;
-  --surface-2:     rgba(250,245,236,0.90) !important;
-  --surface-3:     rgba(245,238,226,0.92) !important;
-  --line:          rgba(0,0,0,0.05) !important;
-  --line-strong:   rgba(160,120,60,0.20) !important;
-  --text:          #1f1a14 !important;
-  --text-strong:   #15100c !important;
-  --muted:         #8a7d6e !important;
-  --muted-strong:  #5c5040 !important;
-  --accent:        #a0783c !important;
-  --accent-2:      #b8905c !important;
-  --accent-3:      #8a6030 !important;
-  --accent-4:      #c8a070 !important;
-  --success:       #659d6b !important;
-  --danger:        #c47860 !important;
-  --shadow-lg:     0 4px 20px rgba(80,49,16,0.10) !important;
-  --shadow-md:     0 2px 12px rgba(80,49,16,0.07) !important;
-  --shadow-sm:     0 1px 4px  rgba(80,49,16,0.05) !important;
-  color-scheme:    light;
-}
-
-/* ── Body background ── */
-body {
-  background:
-    radial-gradient(ellipse 70% 40% at 50% -15%, rgba(200,168,124,0.04), transparent 60%),
-    radial-gradient(ellipse 50% 30% at 85% 40%, rgba(180,150,120,0.03), transparent 55%),
-    linear-gradient(180deg, #080c14 0%, #0a0e18 100%) !important;
-}
-
-:root[data-theme="light"] body {
-  background:
-    radial-gradient(ellipse 70% 40% at 50% -15%, rgba(160,120,60,0.05), transparent 60%),
-    linear-gradient(180deg, #f5f0e7 0%, #efe8db 100%) !important;
-}
-
-/* ── Page glow ── */
-.page-glow {
-  background:
-    radial-gradient(ellipse 50% 40% at 25% 30%, rgba(200,168,124,0.05), transparent 50%),
-    radial-gradient(ellipse 50% 40% at 75% 25%, rgba(180,150,120,0.03), transparent 50%) !important;
-}
-
-/* ── Remove body::before grid pattern ── */
-body::before {
+.continue-banner[hidden] {
   display: none !important;
 }
 
-/* ── Glass effect on key surfaces ── */
-.topbar,
-.section-shell,
-.drawer-panel,
-.player-pane,
-.quick-menu,
-.notification-popover,
-.mobile-nav {
-  backdrop-filter: blur(18px) !important;
-  -webkit-backdrop-filter: blur(18px) !important;
-}
-
-/* ── Softer cards ── */
-.anime-card__action {
-  border-radius: 16px !important;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
-}
-
-.anime-card__action:hover {
-  transform: translateY(-3px) !important;
-  border-color: rgba(200,168,124,0.25) !important;
-}
-
-.anime-card__action:hover .anime-card__poster {
-  transform: scale(1.04) !important;
-}
-
-/* ── Primary buttons ── */
-.primary-btn {
-  background: var(--accent) !important;
-  color: #1a1410 !important;
-  border: none !important;
-  border-radius: 10px !important;
-  font-weight: 650 !important;
-  box-shadow: 0 2px 8px rgba(200,168,124,0.18) !important;
-  transition: all 0.2s ease !important;
-}
-
-.primary-btn:hover {
-  background: var(--accent-2) !important;
-  box-shadow: 0 4px 14px rgba(200,168,124,0.28) !important;
-  transform: translateY(-1px) !important;
-}
-
-/* ── Active tabs ── */
-.tab-btn.is-active,
-.mobile-nav__btn.is-active,
-.ghost-btn.is-active,
-.genre-chip-btn.is-active,
-.quality-btn.is-active,
-.source-btn.is-active,
-.auth-tab.is-active,
-.episode-btn.is-active {
-  border-color: rgba(200,168,124,0.25) !important;
-  background: rgba(200,168,124,0.12) !important;
-  color: var(--accent) !important;
-  box-shadow: none !important;
-}
-
-/* ── Tabs hover ── */
-.tab-btn:hover,
-.mobile-nav__btn:hover,
-.ghost-btn:hover {
-  background: rgba(255,255,255,0.04) !important;
-  color: var(--text-strong) !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* ── Search focus ── */
-.search-box:focus-within {
-  border-color: rgba(200,168,124,0.35) !important;
-  box-shadow: 0 0 0 3px rgba(200,168,124,0.06) !important;
-}
-
-/* ── Section kicker / detail label ── */
-.section-kicker,
-.detail-label {
-  color: var(--accent) !important;
-}
-
-/* ── Hero card ── */
-.hero-card {
-  border-radius: 28px !important;
-}
-
-.hero-card::before {
-  background:
-    radial-gradient(ellipse at 80% 20%, rgba(200,168,124,0.06), transparent 55%),
-    radial-gradient(ellipse at 20% 80%, rgba(180,150,120,0.04), transparent 55%) !important;
-}
-
-.hero-dot.is-active::before {
-  background: var(--accent) !important;
-  border-color: rgba(200,168,124,0.25) !important;
-}
-
-.hero-poster-frame {
-  border-radius: 18px !important;
-}
-
-/* ── Stats ── */
-.stat-card {
-  background: rgba(255,255,255,0.02) !important;
-}
-
-/* ── Episode buttons ── */
-.episode-btn.is-active {
-  border-color: rgba(200,168,124,0.30) !important;
-  background: rgba(200,168,124,0.10) !important;
-}
-
-/* ── Season nav ── */
-.season-nav__btn.is-active {
-  border-color: rgba(200,168,124,0.30) !important;
-  background: rgba(200,168,124,0.12) !important;
-  color: var(--accent) !important;
-}
-
-/* ── Continue banner ── */
 .continue-banner__inner {
-  border: 1px solid rgba(200,168,124,0.14) !important;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 24px;
+  border-radius: 22px;
+  border: 1px solid rgba(243, 156, 18, 0.18);
+  background:
+    linear-gradient(135deg, rgba(243, 156, 18, 0.06) 0%, rgba(18, 29, 47, 0.92) 60%),
+    rgba(14, 20, 34, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(243, 156, 18, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.continue-banner__inner:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(243, 156, 18, 0.14),
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    0 0 24px rgba(243, 156, 18, 0.08);
+}
+
+.continue-banner__poster {
+  width: 90px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.continue-banner__copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
 }
 
 .continue-banner__kicker {
-  color: var(--accent) !important;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
-/* ── Weekly top ── */
-.weekly-top-card__link:hover {
-  border-color: rgba(200,168,124,0.25) !important;
+.continue-banner__title {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Schedule ── */
-.schedule-item:hover {
-  border-color: var(--line-strong) !important;
+.continue-banner__meta {
+  font-size: 0.88rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Quick menu ── */
-.quick-menu__item:hover,
-.quick-menu__account:hover {
-  background: rgba(255,255,255,0.04) !important;
-  border-color: var(--line-strong) !important;
-  transform: none !important;
-  box-shadow: none !important;
+.continue-banner__progress-wrap {
+  margin-top: 4px;
 }
 
-.quick-menu__item--danger .quick-menu__item-title {
-  color: var(--danger) !important;
+.continue-banner__bar {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
 }
 
-/* ── Auth open button ── */
-.auth-open-btn {
-  background: var(--accent) !important;
-  color: #1a1410 !important;
-  border-color: var(--accent) !important;
-}
-
-/* ── User role badge ── */
-.user-role-badge,
-.profile-role-badge {
-  border-color: rgba(200,168,124,0.25) !important;
-  background: rgba(200,168,124,0.12) !important;
-  color: var(--accent) !important;
-}
-
-/* ── Rating chips ── */
-.rating-chip.is-active {
-  border-color: rgba(200,168,124,0.30) !important;
-  background: rgba(200,168,124,0.14) !important;
-  color: var(--accent) !important;
-}
-
-/* ── FAB ── */
-.random-fab {
-  background: var(--accent) !important;
-  border: none !important;
-  border-radius: 16px !important;
-  box-shadow: 0 6px 18px rgba(200,168,124,0.28), 0 0 0 3px rgba(200,168,124,0.08) !important;
-}
-
-.random-fab::after {
-  display: none !important;
-}
-
-/* ── Select option active ── */
-.select-control__option.is-active {
-  background: rgba(200,168,124,0.12) !important;
-  color: var(--accent) !important;
-}
-
-/* ── Genre chips active ── */
-.genre-chip-btn.is-active {
-  background: rgba(200,168,124,0.12) !important;
-  border-color: rgba(200,168,124,0.25) !important;
-  color: var(--accent) !important;
-}
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.07);
+.continue-banner__bar::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.13);
+
+.continue-banner__bar::-webkit-progress-value {
+  background: linear-gradient(90deg, #f39c12, #e67e22);
+  border-radius: 999px;
+  transition: width 0.4s ease;
 }
 
-/* ── Online badge ── */
-.online-badge__pulse {
-  background: var(--success) !important;
+.continue-banner__bar::-moz-progress-bar {
+  background: linear-gradient(90deg, #f39c12, #e67e22);
+  border-radius: 999px;
 }
 
-/* ── Notification unread ── */
-.notification-item.is-unread {
-  border-color: rgba(200,168,124,0.18) !important;
+.continue-banner__actions {
+  margin-top: 6px;
 }
 
-/* ── Detail list actions active ── */
-.detail-list-actions .ghost-btn.is-active {
-  border-color: rgba(200,168,124,0.25) !important;
-  background: rgba(200,168,124,0.12) !important;
-  color: var(--accent) !important;
+.continue-banner__actions .primary-btn {
+  padding: 10px 28px;
+  font-size: 0.92rem;
 }
 
-/* ── Season Selector ── */
-.season-selector__option.is-active {
-  background: rgba(200,168,124,0.12) !important;
-  color: var(--accent) !important;
+:root[data-theme="light"] .continue-banner__inner {
+  border-color: rgba(180, 120, 40, 0.14);
+  background:
+    linear-gradient(135deg, rgba(243, 186, 80, 0.08) 0%, rgba(255, 255, 255, 0.92) 60%),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* ── Mobile nav active ── */
-.mobile-nav__btn.is-active {
-  background: rgba(200,168,124,0.12) !important;
-  color: var(--accent) !important;
-  border-color: rgba(200,168,124,0.20) !important;
+@media (max-width: 560px) {
+  .continue-banner__inner {
+    grid-template-columns: 70px 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .continue-banner__poster {
+    width: 70px;
+    height: 100px;
+    border-radius: 12px;
+  }
+
+  .continue-banner__title {
+    font-size: 1rem;
+  }
+
+  .continue-banner__actions .primary-btn {
+    width: 100%;
+    padding: 10px 16px;
+  }
 }
 
-/* ── Brand button ── */
-.brand-btn {
-  color: var(--text-strong) !important;
-  background: none !important;
-  -webkit-background-clip: border-box !important;
-  background-clip: border-box !important;
-  -webkit-text-fill-color: currentColor !important;
+/* ── Genre Chips (Home) ── */
+.home-genre-section {
+  margin-bottom: 18px;
 }
 
-/* ── Anime card status ── */
-.anime-card__status {
-  background: rgba(200,168,124,0.14) !important;
-  color: var(--accent) !important;
-  border-color: rgba(200,168,124,0.18) !important;
+.home-genre-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-bottom: 12px;
 }
 
-/* ── Progress bars ── */
-.anime-card__progress-bar::-webkit-progress-value {
-  background: var(--accent) !important;
-}
-.anime-card__progress-value {
-  color: var(--accent) !important;
-}
-.episode-progress::-webkit-progress-value {
-  background: var(--accent) !important;
+.home-genre-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
-/* ── Remove button ── */
-.anime-card__remove {
-  border-color: rgba(212,133,107,0.22) !important;
-  background: rgba(212,133,107,0.08) !important;
-  color: var(--danger) !important;
+.home-genre-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
 }
 
-.anime-card__remove:hover {
-  background: rgba(212,133,107,0.16) !important;
-  border-color: rgba(212,133,107,0.40) !important;
+.home-genre-chips::-webkit-scrollbar {
+  display: none;
 }
 
-/* ── Smooth transitions for theme switch ── */
-body, .topbar, .section-shell, .hero-card, .stats-row,
-.drawer-panel, .player-pane, .anime-card__action, .tab-btn,
-.ghost-btn, .primary-btn, .search-box, .stat-card, .quick-menu,
-.mobile-nav, .genre-chip-btn, .profile-card, .episode-btn,
-.select-control, .toast-card, .notification-item {
-  transition: background 0.35s ease, border-color 0.35s ease,
-              box-shadow 0.35s ease, color 0.35s ease !important;
+.genre-chip-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 100px;
+  background: rgba(17, 25, 43, 0.7);
+  border: 1px solid var(--line);
+  color: var(--text-strong);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
 }
 
-/* ── Disable body::before grid overlay ── */
-body::before {
-  content: none !important;
+.genre-chip-btn:hover {
+  background: rgba(122, 225, 255, 0.12);
+  border-color: var(--accent);
+  color: var(--text-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.15);
+}
+
+:root[data-theme="light"] .genre-chip-btn {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .genre-chip-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(243, 156, 18, 0.3);
+}
+
+@media (max-width: 720px) {
+  .home-genre-chips {
+    flex-wrap: nowrap;
+    padding: 0 16px 16px 16px;
+    margin-inline: -16px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .genre-chip-btn {
+    padding: 8px 16px;
+    font-size: 0.88rem;
+  }
+}
+
+@media (min-width: 1180px) {
+  .continue-banner {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .stats-row--home {
+    grid-row: 3;
+  }
+
+  .home-shell--weekly {
+    grid-row: 4;
+  }
+
+  .home-shell--latest {
+    grid-row: 5;
+  }
+
+  .home-shell--recommended {
+    grid-row: 6;
+  }
+}
+
+.schedule-more-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(14, 22, 38, 0.96);
+  color: var(--text-strong);
+  font-weight: 700;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.schedule-more-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
+  background: rgba(18, 30, 52, 0.98);
+}
+
+@media (min-width: 861px) {
+  .drawer-panel {
+    left: 50%;
+    right: auto;
+    top: 12px;
+    bottom: 12px;
+    width: min(1280px, calc(100% - 24px));
+    transform: translate(-50%, 28px);
+  }
+
+  .details-drawer.is-open .drawer-panel {
+    transform: translate(-50%, 0);
+  }
 }

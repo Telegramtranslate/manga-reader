@@ -1,94 +1,885 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Смотреть аниме онлайн бесплатно | AnimeCloud</title>
- <meta name="description" content="AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.">
- <meta name="theme-color" content="#080c14">
- <meta name="color-scheme" content="dark">
- <link rel="icon" type="image/png" href="/favicon.png">
- <link rel="manifest" href="/manifest.webmanifest">
- <script>
-  (function () {
-   "use strict";
-   var d = document.documentElement;
-   var nav = navigator || {};
-   var conn = nav.connection || nav.mozConnection || nav.webkitConnection || {};
-   var cores = nav.hardwareConcurrency || 0;
-   var ram = nav.deviceMemory || 0;
-   var slowNet = /^(slow-2g|2g|3g)$/.test(conn.effectiveType || "");
-   var saveData = conn.saveData === true;
-   var lowEnd = (cores > 0 && cores <= 4) || (ram > 0 && ram <= 4) || slowNet || saveData || (window.matchMedia && window.matchMedia("(prefers-reduced-transparency: reduce)").matches);
-   if (lowEnd) d.classList.add("is-lowend");
-   if (saveData || slowNet) d.classList.add("is-savedata");
-   window.ACPerf = {
-    lowEnd: lowEnd,
-    saveData: saveData || slowNet,
-    _c: {},
-    load: function (src) {
-     if (this._c[src]) return this._c[src];
-     this._c[src] = new Promise(function (res, rej) {
-      var s = document.createElement("script");
-      s.src = src; s.async = true; s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-     });
-     return this._c[src];
-    },
-    idle: function (fn, timeout) {
-     if ("requestIdleCallback" in window) requestIdleCallback(fn, { timeout: timeout || 3000 });
-     else setTimeout(fn, timeout || 1500);
-    }
-   };
-  })();
- </script>
- <link rel="stylesheet" href="/style.css">
- <link rel="stylesheet" href="/style-overrides.css">
- <link rel="stylesheet" href="/style-perf.css">
- <script type="module" src="/app.min.js" defer></script>
- <script type="module" src="/analytics.min.js" defer></script>
- <script src="/_vercel/insights/script.js" defer></script>
- <meta property="og:title" content="AnimeCloud — каталог аниме">
- <meta property="og:description" content="Смотрите аниме онлайн бесплатно с русской озвучкой">
- <meta property="og:image" content="/favicon.png">
- <meta property="og:type" content="website">
- <script type="application/ld+json">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070b14">
+  <meta name="application-name" content="AnimeCloud">
+  <meta name="apple-mobile-web-app-title" content="AnimeCloud">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta id="meta-robots" name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <link id="canonical-link" rel="canonical" href="https://color-manga-cloud.vercel.app/">
+  <link rel="alternate" hreflang="ru" href="https://color-manga-cloud.vercel.app/">
+  <link rel="alternate" hreflang="x-default" href="https://color-manga-cloud.vercel.app/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <meta id="og-type" property="og:type" content="website">
+  <meta property="og:site_name" content="AnimeCloud">
+  <meta id="og-title" property="og:title" content="Смотреть аниме онлайн бесплатно | AnimeCloud">
+  <meta
+    id="og-description"
+    property="og:description"
+    content="Смотреть аниме онлайн бесплатно в хорошем качестве с русской озвучкой. Огромный каталог аниме из базы Kodik, быстрый поиск и удобный плеер на AnimeCloud."
+  >
+  <meta id="og-url" property="og:url" content="https://color-manga-cloud.vercel.app/">
+  <meta id="og-image" property="og:image" content="/mc-icon-512.png">
+  <meta property="og:image:alt" content="AnimeCloud">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta id="twitter-title" name="twitter:title" content="Смотреть аниме онлайн бесплатно | AnimeCloud">
+  <meta
+    id="twitter-description"
+    name="twitter:description"
+    content="Смотреть аниме онлайн бесплатно в хорошем качестве с русской озвучкой. Огромный каталог аниме из базы Kodik, быстрый поиск и удобный плеер на AnimeCloud."
+  >
+  <meta id="twitter-image" name="twitter:image" content="/mc-icon-512.png">
+  <meta property="og:locale" content="ru_RU">
+  <meta
+    id="meta-description"
+    name="description"
+    content="Смотреть аниме онлайн бесплатно в хорошем качестве с русской озвучкой. Огромный каталог аниме из базы Kodik, быстрый поиск и удобный плеер на AnimeCloud."
+  >
+  <title>Смотреть аниме онлайн бесплатно | AnimeCloud</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/mc-icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/mc-icon-192.png">
+  <link rel="dns-prefetch" href="https://kodik-api.com">
+  <link rel="dns-prefetch" href="https://kodikplayer.com">
+  <link rel="dns-prefetch" href="https://apis.google.com">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://i.kodikres.com" crossorigin>
+  <link rel="preload" href="/api/kodik?action=discover&mode=latest&page=1&limit=18" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/style.css" as="style">
+  <link rel="preload" href="/app.min.js" as="script">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style-overrides.css?v=1">
+  <script id="structured-data" type="application/ld+json">
 {
- "@context": "https://schema.org",
- "@graph": [
- {
-  "@type": "WebSite",
-  "name": "AnimeCloud",
-  "url": "/",
-  "inLanguage": "ru",
-  "description": "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.",
-  "potentialAction": {
-   "@type": "SearchAction",
-   "target": {
-    "@type": "EntryPoint",
-    "urlTemplate": "/search?q={search_term_string}"
-   },
-   "query-input": "required name=search_term_string"
-  }
- },
- {
-  "@type": "CollectionPage",
-  "name": "AnimeCloud - аниме из базы Kodik",
-  "url": "/",
-  "inLanguage": "ru",
-  "description": "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.",
-  "isPartOf": {
-   "@type": "WebSite",
-   "name": "AnimeCloud",
-   "url": "/"
-  }
- }
- ]
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "name": "AnimeCloud",
+      "url": "/",
+      "inLanguage": "ru",
+      "description": "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "CollectionPage",
+      "name": "AnimeCloud - аниме из базы Kodik",
+      "url": "/",
+      "inLanguage": "ru",
+      "description": "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AnimeCloud",
+        "url": "/"
+      }
+    }
+  ]
 }
- </script>
+  </script>
 </head>
+
 <body>
- <div id="root"></div>
- <noscript>JavaScript required for AnimeCloud</noscript>
+  <script>
+    window.va =
+      window.va ||
+      function () {
+        (window.vaq = window.vaq || []).push(arguments);
+      };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <div class="page-glow" aria-hidden="true"></div>
+  <div class="site-shell">
+    <header class="topbar">
+      <div class="brand-column">
+        <a class="brand-btn" href="/" id="brand-btn">AnimeCloud</a>
+        <p class="brand-sub">
+          Каталог аниме из базы Kodik с русской озвучкой, подборками, расписанием и быстрым плеером.
+        </p>
+      </div>
+
+      <div class="top-controls">
+        <nav class="top-tabs" id="view-tabs" aria-label="Разделы сайта">
+          <button class="tab-btn is-active" type="button" data-view="home">Главная</button>
+          <button class="tab-btn" type="button" data-view="catalog">Каталог</button>
+          <button class="tab-btn" type="button" data-view="ongoing">Онгоинги</button>
+          <button class="tab-btn" type="button" data-view="top">Топ</button>
+          <button class="tab-btn" type="button" data-view="schedule">Расписание</button>
+        </nav>
+
+        <div class="top-actions">
+          <label class="search-box" for="search-input">
+            <span class="search-box__label">Поиск по AnimeCloud</span>
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Например: Naruto, Bleach, Dorohedoro"
+              autocomplete="off"
+            >
+          </label>
+
+          <div class="auth-slot">
+            <button class="ghost-btn auth-open-btn" type="button" id="auth-open-btn" hidden>Войти</button>
+            <button class="ghost-btn notification-btn" type="button" id="notification-btn" hidden aria-label="Уведомления">
+              <span class="notification-btn__icon" aria-hidden="true">🔔</span>
+              <span class="notification-btn__text">Уведомления</span>
+              <span class="notification-btn__badge" id="notification-badge" hidden>0</span>
+            </button>
+            <button class="ghost-btn menu-btn" type="button" id="quick-menu-btn" aria-label="Меню" aria-expanded="false" aria-controls="quick-menu">
+              <span class="menu-btn__icon" aria-hidden="true">
+                <span class="menu-btn__line"></span>
+                <span class="menu-btn__line"></span>
+                <span class="menu-btn__line"></span>
+              </span>
+            </button>
+            <section class="notification-popover" id="notification-popover" hidden aria-label="Уведомления">
+              <div class="notification-popover__head">
+                <div>
+                  <strong>Уведомления</strong>
+                  <small id="notification-popover-summary">Новые серии и новые тайтлы появятся здесь.</small>
+                </div>
+                <button class="ghost-btn notification-popover__mark-all" type="button" id="notification-popover-mark-all-btn" hidden>Прочитать всё</button>
+              </div>
+              <div class="notification-popover__list" id="notification-popover-list"></div>
+            </section>
+            <section class="quick-menu" id="quick-menu" hidden aria-label="Быстрое меню">
+              <div class="quick-menu__head">
+                <strong>Меню</strong>
+                <small>Профиль и действия сайта.</small>
+              </div>
+              <button class="quick-menu__account" type="button" id="quick-menu-account-btn" hidden>
+                <img
+                  class="quick-menu__avatar"
+                  id="quick-menu-avatar"
+                  src="/mc-icon-192.png?v=5"
+                  alt="Профиль"
+                  width="44"
+                  height="44"
+                >
+                <span class="quick-menu__account-copy">
+                  <strong id="quick-menu-name">Гость</strong>
+                  <span class="user-role-badge" id="quick-menu-role-badge" hidden>Админ</span>
+                  <small id="quick-menu-email">Вход не выполнен</small>
+                </span>
+              </button>
+              <div class="quick-menu__list">
+                <button class="quick-menu__item" type="button" id="quick-menu-login-btn">
+                  <span class="quick-menu__item-title">Войти в аккаунт</span>
+                  <small>Открыть вход и синхронизировать списки</small>
+                </button>
+                <button class="quick-menu__item" type="button" id="quick-menu-profile-btn">
+                  <span class="quick-menu__item-title">Мой профиль</span>
+                  <small>Списки, история и уведомления</small>
+                </button>
+                <button class="quick-menu__item" type="button" id="refresh-btn">
+                  <span class="quick-menu__item-title">Обновить сайт</span>
+                  <small>Перезагрузить витрину и данные</small>
+                </button>
+                <button class="quick-menu__item" type="button" id="install-btn" hidden>
+                  <span class="quick-menu__item-title">Скачать на устройство</span>
+                  <small>Установить AnimeCloud как приложение</small>
+                </button>
+                <a class="quick-menu__item" href="https://t.me/manga_color" target="_blank" rel="noopener noreferrer">
+                  <span class="quick-menu__item-title">Наш Telegram</span>
+                  <small>@manga_color</small>
+                </a>
+                <a class="quick-menu__item quick-menu__item--support" href="mailto:podderzka76@gmail.com">
+                  <span class="quick-menu__item-title">podderzka76@gmail.com</span>
+                  <small>
+                    На эту почту вы можете отправить то, что хотите исправить, добавить на сайт или то, что вам не нравится.<br>
+                    На цю пошту ви можете відправити те, що хочете виправити, додати на сайт або те, що вам не подобається.<br>
+                    You can send to this email what you want to fix, add to the site, or what you don't like.
+                  </small>
+                </a>
+                <button class="quick-menu__item quick-menu__item--danger" type="button" id="quick-menu-logout-btn" hidden>
+                  <span class="quick-menu__item-title">Выйти</span>
+                  <small>Завершить сеанс в текущем браузере</small>
+                </button>
+              </div>
+            </section>
+
+            <div class="user-menu" id="user-menu" hidden>
+              <button class="user-chip" type="button" id="user-chip">
+                <img
+                  class="user-chip__avatar"
+                  id="user-avatar"
+                  src="/mc-icon-192.png?v=5"
+                  alt="Профиль"
+                  width="40"
+                  height="40"
+                >
+                <span class="user-chip__text">
+                  <strong id="user-name">Гость</strong>
+                  <span class="user-role-badge" id="user-role-badge" hidden>Владелец</span>
+                  <small id="user-email">Вход не выполнен</small>
+                </span>
+              </button>
+              <button class="ghost-btn auth-logout-btn" type="button" id="logout-btn">Выйти</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="online-badge" id="online-badge" hidden aria-live="polite">
+          <span class="online-badge__pulse" aria-hidden="true"></span>
+          <span class="online-badge__icon" aria-hidden="true">👁</span>
+          <strong id="online-count">0</strong>
+          <span id="online-label">сейчас смотрят</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <noscript>
+        <section class="section-shell">
+          <section class="profile-shelf profile-shelf--notifications">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Обновления</div>
+                <h3>Уведомления</h3>
+                <p class="section-summary" id="notifications-summary">
+                  Войдите, чтобы получать облачные уведомления о новых тайтлах и сериях.
+                </p>
+              </div>
+              <button class="ghost-btn" type="button" id="notifications-mark-all-btn" hidden>Отметить всё прочитанным</button>
+            </div>
+            <div class="notification-list" id="notifications-list"></div>
+          </section>
+
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">AnimeCloud</div>
+              <h1>AnimeCloud - аниме из базы Kodik</h1>
+              <p class="section-summary">
+                Каталог аниме из базы Kodik с русской озвучкой, подборками, расписанием и удобным онлайн-плеером.
+              </p>
+            </div>
+          </div>
+          <div class="seo-footer__inner">
+            <a class="seo-footer__link" href="/">Главная</a>
+            <a class="seo-footer__link" href="/catalog">Каталог аниме</a>
+            <a class="seo-footer__link" href="/ongoing">Онгоинги</a>
+            <a class="seo-footer__link" href="/top">Топ аниме</a>
+            <a class="seo-footer__link" href="/schedule">Расписание</a>
+            <a class="seo-footer__link" href="/search">Поиск</a>
+          </div>
+        </section>
+      </noscript>
+      <section class="view is-active home-view" data-view-panel="home">
+        <section class="hero-card hero-card--home" id="hero-card">
+          <div class="hero-copy">
+            <div class="section-kicker">Русская озвучка</div>
+            <h1 id="hero-title">Загружаем лучшие релизы</h1>
+            <p id="hero-description">
+              Последние серии, топовые тайтлы, удобный каталог и мобильный интерфейс без лишнего шума.
+            </p>
+            <div class="meta-row" id="hero-meta"></div>
+            <div class="hero-actions">
+              <button class="primary-btn" type="button" id="hero-open-btn">Открыть релиз</button>
+              <button class="ghost-btn" type="button" id="hero-random-btn">Случайный тайтл</button>
+            </div>
+            <div class="hero-dots" id="hero-dots" aria-label="Главные релизы"></div>
+          </div>
+
+          <div class="hero-media">
+            <div class="hero-poster-frame">
+              <img
+                id="hero-poster"
+                class="hero-poster"
+                src="/mc-icon-192.png?v=5"
+                alt="Постер выбранного аниме"
+                width="800"
+                height="1200"
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+              >
+              <div class="hero-placeholder" id="hero-fallback" hidden>
+                <div class="hero-placeholder__logo">AnimeCloud</div>
+                <p id="hero-fallback-text">Загружаем лучшие релизы...</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="continue-banner" id="continue-banner" hidden>
+          <div class="continue-banner__inner">
+            <img class="continue-banner__poster" id="continue-banner-poster" src="/mc-icon-512.png?v=5" alt="" width="120" height="180" loading="lazy" decoding="async">
+            <div class="continue-banner__copy">
+              <div class="continue-banner__kicker">▶ Продолжить просмотр</div>
+              <strong class="continue-banner__title" id="continue-banner-title">—</strong>
+              <span class="continue-banner__meta" id="continue-banner-meta">—</span>
+              <div class="continue-banner__actions">
+                <button class="primary-btn" type="button" id="continue-banner-play">Смотреть</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-row stats-row--home" aria-label="Статистика каталога">
+          <div class="stat-card">
+            <span id="latest-count">0</span>
+            <small>релизов в базе</small>
+          </div>
+          <div class="stat-card">
+            <span id="catalog-count">0</span>
+            <small>тайтлов в каталоге</small>
+          </div>
+          <div class="stat-card">
+            <span id="ongoing-count">0</span>
+            <small>онгоингов</small>
+          </div>
+          <div class="stat-card">
+            <span id="top-count">0</span>
+            <small>в рейтинге</small>
+          </div>
+        </section>
+
+        <div class="section-shell home-shell home-shell--latest" id="latest-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Лента</div>
+              <h2>Последние релизы</h2>
+              <p class="section-summary">Свежие серии и обновления, которые сейчас выходят быстрее всего.</p>
+            </div>
+          </div>
+          <div class="anime-grid anime-grid--poster" id="latest-grid"></div>
+        </div>
+
+        <div class="section-shell home-shell home-shell--weekly" id="weekly-top-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Неделя</div>
+              <h2>Топ за неделю</h2>
+              <p class="section-summary">Короткая лента популярных тайтлов.</p>
+            </div>
+          </div>
+          <div class="weekly-top-rail" id="weekly-top-grid" aria-label="Топ за неделю"></div>
+        </div>
+
+        <div class="section-shell home-shell home-shell--recommended" id="recommended-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Подборка</div>
+              <h2>Что посмотреть сегодня</h2>
+              <p class="section-summary">Рекомендации для вечернего просмотра без перегруженного интерфейса.</p>
+            </div>
+          </div>
+          <div class="anime-grid anime-grid--poster" id="recommended-grid"></div>
+        </div>
+
+      </section>
+
+      <section class="view" data-view-panel="catalog">
+        <div class="section-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Полная база</div>
+              <h2>Каталог AnimeCloud</h2>
+              <p class="section-summary" id="catalog-summary">Загружаем каталог…</p>
+            </div>
+          </div>
+
+          <div class="catalog-layout" id="catalog-layout">
+            <aside class="catalog-filters-panel" id="catalog-filters-panel" aria-label="Фильтры каталога">
+              <div class="section-actions section-actions--stacked">
+                <label class="select-control">
+                  <span>Сортировка</span>
+                  <select id="catalog-sort"></select>
+                </label>
+
+                <label class="select-control">
+                  <span>Формат</span>
+                  <select id="catalog-type">
+                    <option value="">Все форматы</option>
+                  </select>
+                </label>
+
+                <label class="select-control">
+                  <span>Жанр</span>
+                  <select id="catalog-genre">
+                    <option value="">Все жанры</option>
+                  </select>
+                </label>
+              </div>
+            </aside>
+
+            <div class="catalog-layout__content">
+              <div class="anime-grid" id="catalog-grid"></div>
+
+              <div class="pager-wrap" aria-label="Навигация по страницам каталога">
+                <button class="ghost-btn" type="button" id="catalog-prev-btn">Назад</button>
+                <span class="pager-label" id="catalog-page-label">Страница 1</span>
+                <button class="ghost-btn" type="button" id="catalog-next-btn">Вперёд</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="ongoing">
+        <div class="section-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Прямо сейчас</div>
+              <h2>Онгоинги</h2>
+              <p class="section-summary" id="ongoing-summary">Загружаем онгоинги…</p>
+            </div>
+          </div>
+
+          <div class="anime-grid" id="ongoing-grid"></div>
+
+          <div class="load-more-wrap">
+            <button class="ghost-btn" type="button" id="ongoing-more-btn">Показать ещё</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="top">
+        <div class="section-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Рейтинг</div>
+              <h2>Топ аниме</h2>
+              <p class="section-summary" id="top-summary">Загружаем топ каталога…</p>
+            </div>
+          </div>
+
+          <div class="anime-grid" id="top-grid"></div>
+
+          <div class="load-more-wrap">
+            <button class="ghost-btn" type="button" id="top-more-btn">Показать ещё</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="schedule">
+        <div class="section-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Недельный план</div>
+              <h2>Расписание выхода</h2>
+              <p class="section-summary" id="schedule-summary">
+                Компактный список по дням недели без тяжёлого рендера и лишней анимации.
+              </p>
+            </div>
+          </div>
+
+          <div class="schedule-grid" id="schedule-grid"></div>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="search">
+        <div class="section-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Поиск</div>
+              <h2>Результаты</h2>
+              <p class="section-summary" id="search-summary">
+                Введите название сверху, чтобы открыть нужный релиз.
+              </p>
+            </div>
+          </div>
+
+          <div class="anime-grid" id="search-grid"></div>
+        </div>
+      </section>
+
+        <section class="view" data-view-panel="profile">
+        <div class="section-shell">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Профиль</div>
+              <h2>Избранное и история входа</h2>
+              <p class="section-summary" id="profile-summary">
+                Войдите, чтобы хранить свою коллекцию отдельно. Без входа избранное сохранится только в этом браузере.
+              </p>
+            </div>
+          </div>
+
+          <div class="profile-cards">
+            <section class="profile-card">
+              <div class="detail-label">Аккаунт</div>
+              <div class="profile-user" id="profile-user">
+                <img
+                  class="profile-user__avatar"
+                  id="profile-avatar"
+                  src="/mc-icon-192.png?v=5"
+                  alt="Профиль"
+                  width="72"
+                  height="72"
+                >
+                <div class="profile-user__meta">
+                  <strong id="profile-name">Гость</strong>
+                  <span class="profile-role-badge" id="profile-role-badge" hidden>Владелец</span>
+                  <span id="profile-email">Вход не выполнен</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="profile-card">
+              <div class="detail-label">Коллекция</div>
+              <div class="profile-stats">
+                <div class="profile-stat">
+                  <strong id="favorites-count">0</strong>
+                  <span>в избранном</span>
+                </div>
+                <div class="profile-stat">
+                  <strong id="favorites-mode">Локально</strong>
+                  <span>режим хранения</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="profile-card">
+              <div class="detail-label">Настройки просмотра</div>
+              <label class="settings-toggle">
+                <input id="settings-theme" type="checkbox" checked>
+                <span>
+                  <strong>Тёмная тема</strong>
+                  <small>Переключение между светлой и тёмной темой.</small>
+                </span>
+              </label>
+            </section>
+
+            <section class="profile-card admin-panel" id="admin-panel" hidden>
+              <div class="detail-label">Локальные инструменты</div>
+              <div class="admin-actions">
+                <button class="ghost-btn" type="button" id="admin-refresh-btn">Обновить данные сайта</button>
+                <button class="ghost-btn" type="button" id="admin-clear-cache-btn">Очистить кэш сайта</button>
+                <button class="ghost-btn" type="button" id="admin-clear-comments-btn">Очистить комментарии</button>
+                <button class="ghost-btn" type="button" id="admin-clear-progress-btn">Сбросить прогресс просмотра</button>
+              </div>
+              <div class="admin-note" id="admin-note">Панель видна только владельцу в этой локальной сборке.</div>
+            </section>
+          </div>
+
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">История</div>
+              <h2>История просмотра</h2>
+              <p class="section-summary" id="profile-progress-summary">
+                Ваш недосмотр и быстрый возврат к серии.
+              </p>
+            </div>
+          </div>
+
+          <div class="anime-grid" id="profile-progress-grid"></div>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Мои списки</div>
+                <h3>Смотрю</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="list-watching-grid"></div>
+          </section>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Мои списки</div>
+                <h3>Запланировано</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="list-planned-grid"></div>
+          </section>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Мои списки</div>
+                <h3>Просмотрено</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="list-completed-grid"></div>
+          </section>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Мои списки</div>
+                <h3>Отложено</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="list-paused-grid"></div>
+          </section>
+
+          <section class="profile-shelf">
+            <div class="section-head section-head--compact">
+              <div>
+                <div class="section-kicker">Быстрый доступ</div>
+                <h3>Избранное</h3>
+              </div>
+            </div>
+            <div class="anime-grid" id="favorites-grid"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Мобильная навигация">
+    <button class="mobile-nav__btn is-active" type="button" data-view="home">Главная</button>
+    <button class="mobile-nav__btn" type="button" data-view="catalog">Каталог</button>
+    <button class="mobile-nav__btn" type="button" data-view="top">Топ</button>
+    <button class="mobile-nav__btn" type="button" data-view="schedule">Расписание</button>
+  </nav>
+
+  <button class="random-fab" type="button" id="random-fab" aria-label="Случайное аниме" title="Случайное аниме">
+    <span class="random-fab__icon" aria-hidden="true">🎲</span>
+  </button>
+
+  <aside class="details-drawer" id="details-drawer" aria-hidden="true" inert>
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+    <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+      <button class="drawer-close" type="button" id="drawer-close" aria-label="Закрыть">
+        <span class="drawer-close__icon" aria-hidden="true"></span>
+      </button>
+
+      <div class="drawer-scroll">
+        <section class="detail-hero">
+          <img
+            id="detail-poster"
+            class="detail-poster"
+            src="/mc-icon-512.png?v=5"
+            alt="Постер выбранного тайтла"
+            width="800"
+            height="1200"
+            loading="lazy"
+            decoding="async"
+          >
+
+          <div class="detail-copy">
+            <div class="section-kicker">Карточка релиза</div>
+            <h2 id="detail-title">Выберите тайтл</h2>
+            <p id="detail-description">
+              Откройте любое аниме, чтобы увидеть описание, эпизоды и встроенный плеер.
+            </p>
+            <div class="meta-row" id="detail-meta"></div>
+            <div class="chip-row" id="detail-chips"></div>
+            <div class="detail-actions">
+              <button class="ghost-btn" type="button" id="detail-favorite-btn">В избранное</button>
+              <button class="ghost-btn" type="button" id="detail-share-btn">Поделиться</button>
+              <button class="ghost-btn" type="button" id="detail-admin-pin-btn" hidden>Закрепить как локальный баннер</button>
+            </div>
+            <div class="detail-list-actions" id="detail-list-actions">
+              <button class="ghost-btn" type="button" id="list-watch-btn">Смотрю</button>
+              <button class="ghost-btn" type="button" id="list-plan-btn">Запланировано</button>
+              <button class="ghost-btn" type="button" id="list-complete-btn">Просмотрено</button>
+              <button class="ghost-btn" type="button" id="list-pause-btn">Отложено</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-layout">
+          <div class="player-pane">
+            <div class="player-toolbar">
+              <div>
+                <div class="section-kicker">Плеер</div>
+                <h3 id="player-title">Серия не выбрана</h3>
+              </div>
+              <div class="quality-switch" id="quality-switch"></div>
+            </div>
+
+            <section class="episodes-inline">
+              <div class="detail-label">Серии</div>
+              <div class="episodes-list episodes-list--inline" id="episodes-list"></div>
+            </section>
+
+            <div class="player-surface">
+              <video id="anime-player" class="anime-player" controls playsinline preload="metadata"></video>
+              <iframe
+                id="external-player"
+                class="external-player"
+                title="Альтернативный источник"
+                loading="eager"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation"
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen
+                hidden
+              ></iframe>
+            </div>
+
+            <p class="player-note" id="player-note">Выберите релиз и серию справа.</p>
+            <div class="external-player-actions" id="external-player-actions" hidden>
+              <button class="ghost-btn" type="button" id="external-player-retry-btn">Попробовать ещё раз</button>
+            </div>
+
+            <div class="player-footer">
+              <div class="resume-box" id="resume-box" hidden>
+                <div class="detail-label">Продолжить просмотр</div>
+                <div class="resume-box__meta" id="resume-text">Прогресс пока не сохранён.</div>
+                <div class="resume-actions">
+                  <button class="ghost-btn" type="button" id="resume-btn">Продолжить</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="side-pane">
+            <section class="side-card">
+              <div class="detail-label">Команда релиза</div>
+              <div class="crew-list" id="crew-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="comments-card">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Обсуждение</div>
+              <h2>Комментарии</h2>
+              <p class="section-summary" id="comments-summary">
+                Комментарии и история пока сохраняются локально в этом браузере. Вход сейчас нужен для разделения профилей и имени автора.
+              </p>
+            </div>
+          </div>
+
+          <form class="comment-form" id="comment-form">
+            <textarea
+              class="comment-input"
+              id="comment-input"
+              placeholder="Напишите комментарий по тайтлу или текущей серии…"
+              maxlength="800"
+            ></textarea>
+            <div class="comment-actions">
+              <span class="comment-user" id="comment-user">Комментируете как гость</span>
+              <button class="primary-btn" type="submit" id="comment-submit">Отправить</button>
+            </div>
+          </form>
+
+          <div class="comments-list" id="comments-list"></div>
+        </section>
+      </div>
+    </div>
+  </aside>
+
+  <div class="auth-modal" id="auth-modal" hidden>
+    <div class="auth-modal__backdrop" id="auth-backdrop"></div>
+
+    <div class="auth-modal__panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <button class="auth-modal__close" type="button" id="auth-close" aria-label="Закрыть">×</button>
+
+      <div class="auth-modal__content">
+        <div class="auth-modal__copy">
+          <div class="section-kicker">Аккаунт</div>
+          <h2 id="auth-title">Вход и регистрация</h2>
+          <p id="auth-copy">
+            Почта нужна для вашего профиля, а Google-вход работает через проект авторизации этого сайта.
+          </p>
+
+          <div class="auth-google-block">
+            <div class="detail-label">Google</div>
+            <div id="google-auth-button"></div>
+            <p class="player-note" id="google-auth-note">Google-вход инициализируется…</p>
+          </div>
+        </div>
+
+        <div class="auth-modal__forms">
+          <div class="auth-tabs">
+            <button class="auth-tab is-active" type="button" data-auth-tab="login">Вход</button>
+            <button class="auth-tab" type="button" data-auth-tab="register">Регистрация</button>
+          </div>
+
+          <form class="auth-form is-active" id="login-form" novalidate>
+            <label class="auth-field">
+              <span>Email</span>
+              <input id="login-email" type="email" autocomplete="email" required>
+            </label>
+
+            <label class="auth-field">
+              <span>Пароль</span>
+              <input id="login-password" type="password" autocomplete="current-password" required minlength="6">
+            </label>
+
+            <button class="primary-btn auth-submit" type="submit" id="login-submit">Войти по почте</button>
+          </form>
+
+          <form class="auth-form" id="register-form" novalidate>
+            <label class="auth-field">
+              <span>Email</span>
+              <input id="register-email" type="email" autocomplete="email" required>
+            </label>
+
+            <label class="auth-field">
+              <span>Пароль</span>
+              <input id="register-password" type="password" autocomplete="new-password" required minlength="6">
+            </label>
+
+            <label class="auth-field">
+              <span>Повторите пароль</span>
+              <input
+                id="register-password-confirm"
+                type="password"
+                autocomplete="new-password"
+                required
+                minlength="6"
+              >
+            </label>
+
+            <button class="primary-btn auth-submit" type="submit" id="register-submit">Создать аккаунт</button>
+          </form>
+
+          <div class="auth-status" id="auth-status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <footer class="seo-footer seo-footer--clean" aria-label="SEO links">
+    <div class="seo-footer__copy">
+      AnimeCloud — каталог аниме из базы Kodik с русской озвучкой, онгоингами, топами, расписанием и быстрым плеером.
+    </div>
+    <div class="seo-footer__inner">
+      <a class="seo-footer__link" href="/">Главная</a>
+      <a class="seo-footer__link" href="/catalog">Каталог аниме</a>
+      <a class="seo-footer__link" href="/ongoing">Онгоинги</a>
+      <a class="seo-footer__link" href="/top">Топ аниме</a>
+      <a class="seo-footer__link" href="/schedule">Расписание выхода</a>
+    </div>
+  </footer>
+
+  <div class="toast-viewport" id="toast-viewport" aria-live="polite" aria-atomic="true"></div>
+
+  <template id="anime-card-template">
+    <article class="anime-card">
+        <a class="anime-card__action" href="/">
+        <div class="anime-card__poster-wrap">
+          <img class="anime-card__poster" alt="" width="720" height="1020">
+          <span class="anime-card__age"></span>
+          <span class="anime-card__status"></span>
+        </div>
+        <div class="anime-card__body">
+          <h3 class="anime-card__title"></h3>
+          <p class="anime-card__meta"></p>
+          <div class="anime-card__tags"></div>
+        </div>
+        </a>
+    </article>
+  </template>
+
+<script src="/api/runtime-config.js" defer></script>
+<script src="/app-constants.min.js" defer></script>
+<script src="/firebase-config.min.js" defer></script>
+<script src="/cloud-sync.min.js" defer></script>
+<script src="/app-api-client.min.js" defer></script>
+<script src="/app-seo.min.js" defer></script>
+<script src="/app-stats.min.js" defer></script>
+<script src="/app-player-utils.min.js" defer></script>
+<script src="/app.min.js" defer></script>
+<script src="/auth.min.js" defer></script>
+<script src="/watch-features.min.js" defer></script>
 </body>
 </html>

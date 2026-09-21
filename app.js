@@ -7,6 +7,66 @@ const SITE_URL =
   APP_CONSTANTS.SITE_URL ||
   (typeof window !== "undefined" && window.location?.origin ? window.location.origin : "https://example.invalid");
 
+// Разметка, в которую рендерится приложение. Если index.html пришёл без неё
+// (например, отдан только <div id="root"></div>), интерфейс отрисовать нельзя:
+// показываем понятное сообщение вместо пустого тёмного экрана.
+const APP_SHELL_SELECTORS = [
+  ".site-shell",
+  "#view-tabs",
+  "#latest-grid",
+  "#anime-card-template",
+  "#toast-viewport"
+];
+
+function findMissingAppShellSelectors() {
+  if (typeof document === "undefined") return [];
+  return APP_SHELL_SELECTORS.filter((selector) => !document.querySelector(selector));
+}
+
+function renderAppShellFallbackNotice(missingSelectors) {
+  if (typeof document === "undefined" || !document.body) return false;
+
+  const host = document.getElementById("root") || document.body;
+  const notice = document.createElement("section");
+  notice.className = "shell-fallback";
+  notice.setAttribute("role", "alert");
+
+  const kicker = document.createElement("p");
+  kicker.className = "shell-fallback__kicker";
+  kicker.textContent = "AnimeCloud";
+
+  const title = document.createElement("h1");
+  title.className = "shell-fallback__title";
+  title.textContent = "Интерфейс не загрузился";
+
+  const text = document.createElement("p");
+  text.className = "shell-fallback__text";
+  text.textContent =
+    "Страница пришла без разметки приложения, поэтому витрина не может отрисоваться. Обновите страницу или зайдите чуть позже.";
+
+  const reloadBtn = document.createElement("button");
+  reloadBtn.className = "primary-btn shell-fallback__reload";
+  reloadBtn.type = "button";
+  reloadBtn.textContent = "Обновить страницу";
+  reloadBtn.addEventListener("click", () => window.location.reload());
+
+  notice.append(kicker, title, text, reloadBtn);
+  host.prepend(notice);
+
+  console.error(
+    `[AnimeCloud] В документе нет статической разметки приложения (${missingSelectors.join(", ")}). ` +
+      "index.html должен содержать контейнеры, в которые рендерится app.min.js."
+  );
+
+  return true;
+}
+
+const missingAppShellSelectors = findMissingAppShellSelectors();
+if (missingAppShellSelectors.length) {
+  renderAppShellFallbackNotice(missingAppShellSelectors);
+}
+
+
 const DEFAULT_SEO_TITLE = "Смотреть аниме онлайн бесплатно | AnimeCloud";
 const DEFAULT_SEO_DESCRIPTION =
   "AnimeCloud - каталог аниме из базы Kodik с русской озвучкой, быстрым мобильным интерфейсом, подборками и встроенным плеером.";
